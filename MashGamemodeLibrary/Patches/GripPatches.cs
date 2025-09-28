@@ -80,9 +80,11 @@ public class GripPatches
         return !entity || entity.CanGrabEntity(hand);
     }
     
+    
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
-    public static bool OnAttachedToHand_Postfix(Grip __instance, Hand hand)
+    public static bool OnAttachedToHand_Prefix(Grip __instance, Hand hand)
     {
         __instance._marrowEntity.OnGrab(hand);
         return true;

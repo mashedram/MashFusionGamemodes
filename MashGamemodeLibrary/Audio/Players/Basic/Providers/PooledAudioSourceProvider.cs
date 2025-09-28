@@ -48,7 +48,7 @@ public class PooledAudioSourceProvider : IAudioSourceProvider
             timeout++;
             if (timeout >= _poolSize)
                 break;
-        } while (source && !source.isPlaying);
+        } while (source.isPlaying);
 
         return source;
     }
