@@ -7,7 +7,7 @@ namespace Clockhunt.Entities.Tags;
 
 public class GrabTracker : IEntityGrabCallback, IEntityDropCallback
 {
-    public bool IsGrabbed { get; private set; }
+    public bool IsGrabbed;
     
     public void OnGrab(NetworkEntity entity, Hand hand)
     {

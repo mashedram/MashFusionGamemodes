@@ -1,5 +1,6 @@
 ﻿using LabFusion.SDK.Modules;
 using MashGamemodeLibrary;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.networking;
 using MelonLoader;
 

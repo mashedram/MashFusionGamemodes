@@ -19,6 +19,7 @@ namespace Clockhunt.Entities;
 public static class ClockManager
 {
     private static string _clockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
+    private static Vector3 _deliveryPosition = new(0, 1, 0);
 
     private static Spawnable GetSpawnable()
     {
@@ -82,12 +83,22 @@ public static class ClockManager
                         context.NightmareManager.IsNightmare(owner.NetworkPlayer.PlayerID)).ToList();
         
     }
+    
+    public static void SetDeliveryPosition(Vector3 position)
+    {
+        _deliveryPosition = position;
+    }
 
     public static void Update(float delta)
     {
-        foreach (var networkEntity in EntityTagManager.GetAllWithTag<GrabTracker>(tag => tag.IsGrabbed))
+        const float DeliveryDistance = 10.0f;
+        foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<GrabTracker>(tag => tag.IsGrabbed) let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity let distance = Vector3.Distance(marrowEntity.transform.position, _deliveryPosition) where !(distance > DeliveryDistance) select networkEntity)
         {
-            
+            NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo()
+            {
+                DespawnEffect = true,
+                EntityID = networkEntity.ID
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Harmony;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
@@ -187,6 +188,27 @@ public static class EntityTagManager
                 continue;
             
             list.Add(entity);
+        }
+        
+        return list;
+    }
+    
+    public static List<KeyValuePair<T, NetworkEntity>> GetAllTags<T>(Predicate<T>? where = null) where T : IEntityTag
+    {
+        var list = new List<KeyValuePair<T, NetworkEntity>>();
+        
+        foreach (var (_, trackedEntity) in _entities)
+        {
+            if (!trackedEntity.TryGetTag<T>(out var tag)) 
+                continue;
+            
+            if (where != null && !where(tag))
+                continue;
+            
+            if (!trackedEntity.TryGetEntity(out var entity))
+                continue;
+            
+            list.Add(new KeyValuePair<T, NetworkEntity>(tag, entity));
         }
         
         return list;
