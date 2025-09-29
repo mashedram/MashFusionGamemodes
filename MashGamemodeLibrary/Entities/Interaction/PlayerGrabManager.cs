@@ -24,7 +24,7 @@ public static class PlayerGrabManager
         };
     }
 
-    private static bool IsForceDisabled()
+    public static bool IsForceDisabled()
     {
         return OverwriteMap.ContainsValue(true);
     }

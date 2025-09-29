@@ -3,6 +3,11 @@ using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Grabbables;
+using LabFusion.MonoBehaviours;
+using LabFusion.Player;
+using LabFusion.SDK.Extenders;
+using LabFusion.Senders;
 using MashGamemodeLibrary.Entities.Interaction;
 using UnityEngine;
 
@@ -95,5 +100,46 @@ public class GripPatches
     public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
     {
         __instance._marrowEntity.OnDrop(hand);
+    }
+    
+    // Other
+    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
+    [HarmonyPrefix]
+    public static bool SendObjectAttach_Prefix(Hand hand, Grip grip)
+    {
+        var entity = grip._marrowEntity;
+
+        return !entity || entity.CanGrabEntity(hand);
+    }
+
+    // TODO: Look into if this is needed
+    [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TransferOwnership))]
+    [HarmonyPrefix]
+    public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID newOwner)
+    {
+        return !PlayerGrabManager.IsForceDisabled();
+    }
+
+    [HarmonyPatch(typeof(CollisionSyncer), "OnCollisionEnter")]
+    [HarmonyPrefix]
+    public static bool OnCollisionEnter_Prefix(Collision collision)
+    {
+        return !PlayerGrabManager.IsForceDisabled();
+    }
+
+    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectDetach))]
+    [HarmonyPrefix]
+    public static bool SendObjectDetach_Prefix(Hand hand, Grip grip)
+    {
+        var entity = grip._marrowEntity;
+        return !entity || entity.CanGrabEntity(hand);
+    }
+
+    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]
+    [HarmonyPrefix]
+    public static bool SendObjectForcePull_Prefix(Hand hand, Grip grip)
+    {
+        var entity = grip._marrowEntity;
+        return !entity || entity.CanGrabEntity(hand);
     }
 }

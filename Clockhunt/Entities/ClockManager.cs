@@ -46,6 +46,7 @@ public static class ClockManager
             {
                 result.Entity.AddTag(new ClockMarker());
                 result.Entity.AddTag(new EntityOwner(player));
+                result.Entity.AddTag(new GrabTracker());
                 result.Entity.AddTag(new AlarmOnGrabOwnClock());
                 result.Entity.AddTag(new NightmareGrabBlocker());
             }
@@ -80,5 +81,13 @@ public static class ClockManager
             .Where(e => e.TryGetTag<EntityOwner>(out var owner) && owner.NetworkPlayer != null && 
                         context.NightmareManager.IsNightmare(owner.NetworkPlayer.PlayerID)).ToList();
         
+    }
+
+    public static void Update(float delta)
+    {
+        foreach (var networkEntity in EntityTagManager.GetAllWithTag<GrabTracker>(tag => tag.IsGrabbed))
+        {
+            
+        }
     }
 }

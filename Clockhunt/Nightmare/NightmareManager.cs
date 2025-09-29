@@ -163,6 +163,29 @@ public class NightmareManager
 
         SetNightmare(player.PlayerID.SmallID, descriptor.ID);
     }
+    
+    public void SetRandomNightmare(NetworkPlayer player)
+    {
+        if (!NetworkInfo.IsHost)
+        {
+            MelonLogger.Error("Only the host can set nightmares");
+            return;
+        }
+        
+        var totalWeight = _nightmareDescriptors.Values.Sum(d => d.Weight);
+        var choice = Random.Shared.Next(0, totalWeight);
+        foreach (var descriptor in _nightmareDescriptors.Values)
+        {
+            choice -= descriptor.Weight;
+            if (choice <= 0)
+            {
+                SetNightmare(player.PlayerID.SmallID, descriptor.ID);
+                return;
+            }
+        }
+        
+        MelonLogger.Error("Failed to select a random nightmare - this should never happen");
+    }
 
     public bool IsNightmare(PlayerID playerID)
     {

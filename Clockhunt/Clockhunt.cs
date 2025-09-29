@@ -6,6 +6,7 @@ using Clockhunt.Phase;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.SDK.Gamemodes;
+using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Object;
@@ -19,8 +20,6 @@ namespace Clockhunt;
 
 public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 {
-    public static Clockhunt Instance = null!;
-    
     public override string Title => "Clockhunt";
     public override string Author => "Mash";
 
@@ -28,10 +27,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
     {
         base.OnGamemodeRegistered();
         
-        Instance = this;
         EntityTagManager.RegisterAll<Mod>();
-        
-        NightmareManager.Register<EntityNightmareDescriptor>();
+        NightmareManager.RegisterAll<Mod>();
     }
 
     public override void OnGamemodeStarted()
