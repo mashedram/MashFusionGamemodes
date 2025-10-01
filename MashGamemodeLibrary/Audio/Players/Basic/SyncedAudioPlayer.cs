@@ -9,7 +9,7 @@ namespace MashGamemodeLibrary.Audio.Players.Basic;
 
 public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable, new()
 {
-    public int AudioHash;
+    public ulong AudioHash;
     public T ExtraData = default!;
     
     public void Serialize(INetSerializer serializer)
@@ -34,7 +34,7 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
     {
         var container = (ISyncedAudioContainer)Container;
         
-        container.RequestClip(packet.AudioHash, (clip) =>
+        container.RequestClip(packet.AudioHash, clip =>
         {
             if (!clip)
                 return;

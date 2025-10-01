@@ -4,6 +4,7 @@ using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Basic;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
+using MashGamemodeLibrary.Audio.Players.Extensions;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Object;

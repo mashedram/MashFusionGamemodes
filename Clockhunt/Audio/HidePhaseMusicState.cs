@@ -9,7 +9,7 @@ namespace Clockhunt.Audio;
 
 public class HidePhaseMusicState : MusicState<ClockhuntMusicContext>
 {
-    private static readonly IAudioContainer Container = new LoadOnDemandContainer(new MonoDiscLoader(new[]
+    protected override IAudioContainer AudioContainer => new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
         "Sylvie.SignalisMonodiscs.MonoDisc.3000Cycles",
         "Sylvie.SignalisMonodiscs.MonoDisc.FalkesTheme",
@@ -17,9 +17,7 @@ public class HidePhaseMusicState : MusicState<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.Home"
     }));
 
-    public override IAudioContainer AudioContainer => Container;
-
-    public override int Priority => 50;
+    public override int Priority => 10;
     
     public override bool CanPlay(ClockhuntMusicContext context)
     {

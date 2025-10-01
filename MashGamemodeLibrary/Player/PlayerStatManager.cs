@@ -17,6 +17,5 @@ public static class PlayerStatManager
     public static void ResetStats()
     {
         LocalStatOverride = null;
-        LocalAvatar.RefreshAvatar();
     }
 }

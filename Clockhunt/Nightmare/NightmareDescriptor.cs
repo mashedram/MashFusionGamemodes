@@ -1,12 +1,13 @@
 ﻿using LabFusion.Entities;
 using LabFusion.SDK.Triggers;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Nightmare;
 
 public abstract class NightmareDescriptor
 {
-    public int ID => GetType().FullName?.GetHashCode() ?? throw new Exception("Type has no FullName");
+    public ulong ID => GetType().FullName?.GetStableHash() ?? throw new Exception("Type has no FullName");
     
     public bool IsEnabled { get; set; } = true;
     public abstract string Name { get; }

@@ -16,7 +16,7 @@ public abstract class GamePhase
     /**
      * The pase will exit immediately if this predicate returns true.
      */
-    protected virtual bool PhaseExitPredicate()
+    protected virtual bool ShouldPhaseExit()
     {
         return false;
     }
@@ -70,6 +70,6 @@ public abstract class GamePhase
 
     public bool ShouldMoveToNextPhase()
     {
-        return PhaseExitPredicate() || HasDurationElapsed();
+        return ShouldPhaseExit() || HasDurationElapsed();
     }
 }

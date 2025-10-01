@@ -1,4 +1,5 @@
 ﻿using MashGamemodeLibrary.Audio.Loaders;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.Universal.LibTessDotNet;
@@ -9,8 +10,8 @@ namespace MashGamemodeLibrary.Audio.Containers;
 public class SyncedAudioContainer : ISyncedAudioContainer
 {
     private readonly IAudioLoader _loader;
-    private readonly Dictionary<string, int> _nameToHash = new();
-    private readonly Dictionary<int, AudioClip> _clips = new();
+    private readonly Dictionary<string, ulong> _nameToHash = new();
+    private readonly Dictionary<ulong, AudioClip> _clips = new();
 
     public SyncedAudioContainer(IAudioLoader loader)
     {
@@ -20,7 +21,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
     }
     
     public List<string> AudioNames => _loader.AudioNames;
-    public List<int> AudioHashes => _clips.Keys.ToList();
+    public List<ulong> AudioHashes => _clips.Keys.ToList();
 
     public bool IsLoading { get; private set; }
 
@@ -49,7 +50,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
                     return;
                 }
 
-                var identifier = name.GetHashCode();
+                var identifier = name.GetStableHash();
                 _clips[identifier] = audioClip!;
                 _nameToHash[name] = identifier;
                 if (toLoad <= 0)
@@ -60,7 +61,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         }
     }
 
-    public int? GetAudioHash(string name)
+    public ulong? GetAudioHash(string name)
     {
         return _nameToHash.GetValueOrDefault(name);
     }
@@ -72,7 +73,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         onClipReady.Invoke(null);
     }
 
-    public void RequestClip(int identifier, Action<AudioClip?> onClipReady)
+    public void RequestClip(ulong identifier, Action<AudioClip?> onClipReady)
     {
         if (IsLoading)
         {

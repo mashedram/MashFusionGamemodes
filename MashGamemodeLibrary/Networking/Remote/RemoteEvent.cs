@@ -10,12 +10,14 @@ namespace MashGamemodeLibrary.networking;
 
 public class RemoteEvent<T> where T : INetSerializable, new()
 {
-    private readonly int _assignedId;
+    public delegate void PacketHandler(T packet);
+    
+    private readonly ulong _assignedId;
     private readonly string _name;
-    private readonly Action<T> _onEvent;
+    private readonly PacketHandler _onEvent;
     private readonly bool _callOnHost = true;
 
-    public RemoteEvent(string name, Action<T> onEvent, bool callOnHost = true)
+    public RemoteEvent(string name, PacketHandler onEvent, bool callOnHost = true)
     {
         _name = name;
         _onEvent = onEvent;
@@ -31,7 +33,7 @@ public class RemoteEvent<T> where T : INetSerializable, new()
     /**
      * An event that, when called, will run on all specified clients.
      */
-    public RemoteEvent(Action<T> onEvent, bool callOnHost = true) : this(
+    public RemoteEvent(PacketHandler onEvent, bool callOnHost = true) : this(
         typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), 
         onEvent,
         callOnHost)
@@ -97,7 +99,7 @@ public class RemoteEvent<T> where T : INetSerializable, new()
     private void OnPacket(byte b, byte[] bytes)
     {
         using var serializer = NetReader.Create(bytes);
-        var serializable = default(T)!;
+        var serializable = Activator.CreateInstance<T>();
         serializable.Serialize(serializer);
         _onEvent.Invoke(serializable);
     }

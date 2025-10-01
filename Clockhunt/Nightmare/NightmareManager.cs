@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Clockhunt.Game;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
@@ -14,7 +15,7 @@ namespace Clockhunt.Nightmare;
 class PlayerNightmarePair : INetSerializable
 {
     public byte PlayerID;
-    public int NightmareID;
+    public ulong NightmareID;
 
     public void Serialize(INetSerializer serializer)
     {
@@ -51,12 +52,18 @@ class SyncNightmarePacket : INetSerializable
     }
 }
 
+// TODO: Make class static
 public class NightmareManager
 {
-    private static readonly Dictionary<int, NightmareDescriptor> _nightmareDescriptors = new();
+    private static readonly Dictionary<ulong, NightmareDescriptor> _nightmareDescriptors = new();
+    
+    public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => _nightmareDescriptors;
+    
     private readonly Dictionary<byte, NightmareInstance> _nightmareInstances = new();
     private readonly RemoteEvent<SyncNightmarePacket> _nightmareSyncEvent;
 
+    public IReadOnlyCollection<NightmareInstance> Nightmares => _nightmareInstances.Values;
+    
     public static void Register<T>() where T : NightmareDescriptor
     {
         var descriptor = (T)Activator.CreateInstance(typeof(T), true)!;
@@ -99,7 +106,7 @@ public class NightmareManager
         _nightmareSyncEvent.Call(packet);
     }
 
-    private void SetNightmare(byte playerId, int nightmareId)
+    private void SetNightmare(byte playerId, ulong nightmareId)
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
         {
@@ -110,15 +117,7 @@ public class NightmareManager
         var descriptor = _nightmareDescriptors[nightmareId];
         var instance = descriptor.CreateInstance(player);
         _nightmareInstances[playerId] = instance;
-        instance.OnApplied();
-
-        if (player.PlayerID.IsMe)
-        {
-            if (descriptor.Avatar != null)
-                LocalAvatar.AvatarOverride = descriptor.Avatar;
-            
-            PlayerStatManager.SetStats(descriptor.Stats);
-        }
+        instance.Apply();
         
         if (!NetworkInfo.IsHost) return;
         SendNightmareSync();
@@ -132,14 +131,8 @@ public class NightmareManager
             return;
         }
         
-        instance.OnRemoved();
+        instance.Remove();
         _nightmareInstances.Remove(playerId);
-
-        if (instance.Owner.PlayerID.IsMe)
-        {
-            LocalAvatar.AvatarOverride = null;
-            PlayerStatManager.ResetStats();
-        }
         
         if (!NetworkInfo.IsHost) return;
         SendNightmareSync();
@@ -172,16 +165,15 @@ public class NightmareManager
             return;
         }
         
-        var totalWeight = _nightmareDescriptors.Values.Sum(d => d.Weight);
+        var enabledDescriptors = _nightmareDescriptors.Values.Where(d => d.IsEnabled).ToList();
+        var totalWeight = enabledDescriptors.Sum(d => d.Weight);
         var choice = Random.Shared.Next(0, totalWeight);
-        foreach (var descriptor in _nightmareDescriptors.Values)
+        foreach (var descriptor in enabledDescriptors)
         {
             choice -= descriptor.Weight;
-            if (choice <= 0)
-            {
-                SetNightmare(player.PlayerID.SmallID, descriptor.ID);
-                return;
-            }
+            if (choice > 0) continue;
+            SetNightmare(player.PlayerID.SmallID, descriptor.ID);
+            return;
         }
         
         MelonLogger.Error("Failed to select a random nightmare - this should never happen");
@@ -236,5 +228,19 @@ public class NightmareManager
                 RemoveNightmare(id);
             }
         }
+    }
+
+    public void ClearNightmares()
+    {
+        if (!NetworkInfo.IsHost)
+        {
+            MelonLogger.Error("Only the host can clear nightmares");
+            return;
+        }
+        
+        _nightmareInstances.ForEach(pair => pair.Value.Remove());
+        _nightmareInstances.Clear();
+        
+        SendNightmareSync();
     }
 }

@@ -5,6 +5,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Patching;
 using LabFusion.Marrow.Pool;
@@ -47,7 +48,7 @@ public static class ClockManager
             {
                 result.Entity.AddTag(new ClockMarker());
                 result.Entity.AddTag(new EntityOwner(player));
-                result.Entity.AddTag(new GrabTracker());
+                result.Entity.AddTag(new ObjectiveCollectable());
                 result.Entity.AddTag(new AlarmOnGrabOwnClock());
                 result.Entity.AddTag(new NightmareGrabBlocker());
             }
@@ -64,7 +65,7 @@ public static class ClockManager
         return EntityTagManager.CountEntitiesWithTag<ClockMarker>();
     }
     
-    public static List<NetworkEntity> GetAllClockEntities()
+    public static HashSet<NetworkEntity> GetAllClockEntities()
     {
         return EntityTagManager.GetAllWithTag<ClockMarker>();
     }
@@ -76,12 +77,25 @@ public static class ClockManager
         if (toRemove <= 0) return;
         
         // TODO: Check for nightmares here
-        var context = Clockhunt.GetContext();
+        var context = Clockhunt.Context;
         
         var survivorClocks = clocks
             .Where(e => e.TryGetTag<EntityOwner>(out var owner) && owner.NetworkPlayer != null && 
                         context.NightmareManager.IsNightmare(owner.NetworkPlayer.PlayerID)).ToList();
         
+        survivorClocks.Shuffle();
+        
+        foreach (var clock in survivorClocks.Take(toRemove))
+        {
+            NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo()
+            {
+                DespawnEffect = true,
+                EntityID = clock.ID
+            });
+            toRemove--;
+            if (toRemove <= 0)
+                return;
+        }
     }
     
     public static void SetDeliveryPosition(Vector3 position)
@@ -89,10 +103,14 @@ public static class ClockManager
         _deliveryPosition = position;
     }
 
-    public static void Update(float delta)
+    public static void Update()
     {
-        const float DeliveryDistance = 10.0f;
-        foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<GrabTracker>(tag => tag.IsGrabbed) let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity let distance = Vector3.Distance(marrowEntity.transform.position, _deliveryPosition) where !(distance > DeliveryDistance) select networkEntity)
+        const float deliveryDistance = 10.0f;
+        foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed) 
+                 let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity 
+                 let distance = Vector3.Distance(marrowEntity.transform.position, _deliveryPosition) 
+                 where !(distance > deliveryDistance) 
+                 select networkEntity)
         {
             NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo()
             {
@@ -100,5 +118,14 @@ public static class ClockManager
                 EntityID = networkEntity.ID
             });
         }
+    }
+
+    public static void ClearClocks()
+    {
+        EntityTagManager.GetAllIdsWithTag<ClockMarker>().ForEach(id => NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
+        {
+            DespawnEffect = true,
+            EntityID = id
+        }));
     }
 }

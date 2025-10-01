@@ -1,4 +1,7 @@
 ﻿using Clockhunt.Audio;
+using Clockhunt.Entities;
+using Clockhunt.Entities.Tags;
+using Clockhunt.Game;
 using Clockhunt.Nightmare;
 using Clockhunt.Phase;
 using Il2CppSLZ.Marrow.Interaction;
@@ -7,6 +10,7 @@ using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Background;
 using MashGamemodeLibrary.Audio.Players.Background.Music;
+using MashGamemodeLibrary.Audio.Players.Background.Timed;
 using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Phase;
@@ -17,19 +21,32 @@ namespace Clockhunt;
 
 public class ClockhuntContext : GameContext
 {
-    public readonly GamePhaseManager PhaseManager = new(new GamePhase[] { new HidePhase(), new HuntPhase() });
+    public readonly GamePhaseManager PhaseManager = new(new GamePhase[] { new HidePhase(), new HuntPhase(), new EscapePhase() });
     public readonly NightmareManager NightmareManager = new();
     
     // Music
     
-    public readonly MusicPlayer<ClockhuntContext, ClockhuntMusicContext> MusicContext = new(new MusicState<ClockhuntMusicContext>[]
+    public readonly MusicPlayer<ClockhuntContext, ClockhuntMusicContext> MusicPlayer = new(new MusicState<ClockhuntMusicContext>[]
     {
+        new ChaseMusicState(),
+        new HuntStartPhaseMusicState(),
+        new HuntMiddlePhaseMusicState(),
+        new HuntEndPhaseMusicState(),
         new HidePhaseMusicState()
     }, ClockhuntMusicContext.GetContext);
     
     // Audio
-    public ObjectAudioPlayer<DummySerializable> ClockAudioPlayer { get; } = new("ClockSound",
+    public TimedTagPlayer<ClockMarker> ClockAudioPlayer { get; } = new(new RandomObjectAudioPlayer("ClockSound",
         new SyncedAudioContainer(new AudioFileLoader("Pings")), 10, (NetworkEntity entity, MarrowEntity marrowEntity,
+            DummySerializable _, ref AudioSource source) =>
+        {
+            source.volume = 0.4f;
+            source.spatialBlend = 1f;
+            return true;
+        }), 30, 60);
+
+    public RandomObjectAudioPlayer AlarmAudioPlayer { get; } = new ("AlarmSound",
+        new SyncedAudioContainer(new AudioFileLoader("Alarm")), 10, (NetworkEntity entity, MarrowEntity marrowEntity,
             DummySerializable _, ref AudioSource source) =>
         {
             source.volume = 0.4f;
@@ -37,10 +54,13 @@ public class ClockhuntContext : GameContext
             return true;
         });
 
-    public override void OnUpdate(float delta)
+    protected override void OnUpdate(float delta)
     {
         PhaseManager.Update(delta);
         NightmareManager.Update(delta);
-        MusicContext.Update();
+        MusicPlayer.Update();
+        ClockAudioPlayer.Update(delta);
+        
+        ClockManager.Update();
     }
 }

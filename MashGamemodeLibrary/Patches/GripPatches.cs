@@ -30,14 +30,11 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
     {
-        if (hand == null || __instance._weaponHost == null)
+        if (!hand || __instance._weaponHost == null)
             return true;
 
         var entity = __instance._weaponHost?.GetGrip()._marrowEntity;
-        if (entity == null)
-            return true;
-
-        return !entity || entity.CanGrabEntity(hand);
+        return !entity || entity!.CanGrabEntity(hand);
     }
 
     [HarmonyPrefix]
@@ -45,11 +42,11 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
     {
-        if (hand == null || __instance._weaponHost == null)
+        if (!hand || __instance._weaponHost == null)
             return true;
 
         var entity = __instance._weaponHost.GetGrip()._marrowEntity;
-        if (entity == null)
+        if (!entity)
             return true;
 
         var res = !entity || entity.CanGrabEntity(hand);
@@ -84,24 +81,53 @@ public class GripPatches
 
         return !entity || entity.CanGrabEntity(hand);
     }
-    
-    
-    
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
-    public static bool OnAttachedToHand_Prefix(Grip __instance, Hand hand)
+
+    private static bool DropIfNeeded(Grip? grip, Hand? hand)
     {
-        __instance._marrowEntity.OnGrab(hand);
+        
+        var entity = grip?._marrowEntity;
+        if (!entity)
+            return false;
+
+        if (!hand)
+            return false;
+
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player))
+            return false;
+        
+        if (!player.PlayerID.IsMe)
+            return false;
+        
+        if (entity.CanGrabEntity(player))
+            return false;
+
+        if (!grip.HasHost)
+            return false;
+
+        if (!grip.Host.Rb) return false;
+
+        grip.ForceDetach();
         return true;
     }
+    
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
+    public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
+    {
+        if (DropIfNeeded(__instance, hand))
+            return;
+        
+        __instance._marrowEntity?.OnGrab(hand);
+    }
+
 
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
     [HarmonyPostfix]
     public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
     {
-        __instance._marrowEntity.OnDrop(hand);
+        __instance._marrowEntity?.OnDrop(hand);
     }
-    
+
     // Other
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
     [HarmonyPrefix]
@@ -115,7 +141,7 @@ public class GripPatches
     // TODO: Look into if this is needed
     [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TransferOwnership))]
     [HarmonyPrefix]
-    public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID newOwner)
+    public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
     {
         return !PlayerGrabManager.IsForceDisabled();
     }
@@ -129,10 +155,9 @@ public class GripPatches
 
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectDetach))]
     [HarmonyPrefix]
-    public static bool SendObjectDetach_Prefix(Hand hand, Grip grip)
+    public static bool SendObjectDetach_Prefix(Hand hand)
     {
-        var entity = grip._marrowEntity;
-        return !entity || entity.CanGrabEntity(hand);
+        return !PlayerGrabManager.IsForceDisabled();
     }
 
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]

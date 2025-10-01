@@ -21,7 +21,7 @@ public class EntityNightmareDescriptor : NightmareDescriptor
 {
     public override string Name => "Entity";
     public override string Description => "Kill all players.";
-    public override string Avatar => "Random.OWNTeamAvatars.Avatar.Entiity";
+    public override string Avatar => "Random.OWNTeamAvatars.Avatar.Entity";
     public override int Weight => 10;
     public override float AbilityCooldown => 60f;
 

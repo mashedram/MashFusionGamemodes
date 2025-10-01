@@ -6,42 +6,26 @@ namespace MashGamemodeLibrary.Context;
 
 public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext
 {
-    private T? _internalContext;
-    protected T Context => _internalContext ?? throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    private static T? _internalContext;
+    public static T Context => _internalContext ?? throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
     
     public override void OnGamemodeRegistered()
     {
         _internalContext = Activator.CreateInstance<T>();
+        if (_internalContext == null)
+            throw new InvalidOperationException($"Failed to create instance of {typeof(T).Name}. Ensure it has a public parameterless constructor.");
+        
         base.OnGamemodeRegistered();
+    }
+
+    public override void OnGamemodeReady()
+    {
+        Context.OnReady();
     }
 
     protected override void OnUpdate()
     {
-        if (_internalContext == null)
-        {
-            MelonLogger.Error($"Attempted to update gamemode {Title} but context is null. Did you forget to call base.OnGamemodeRegistered()?");
-            return;
-        }
-        
-        _internalContext.Update(Time.deltaTime);
+        Context.Update(Time.deltaTime);
         base.OnUpdate();
-    }
-
-    /// <summary>
-    /// Gets the current game context from the active gamemode.
-    /// </summary>
-    /// <returns>The current gamemode context</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the function is called outside of the gamemode</exception>
-    public static T GetContext()
-    {
-        var gamemode = GamemodeManager.ActiveGamemode;
-        var context = gamemode is GamemodeWithContext<T> gamemodeWithContext
-            ? gamemodeWithContext._internalContext
-            : throw new InvalidOperationException($"Active gamemode is not a {nameof(GamemodeWithContext<T>)}");
-        
-        if (context == null)
-            throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
-
-        return context;
     }
 }

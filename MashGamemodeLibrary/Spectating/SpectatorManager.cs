@@ -101,6 +101,11 @@ public static class SpectatorManager
                 Show(player.PlayerID);
             }
         }
+        
+        if (!NetworkInfo.IsHost)
+            return;
+        
+        SendSync();
     }
     
     private static void OnSyncReceived(SpectatorSyncPacket packet)
@@ -148,6 +153,11 @@ public static class SpectatorManager
             SpectatingPlayerIds.Remove(playerID);
         }
         ApplyAll();
-        SendSync();
+    }
+
+    public static void Clear()
+    {
+        SpectatingPlayerIds.Clear();
+        ApplyAll();
     }
 }

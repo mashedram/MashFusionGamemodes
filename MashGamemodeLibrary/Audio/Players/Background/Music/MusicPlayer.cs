@@ -39,7 +39,7 @@ public class MusicPlayer<T, U> where T : GameContext
 
     private void BuildContext()
     {
-        var context = GamemodeWithContext<T>.GetContext();
+        var context = GamemodeWithContext<T>.Context;
         _context = _contextBuilder(context);
     }
 
@@ -48,9 +48,9 @@ public class MusicPlayer<T, U> where T : GameContext
         var state = _activeState;
         if (state == null) return;
 
-        var name = state.AudioContainer.AudioNames[_trackIndex];
+        var name = state.GetAudioContainer().AudioNames[_trackIndex];
         if (string.IsNullOrEmpty(name)) return;
-        state.AudioContainer.RequestClip(name, clip =>
+        state.GetAudioContainer().RequestClip(name, clip =>
         {
             if (!clip)
             {
@@ -58,8 +58,12 @@ public class MusicPlayer<T, U> where T : GameContext
                 return;
             }
             
+            #if DEBUG
+            MelonLogger.Msg($"Playing music clip: {name} from state: {state.GetType().FullName}");
+            #endif
+            
             var audio2dManager = Audio2dPlugin.Audio2dManager;
-            const float musicVolume = 0.2f;
+            const float musicVolume = 0.8f;
             audio2dManager.CueOverrideMusic(clip, musicVolume, 2.0f, 2.0f, false, false);
         });
     }
@@ -83,7 +87,7 @@ public class MusicPlayer<T, U> where T : GameContext
         if (_activeState == null)
             return;
 
-        var audioNames = _activeState.AudioContainer.AudioNames;
+        var audioNames = _activeState.GetAudioContainer().AudioNames;
         if (audioNames.Count == 0)
             return;
 
@@ -98,6 +102,24 @@ public class MusicPlayer<T, U> where T : GameContext
         return _states.FirstOrDefault(musicState => musicState.CanPlay(_context)) ?? _states.Max ?? null!;
     }
 
+    public void StartPlaying()
+    {
+        if (_isActive)
+            return;
+        
+        _isActive = true;
+    }
+    
+    public void StopPlaying()
+    {
+        if (!_isActive)
+            return;
+        
+        _isActive = false;
+        _activeState = null;
+        StopTrack();
+    }
+
     public void Update()
     {
         if (!_isActive)
@@ -107,7 +129,8 @@ public class MusicPlayer<T, U> where T : GameContext
         
         var wantedState = GetWantedState();
         if (!IsPlaying() && wantedState == _activeState) return;
-        
+
+        _activeState = wantedState;
         NextTrack();
     }
 

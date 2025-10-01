@@ -10,6 +10,14 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch(typeof(Avatar))]
 public static class AvatarPatches
 {
+    private static void SetVitality(float? value)
+    {
+        if (LocalHealth.VitalityOverride.Equals(value))
+            return;
+
+        LocalHealth.VitalityOverride = value;
+    }
+    
     [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
     [HarmonyPostfix]
     public static void ComputeBaseStatsPostfix(Avatar __instance)
@@ -18,7 +26,7 @@ public static class AvatarPatches
 
         if (stats == null)
         {
-            LocalHealth.VitalityOverride = null;
+            SetVitality(null);
             return;
         }
         
@@ -26,15 +34,15 @@ public static class AvatarPatches
             return;
 
         var rigManager = __instance.GetComponentInParent<RigManager>();
-        if (rigManager == null) return;
+        if (!rigManager) return;
         
-        if (NetworkPlayerManager.TryGetPlayer(rigManager, out var player))
+        if (!NetworkPlayerManager.TryGetPlayer(rigManager, out var player))
             return;
         
         if (!player.PlayerID.IsMe) 
             return;
         
-        LocalHealth.VitalityOverride = stats.Vitality;
+        SetVitality(stats.Vitality);
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;

@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.Entities.Tagging;
 public class TrackedEntity
 {
     private readonly NetworkEntityReference _entityReference;
-    private readonly Dictionary<int, IEntityTag> _tags = new();
+    private readonly Dictionary<ulong, IEntityTag> _tags = new();
     
     public TrackedEntity(NetworkEntityReference entityReference)
     {

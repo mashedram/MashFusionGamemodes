@@ -63,9 +63,8 @@ public static class PlayerGrabManager
         callbacks.Where(e => timeSinceLastDrop > e.DropCooldown).ForEach(e => e.OnDrop(networkEntity, hand, entity));
     }
     
-    public static bool CanGrabEntity(this MarrowEntity entity, Hand hand)
+    public static bool CanGrabEntity(this MarrowEntity entity, NetworkPlayer player)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) return true;
         // Only apply grab predicates for the local player
         if (!player.PlayerID.IsMe) return true;
         
@@ -77,6 +76,14 @@ public static class PlayerGrabManager
             .GetAllExtendingTag<IEntityGrabPredicate>();
         
         return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(player, networkEntity, entity));
+    }
+
+    public static bool CanGrabEntity(this MarrowEntity entity, Hand hand)
+    {
+        if (entity == null || hand == null || hand.manager == null)
+            return false;
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) return true;
+        return CanGrabEntity(entity, player);
     }
     
     public static void SetOverwrite(string key, bool value)

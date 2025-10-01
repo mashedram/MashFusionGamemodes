@@ -12,9 +12,6 @@ public class Mod : MelonMod
 {
     public override void OnInitializeMelon()
     {
-        var harmony = new HarmonyLib.Harmony("MashGamemodeLibrary");
-        harmony.PatchAll();
-        
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
         ModuleManager.RegisterModule<FusionModule>();

@@ -19,14 +19,13 @@ public class AlarmOnGrabOwnClock : IEntityGrabCallback
         
         if (owner.OwnerId != player.PlayerID.SmallID) return;
 
-        var context = Clockhunt.GetContext();
+        var context = Clockhunt.Context;
         
         if (!context.PhaseManager.IsPhase<HuntPhase>()) return;
         
         MelonLogger.Msg($"[Clockhunt] Player {player.PlayerID} grabbed their own clock, triggering alarm!");
 
         // TODO: Make these actual alarms
-        var name = context.ClockAudioPlayer.GetRandomAudioName();
-        context.ClockAudioPlayer.Play(name, entity, new DummySerializable());
+        context.AlarmAudioPlayer.PlayRandomAt(entity);
     }
 }

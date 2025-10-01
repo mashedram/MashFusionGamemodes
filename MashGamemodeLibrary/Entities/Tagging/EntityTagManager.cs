@@ -1,10 +1,17 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using BoneLib;
 using Harmony;
+using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Patching;
+using LabFusion.Marrow.Pool;
 using LabFusion.Network.Serialization;
+using LabFusion.RPC;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging.Tags;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Entities.Tagging;
@@ -12,7 +19,7 @@ namespace MashGamemodeLibrary.Entities.Tagging;
 public class SyncEntityTagPacket : INetSerializable
 {
     public ushort EntityId;
-    public int TagId;
+    public ulong TagId;
     public byte[] TagData;
     
     public void Serialize(INetSerializer serializer)
@@ -25,37 +32,38 @@ public class SyncEntityTagPacket : INetSerializable
 
 public static class EntityTagManager
 {
-    private static readonly Dictionary<int, Func<IEntityTag>> TagFactories = new();
+    private static readonly Dictionary<ulong, Func<IEntityTag>> TagFactories = new();
     
     private static RemoteEvent<SyncEntityTagPacket> _remoteTagEvent = new(OnTagPacket, false);
     
-    private static Dictionary<ushort, TrackedEntity> _entities = new();
+    private static readonly Dictionary<ushort, TrackedEntity> Entities = new();
 
     static EntityTagManager()
     {
-        NetworkEntityManager.IDManager.OnEntityUnregistered += entity =>
-        {
-            _entities.Remove(entity.ID);
-        };
     }
     
-    public static int GetTagId<T>() where T : IEntityTag
+    public static ulong GetTagId<T>() where T : IEntityTag
     {
-        return typeof(T).FullName?.GetHashCode() ?? throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
+        return typeof(T).FullName?.GetStableHash() ?? throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
+    }
+    
+    public static void Remove(ushort id)
+    {
+        Entities.Remove(id);
     }
     
     private static bool TryGetTrackedEntity(ushort id, [MaybeNullWhen(returnValue: false)] out TrackedEntity entity)
     {
-        return _entities.TryGetValue(id, out entity);   
+        return Entities.TryGetValue(id, out entity);   
     }
     
     private static TrackedEntity GetOrCreateTrackedEntity(ushort id)
     {
         if (TryGetTrackedEntity(id, out var entity))
-            return entity!;
+            return entity;
         
         var temp = new TrackedEntity(id);
-        _entities[id] = temp;
+        Entities[id] = temp;
         return temp;
     }
         
@@ -169,14 +177,14 @@ public static class EntityTagManager
     
     public static int CountEntitiesWithTag<T>() where T : IEntityTag
     {
-        return _entities.Count(e => e.Value.HasTag<T>());
+        return Entities.Count(e => e.Value.HasTag<T>());
     }
     
-    public static List<NetworkEntity> GetAllWithTag<T>(Predicate<T>? where = null) where T : IEntityTag
+    public static HashSet<NetworkEntity> GetAllWithTag<T>(Predicate<T>? where = null) where T : IEntityTag
     {
-        var list = new List<NetworkEntity>();
+        var container = new HashSet<NetworkEntity>();
         
-        foreach (var (_, trackedEntity) in _entities)
+        foreach (var (_, trackedEntity) in Entities)
         {
             if (!trackedEntity.TryGetTag<T>(out var tag)) 
                 continue;
@@ -187,17 +195,38 @@ public static class EntityTagManager
             if (!trackedEntity.TryGetEntity(out var entity))
                 continue;
             
-            list.Add(entity);
+            container.Add(entity);
         }
         
-        return list;
+        return container;
+    }
+    
+    public static HashSet<ushort> GetAllIdsWithTag<T>(Predicate<T>? where = null) where T : IEntityTag
+    {
+        var container = new HashSet<ushort>();
+        
+        foreach (var (_, trackedEntity) in Entities)
+        {
+            if (!trackedEntity.TryGetTag<T>(out var tag)) 
+                continue;
+            
+            if (where != null && !where(tag))
+                continue;
+            
+            if (!trackedEntity.TryGetEntity(out var entity))
+                continue;
+            
+            container.Add(entity.ID);
+        }
+        
+        return container;
     }
     
     public static List<KeyValuePair<T, NetworkEntity>> GetAllTags<T>(Predicate<T>? where = null) where T : IEntityTag
     {
         var list = new List<KeyValuePair<T, NetworkEntity>>();
         
-        foreach (var (_, trackedEntity) in _entities)
+        foreach (var (_, trackedEntity) in Entities)
         {
             if (!trackedEntity.TryGetTag<T>(out var tag)) 
                 continue;
