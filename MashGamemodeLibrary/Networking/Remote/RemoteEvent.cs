@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -10,7 +11,7 @@ namespace MashGamemodeLibrary.networking;
 
 public class RemoteEvent<T> where T : INetSerializable, new()
 {
-    public delegate void PacketHandler(T packet);
+    public delegate void PacketHandler(T onEscapePointActivedPacket);
     
     private readonly ulong _assignedId;
     private readonly string _name;
@@ -96,7 +97,7 @@ public class RemoteEvent<T> where T : INetSerializable, new()
         Relay(playerId.SmallID, data);
     }
 
-    private void OnPacket(byte b, byte[] bytes)
+    private void OnPacket(byte playerId, byte[] bytes)
     {
         using var serializer = NetReader.Create(bytes);
         var serializable = Activator.CreateInstance<T>();

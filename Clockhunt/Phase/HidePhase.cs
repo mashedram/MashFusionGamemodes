@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Util;
@@ -19,20 +20,19 @@ public class HidePhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
-        var context = Clockhunt.Context;
         WinStateManager.SetLocalTeam(GameTeam.Survivors);
         
         PlayerStatManager.SetStats(ClockhuntConfig.DefaultStats);
         
-        if (!NetworkInfo.IsHost)
-            return;
-        
-        NetworkPlayer.Players.ForEach(player =>
+        Executor.RunIfHost(() =>
         {
-            // TODO: Make this spawn a new one once the old one was placed
-            // TODO: Make this spawn a clock in an inventory slot
-            for (var i = 0; i < ClockhuntConfig.ClocksPerPlayer; i++)
-                ClockManager.SpawnEntityForPlayer(player);
+            NetworkPlayer.Players.ForEach(player =>
+            {
+                // TODO: Make this spawn a new one once the old one was placed
+                // TODO: Make this spawn a clock in an inventory slot
+                for (var i = 0; i < ClockhuntConfig.ClocksPerPlayer; i++)
+                    ClockManager.SpawnEntityForPlayer(player);
+            });
         });
     }
 }

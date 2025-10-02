@@ -52,23 +52,22 @@ class SyncNightmarePacket : INetSerializable
     }
 }
 
-// TODO: Make class static
-public class NightmareManager
+public static class NightmareManager
 {
-    private static readonly Dictionary<ulong, NightmareDescriptor> _nightmareDescriptors = new();
+    private static readonly Dictionary<ulong, NightmareDescriptor> NightmareDescriptors = new();
     
-    public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => _nightmareDescriptors;
+    public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
     
-    private readonly Dictionary<byte, NightmareInstance> _nightmareInstances = new();
-    private readonly RemoteEvent<SyncNightmarePacket> _nightmareSyncEvent;
+    private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
+    private static readonly RemoteEvent<SyncNightmarePacket> NightmareSyncEvent = new("SyncNightmares", OnNightmareSync, false);
 
-    public IReadOnlyCollection<NightmareInstance> Nightmares => _nightmareInstances.Values;
+    public static IReadOnlyCollection<NightmareInstance> Nightmares => NightmareInstances.Values;
     
     public static void Register<T>() where T : NightmareDescriptor
     {
         var descriptor = (T)Activator.CreateInstance(typeof(T), true)!;
         var id = descriptor.ID;
-        if (!_nightmareDescriptors.TryAdd(id, descriptor))
+        if (!NightmareDescriptors.TryAdd(id, descriptor))
             throw new Exception($"Nightmare with ID {id} is already registered");
         
         descriptor.Register();
@@ -84,17 +83,12 @@ public class NightmareManager
         });
     }
     
-    public NightmareManager()
-    {
-        _nightmareSyncEvent = new RemoteEvent<SyncNightmarePacket>("SyncNightmares", OnNightmareSync, false);
-    }
-    
-    private void SendNightmareSync()
+    private static void SendNightmareSync()
     {
         if (!NetworkInfo.IsHost) return;
         
         var packet = new SyncNightmarePacket();
-        foreach (var (playerId, instance) in _nightmareInstances)
+        foreach (var (playerId, instance) in NightmareInstances)
         {
             packet.Pairs.Add(new PlayerNightmarePair()
             {
@@ -103,10 +97,10 @@ public class NightmareManager
             });
         }
         
-        _nightmareSyncEvent.Call(packet);
+        NightmareSyncEvent.Call(packet);
     }
 
-    private void SetNightmare(byte playerId, ulong nightmareId)
+    private static void SetNightmare(byte playerId, ulong nightmareId)
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
         {
@@ -114,31 +108,31 @@ public class NightmareManager
             return;
         }
         
-        var descriptor = _nightmareDescriptors[nightmareId];
+        var descriptor = NightmareDescriptors[nightmareId];
         var instance = descriptor.CreateInstance(player);
-        _nightmareInstances[playerId] = instance;
+        NightmareInstances[playerId] = instance;
         instance.Apply();
         
         if (!NetworkInfo.IsHost) return;
         SendNightmareSync();
     }
     
-    private void RemoveNightmare(byte playerId)
+    private static void RemoveNightmare(byte playerId)
     {
-        if (!_nightmareInstances.TryGetValue(playerId, out var instance))
+        if (!NightmareInstances.TryGetValue(playerId, out var instance))
         {
             MelonLogger.Error($"Failed to remove nightmare for player ID {playerId} - they are not a nightmare");
             return;
         }
         
         instance.Remove();
-        _nightmareInstances.Remove(playerId);
+        NightmareInstances.Remove(playerId);
         
         if (!NetworkInfo.IsHost) return;
         SendNightmareSync();
     }
     
-    public void SetNightmare<T>(NetworkPlayer player) where T : NightmareDescriptor
+    public static void SetNightmare<T>(NetworkPlayer player) where T : NightmareDescriptor
     {
         if (!NetworkInfo.IsHost)
         {
@@ -147,7 +141,7 @@ public class NightmareManager
         }
         
         var type = typeof(T);
-        var descriptor = _nightmareDescriptors.Values.FirstOrDefault(d => d.GetType() == type);
+        var descriptor = NightmareDescriptors.Values.FirstOrDefault(d => d.GetType() == type);
         if (descriptor == null)
         {
             MelonLogger.Error($"No nightmare of type {type.Name} is registered");
@@ -157,7 +151,7 @@ public class NightmareManager
         SetNightmare(player.PlayerID.SmallID, descriptor.ID);
     }
     
-    public void SetRandomNightmare(NetworkPlayer player)
+    public static void SetRandomNightmare(NetworkPlayer player)
     {
         if (!NetworkInfo.IsHost)
         {
@@ -165,7 +159,7 @@ public class NightmareManager
             return;
         }
         
-        var enabledDescriptors = _nightmareDescriptors.Values.Where(d => d.IsEnabled).ToList();
+        var enabledDescriptors = NightmareDescriptors.Values.Where(d => d.IsEnabled).ToList();
         var totalWeight = enabledDescriptors.Sum(d => d.Weight);
         var choice = Random.Shared.Next(0, totalWeight);
         foreach (var descriptor in enabledDescriptors)
@@ -179,19 +173,19 @@ public class NightmareManager
         MelonLogger.Error("Failed to select a random nightmare - this should never happen");
     }
 
-    public bool IsNightmare(PlayerID playerID)
+    public static bool IsNightmare(PlayerID playerID)
     {
-        return _nightmareInstances.ContainsKey(playerID.SmallID);
+        return NightmareInstances.ContainsKey(playerID.SmallID);
     }
 
-    public bool TryGetNightmare(PlayerID playerID, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out NightmareInstance instance)
+    public static bool TryGetNightmare(PlayerID playerID, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out NightmareInstance instance)
     {
-        return _nightmareInstances.TryGetValue(playerID.SmallID, out instance);
+        return NightmareInstances.TryGetValue(playerID.SmallID, out instance);
     }
     
-    public void Update(float delta)
+    public static void Update(float delta)
     {
-        foreach (var (playerId, nightmareInstance) in _nightmareInstances)
+        foreach (var (playerId, nightmareInstance) in NightmareInstances)
         {
             if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) continue;
             nightmareInstance.Update(player, delta);
@@ -200,16 +194,16 @@ public class NightmareManager
     
     // Remote
     
-    private void OnNightmareSync(SyncNightmarePacket obj)
+    private static void OnNightmareSync(SyncNightmarePacket obj)
     {
         var goal = obj.Pairs.ToDictionary(e => e.PlayerID, e => e.NightmareID);
         var differences = new Dictionary<byte, bool>();
         
-        var allIds = goal.Keys.Union(_nightmareInstances.Keys);
+        var allIds = goal.Keys.Union(NightmareInstances.Keys);
 
         foreach (var id in allIds)
         {
-            var isCurrentlyNightmare = _nightmareInstances.ContainsKey(id);
+            var isCurrentlyNightmare = NightmareInstances.ContainsKey(id);
             var shouldBeNightmare = goal.ContainsKey(id);
             
             if (isCurrentlyNightmare != shouldBeNightmare)
@@ -230,7 +224,7 @@ public class NightmareManager
         }
     }
 
-    public void ClearNightmares()
+    public static void ClearNightmares()
     {
         if (!NetworkInfo.IsHost)
         {
@@ -238,8 +232,8 @@ public class NightmareManager
             return;
         }
         
-        _nightmareInstances.ForEach(pair => pair.Value.Remove());
-        _nightmareInstances.Clear();
+        NightmareInstances.ForEach(pair => pair.Value.Remove());
+        NightmareInstances.Clear();
         
         SendNightmareSync();
     }

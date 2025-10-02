@@ -5,6 +5,7 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MelonLoader;
 using UnityEngine;
@@ -37,7 +38,12 @@ public static class SpectatorManager
     private static readonly RemoteEvent<SpectatorSyncPacket> SyncEvent = new(OnSyncReceived, false);
 
     private static readonly HashSet<byte> HiddenIds = new();
-    private static readonly HashSet<byte> SpectatingPlayerIds = new();
+    private static HashSet<byte> SpectatingPlayerIds = new();
+
+    public static void Register()
+    {
+        MelonLogger.Msg("Registered SpectatorManager" + SyncEvent);
+    }
 
     public static bool IsLocalPlayerSpectating()
     {
@@ -45,52 +51,75 @@ public static class SpectatorManager
         return localPlayer != null && SpectatingPlayerIds.Contains(localPlayer.PlayerID);
     }
     
-    public static bool IsSpectating(byte playerId)
+    public static bool IsPlayerSpectating(byte playerId)
     {
         return SpectatingPlayerIds.Contains(playerId);
     }
 
-    private static void Hide(byte playerId)
+    private static void Hide(PlayerID playerId)
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) return;
         if (!HiddenIds.Add(playerId)) return;
 
         player.RigRefs.LeftHand.DetachObject();
         player.RigRefs.LeftHand.DetachObject();
-        player.RigRefs.RigManager.gameObject.active = false;
-        player.HeadUI.Visible = false;
-
-        player.VoiceSource.VoiceSource.AudioSource.mute = true;
         
-        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, false);
+        Executor.RunIfRemote(playerId, () =>
+        {
+            player.RigRefs.RigManager.gameObject.active = false;
+            player.HeadUI.Visible = false;
+
+            player.VoiceSource.VoiceSource.AudioSource.mute = true;
+        });
+        
+        var audioSource = player.VoiceSource?.VoiceSource.AudioSource; 
+        if (audioSource) 
+        { 
+            audioSource!.mute = true;
+        }
+        
+        if (!playerId.IsMe) return;
+        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, true);
     }
 
-    private static void Show(byte playerId)
+    private static void Show(PlayerID playerId)
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) return;
-        if (!SpectatingPlayerIds.Remove(playerId)) return;
+        if (!HiddenIds.Remove(playerId)) return;
         
-        player.RigRefs.RigManager.gameObject.active = true;
-        player.HeadUI.Visible = true;
+        player.RigRefs.LeftHand.DetachObject();
+        player.RigRefs.LeftHand.DetachObject();
+
+        Executor.RunIfRemote(playerId, () =>
+        {
+            player.RigRefs.RigManager.gameObject.active = true;
+            player.HeadUI.Visible = true;
+        });
 
         // A reset might be needed, there are some cases where the rep seems to freak out really badly, assuming its because the rep is trying to
         // Use velocity to pickup to where its supposed to be, but since its hidden, it cant, so it just freaks out when it comes back.
+        player.RigRefs.RigManager.TeleportToPose(player.RigPose.PelvisPose.position, Vector3.down, true);
         player.RigRefs.RigManager.physicsRig.ResetHands(Handedness.BOTH);
         player.RigRefs.RigManager.physicsRig.UnRagdollRig();
-        player.RigRefs.RigManager.TeleportToPose(player.RigPose.PelvisPose.position, Vector3.forward, true);
+        player.RigRefs.RigManager.TeleportToPose(player.RigPose.PelvisPose.position, Vector3.up, true);
 
-        player.VoiceSource.VoiceSource.AudioSource.mute = false;
-        
+        var audioSource = player.VoiceSource?.VoiceSource.AudioSource; 
+        if (audioSource) 
+        { 
+            audioSource!.mute = false;
+        }
+       
+        if (!playerId.IsMe) return;
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, false);
     }
-
+    
     private static void ApplyAll()
     {
         var isLocalSpectating = IsLocalPlayerSpectating();
         foreach (var player in NetworkPlayer.Players)
         {
             var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
-            var shouldBeHidden = isSpectating != isLocalSpectating;
+            var shouldBeHidden = isSpectating && (!isLocalSpectating || player.PlayerID.IsMe);
             
             if (shouldBeHidden)
             {
@@ -110,21 +139,7 @@ public static class SpectatorManager
     
     private static void OnSyncReceived(SpectatorSyncPacket packet)
     {
-        var allIds = SpectatingPlayerIds.Union(packet.SpectatingPlayerIds);
-        
-        foreach (var id in allIds)
-        {
-            var currentlySpectating = SpectatingPlayerIds.Contains(id);
-            var shouldBeSpectating = packet.SpectatingPlayerIds.Contains(id);
-            if (currentlySpectating != shouldBeSpectating)
-            {
-                SpectatingPlayerIds.Add(id);
-            }
-            else
-            {
-                SpectatingPlayerIds.Remove(id);
-            }
-        }
+        SpectatingPlayerIds = packet.SpectatingPlayerIds.ToHashSet();
 
         ApplyAll();
     }

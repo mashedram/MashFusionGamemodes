@@ -68,7 +68,7 @@ public static class PlayerGrabManager
         // Only apply grab predicates for the local player
         if (!player.PlayerID.IsMe) return true;
         
-        var isForceDisabled = IsForceDisabled();
+         var isForceDisabled = IsForceDisabled();
         if (isForceDisabled) return false;
         if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return true;
 

@@ -36,6 +36,11 @@ public class AudioPlayer : IRandomAudioPlayer
         });
     }
 
+    public void StopAll()
+    {
+        SourceProvider.StopAll();
+    }
+
     public string GetRandomAudioName()
     {
         return AudioNames.GetRandom();

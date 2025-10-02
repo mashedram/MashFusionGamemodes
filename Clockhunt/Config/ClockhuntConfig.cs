@@ -16,6 +16,8 @@ public static class ClockhuntConfig
     public static bool IsSpectatingEnabled = true;
     public static bool IsEscapePhaseEnabled = false;
     
+    public static float DeliveryDistance = 10.0f;
+    
     public static PlayerStats DefaultStats = new PlayerStats
     {
         Vitality = 1.0f,
@@ -24,4 +26,7 @@ public static class ClockhuntConfig
         UpperStrength = 1.0f,
         Agility = 1.0f
     };
+
+    public static float EscapeDistance = 10.0f;
+    public static float EscapeDuration = 15.0f;
 }

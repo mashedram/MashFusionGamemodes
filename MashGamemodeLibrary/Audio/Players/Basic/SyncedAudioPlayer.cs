@@ -12,6 +12,8 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
     public ulong AudioHash;
     public T ExtraData = default!;
     
+    public bool ShouldPlay => AudioHash != 0;
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref AudioHash);
@@ -32,6 +34,12 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
     
     private void OnPlayRequest(PlayRequestPacket<T> packet)
     {
+        if (!packet.ShouldPlay)
+        {
+            SourceProvider.StopAll();
+            return;
+        }
+        
         var container = (ISyncedAudioContainer)Container;
         
         container.RequestClip(packet.AudioHash, clip =>
@@ -62,6 +70,15 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
         {
             AudioHash = hash.Value,
             ExtraData = data
+        });
+    }
+
+    public new void StopAll()
+    {
+        _playRequestEvent.Call(new PlayRequestPacket<T>
+        {
+            AudioHash = 0,
+            ExtraData = new T()
         });
     }
 }

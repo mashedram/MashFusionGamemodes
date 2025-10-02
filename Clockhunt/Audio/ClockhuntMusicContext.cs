@@ -15,6 +15,7 @@ public class ClockhuntMusicContext
     
     public float PhaseProgress => Mathf.Clamp01(Phase.ElapsedTime / Phase.Duration);
     public bool IsChasing { get; private set; }
+    public bool IsLocalNightmare => WinStateManager.LocalGameTeam == GameTeam.Nightmares;
     
     public bool IsPhase<T>() where T : GamePhase
     {
@@ -39,7 +40,7 @@ public class ClockhuntMusicContext
 
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
         var shouldBeChasing = WinStateManager.LocalGameTeam != GameTeam.Nightmares && 
-                        context.NightmareManager.Nightmares.Any(nightmare => IsNightmareChasing(nightmare, localPosition));
+                        NightmareManager.Nightmares.Any(nightmare => IsNightmareChasing(nightmare, localPosition));
 
         _chaseTimer = shouldBeChasing ? ChaseDuration : Mathf.Max(0, _chaseTimer - delta);
         var isChasing = _chaseTimer > 0f;

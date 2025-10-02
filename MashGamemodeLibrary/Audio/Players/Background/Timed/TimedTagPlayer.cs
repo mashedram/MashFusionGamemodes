@@ -41,10 +41,15 @@ public class TimedTagPlayer<T> where T : IEntityTag
     {
         if (!_isActive) return;
         _isActive = false;
+
+        _player.StopAll();
     }
 
     public void Update(float delta)
     {
+        if (!_isActive)
+            return;
+        
         var entities = EntityTagManager.GetAllIdsWithTag<T>();
         
         foreach (var (id, _) in _entityTimers)
@@ -63,6 +68,7 @@ public class TimedTagPlayer<T> where T : IEntityTag
             
             _entityTimers[id] = Math.Max(0, _entityTimers[id] - delta);
             if (_entityTimers[id] > 0) continue;
+            _entityTimers[id] = GetRandomTimeBetweenPlays();
 
             if (!new NetworkEntityReference(id).TryGetEntity(out var entity))
             {

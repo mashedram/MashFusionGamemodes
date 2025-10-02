@@ -1,5 +1,6 @@
 ﻿using LabFusion.Network;
 using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 
 namespace MashGamemodeLibrary.Phase;
@@ -64,6 +65,8 @@ public class GamePhaseManager
         do
         {
             nextPhaseIndex++;
+            
+            if (nextPhaseIndex >= Phases.Length) return;
 
             var nextPhase = Phases[nextPhaseIndex];
             if (nextPhase.CanEnterPhase()) break;
@@ -74,7 +77,10 @@ public class GamePhaseManager
     
     public void ResetPhases()
     {
-        SetPhase(0);
+        Executor.RunIfHost(() =>
+        {
+            SetPhase(0);
+        });
     }
 
     public void Update(float delta)
@@ -82,10 +88,11 @@ public class GamePhaseManager
         var activePhase = GetActivePhase();
         activePhase.Update(delta);
         
-        if (!NetworkInfo.IsHost) return;
-
-        if (activePhase.ShouldMoveToNextPhase())
-            MoveToNextPhase();
+        Executor.RunIfHost(() =>
+        {
+            if (activePhase.ShouldMoveToNextPhase())
+                MoveToNextPhase();
+        });
     }
 
     public bool IsPhase<T>() where T : GamePhase

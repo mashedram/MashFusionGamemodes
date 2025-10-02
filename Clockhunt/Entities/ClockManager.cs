@@ -20,7 +20,6 @@ namespace Clockhunt.Entities;
 public static class ClockManager
 {
     private static string _clockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
-    private static Vector3 _deliveryPosition = new(0, 1, 0);
 
     private static Spawnable GetSpawnable()
     {
@@ -76,12 +75,9 @@ public static class ClockManager
         var toRemove = clocks.Count - count;
         if (toRemove <= 0) return;
         
-        // TODO: Check for nightmares here
-        var context = Clockhunt.Context;
-        
         var survivorClocks = clocks
             .Where(e => e.TryGetTag<EntityOwner>(out var owner) && owner.NetworkPlayer != null && 
-                        context.NightmareManager.IsNightmare(owner.NetworkPlayer.PlayerID)).ToList();
+                        !NightmareManager.IsNightmare(owner.NetworkPlayer.PlayerID)).ToList();
         
         survivorClocks.Shuffle();
         
@@ -98,28 +94,6 @@ public static class ClockManager
         }
     }
     
-    public static void SetDeliveryPosition(Vector3 position)
-    {
-        _deliveryPosition = position;
-    }
-
-    public static void Update()
-    {
-        const float deliveryDistance = 10.0f;
-        foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed) 
-                 let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity 
-                 let distance = Vector3.Distance(marrowEntity.transform.position, _deliveryPosition) 
-                 where !(distance > deliveryDistance) 
-                 select networkEntity)
-        {
-            NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo()
-            {
-                DespawnEffect = true,
-                EntityID = networkEntity.ID
-            });
-        }
-    }
-
     public static void ClearClocks()
     {
         EntityTagManager.GetAllIdsWithTag<ClockMarker>().ForEach(id => NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo

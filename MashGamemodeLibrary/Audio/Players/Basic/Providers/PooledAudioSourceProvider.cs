@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics.CodeAnalysis;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
@@ -15,6 +16,12 @@ class AudioPoolMember
         _source = go.AddComponent<AudioSource>();
         _source.playOnAwake = false;
         
+        return _source;
+    }
+
+    public bool TryGet([MaybeNullWhen(returnValue: false)] out AudioSource audioSource)
+    {
+        audioSource = _source;
         return _source;
     }
 }
@@ -51,5 +58,14 @@ public class PooledAudioSourceProvider : IAudioSourceProvider
         } while (source.isPlaying);
 
         return source;
+    }
+
+    public void StopAll()
+    {
+        foreach (var member in _sources)
+        {
+            if (member.TryGet(out var source) && source.isPlaying)
+                source.Stop();
+        }
     }
 }

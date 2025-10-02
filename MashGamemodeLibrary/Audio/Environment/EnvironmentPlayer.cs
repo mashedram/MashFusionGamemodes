@@ -1,39 +1,38 @@
 ﻿using Il2CppSLZ.Marrow.Audio;
-using LabFusion.Extensions;
 using MashGamemodeLibrary.Audio.Players.Background.Music;
 using MashGamemodeLibrary.Context;
 using MelonLoader;
-using UnityEngine.PlayerLoop;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace MashGamemodeLibrary.Audio.Players.Background;
+namespace MashGamemodeLibrary.Audio.Environment;
 
-class MusicStateComparer<T> : IComparer<MusicState<T>>
+class EnvironmentStateComparer<T> : IComparer<EnvironmentState<T>>
 {
-    public int Compare(MusicState<T>? x, MusicState<T>? y)
+    public int Compare(EnvironmentState<T>? x, EnvironmentState<T>? y)
     {
         var xPriority = x?.Priority ?? 0;
         var yPriority = y?.Priority ?? 0;
         
-        return xPriority.CompareTo(yPriority);
+        return yPriority.CompareTo(xPriority);
     }
 }
 
-public class MusicPlayer<T, U> where T : GameContext
+public class EnvironmentPlayer<T, TCustomContext> where T : GameContext
 {
-    private readonly SortedSet<MusicState<U>> _states;
-    private bool _isActive = false;
-    private int _trackIndex = 0;
-    private MusicState<U>? _activeState = null;
-    private Func<T, U> _contextBuilder;
-    private U _context = default!;
+    private readonly SortedSet<EnvironmentState<TCustomContext>> _states;
+    private bool _isActive;
+    private int _trackIndex;
+    private EnvironmentState<TCustomContext>? _activeState = null;
+    private Func<T, TCustomContext> _contextBuilder;
+    private TCustomContext _context = default!;
 
-    public MusicPlayer(MusicState<U>[] states, Func<T, U> contextBuilder)
+    public EnvironmentPlayer(EnvironmentState<TCustomContext>[] states, Func<T, TCustomContext> contextBuilder)
     {
         if (states.Length == 0)
             throw new ArgumentException("At least one music state must be provided");
         
-        _states = new SortedSet<MusicState<U>>(states, new MusicStateComparer<U>());
+        _states = new SortedSet<EnvironmentState<TCustomContext>>(states, new EnvironmentStateComparer<TCustomContext>());
         _contextBuilder = contextBuilder;
     }
 
@@ -71,12 +70,7 @@ public class MusicPlayer<T, U> where T : GameContext
     private static void StopTrack()
     {
         var audio2dManager = Audio2dPlugin.Audio2dManager;
-        var hasOverride = !audio2dManager._overridenMusicClip;
-
         audio2dManager.StopOverrideMusic();
-        if (hasOverride)
-            return;
-
         audio2dManager.StopMusic(0.2f);
     }
     
@@ -97,9 +91,21 @@ public class MusicPlayer<T, U> where T : GameContext
         PlayTrack();
     }
     
-    private MusicState<U> GetWantedState()
+    private EnvironmentState<TCustomContext> GetWantedState()
     {
         return _states.FirstOrDefault(musicState => musicState.CanPlay(_context)) ?? _states.Max ?? null!;
+    }
+
+    private void UpdateWeather()
+    {
+        if (_activeState == null)
+            return;
+        
+        if (!_activeState.ShouldApplyWeatherEffects(_context))
+            return;
+
+        var weatherEffects = _activeState.GetWeatherSpawnables();
+        WeatherManager.SetWeather(weatherEffects);
     }
 
     public void StartPlaying()
@@ -118,6 +124,7 @@ public class MusicPlayer<T, U> where T : GameContext
         _isActive = false;
         _activeState = null;
         StopTrack();
+        WeatherManager.SetWeather(Array.Empty<string>());
     }
 
     public void Update()
@@ -128,19 +135,23 @@ public class MusicPlayer<T, U> where T : GameContext
         BuildContext();
         
         var wantedState = GetWantedState();
-        if (!IsPlaying() && wantedState == _activeState) return;
+        if (IsPlaying() && wantedState == _activeState) return;
 
         _activeState = wantedState;
+        UpdateWeather();
         NextTrack();
     }
 
-    private static bool IsPlaying()
+    private bool IsPlaying()
     {
+        if (_activeState != null && _activeState.GetAudioContainer().IsLoading)
+            return true;
+        
         var isOverride = Audio2dPlugin.Audio2dManager._isOverride;
         if (!isOverride) return false;
         
         var currentAmbAndMusic = GetCurrentAmbAndMusic();
-        return currentAmbAndMusic == null || !currentAmbAndMusic.ambMus.isPlaying;
+        return currentAmbAndMusic != null && currentAmbAndMusic.ambMus.isPlaying;
     }
     
     private static AmbAndMusic? GetCurrentAmbAndMusic()

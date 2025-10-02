@@ -6,4 +6,5 @@ public interface IAudioSourceProvider
 {
     bool IsPlaying { get; }
     AudioSource GetAudioSource();
+    void StopAll();
 }

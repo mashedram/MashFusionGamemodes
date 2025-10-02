@@ -76,11 +76,9 @@ public class WinStateManager
             MelonLogger.Warning("Only the host can call player deaths!");
             return;
         }
-
-        var context = Clockhunt.Context;
         
         // Ignore if the player is a nightmare, they don't have lives
-        if (context.NightmareManager.IsNightmare(playerID))
+        if (NightmareManager.IsNightmare(playerID))
             return;
         
         _lives = Math.Max(0, _lives - 1);
@@ -96,7 +94,7 @@ public class WinStateManager
 
         if (ClockhuntConfig.IsSpectatingEnabled)
         {
-            var aliveSurvivorCount = NetworkPlayer.Players.Count(e => !e.PlayerID.IsSpectating() && !context.NightmareManager.IsNightmare(e.PlayerID));
+            var aliveSurvivorCount = NetworkPlayer.Players.Count(e => !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID));
             if (aliveSurvivorCount <= 1)
             {
                 // Last survivor died, nightmares win

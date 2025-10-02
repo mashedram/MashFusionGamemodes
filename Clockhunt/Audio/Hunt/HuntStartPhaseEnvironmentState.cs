@@ -5,7 +5,7 @@ using MashGamemodeLibrary.Audio.Players.Background.Music;
 
 namespace Clockhunt.Audio;
 
-public class HuntStartPhaseMusicState : MusicState<ClockhuntMusicContext>
+public class HuntStartPhaseEnvironmentState : EnvironmentState<ClockhuntMusicContext>
 {
     protected override IAudioContainer AudioContainer => new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
@@ -13,6 +13,12 @@ public class HuntStartPhaseMusicState : MusicState<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.Eulenlieder",
         "Sylvie.SignalisMonodiscs.MonoDisc.DieToteninselEmptiness"
     }));
+
+    protected override string[] WeatherSpawnables => new[]
+    {
+        "FirePura.BoneWeater.Spawnable.Night",
+        "FirePura.BoneWeater.Spawnable.Rainy"
+    };
 
     public override int Priority => 300;
     

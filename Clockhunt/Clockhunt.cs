@@ -1,6 +1,7 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
+using Clockhunt.Game;
 using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
 using Clockhunt.Phase;
@@ -45,20 +46,22 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override void OnGamemodeStarted()
     {
         Context.PhaseManager.ResetPhases();
-        Context.MusicPlayer.StartPlaying();
+        Context.EnvironmentPlayer.StartPlaying();
         
-        ClockManager.SetDeliveryPosition(Context.LocalPlayer.RigRefs.Head.position);
+        WinStateManager.SetLives(3, false);
+        HuntPhase.SetDeliveryPosition(Context.LocalPlayer.RigRefs.Head.position);
     }
 
     public override void OnGamemodeStopped()
     {
-        Context.MusicPlayer.StopPlaying();
+        Context.EnvironmentPlayer.StopPlaying();
         Context.ClockAudioPlayer.StopPlaying();
+        Context.EscapeAudioPlayer.StopAll();
         
         if (!NetworkInfo.IsHost)
             return;
         
-        Context.NightmareManager.ClearNightmares();
+        NightmareManager.ClearNightmares();
         ClockManager.ClearClocks();
         SpectatorManager.Clear();
     }

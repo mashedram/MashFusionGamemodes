@@ -1,4 +1,10 @@
-﻿using MashGamemodeLibrary.Phase;
+﻿using Clockhunt.Config;
+using Clockhunt.Entities;
+using Clockhunt.Game;
+using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Phase;
+using UnityEngine;
 
 namespace Clockhunt.Phase;
 
@@ -9,16 +15,30 @@ public class EscapePhase : GamePhase
     
     protected override void OnPhaseEnter()
     {
-        // TODO: Start Playing an Alarm Sound once a player enters the pickup zone
-        // TODO: Once the pickup is open, start playing radio static sound
-        // TODO: Clear all remaining lives
+        Executor.RunIfHost(() =>
+        {
+            EscapeManager.ActivateRandomEscapePoint();
+            WinStateManager.SetLives(0, false);
+        });
         
-        // TODO: Make the pickup point one of the clock hiding spots
+        Notifier.Send(new Notification
+        {
+            Title = "All clocks delivered",
+            Message = "Follow the alarm to the escape point! This is your one chance.",
+            SaveToMenu = false,
+            PopupLength = 5f,
+            ShowPopup = true,
+            Type = NotificationType.SUCCESS
+        });
     }
 
     protected override void OnUpdate()
     {
-        // TODO: Check if player is in pickup zone
-        // TODO: Survivor wins if they stay in the zone for 30 seconds
+        EscapeManager.Update(Time.deltaTime);
+    }
+
+    protected override bool PhaseEnterPredicate()
+    {
+        return ClockhuntConfig.IsEscapePhaseEnabled && ClockManager.CountClockEntities() <= 0;
     }
 }

@@ -1,6 +1,9 @@
 ﻿using Clockhunt.Nightmare;
 using LabFusion.Extensions;
 using LabFusion.Menu.Data;
+using MashGamemodeLibrary.Loadout;
+using MelonLoader;
+using UnityEngine;
 
 namespace Clockhunt.Config;
 
@@ -85,6 +88,12 @@ public static class ClockhuntConfigMenu
             Title = "Escape Phase Enabled",
             Value = ClockhuntConfig.IsEscapePhaseEnabled,
             OnValueChanged = value => ClockhuntConfig.IsEscapePhaseEnabled = value
+        });
+        
+        group.AddElement(new SpawnableElementData
+        {
+            Title = "Set Primary Weapon",
+            OnSetSpawnable = value => MelonLogger.Msg($"Setting primary weapon to {value._id ?? "null"}")
         });
 
         var nightmares = new GroupElementData("Nightmare Toggles");

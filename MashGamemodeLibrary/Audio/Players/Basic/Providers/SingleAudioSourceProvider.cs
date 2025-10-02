@@ -19,4 +19,10 @@ public class SingleAudioSourceProvider : IAudioSourceProvider
         
         return _audioSource;
     }
+
+    public void StopAll()
+    {
+        if (_audioSource)
+            _audioSource!.Stop();
+    }
 }

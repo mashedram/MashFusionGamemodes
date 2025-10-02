@@ -7,7 +7,7 @@ using MashGamemodeLibrary.Context;
 
 namespace Clockhunt.Audio;
 
-public class HidePhaseMusicState : MusicState<ClockhuntMusicContext>
+public class HidePhaseEnvironmentState : EnvironmentState<ClockhuntMusicContext>
 {
     protected override IAudioContainer AudioContainer => new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
@@ -16,6 +16,8 @@ public class HidePhaseMusicState : MusicState<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.TrainRide",
         "Sylvie.SignalisMonodiscs.MonoDisc.Home"
     }));
+
+    protected override string[] WeatherSpawnables => Array.Empty<string>();
 
     public override int Priority => 10;
     

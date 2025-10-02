@@ -30,6 +30,7 @@ public class SyncEntityTagPacket : INetSerializable
     }
 }
 
+// TODO: The tag system here is fucked up performance wise
 public static class EntityTagManager
 {
     private static readonly Dictionary<ulong, Func<IEntityTag>> TagFactories = new();
@@ -241,5 +242,10 @@ public static class EntityTagManager
         }
         
         return list;
+    }
+    
+    public static void ClearAll()
+    {
+        Entities.Clear();
     }
 }

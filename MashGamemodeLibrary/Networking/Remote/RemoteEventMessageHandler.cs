@@ -3,6 +3,7 @@ using System.Text;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
+using LabFusion.Player;
 using LabFusion.SDK.Modules;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -153,7 +154,8 @@ internal class RemoteEventMessageHandler : ModuleMessageHandler
                 return;
             }
 
-            value.Invoke((byte)received.Sender!, data.Payload);
+            var senderId = (byte)received.Sender!;
+            value.Invoke(senderId, data.Payload);
 #if DEBUG
         }
         catch (Exception e)

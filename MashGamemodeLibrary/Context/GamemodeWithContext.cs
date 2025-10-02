@@ -1,4 +1,5 @@
 ﻿using LabFusion.SDK.Gamemodes;
+using MashGamemodeLibrary.Entities.Tagging;
 using MelonLoader;
 using UnityEngine;
 
@@ -20,11 +21,21 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext
 
     public override void OnGamemodeReady()
     {
+        EntityTagManager.ClearAll();
+        
         Context.OnReady();
+    }
+
+    public override void OnGamemodeUnready()
+    {
+        Context.OnUnready();
     }
 
     protected override void OnUpdate()
     {
+        if (!IsStarted)
+            return;
+        
         Context.Update(Time.deltaTime);
         base.OnUpdate();
     }
