@@ -18,7 +18,7 @@
             <HintPath>$(BONELAB_DIR)\Mods\AudioImportLib.dll</HintPath>
         </Reference>
         <Reference Include="BoneLib">
-          <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\bonelab\profiles\Dev\Mods\BoneLib.dll</HintPath>
+          <HintPath>$(BONELAB_DIR)\Mods\BoneLib.dll</HintPath>
         </Reference>
         <Reference Include="Il2CppInterop.Common">
             <HintPath>$(BONELAB_DIR)\MelonLoader\net6\Il2CppInterop.Common.dll</HintPath>
@@ -39,7 +39,7 @@
             <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppSLZ.Marrow.dll</HintPath>
         </Reference>
         <Reference Include="Il2CppUniTask">
-          <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\bonelab\profiles\SilverDev\MelonLoader\Il2CppAssemblies\Il2CppUniTask.dll</HintPath>
+          <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppUniTask.dll</HintPath>
         </Reference>
         <Reference Include="LabFusion">
             <HintPath>$(BONELAB_DIR)\Mods\LabFusion.dll</HintPath>

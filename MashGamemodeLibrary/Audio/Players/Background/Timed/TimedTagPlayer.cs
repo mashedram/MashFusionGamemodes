@@ -5,7 +5,7 @@ using MashGamemodeLibrary.Entities.Tagging.Tags;
 
 namespace MashGamemodeLibrary.Audio.Players.Background.Timed;
 
-public class TimedTagPlayer<T> where T : IEntityTag
+public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
 {
     private readonly IRandomObjectAudioPlayer _player;
     private readonly Dictionary<ushort, float> _entityTimers;

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using BoneLib;
 using Harmony;
 using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;

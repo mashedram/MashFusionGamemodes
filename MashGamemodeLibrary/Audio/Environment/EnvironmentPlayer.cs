@@ -23,7 +23,7 @@ public class EnvironmentPlayer<T, TCustomContext> where T : GameContext
     private readonly SortedSet<EnvironmentState<TCustomContext>> _states;
     private bool _isActive;
     private int _trackIndex;
-    private EnvironmentState<TCustomContext>? _activeState = null;
+    private EnvironmentState<TCustomContext>? _activeState;
     private Func<T, TCustomContext> _contextBuilder;
     private TCustomContext _context = default!;
 
