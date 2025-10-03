@@ -1,4 +1,5 @@
-﻿using Clockhunt.Nightmare;
+﻿using Clockhunt.Audio.Effectors.Weather;
+using Clockhunt.Nightmare;
 using LabFusion.Extensions;
 using LabFusion.Menu.Data;
 using MashGamemodeLibrary.Loadout;
@@ -89,6 +90,15 @@ public static class ClockhuntConfigMenu
             Value = ClockhuntConfig.IsEscapePhaseEnabled,
             OnValueChanged = value => ClockhuntConfig.IsEscapePhaseEnabled = value
         });
+        
+        group.AddElement(new EnumElementData
+        {
+            EnumType = typeof(WeatherType),
+            OnValueChanged = value => ClockhuntConfig.WeatherType = (WeatherType)value,
+            Title = "Weather Type",
+            Value = ClockhuntConfig.WeatherType
+        });
+        
         
         group.AddElement(new SpawnableElementData
         {

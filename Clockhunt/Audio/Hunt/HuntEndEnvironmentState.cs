@@ -11,7 +11,7 @@ public class HuntEndEnvironmentState : EnvironmentState<ClockhuntMusicContext>
     public HuntEndEnvironmentState() : base(new EnvironmentEffector<ClockhuntMusicContext>[]
     {
         new HuntEndMusicEffector(),
-        new Rain3WeatherEffector()
+        new Weather3Effector()
     })
     {
     }

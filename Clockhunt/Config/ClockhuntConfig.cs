@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Player;
+﻿using Clockhunt.Audio.Effectors.Weather;
+using MashGamemodeLibrary.Player;
 
 namespace Clockhunt.Config;
 
@@ -14,9 +15,11 @@ public static class ClockhuntConfig
     public static int HuntPhaseClockCount = 3;
     
     public static bool IsSpectatingEnabled = true;
-    public static bool IsEscapePhaseEnabled = false;
+    public static bool IsEscapePhaseEnabled = true;
     
     public static float DeliveryDistance = 10.0f;
+    
+    public static WeatherType WeatherType = WeatherType.Rain;
     
     public static PlayerStats DefaultStats = new PlayerStats
     {

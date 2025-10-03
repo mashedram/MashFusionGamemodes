@@ -11,7 +11,7 @@ public class HuntMiddlePhaseEnvironmentState : EnvironmentState<ClockhuntMusicCo
     public HuntMiddlePhaseEnvironmentState() : base(new EnvironmentEffector<ClockhuntMusicContext>[]
     {
         new HuntMiddleMusicEffector(),
-        new Rain2WeatherEffector()
+        new Weather2Effector()
     })
     {
     }
