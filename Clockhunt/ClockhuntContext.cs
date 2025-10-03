@@ -1,4 +1,5 @@
 ﻿using Clockhunt.Audio;
+using Clockhunt.Audio.Hunt;
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
@@ -7,13 +8,12 @@ using Clockhunt.Phase;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Audio.Containers;
-using MashGamemodeLibrary.Audio.Environment;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Background;
-using MashGamemodeLibrary.Audio.Players.Background.Music;
 using MashGamemodeLibrary.Audio.Players.Background.Timed;
 using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Context;
+using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
@@ -26,14 +26,7 @@ public class ClockhuntContext : GameContext
     
     // Music
     
-    public readonly EnvironmentPlayer<ClockhuntContext, ClockhuntMusicContext> EnvironmentPlayer = new(new EnvironmentState<ClockhuntMusicContext>[]
-    {
-        new ChaseEnvironmentState(),
-        new HuntStartPhaseEnvironmentState(),
-        new HuntMiddlePhaseEnvironmentState(),
-        new HuntEndPhaseEnvironmentState(),
-        new HidePhaseEnvironmentState()
-    }, ClockhuntMusicContext.GetContext);
+    public readonly EnvironmentManager<ClockhuntContext, ClockhuntMusicContext> EnvironmentPlayer = new(ClockhuntMusicContext.GetContext);
     
     // Audio
     public TimedTagPlayer<ClockMarker> ClockAudioPlayer { get; } = new(new RandomObjectAudioPlayer("ClockSound",
@@ -75,7 +68,7 @@ public class ClockhuntContext : GameContext
         NightmareManager.Update(delta);
         
         PhaseManager.Update(delta);
-        EnvironmentPlayer.Update();
+        EnvironmentPlayer.Update(delta);
         ClockAudioPlayer.Update(delta);
     }
 }

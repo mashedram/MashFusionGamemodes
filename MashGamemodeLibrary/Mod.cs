@@ -1,6 +1,5 @@
 ﻿using LabFusion.SDK.Modules;
 using MashGamemodeLibrary;
-using MashGamemodeLibrary.Audio.Environment;
 using MashGamemodeLibrary.Debug;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.networking;
@@ -20,17 +19,6 @@ public class Mod : MelonMod
         ModuleManager.RegisterModule<FusionModule>();
 
         SpectatorManager.Register();
-        
-        WeatherManager.Register();
-        
-        var genericTypeDef = typeof(RemoteEvent<>);
-        var assembly = typeof(Mod).Assembly;
-        var implements = assembly.GetTypes()
-            .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericTypeDef);
-        foreach (var implement in implements)
-        {
-            MelonLogger.Msg($"Found RemoteEvent implementation: {implement.FullName}");
-        }
     }
     
 #if DEBUG

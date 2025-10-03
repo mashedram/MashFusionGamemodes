@@ -26,23 +26,15 @@ class EnvironmentChangePacket : INetSerializable
 
 public class EnvironmentManager<TContext, TInternalContent> 
     where TContext : GameContext
-    where TInternalContent : INetSerializable, new()
 {
-    private readonly RemoteEvent<EnvironmentChangePacket> _changePacket;
-    
     private EnvironmentState<TInternalContent>? _activeState;
-    private EnvironmentProfile<TInternalContent> _profile;
+    private EnvironmentProfile<TInternalContent>? _profile;
     private Func<TContext, TInternalContent> _contextBuilder;
     private TInternalContent _context = default!;
-    private bool _isActive;
 
-    public EnvironmentManager(EnvironmentProfile<TInternalContent> profile, Func<TContext, TInternalContent> contextBuilder)
+    public EnvironmentManager(Func<TContext, TInternalContent> contextBuilder)
     {
-        _profile = profile;
         _contextBuilder = contextBuilder;
-
-        var name = $"MGL_ENV_{typeof(TContext).Name}_{typeof(TInternalContent).Name}";
-        _changePacket = new RemoteEvent<EnvironmentChangePacket>(name, OnChangePacket, false);
     }
     
     // Local
@@ -54,8 +46,6 @@ public class EnvironmentManager<TContext, TInternalContent>
         _activeState?.Remove(_context);
         _activeState = state;
         _activeState.Apply(_context);
-        
-        Executor.RunIfHost(Sync);   
     }
     
     private void BuildContext()
@@ -64,17 +54,25 @@ public class EnvironmentManager<TContext, TInternalContent>
         _context = _contextBuilder(context);
     }
 
-    private void Sync()
+    public void StartPlaying(EnvironmentProfile<TInternalContent> profile)
     {
-        _changePacket.Call(new EnvironmentChangePacket
-        {
-            StateHash = _activeState?.StateHash ?? 0
-        });
+        _profile = profile;
     }
 
+    public void Stop()
+    {
+        if (_profile == null)
+            return;
+        
+        _activeState?.Remove(_context);
+        _activeState = null;
+        _profile.Cleanup();
+        _profile = null;
+    }
+    
     public void Update(float delta)
     {
-        if (!_isActive)
+        if (_profile == null)
             return;
         
         BuildContext();
@@ -86,32 +84,5 @@ public class EnvironmentManager<TContext, TInternalContent>
             return;
         
         SetState(wantedState);
-    }
-    
-    // Remote Events
-
-    private void OnChangePacket(EnvironmentChangePacket packet)
-    {
-        if (_profile == null)
-        {
-            MelonLogger.Error("Received environment change packet but no profile is set!");
-            return;
-        }
-        
-        if (packet.StateHash == 0)
-        {
-            _profile.Cleanup();
-            return;
-        }
-
-        var state = _profile.GetStateByHash(packet.StateHash);
-        if (state == null)
-        {
-            MelonLogger.Error($"Received environment change packet but state with hash {packet.StateHash} was not found in profile {_profile.Name}!");
-            return;
-        }
-
-        BuildContext();
-        SetState(state);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Clockhunt.Config;
+﻿using Clockhunt.Audio;
+using Clockhunt.Audio.Hunt;
+using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
@@ -17,6 +19,9 @@ using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Environment;
+using MashGamemodeLibrary.Environment.Effector.Weather;
+using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
@@ -46,7 +51,14 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override void OnGamemodeStarted()
     {
         Context.PhaseManager.ResetPhases();
-        Context.EnvironmentPlayer.StartPlaying();
+        Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night", new EnvironmentState<ClockhuntMusicContext>[]
+        {
+            new ChaseEnvironmentState(),
+            new HuntEndEnvironmentState(),
+            new HuntMiddlePhaseEnvironmentState(),
+            new HuntStartPhaseEnvironmentState(),
+            new HidePhaseEnvironmentState(),
+        }, LocalWeatherManager.ClearLocalWeather));
         
         WinStateManager.SetLives(3, false);
         HuntPhase.SetDeliveryPosition(Context.LocalPlayer.RigRefs.Head.position);
@@ -54,7 +66,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
     public override void OnGamemodeStopped()
     {
-        Context.EnvironmentPlayer.StopPlaying();
+        Context.EnvironmentPlayer.Stop();
         Context.ClockAudioPlayer.StopPlaying();
         Context.EscapeAudioPlayer.StopAll();
         

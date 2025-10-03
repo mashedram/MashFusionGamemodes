@@ -1,24 +1,20 @@
-﻿using Clockhunt.Phase;
-using MashGamemodeLibrary.Audio.Containers;
-using MashGamemodeLibrary.Audio.Loaders;
-using MashGamemodeLibrary.Audio.Players.Background.Music;
+﻿using Clockhunt.Audio.Effectors;
+using Clockhunt.Audio.Effectors.Weather;
+using Clockhunt.Phase;
+using MashGamemodeLibrary.Environment;
+using MashGamemodeLibrary.Environment.State;
 
-namespace Clockhunt.Audio;
+namespace Clockhunt.Audio.Hunt;
 
 public class HuntStartPhaseEnvironmentState : EnvironmentState<ClockhuntMusicContext>
 {
-    protected override IAudioContainer AudioContainer => new LoadOnDemandContainer(new MonoDiscLoader(new[]
+    public HuntStartPhaseEnvironmentState() : base(new EnvironmentEffector<ClockhuntMusicContext>[]
     {
-        "Sylvie.SignalisMonodiscs.MonoDisc.CasualLoop",
-        "Sylvie.SignalisMonodiscs.MonoDisc.Eulenlieder",
-        "Sylvie.SignalisMonodiscs.MonoDisc.DieToteninselEmptiness"
-    }));
-
-    protected override string[] WeatherSpawnables => new[]
+        new HuntStartMusicEffector(),
+        new Rain1WeatherEffector()
+    })
     {
-        "FirePura.BoneWeater.Spawnable.Night",
-        "FirePura.BoneWeater.Spawnable.Rainy"
-    };
+    }
 
     public override int Priority => 300;
     
