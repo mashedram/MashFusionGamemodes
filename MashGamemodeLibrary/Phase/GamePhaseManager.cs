@@ -53,6 +53,9 @@ public class GamePhaseManager
     
     public void Enable(int startPhase = 0)
     {
+        if (_enabled) return;
+        _enabled = true;
+        
         if (wantedPhase.Value == startPhase)
         {
             GetActivePhase().Enter();
@@ -122,16 +125,22 @@ public class GamePhaseManager
 
     private void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
-        
+        if (!_enabled)
+            return;
+        GetActivePhase().OnPlayerAction(playerId, type, otherPlayer);
     }
 
     private void OnPlayerJoined(PlayerID playerId)
     {
-        
+        if (!_enabled)
+            return;
+        GetActivePhase().OnPlayerJoined(playerId);
     }
     
     private void OnPlayerLeft(PlayerID playerId)
     {
-        
+        if (!_enabled)
+            return;
+        GetActivePhase().OnPlayerLeft(playerId);
     }
 }

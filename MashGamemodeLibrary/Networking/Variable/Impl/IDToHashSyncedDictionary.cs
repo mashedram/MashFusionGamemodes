@@ -13,16 +13,24 @@ public class IDToHashSyncedDictionary : SyncedDictionary<byte, ulong>
         return sizeof(byte) + sizeof(ulong);
     }
 
-    protected override void WritePair(NetWriter writer, Pair<byte, ulong> pair)
+
+    protected override void WriteKey(NetWriter writer, byte key)
     {
-        writer.Write(pair.Key);
-        writer.Write(pair.Value);
+        writer.Write(key);
     }
 
-    protected override Pair<byte, ulong> ReadPair(NetReader reader)
+    protected override byte ReadKey(NetReader reader)
     {
-        var key = reader.ReadByte();
-        var value = reader.ReadUInt64();
-        return new Pair<byte, ulong>(key, value);
+        return reader.ReadByte();
+    }
+
+    protected override void WriteValue(NetWriter writer, ulong value)
+    {
+        writer.Write(value);
+    }
+
+    protected override ulong ReadValue(NetReader reader)
+    {
+        return reader.ReadUInt64();
     }
 }

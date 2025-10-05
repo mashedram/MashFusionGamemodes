@@ -2,6 +2,7 @@
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Execution;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -14,10 +15,10 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
     private readonly string _name;
     private T _value;
     
-    public event OnChangedHandler OnValueChanged;
+    public event OnChangedHandler? OnValueChanged;
     public event ValidatorHandler? OnValidate;
-    
-    public SyncedVariable(string name, T defaultValue) : base($"sync.{name}")
+
+    protected SyncedVariable(string name, T defaultValue) : base($"sync.{name}")
     {
         _name = name;
         _value = defaultValue;
@@ -70,8 +71,12 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
         Relay(_value);
     }
     
+    // TODO: Fix a bug where a player joining triggers this on the sender side too
     private void OnPlayerJoined(PlayerID playerId)
     {
-        Relay(_value);
+        Executor.RunIfHost(() =>
+        {
+            Relay(_value, playerId.SmallID);
+        });
     }
 }

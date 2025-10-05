@@ -42,8 +42,17 @@ public class HuntPhase : GamePhase
     
     private void SetDeliveryPosition()
     {
-        var position = FusionPlayer.SpawnPoints.GetRandom()?.position 
-                       ?? Clockhunt.Context.LocalPlayer.RigRefs.Head.position;
+        var spawnPoints = FusionPlayer.SpawnPoints;
+
+        Vector3 position;
+        if (spawnPoints.Count > 0)
+        {
+            position = spawnPoints.GetRandom().position;
+        }
+        else
+        {
+            position = Clockhunt.Context.LocalPlayer.RigRefs.RigManager.checkpointPosition;
+        }
         
         _deliveryPosition.Value = position;
     }
@@ -112,12 +121,9 @@ public class HuntPhase : GamePhase
             WinStateManager.ForceWin(GameTeam.Nightmares);
         });
     }
-    
-    private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+
+    public override void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
-        if (!Clockhunt.IsStarted)
-            return;
-        
         if (type != PlayerActionType.DEATH)
             return;
         

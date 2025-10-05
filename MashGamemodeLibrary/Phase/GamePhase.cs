@@ -1,4 +1,7 @@
-﻿namespace MashGamemodeLibrary.Phase;
+﻿using LabFusion.Player;
+using LabFusion.Senders;
+
+namespace MashGamemodeLibrary.Phase;
 
 public abstract class GamePhase
 {
@@ -39,17 +42,17 @@ public abstract class GamePhase
     
     // States
 
-    protected virtual void OnPlayerAction()
+    public virtual void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
         
     }
 
-    protected virtual void OnPlayerJoined()
+    public virtual void OnPlayerJoined(PlayerID player)
     {
         
     }
     
-    protected virtual void OnPlayerLeft()
+    public virtual void OnPlayerLeft(PlayerID player)
     {
         
     }
