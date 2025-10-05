@@ -33,23 +33,11 @@ public class ClockhuntContext : GameContext
         new SyncedAudioContainer(new AudioFileLoader("Pings")), 10, (NetworkEntity entity, MarrowEntity marrowEntity,
             DummySerializable _, ref AudioSource source) =>
         {
-            source.volume = 2f;
-            source.maxDistance = 120;
-            source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.Linear(0, 1, 1, 0));
-            source.spatialBlend = 0.85f;
+            source.volume = 1f;
+            source.maxDistance = 50;
+            source.spatialBlend = 1f;
             return true;
-        }), 30, 60);
-
-    public RandomObjectAudioPlayer AlarmAudioPlayer { get; } = new ("AlarmSound",
-        new SyncedAudioContainer(new AudioFileLoader("Alarm")), 10, (NetworkEntity entity, MarrowEntity marrowEntity,
-            DummySerializable _, ref AudioSource source) =>
-        {
-            source.volume = 3f;
-            source.maxDistance = 300;
-            source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, AnimationCurve.Linear(0, 1, 1, 0));
-            source.spatialBlend = 0.65f;
-            return true;
-        });
+        }), 5, 20);
 
     public PositionalAudioPlayer<DummySerializable> EscapeAudioPlayer = new("EscapeSound",
         new SyncedAudioContainer(new AudioFileLoader("Escape")),

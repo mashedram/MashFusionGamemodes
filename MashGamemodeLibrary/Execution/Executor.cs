@@ -42,4 +42,12 @@ public static class Executor
         
         Run(runnable);
     }
+    
+    public static void RunIfMe(PlayerID id, Runnable runnable)
+    {
+        if (!id.IsMe)
+            return;
+        
+        Run(runnable);
+    }
 }

@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using UnityEngine;
 
@@ -35,17 +36,13 @@ public class NightmareInstance
         return distance < 25f && lineOfSight;
     }
     
-    public virtual bool CanGrab(NetworkEntity entity, MarrowEntity marrowEntity)
+    public virtual bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
     {
-        return NetworkPlayerManager.TryGetPlayer(marrowEntity, out _);
+        return marrowEntity && NetworkPlayerManager.TryGetPlayer(marrowEntity, out _);
     }
-    
-    /**
-     * When applied to another player (host only)
-     */
+ 
     public virtual void OnApplied()
     {
-        PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }
 
     /**
@@ -102,6 +99,8 @@ public class NightmareInstance
         WinStateManager.SetLocalTeam(GameTeam.Nightmares);
             
         PlayerStatManager.SetStats(Descriptor.Stats);
+        
+        PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }
 
     public void Remove()
@@ -110,6 +109,6 @@ public class NightmareInstance
 
         if (!Owner.PlayerID.IsMe) return;
         PlayerStatManager.ResetStats();
-        LocalAvatar.AvatarOverride = null;
+        PlayerGrabManager.SetOverwrite(NightmareGrabKey, null);
     }
 }

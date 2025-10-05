@@ -14,7 +14,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     {
     }
 
-    public override bool CanGrab(NetworkEntity entity, MarrowEntity marrowEntity)
+    public override bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
     {
         return true;
     }

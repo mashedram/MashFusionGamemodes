@@ -36,5 +36,6 @@ public class Mod : MelonMod
     {
         SpectatorManager.Disable();
         EntityTagManager.ClearAll();
+        PlayerGrabManager.ClearOverwrites();
     }
 }

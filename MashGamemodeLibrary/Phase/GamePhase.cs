@@ -4,6 +4,7 @@ public abstract class GamePhase
 {
     public abstract string Name { get; }
     public abstract float Duration { get; }
+    public bool IsActive { get; private set; }
 
     /**
      * The phase can only be entered if this predicate returns true.
@@ -36,6 +37,23 @@ public abstract class GamePhase
         
     }
     
+    // States
+
+    protected virtual void OnPlayerAction()
+    {
+        
+    }
+
+    protected virtual void OnPlayerJoined()
+    {
+        
+    }
+    
+    protected virtual void OnPlayerLeft()
+    {
+        
+    }
+    
     // Implementation
     
     public float ElapsedTime { get; private set; }
@@ -49,12 +67,14 @@ public abstract class GamePhase
 
     public void Enter()
     {
+        IsActive = true;
         ElapsedTime = 0f;
         OnPhaseEnter();
     }
     
     public void Exit()
     {
+        IsActive = false;
         OnPhaseExit();
     }
     

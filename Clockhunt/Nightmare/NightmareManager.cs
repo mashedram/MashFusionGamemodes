@@ -250,30 +250,16 @@ public static class NightmareManager
     private static void OnNightmareSync(SyncNightmarePacket obj)
     {
         var goal = obj.Pairs.ToDictionary(e => e.PlayerID, e => e.NightmareID);
-        var differences = new Dictionary<byte, bool>();
-        
-        var allIds = goal.Keys.Union(NightmareInstances.Keys);
 
-        foreach (var id in allIds)
+        foreach (var playerID in NightmareInstances.Keys.Where(playerID => !goal.ContainsKey(playerID)))
         {
-            var isCurrentlyNightmare = NightmareInstances.ContainsKey(id);
-            var shouldBeNightmare = goal.ContainsKey(id);
-            
-            if (isCurrentlyNightmare != shouldBeNightmare)
-                differences[id] = shouldBeNightmare;
+            RemoveNightmare(playerID);
         }
-
-        foreach (var (id, wantedState) in differences)
+        
+        foreach (var (playerID, nightmareID) in goal)
         {
-            if (wantedState)
-            {
-                var nightmareId = goal[id];
-                SetNightmare(id, nightmareId);
-            }
-            else
-            {
-                RemoveNightmare(id);
-            }
+            if (NightmareInstances.ContainsKey(playerID)) continue;
+            SetNightmare(playerID, nightmareID);
         }
     }
 

@@ -165,6 +165,8 @@ public static class EscapeManager
         _hasEscaped = false;
         _localEscapeTime = 0.0f;
         _activeEscapePoint = packet.EscapePoint;
+        
+        MarkerManager.SetMarker(_activeEscapePoint);
     }
 
     private static void OnEscapeRequest(OnEscapeRequestPacket requestPacket)

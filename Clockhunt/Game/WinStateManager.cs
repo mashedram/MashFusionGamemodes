@@ -44,7 +44,7 @@ public class WinStateManager
 {
     private static GameTeam _localGameTeam;
     private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
-    private static readonly RemoteEvent<SetLivesPacket> OnLivesChangedEvent = new(OnLivesChanged, false);
+    private static readonly RemoteEvent<SetLivesPacket> OnLivesChangedEvent = new(OnLivesChanged, true);
     public static int Lives { get; private set; } = 3;
 
     public static GameTeam LocalGameTeam => _localGameTeam;

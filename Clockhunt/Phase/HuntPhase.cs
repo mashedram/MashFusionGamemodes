@@ -6,13 +6,16 @@ using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Integration;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.RPC;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.Senders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
 using UnityEngine;
 
@@ -23,25 +26,46 @@ public class HuntPhase : GamePhase
     public override string Name => "Hunt";
     public override float Duration => ClockhuntConfig.HuntPhaseDuration;
     
-    private static Vector3 _deliveryPosition = new(0, 1, 0);
+    private readonly Vector3SyncedVariable _deliveryPosition;
+
+    public HuntPhase()
+    {
+        _deliveryPosition = new Vector3SyncedVariable("deliveryposition", Vector3.zero);
+        _deliveryPosition.OnValueChanged += value =>
+        {
+            if (!IsActive)
+                return;
+            
+            MarkerManager.SetMarker(value);
+        };
+    }
+    
+    private void SetDeliveryPosition()
+    {
+        var position = FusionPlayer.SpawnPoints.GetRandom()?.position 
+                       ?? Clockhunt.Context.LocalPlayer.RigRefs.Head.position;
+        
+        _deliveryPosition.Value = position;
+    }
 
     protected override void OnPhaseEnter()
     {
+        
         Executor.RunIfHost(() =>
         {
             var context = Clockhunt.Context;
+            
+            SetDeliveryPosition();
             
             var players = NetworkPlayer.Players.ToList();
             players.Shuffle();
             players.Take(ClockhuntConfig.NightmareCount).ForEach(NightmareManager.SetRandomNightmare);
             
+            EscapeManager.CollectEscapePoints();
+            
             ClockManager.RemoveUntilCount(ClockhuntConfig.HuntPhaseClockCount);
         
             context.ClockAudioPlayer.StartPlaying();
-
-            MultiplayerHooking.OnPlayerAction += OnPlayerAction;
-            
-            EscapeManager.CollectEscapePoints();
         });
     }
     
@@ -89,13 +113,11 @@ public class HuntPhase : GamePhase
         });
     }
     
-    public static void SetDeliveryPosition(Vector3 position)
-    {
-        _deliveryPosition = position;
-    }
-
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
+        if (!Clockhunt.IsStarted)
+            return;
+        
         if (type != PlayerActionType.DEATH)
             return;
         

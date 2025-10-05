@@ -9,6 +9,7 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext
 {
     private static T? _internalContext;
     public static T Context => _internalContext ?? throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    public static bool IsStarted { get; private set; }
     
     public override void OnGamemodeRegistered()
     {
@@ -33,6 +34,7 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext
 
     protected override void OnUpdate()
     {
+        IsStarted = base.IsStarted;
         if (!IsStarted)
             return;
         

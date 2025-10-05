@@ -23,11 +23,11 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
 
 public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializable, new()
 {
-    private RemoteEvent<PlayRequestPacket<T>> _playRequestEvent;
+    private readonly RemoteEvent<PlayRequestPacket<T>> _playRequestEvent;
     
     public SyncedAudioPlayer(string name, ISyncedAudioContainer container, IAudioSourceProvider provider) : base(container, provider)
     {
-        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, false);
+        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true);
     }
     
     protected abstract bool Modifier(T data, ref AudioSource source);

@@ -33,6 +33,11 @@ public class ClockhuntMusicContext
 
         return nightmare.CanStartChaseMusic(nightmare.Owner, distance, lineOfSight);
     }
+
+    public static void Reset()
+    {
+        _chaseTimer = 0f;
+    }
     
     public static ClockhuntMusicContext GetContext(ClockhuntContext context)
     {

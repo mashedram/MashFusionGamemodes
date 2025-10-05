@@ -1,3 +1,4 @@
+using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
@@ -34,7 +35,7 @@ internal class SpectatorSyncPacket : INetSerializable
 
 public static class SpectatorManager
 {
-    private static bool _enabled = false;
+    private static bool _enabled;
     private const string GrabOverwriteKey = "spectating";
     private static readonly RemoteEvent<SpectatorSyncPacket> SyncEvent = new(OnSyncReceived, false);
 
@@ -64,13 +65,41 @@ public static class SpectatorManager
         return SpectatingPlayerIds.Contains(playerId);
     }
 
+    private static void SetColliders(RigManager rig, bool state)
+    {
+        var physicsRig = rig.physicsRig;
+        if (state)
+        {
+            physicsRig.leftHand.EnableCollider();
+            physicsRig.rightHand.EnableCollider();
+        }
+        else
+        {
+            physicsRig.leftHand.DisableCollider();
+            physicsRig.rightHand.DisableCollider();
+        }
+        
+        // 8: Player
+        // 10: Dynamic
+        // 12: EnemyColliders
+        Physics.IgnoreLayerCollision(8, 8, !state);
+        Physics.IgnoreLayerCollision(8, 10, !state);
+        Physics.IgnoreLayerCollision(8, 12, !state);
+        
+        var bodylog = rig.inventory.specialItems[0]?.GetComponentInChildren<PullCordDevice>(true);
+        if (!bodylog)
+            return;
+        
+        bodylog.gameObject.SetActive(state);
+    }
+
     private static void Hide(PlayerID playerId)
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) return;
         if (!HiddenIds.Add(playerId)) return;
 
         player.RigRefs.LeftHand.DetachObject();
-        player.RigRefs.LeftHand.DetachObject();
+        player.RigRefs.RightHand.DetachObject();
         
         Executor.RunIfRemote(playerId, () =>
         {
@@ -87,6 +116,7 @@ public static class SpectatorManager
         }
         
         if (!playerId.IsMe) return;
+        SetColliders(player.RigRefs.RigManager, false);
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, (_, _) => false);
     }
 
@@ -118,6 +148,7 @@ public static class SpectatorManager
         }
        
         if (!playerId.IsMe) return;
+        SetColliders(player.RigRefs.RigManager, true);
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, null);
     }
     

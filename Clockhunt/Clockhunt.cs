@@ -23,6 +23,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
@@ -55,7 +56,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
     public override void OnGamemodeStarted()
     {
-        Context.PhaseManager.ResetPhases();
+        ClockhuntMusicContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night", new EnvironmentState<ClockhuntMusicContext>[]
         {
             new ChaseEnvironmentState(),
@@ -65,9 +66,17 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
             new HidePhaseEnvironmentState(),
         }, LocalWeatherManager.ClearLocalWeather));
         
+        Context.PhaseManager.Enable();
+
+        LocalAvatar.AvatarOverride = LocalAvatar.AvatarBarcode;
         SpectatorManager.Enable();
-        WinStateManager.SetLives(3, false);
-        HuntPhase.SetDeliveryPosition(Context.LocalPlayer.RigRefs.Head.position);
+        LocalControls.DisableSlowMo = true;
+        
+        Executor.RunIfHost(() =>
+        {
+            NightmareManager.ClearNightmares();
+            WinStateManager.SetLives(3, false);
+        });
     }
 
     public override void OnGamemodeStopped()
@@ -76,12 +85,18 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         Context.ClockAudioPlayer.StopPlaying();
         Context.EscapeAudioPlayer.StopAll();
         
-        if (!NetworkInfo.IsHost)
-            return;
+        Context.PhaseManager.Disable();
+        
+        MarkerManager.ClearMarker();
         
         SpectatorManager.Disable();
-        NightmareManager.ClearNightmares();
-        ClockManager.ClearClocks();
         LocalAvatar.AvatarOverride = null;
+        LocalControls.DisableSlowMo = false;
+        
+        Executor.RunIfHost(() =>
+        {
+            NightmareManager.ClearNightmares();
+            ClockManager.ClearClocks();
+        });
     }
 }

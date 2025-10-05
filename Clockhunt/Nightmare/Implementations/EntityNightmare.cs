@@ -29,7 +29,7 @@ public class EntityNightmareDescriptor : NightmareDescriptor
 
     public override PlayerStats Stats => new()
     {
-        Vitality = 30f,
+        Vitality = 8f,
         UpperStrength = 8f,
         Speed = 3f,
         Agility = 2f,

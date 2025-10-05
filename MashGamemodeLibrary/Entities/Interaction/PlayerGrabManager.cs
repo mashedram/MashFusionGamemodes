@@ -31,7 +31,7 @@ public static class PlayerGrabManager
     
     public static bool IsForceDisabled(NetworkEntity entity, MarrowEntity marrowEntity)
     {
-        return OverwriteMap.Any(predicate => !predicate.Value.Invoke(entity, marrowEntity));
+        return OverwriteMap.Count != 0 && OverwriteMap.Any(predicate => !predicate.Value.Invoke(entity, marrowEntity));
     }
     
     public static void OnGrab(this MarrowEntity entity, Hand hand)
@@ -99,5 +99,10 @@ public static class PlayerGrabManager
         }
         
         OverwriteMap[key] = predicate;
+    }
+
+    public static void ClearOverwrites()
+    {
+        OverwriteMap.Clear();
     }
 }
