@@ -45,7 +45,7 @@ public class PreloadAudioContainer : IAudioContainer
                     return;
                 }
                 
-                _clips[name] = audioClip;
+                _clips[name] = audioClip!;
                 if (toLoad <= 0)
                 {
                     IsLoading = false;

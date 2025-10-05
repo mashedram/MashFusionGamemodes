@@ -5,12 +5,25 @@ using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Player;
 using MelonLoader;
 
 namespace Clockhunt.Nightmare;
+
+internal class AnnounceNightmarePacket : INetSerializable
+{
+    public byte PlayerID;
+    public ulong NightmareID;
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref PlayerID);
+        serializer.SerializeValue(ref NightmareID);
+    }
+}
 
 class PlayerNightmarePair : INetSerializable
 {
@@ -59,6 +72,7 @@ public static class NightmareManager
     public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
     
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
+    private static readonly RemoteEvent<AnnounceNightmarePacket> AnnounceNightmareEvent = new("AnnounceNightmare", AnnounceNightmarePacket, true);
     private static readonly RemoteEvent<SyncNightmarePacket> NightmareSyncEvent = new("SyncNightmares", OnNightmareSync, false);
 
     public static IReadOnlyCollection<NightmareInstance> Nightmares => NightmareInstances.Values;
@@ -151,6 +165,7 @@ public static class NightmareManager
         SetNightmare(player.PlayerID.SmallID, descriptor.ID);
     }
     
+    // TODO: Make this not break when there is more than 1 nightmare
     public static void SetRandomNightmare(NetworkPlayer player)
     {
         if (!NetworkInfo.IsHost)
@@ -167,6 +182,11 @@ public static class NightmareManager
             choice -= descriptor.Weight;
             if (choice > 0) continue;
             SetNightmare(player.PlayerID.SmallID, descriptor.ID);
+            AnnounceNightmareEvent.Call(new AnnounceNightmarePacket()
+            {
+                PlayerID = player.PlayerID.SmallID,
+                NightmareID = descriptor.ID
+            });
             return;
         }
         
@@ -193,6 +213,39 @@ public static class NightmareManager
     }
     
     // Remote
+
+    private static void AnnounceNightmarePacket(AnnounceNightmarePacket packet)
+    {
+        if (!NightmareDescriptors.TryGetValue(packet.NightmareID, out var descriptor))
+            return;
+
+        var isSelf = Clockhunt.Context.LocalPlayer.PlayerID.SmallID == packet.PlayerID;
+
+        if (isSelf)
+        {
+            Notifier.Send(new Notification
+            {
+                Title = descriptor.Name,
+                Message = descriptor.HunterDescription,
+                PopupLength = 5f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
+        }
+        else
+        {
+            Notifier.Send(new Notification
+            {
+                Title = descriptor.Name,
+                Message = descriptor.SurvivorDescription,
+                PopupLength = 5f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
+        }
+    }
     
     private static void OnNightmareSync(SyncNightmarePacket obj)
     {

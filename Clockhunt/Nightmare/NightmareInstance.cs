@@ -4,6 +4,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player;
 using UnityEngine;
 
@@ -11,9 +12,11 @@ namespace Clockhunt.Nightmare;
 
 public class NightmareInstance
 {
-    public NetworkPlayer Owner { get; init; }
-    public NightmareDescriptor Descriptor { get; init; }
-    protected float AbilityTimer { get; set; } = 0f;
+    private static string NightmareGrabKey => "Nightmare_Grab";
+    
+    public NetworkPlayer Owner { get; }
+    public NightmareDescriptor Descriptor { get; }
+    protected float AbilityTimer { get; set; }
     
 
     protected NightmareInstance(NetworkPlayer owner, NightmareDescriptor descriptor)
@@ -32,7 +35,7 @@ public class NightmareInstance
         return distance < 25f && lineOfSight;
     }
     
-    public virtual bool CanGrab(NetworkPlayer player, NetworkEntity entity, MarrowEntity marrowEntity)
+    public virtual bool CanGrab(NetworkEntity entity, MarrowEntity marrowEntity)
     {
         return NetworkPlayerManager.TryGetPlayer(marrowEntity, out _);
     }
@@ -42,7 +45,7 @@ public class NightmareInstance
      */
     public virtual void OnApplied()
     {
-        
+        PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }
 
     /**
@@ -99,16 +102,6 @@ public class NightmareInstance
         WinStateManager.SetLocalTeam(GameTeam.Nightmares);
             
         PlayerStatManager.SetStats(Descriptor.Stats);
-        
-        Notifier.Send(new Notification
-        {
-            Title = Descriptor.Name,
-            Message = Descriptor.Description,
-            PopupLength = 5f,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.INFORMATION
-        });
     }
 
     public void Remove()

@@ -2,6 +2,8 @@ namespace MashGamemodeLibrary.Environment;
 
 public abstract class EnvironmentEffector<TContext>
 {
+    public abstract Enum Track { get; }
+    
     public virtual bool CanApply(TContext context)
     {
         return true;

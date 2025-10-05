@@ -23,15 +23,20 @@ public abstract class MappedSelector<TContext, TKey> : EnvironmentEffector<TCont
     
     public override void Apply(TContext context)
     {
+        _currentEffector?.Apply(context);
+    }
+
+    public override bool CanApply(TContext context)
+    {
         var key = Selector(context);
         if (!_effectors.TryGetValue(key, out var effector))
         {
             MelonLogger.Error($"MappedSelector: No effector found for key {key}");
-            return;
+            return false;
         }
 
         _currentEffector = effector;
-        _currentEffector.Apply(context);
+        return _currentEffector.CanApply(context);
     }
 
     public override void Update(TContext context, float delta)

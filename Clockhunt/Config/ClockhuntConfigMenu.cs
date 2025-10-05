@@ -94,11 +94,17 @@ public static class ClockhuntConfigMenu
         group.AddElement(new EnumElementData
         {
             EnumType = typeof(WeatherType),
-            OnValueChanged = value => ClockhuntConfig.WeatherType = (WeatherType)value,
+            OnValueChanged = value => ClockhuntConfig.WeatherType.Value = (WeatherType)value,
             Title = "Weather Type",
-            Value = ClockhuntConfig.WeatherType
+            Value = ClockhuntConfig.WeatherType.Value
         });
         
+        group.AddElement(new BoolElementData
+        {
+            Title = "Disable Dev Tools",
+            Value = ClockhuntConfig.DevToolsDisabled,
+            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled = value
+        });
         
         group.AddElement(new SpawnableElementData
         {

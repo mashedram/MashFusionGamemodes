@@ -1,5 +1,6 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Marrow;
 using LabFusion.SDK.Triggers;
 using MashGamemodeLibrary.Player;
 
@@ -20,8 +21,9 @@ public class EntityNightmareInstance : NightmareInstance
 public class EntityNightmareDescriptor : NightmareDescriptor
 {
     public override string Name => "Entity";
-    public override string Description => "Kill all players.";
-    public override string Avatar => "Random.OWNTeamAvatars.Avatar.Entity";
+    public override string HunterDescription => "Kill all players.";
+    public override string SurvivorDescription => "Avoid the entity and escape.";
+    public override string Avatar => "fa534c5a83ee4ec6bd641fec424c4142.Avatar.CharTallv4";
     public override int Weight => 10;
     public override float AbilityCooldown => 60f;
 

@@ -14,7 +14,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     {
     }
 
-    public override bool CanGrab(NetworkPlayer player, NetworkEntity entity, MarrowEntity marrowEntity)
+    public override bool CanGrab(NetworkEntity entity, MarrowEntity marrowEntity)
     {
         return true;
     }
@@ -39,7 +39,8 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 public class SkinwalkerNightmareDescriptor : NightmareDescriptor
 {
     public  override string Name => "Skinwalker";
-    public  override string Description => "Player lives have been reduced to 0. Kill them all before they escape.";
+    public  override string HunterDescription => "Player lives have been reduced to 0. Kill them all before they escape.";
+    public  override string SurvivorDescription => "You have no lives. Work with your team to escape or eliminate the nightmare.";
     public override string? Avatar => null;
     public override bool RegenerateHealth => true;
     public override int Weight => 4;

@@ -46,15 +46,15 @@ internal class OnEscapeRequestPacket : INetSerializable
 
 public static class EscapeManager
 {
-    private static List<Vector3> _escapePoints = new();
+    private static readonly List<Vector3> EscapePoints = new();
     private static Vector3 _activeEscapePoint = Vector3.zero;
     
-    private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent = new(OnEscapePointActivated);
-    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent = new(OnEscapeRequest);
+    private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent = new(OnEscapePointActivated, true);
+    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent = new(OnEscapeRequest, false);
 
-    private static bool _isEscaping = false;
-    private static bool _hasEscaped = false;
-    private static float _localEscapeTime = 0f;
+    private static bool _isEscaping;
+    private static bool _hasEscaped;
+    private static float _localEscapeTime;
 
     public static Vector3 ActiveEscapePoint => _activeEscapePoint;
 
@@ -64,7 +64,7 @@ public static class EscapeManager
         {
             OnEscapePointActivatedEvent.Call(new OnEscapePointActivatedPacket
             {
-                EscapePoint = _escapePoints.GetRandom()
+                EscapePoint = EscapePoints.GetRandom()
             });
             
             var context = Clockhunt.Context;
@@ -77,7 +77,7 @@ public static class EscapeManager
     {
         Executor.RunIfHost(() =>
         {
-            _escapePoints.Clear();
+            EscapePoints.Clear();
 
             foreach (var networkEntity in EntityTagManager.GetAllWithTag<ClockMarker>())
             {
@@ -85,7 +85,7 @@ public static class EscapeManager
                 if (position == null)
                     continue;
                 
-                _escapePoints.Add(position.Value);
+                EscapePoints.Add(position.Value);
             }
         });
     }

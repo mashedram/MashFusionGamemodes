@@ -15,30 +15,8 @@ public abstract class EnvironmentState<TContext>
     }
     
     public abstract int Priority { get; }
+    public virtual int Layer => 0;
+    public EnvironmentEffector<TContext>[] Effectors => _effectors;
     public abstract bool CanPlay(TContext context);
     
-    public void Apply(TContext context)
-    {
-        foreach (var effector in _effectors)
-        {
-            if (!effector.CanApply(context)) continue;
-            effector.Apply(context);
-        }
-    }
-    
-    public void Update(TContext context, float delta)
-    {
-        foreach (var effector in _effectors)
-        {
-            effector.Update(context, delta);
-        }
-    }
-    
-    public void Remove(TContext context)
-    {
-        foreach (var effector in _effectors)
-        {
-            effector.Remove(context);
-        }
-    }
 }

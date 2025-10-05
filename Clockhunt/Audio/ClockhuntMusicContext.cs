@@ -8,18 +8,18 @@ namespace Clockhunt.Audio;
 public class ClockhuntMusicContext
 {
     private const float ChaseDuration = 15f;
-    private static LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
+    private static readonly LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
     
-    private static float _chaseTimer = 0f;
-    private GamePhase Phase;
+    private static float _chaseTimer;
+    private GamePhase _phase = null!;
     
-    public float PhaseProgress => Mathf.Clamp01(Phase.ElapsedTime / Phase.Duration);
+    public float PhaseProgress => Mathf.Clamp01(_phase.ElapsedTime / _phase.Duration);
     public bool IsChasing { get; private set; }
-    public bool IsLocalNightmare => WinStateManager.LocalGameTeam == GameTeam.Nightmares;
+    public static bool IsLocalNightmare => WinStateManager.LocalGameTeam == GameTeam.Nightmares;
     
     public bool IsPhase<T>() where T : GamePhase
     {
-        return Phase is T;
+        return _phase is T;
     }
 
     private static bool IsNightmareChasing(NightmareInstance nightmare, Vector3 localPosition)
@@ -47,7 +47,7 @@ public class ClockhuntMusicContext
         
         return new ClockhuntMusicContext
         {
-            Phase = context.PhaseManager.GetActivePhase(),
+            _phase = context.PhaseManager.GetActivePhase(),
             IsChasing = isChasing
         };
     }

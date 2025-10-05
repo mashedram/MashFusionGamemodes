@@ -11,6 +11,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Menu.Data;
 using LabFusion.Network;
+using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Containers;
@@ -33,7 +34,11 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override string Title => "Clockhunt";
     public override string Author => "Mash";
 
-    public override bool AutoHolsterOnDeath { get; }
+    public override bool AutoHolsterOnDeath => true;
+    public override bool DisableDevTools => ClockhuntConfig.DevToolsDisabled;
+    public override bool DisableSpawnGun => ClockhuntConfig.DevToolsDisabled;
+    public override bool DisableManualUnragdoll => ClockhuntConfig.DevToolsDisabled;
+
 
     public override void OnGamemodeRegistered()
     {
@@ -60,6 +65,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
             new HidePhaseEnvironmentState(),
         }, LocalWeatherManager.ClearLocalWeather));
         
+        SpectatorManager.Enable();
         WinStateManager.SetLives(3, false);
         HuntPhase.SetDeliveryPosition(Context.LocalPlayer.RigRefs.Head.position);
     }
@@ -73,8 +79,9 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         if (!NetworkInfo.IsHost)
             return;
         
+        SpectatorManager.Disable();
         NightmareManager.ClearNightmares();
         ClockManager.ClearClocks();
-        SpectatorManager.Clear();
+        LocalAvatar.AvatarOverride = null;
     }
 }

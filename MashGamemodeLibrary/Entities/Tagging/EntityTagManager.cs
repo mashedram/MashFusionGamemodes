@@ -1,13 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Harmony;
-using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
 using LabFusion.Extensions;
-using LabFusion.Marrow.Patching;
-using LabFusion.Marrow.Pool;
 using LabFusion.Network.Serialization;
-using LabFusion.RPC;
-using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging.Tags;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Util;
@@ -19,7 +13,7 @@ public class SyncEntityTagPacket : INetSerializable
 {
     public ushort EntityId;
     public ulong TagId;
-    public byte[] TagData;
+    public byte[] TagData = Array.Empty<byte>();
     
     public void Serialize(INetSerializer serializer)
     {

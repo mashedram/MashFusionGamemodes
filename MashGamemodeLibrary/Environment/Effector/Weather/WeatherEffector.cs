@@ -3,7 +3,7 @@ using MashGamemodeLibrary.Environment.Effector.Weather;
 
 namespace MashGamemodeLibrary.Environment.Effector;
 
-public class WeatherEffector<TContext> : EnvironmentEffector<TContext>
+public abstract class WeatherEffector<TContext> : EnvironmentEffector<TContext>
 {
     private readonly string[] _barcodes;
     private readonly Func<TContext, bool>? _canApply;

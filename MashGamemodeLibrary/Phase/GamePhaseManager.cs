@@ -31,7 +31,7 @@ public class GamePhaseManager
     {
         Phases = phases;
         
-        _phaseChangeEvent = new RemoteEvent<PhaseChangePacket>(OnPhaseChange);
+        _phaseChangeEvent = new RemoteEvent<PhaseChangePacket>(OnPhaseChange, true);
     }
     
     public ref GamePhase GetActivePhase()

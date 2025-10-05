@@ -30,12 +30,12 @@ public class HuntPhase : GamePhase
         Executor.RunIfHost(() =>
         {
             var context = Clockhunt.Context;
-        
-            ClockManager.RemoveUntilCount(ClockhuntConfig.HuntPhaseClockCount);
-
+            
             var players = NetworkPlayer.Players.ToList();
             players.Shuffle();
             players.Take(ClockhuntConfig.NightmareCount).ForEach(NightmareManager.SetRandomNightmare);
+            
+            ClockManager.RemoveUntilCount(ClockhuntConfig.HuntPhaseClockCount);
         
             context.ClockAudioPlayer.StartPlaying();
 
@@ -44,7 +44,8 @@ public class HuntPhase : GamePhase
             EscapeManager.CollectEscapePoints();
         });
     }
-
+    
+// TODO: Make players pinged for the nightmare if time runs out
     protected override void OnUpdate()
     {
         Executor.RunIfHost(() =>
@@ -84,7 +85,6 @@ public class HuntPhase : GamePhase
                 return;
             }
         
-            ClockManager.ClearClocks();
             WinStateManager.ForceWin(GameTeam.Nightmares);
         });
     }
@@ -96,7 +96,7 @@ public class HuntPhase : GamePhase
 
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
-        if (type != PlayerActionType.DYING)
+        if (type != PlayerActionType.DEATH)
             return;
         
         WinStateManager.PlayerDied(playerId);

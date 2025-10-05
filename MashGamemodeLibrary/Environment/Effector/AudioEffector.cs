@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Environment.Effector;
 
-public class AudioEffector<TContext> : EnvironmentEffector<TContext>
+public abstract class AudioEffector<TContext> : EnvironmentEffector<TContext>
 {
     private readonly IContinuousPlayer _audioContainer;
     

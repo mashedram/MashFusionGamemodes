@@ -1,4 +1,5 @@
 ﻿using Clockhunt.Audio.Effectors;
+using Clockhunt.Audio.Effectors.Weather;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Environment;
@@ -16,7 +17,8 @@ public class ChaseEnvironmentState : EnvironmentState<ClockhuntMusicContext>
     }
 
     public override int Priority => 500;
-    
+    public override int Layer => 1;
+
     public override bool CanPlay(ClockhuntMusicContext context)
     {
         return context.IsChasing;

@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using LabFusion.Entities;
 using LabFusion.Network;
@@ -15,10 +16,10 @@ namespace MashGamemodeLibrary.networking;
 class InvalidRemoteEventPacket : INetSerializable
 {
     private const int IdSize = sizeof(ulong);
-    
+
     public ulong EventId;
     public byte[] KnownIdBytes;
-    
+
     public ulong[] GetKnownIds()
     {
         var count = KnownIdBytes.Length / IdSize;
@@ -30,13 +31,13 @@ class InvalidRemoteEventPacket : INetSerializable
 
         return ids;
     }
-    
+
     public InvalidRemoteEventPacket()
     {
         EventId = 0;
         KnownIdBytes = Array.Empty<byte>();
     }
-    
+
     public InvalidRemoteEventPacket(ulong eventId, ulong[] knownIds)
     {
         EventId = eventId;
@@ -47,7 +48,7 @@ class InvalidRemoteEventPacket : INetSerializable
             Array.Copy(bytes, 0, KnownIdBytes, i * IdSize, IdSize);
         }
     }
-    
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref EventId);
@@ -56,7 +57,7 @@ class InvalidRemoteEventPacket : INetSerializable
 }
 #endif
 
-internal class EventMessage: INetSerializable
+internal class EventMessage : INetSerializable
 {
     public ulong EventId;
     public byte[] Payload;
@@ -66,7 +67,7 @@ internal class EventMessage: INetSerializable
         EventId = 0;
         Payload = Array.Empty<byte>();
     }
-    
+
     public EventMessage(ulong eventId, byte[] payload)
     {
         EventId = eventId;
@@ -85,14 +86,16 @@ internal class EventMessage: INetSerializable
     }
 }
 
-internal class RemoteEventMessageHandler : ModuleMessageHandler
+public class RemoteEventMessageHandler : ModuleMessageHandler
 {
     private static readonly Dictionary<ulong, Action<byte, byte[]>> EventCallbacks = new();
-    
+
 #if DEBUG
     private static readonly Dictionary<ulong, string> EventNames = new();
-    private static readonly RemoteEvent<InvalidRemoteEventPacket> _onInvalidEventPacket = new("RML_InvalidRemoteEventPacket", OnInvalidEventPacket, false);
-    
+
+    private static readonly RemoteEvent<InvalidRemoteEventPacket> _onInvalidEventPacket =
+        new("RML_InvalidRemoteEventPacket", OnInvalidEventPacket, false);
+
     private static void OnInvalidEventPacket(InvalidRemoteEventPacket packet)
     {
         var eventId = packet.EventId;
@@ -101,10 +104,12 @@ internal class RemoteEventMessageHandler : ModuleMessageHandler
             MelonLogger.Msg($"Received invalid RemoteEvent with unknown ID: {eventId}. Did we even send it?");
             return;
         }
-        
+
         var knownIds = packet.GetKnownIds();
-        var knownNames = knownIds.Select(id => EventNames.TryGetValue(id, out var knownName) ? $"{id} - {knownName}" : $"Unknown ({id})").ToList();
-        MelonLogger.Msg($"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
+        var knownNames = knownIds.Select(id =>
+            EventNames.TryGetValue(id, out var knownName) ? $"{id} - {knownName}" : $"Unknown ({id})").ToList();
+        MelonLogger.Msg(
+            $"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
     }
 #endif
 
@@ -112,18 +117,59 @@ internal class RemoteEventMessageHandler : ModuleMessageHandler
     {
         var eventId = StableHash.Fnv1A64(name);
         EventCallbacks[eventId] = callback;
-        #if DEBUG
-        EventNames[eventId] = name; 
+#if DEBUG
+        EventNames[eventId] = name;
         MelonLogger.Msg($"Registered RemoteEvent with name: {name} and ID: {eventId}");
-        #endif
+#endif
         return eventId;
+    }
+
+    public static void RegisterMod<T>()
+    {
+        foreach (var type in typeof(T).Assembly.GetTypes())
+        {
+            if (type.IsGenericType)
+                continue;
+
+            var foundRemoteEvent = false;
+            foreach (var field in type.GetFields(
+                         System.Reflection.BindingFlags.Public |
+                         System.Reflection.BindingFlags.NonPublic |
+                         System.Reflection.BindingFlags.Instance |
+                         System.Reflection.BindingFlags.Static |
+                         System.Reflection.BindingFlags.DeclaredOnly
+                     ))
+            {
+                var fieldType = field.FieldType;
+
+                var baseType = fieldType.BaseType;
+                while (baseType != null)
+                {
+                    if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(GenericRemoteEvent<>))
+                    {
+                        foundRemoteEvent = true;
+                        break;
+                    }
+
+                    baseType = baseType.BaseType;
+                }
+                
+                if (foundRemoteEvent)
+                    break;
+            }
+            
+            if (!foundRemoteEvent)
+                continue;
+            
+            RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+        }
     }
 
     public static void UnregisterEvent(ulong id)
     {
         EventCallbacks.Remove(id);
     }
-    
+
     protected override void OnHandleMessage(ReceivedMessage received)
     {
         if (received.Route.Type == RelayType.None)
@@ -131,9 +177,9 @@ internal class RemoteEventMessageHandler : ModuleMessageHandler
             MelonLogger.Error("Received EventMessage with no relay type, cannot process.");
             return;
         }
-        
+
         var data = received.ReadData<EventMessage>();
-        #if DEBUG
+#if DEBUG
         try
         {
 #endif
@@ -173,9 +219,9 @@ internal class RemoteEventMessageHandler : ModuleMessageHandler
             MelonLogger.Error("Cannot relay EventMessage with no relay type.");
             return;
         }
-        
+
         var message = new EventMessage(eventId, buffer.ToArray());
-        
+
         MessageRelay.RelayModule<RemoteEventMessageHandler, EventMessage>(
             message,
             route

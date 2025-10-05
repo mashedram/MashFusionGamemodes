@@ -11,7 +11,7 @@ namespace MashGamemodeLibrary.Entities.Interaction;
 
 public static class PlayerGrabManager
 {
-    private static readonly Dictionary<string, bool> OverwriteMap = new();
+    private static readonly Dictionary<string, Func<NetworkEntity?, MarrowEntity?, bool>> OverwriteMap = new();
     private static readonly Dictionary<ushort, double> LastGrabbedTime = new();
     private static readonly Dictionary<ushort, double> LastDroppedTime = new();
 
@@ -26,7 +26,12 @@ public static class PlayerGrabManager
 
     public static bool IsForceDisabled()
     {
-        return OverwriteMap.ContainsValue(true);
+        return OverwriteMap.Any(predicate => !predicate.Value.Invoke(null, null));
+    }
+    
+    public static bool IsForceDisabled(NetworkEntity entity, MarrowEntity marrowEntity)
+    {
+        return OverwriteMap.Any(predicate => !predicate.Value.Invoke(entity, marrowEntity));
     }
     
     public static void OnGrab(this MarrowEntity entity, Hand hand)
@@ -68,9 +73,9 @@ public static class PlayerGrabManager
         // Only apply grab predicates for the local player
         if (!player.PlayerID.IsMe) return true;
         
-         var isForceDisabled = IsForceDisabled();
-        if (isForceDisabled) return false;
         if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return true;
+        
+        if (IsForceDisabled(networkEntity, entity)) return false;
 
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();
@@ -80,14 +85,19 @@ public static class PlayerGrabManager
 
     public static bool CanGrabEntity(this MarrowEntity entity, Hand hand)
     {
-        if (entity == null || hand == null || hand.manager == null)
+        if (!entity || !hand || !hand.manager)
             return false;
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) return true;
-        return CanGrabEntity(entity, player);
+        return !NetworkPlayerManager.TryGetPlayer(hand.manager, out var player) || CanGrabEntity(entity, player);
     }
     
-    public static void SetOverwrite(string key, bool value)
+    public static void SetOverwrite(string key, Func<NetworkEntity?, MarrowEntity?, bool>? predicate)
     {
-        OverwriteMap[key] = value;
+        if (predicate == null)
+        {
+            OverwriteMap.Remove(key);
+            return;
+        }
+        
+        OverwriteMap[key] = predicate;
     }
 }

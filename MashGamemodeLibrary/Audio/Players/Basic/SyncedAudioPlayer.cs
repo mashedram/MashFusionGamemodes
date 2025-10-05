@@ -27,7 +27,7 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
     
     public SyncedAudioPlayer(string name, ISyncedAudioContainer container, IAudioSourceProvider provider) : base(container, provider)
     {
-        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest);
+        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, false);
     }
     
     protected abstract bool Modifier(T data, ref AudioSource source);

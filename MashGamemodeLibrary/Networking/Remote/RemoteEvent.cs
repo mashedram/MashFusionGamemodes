@@ -9,55 +9,29 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.networking;
 
-public class RemoteEvent<T> where T : INetSerializable, new()
+public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, new()
 {
     public delegate void PacketHandler(T onEscapePointActivedPacket);
     
-    private readonly ulong _assignedId;
-    private readonly string _name;
     private readonly PacketHandler _onEvent;
-    private readonly bool _callOnHost = true;
-
-    public RemoteEvent(string name, PacketHandler onEvent, bool callOnHost = true)
-    {
-        _name = name;
-        _onEvent = onEvent;
-        _callOnHost = callOnHost;
-        
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(_name, OnPacket);
-    }
-    
-    ~RemoteEvent() {
-        RemoteEventMessageHandler.UnregisterEvent(_assignedId);
-    }
+    private readonly bool _callOnSender;
     
     /**
-     * An event that, when called, will run on all specified clients.
-     */
-    public RemoteEvent(PacketHandler onEvent, bool callOnHost = true) : this(
-        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), 
-        onEvent,
-        callOnHost)
+   * An event that, when called, will run on all specified clients.
+   */
+    public RemoteEvent(PacketHandler onEvent, bool callOnSender) : base(
+        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."))
     {
+        _onEvent = onEvent;
+        _callOnSender = callOnSender;
     }
     
-    private void Relay(T packet, MessageRoute route)
+    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender) : base(name)
     {
-        using var netWriter = NetWriter.Create(packet.GetSize());
-        packet.Serialize(netWriter);
-        RemoteEventMessageHandler.Relay(_assignedId, netWriter.Buffer, route);
+        _onEvent = onEvent;
+        _callOnSender = callOnSender;
     }
     
-    private void Relay(T packet)
-    {
-        Relay(packet, new MessageRoute(RelayType.ToOtherClients, NetworkChannel.Reliable));
-    }
-
-    private void Relay(byte targetId, T packet)
-    {
-        Relay(packet, new MessageRoute(targetId, NetworkChannel.Reliable));
-    }
-
     /**
      * Run the event on all clients connected to the server.
      * This includes the host.
@@ -65,7 +39,7 @@ public class RemoteEvent<T> where T : INetSerializable, new()
     public void Call(T data)
     {
         // Call it locally first
-        if (_callOnHost) 
+        if (_callOnSender) 
             _onEvent(data);
         
         var localPlayer = LocalPlayer.GetNetworkPlayer();
@@ -81,7 +55,7 @@ public class RemoteEvent<T> where T : INetSerializable, new()
     public void CallFor(PlayerID playerId, T data)
     {
         // Call it locally if it's for us
-        if (playerId.IsMe && _callOnHost)
+        if (playerId.IsMe && _callOnSender)
         {
             _onEvent.Invoke(data);
             return;
@@ -94,14 +68,64 @@ public class RemoteEvent<T> where T : INetSerializable, new()
             return;
         }
         
-        Relay(playerId.SmallID, data);
+        Relay(data, playerId.SmallID);
     }
 
+    protected override int? GetSize(T data)
+    {
+        return data.GetSize();
+    }
+
+    protected override void Write(NetWriter writer, T data)
+    {
+        data.Serialize(writer);
+    }
+
+    protected override void Read(NetReader reader)
+    {
+        var data = Activator.CreateInstance<T>();
+        data.Serialize(reader);
+        _onEvent.Invoke(data);
+    }
+}
+
+public abstract class GenericRemoteEvent<T>
+{
+    private readonly ulong _assignedId;
+
+    protected GenericRemoteEvent(string name)
+    {
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(name, OnPacket);
+    }
+    
+    ~GenericRemoteEvent() {
+        RemoteEventMessageHandler.UnregisterEvent(_assignedId);
+    }
+    
+    protected abstract int? GetSize(T data);
+    protected abstract void Write(NetWriter writer, T data);
+    protected abstract void Read(NetReader reader);
+    
+    protected void Relay(T data, MessageRoute route)
+    {
+        using var netWriter = NetWriter.Create(GetSize(data));
+        Write(netWriter, data);
+        RemoteEventMessageHandler.Relay(_assignedId, netWriter.Buffer, route);
+    }
+    
+    protected void Relay(T data)
+    {
+        Relay(data, new MessageRoute(RelayType.ToOtherClients, NetworkChannel.Reliable));
+    }
+
+    protected void Relay(T data, byte targetId)
+    {
+        Relay(data, new MessageRoute(targetId, NetworkChannel.Reliable));
+    }
+    
     private void OnPacket(byte playerId, byte[] bytes)
     {
-        using var serializer = NetReader.Create(bytes);
-        var serializable = Activator.CreateInstance<T>();
-        serializable.Serialize(serializer);
-        _onEvent.Invoke(serializable);
+        using var reader = NetReader.Create(bytes);
+        Read(reader);
     }
 }

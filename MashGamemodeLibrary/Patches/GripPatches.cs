@@ -21,6 +21,8 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
     {
+        if (!objectToAttach)
+            return true;
         return !objectToAttach.TryGetComponent<MarrowEntity>(out var entity) || entity.CanGrabEntity(__instance);
     }
 
@@ -62,6 +64,9 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool IconAttempt(InteractableIcon __instance, Hand hand)
     {
+        if (!hand || !__instance.m_Grip || !__instance.m_Grip._marrowEntity)
+            return true;
+        
         var entity = __instance.m_Grip._marrowEntity;
 
         return !entity || entity.CanGrabEntity(hand);
@@ -77,6 +82,9 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
     {
+        if (!hand || !__instance._grip || !__instance._grip._marrowEntity)
+            return true;
+        
         var entity = __instance._grip._marrowEntity;
 
         return !entity || entity.CanGrabEntity(hand);
@@ -92,16 +100,16 @@ public class GripPatches
         if (!hand)
             return false;
 
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player))
+        if (!NetworkPlayerManager.TryGetPlayer(hand!.manager, out var player))
             return false;
         
         if (!player.PlayerID.IsMe)
             return false;
         
-        if (entity.CanGrabEntity(player))
+        if (entity!.CanGrabEntity(player))
             return false;
 
-        if (!grip.HasHost)
+        if (!grip!.HasHost)
             return false;
 
         if (!grip.Host.Rb) return false;
@@ -114,6 +122,9 @@ public class GripPatches
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
     public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
     {
+        if (!hand)
+            return;
+        
         if (DropIfNeeded(__instance, hand))
             return;
         
@@ -125,6 +136,9 @@ public class GripPatches
     [HarmonyPostfix]
     public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
     {
+        if (!hand)
+            return;
+        
         __instance._marrowEntity?.OnDrop(hand);
     }
 

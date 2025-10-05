@@ -1,10 +1,14 @@
 ﻿using LabFusion.SDK.Modules;
 using MashGamemodeLibrary;
-using MashGamemodeLibrary.Debug;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Spectating;
 using MelonLoader;
+
+#if DEBUG
+using MashGamemodeLibrary.Debug;
+#endif
 
 [assembly: MelonInfo(typeof(Mod), "Mash's Gamemode Library", "0.1.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
@@ -17,8 +21,8 @@ public class Mod : MelonMod
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
         ModuleManager.RegisterModule<FusionModule>();
-
-        SpectatorManager.Register();
+        
+        RemoteEventMessageHandler.RegisterMod<Mod>();
     }
     
 #if DEBUG
@@ -27,4 +31,10 @@ public class Mod : MelonMod
         DebugKeybind.UpdateAll();
     }
 #endif
+
+    public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+    {
+        SpectatorManager.Disable();
+        EntityTagManager.ClearAll();
+    }
 }

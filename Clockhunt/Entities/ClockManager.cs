@@ -48,8 +48,6 @@ public static class ClockManager
                 result.Entity.AddTag(new ClockMarker());
                 result.Entity.AddTag(new EntityOwner(player));
                 result.Entity.AddTag(new ObjectiveCollectable());
-                result.Entity.AddTag(new AlarmOnGrabOwnClock());
-                result.Entity.AddTag(new NightmareGrabBlocker());
             }
         });
     }

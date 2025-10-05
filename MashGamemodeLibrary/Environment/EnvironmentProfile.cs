@@ -46,9 +46,11 @@ public class EnvironmentProfile<TInternalContent>
         return _states;
     }
     
-    public EnvironmentState<TInternalContent> GetWantedState(TInternalContent context)
+    public EnvironmentState<TInternalContent>? GetWantedState(int layer, TInternalContent context)
     {
-        return _states.FirstOrDefault(musicState => musicState.CanPlay(context)) ?? _states.Max ?? throw new InvalidOperationException("No states available in profile");
+        return _states
+            .Where(e => e.Layer == layer)
+            .FirstOrDefault(musicState => musicState.CanPlay(context));
     }
     
     public void Cleanup()

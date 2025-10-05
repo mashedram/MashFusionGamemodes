@@ -34,15 +34,23 @@ internal class SpectatorSyncPacket : INetSerializable
 
 public static class SpectatorManager
 {
+    private static bool _enabled = false;
     private const string GrabOverwriteKey = "spectating";
     private static readonly RemoteEvent<SpectatorSyncPacket> SyncEvent = new(OnSyncReceived, false);
 
     private static readonly HashSet<byte> HiddenIds = new();
     private static HashSet<byte> SpectatingPlayerIds = new();
 
-    public static void Register()
+    public static void Enable()
     {
-        MelonLogger.Msg("Registered SpectatorManager" + SyncEvent);
+        _enabled = true;
+        Clear();
+    }
+
+    public static void Disable()
+    {
+        _enabled = false;
+        Clear();
     }
 
     public static bool IsLocalPlayerSpectating()
@@ -79,7 +87,7 @@ public static class SpectatorManager
         }
         
         if (!playerId.IsMe) return;
-        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, true);
+        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, (_, _) => false);
     }
 
     private static void Show(PlayerID playerId)
@@ -110,7 +118,7 @@ public static class SpectatorManager
         }
        
         if (!playerId.IsMe) return;
-        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, false);
+        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, null);
     }
     
     private static void ApplyAll()
@@ -121,7 +129,7 @@ public static class SpectatorManager
             var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
             var shouldBeHidden = isSpectating && (!isLocalSpectating || player.PlayerID.IsMe);
             
-            if (shouldBeHidden)
+            if (shouldBeHidden && _enabled)
             {
                 Hide(player.PlayerID);
             }

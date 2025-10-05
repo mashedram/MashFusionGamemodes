@@ -17,4 +17,6 @@ public class HuntMiddleMusicEffector : AudioEffector<ClockhuntMusicContext>
     {
         
     }
+    
+    public override Enum Track => EffectorTracks.Music;
 }

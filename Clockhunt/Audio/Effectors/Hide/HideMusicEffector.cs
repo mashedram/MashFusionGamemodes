@@ -17,4 +17,6 @@ public class HideMusicEffector : AudioEffector<ClockhuntMusicContext>
     {
         
     }
+    
+    public override Enum Track => EffectorTracks.Music;
 }

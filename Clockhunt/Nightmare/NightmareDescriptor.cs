@@ -11,7 +11,10 @@ public abstract class NightmareDescriptor
     
     public bool IsEnabled { get; set; } = true;
     public abstract string Name { get; }
-    public abstract string Description { get; }
+    public abstract string HunterDescription { get; }
+    
+    public abstract string SurvivorDescription { get; }
+    
     public string Barcode => $"Nightmare.{Name}";
     public virtual int Weight => 1;
     public virtual bool RegenerateHealth => false;

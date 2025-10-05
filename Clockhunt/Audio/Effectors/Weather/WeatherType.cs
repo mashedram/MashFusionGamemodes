@@ -2,6 +2,7 @@
 
 public enum WeatherType
 {
+    None,
     Fog,
     Rain
 }

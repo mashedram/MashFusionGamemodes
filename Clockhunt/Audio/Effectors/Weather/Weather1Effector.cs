@@ -10,12 +10,15 @@ public class Weather1Effector : MappedSelector<ClockhuntMusicContext, WeatherTyp
 {
     protected override void BuildMap(ref Dictionary<WeatherType, EnvironmentEffector<ClockhuntMusicContext>> map)
     {
+        map.Add(WeatherType.None, new NoneWeatherEffector());
         map.Add(WeatherType.Fog, new Fog1WeatherEffector());
         map.Add(WeatherType.Rain, new Rain1WeatherEffector());
     }
 
     protected override WeatherType Selector(ClockhuntMusicContext context)
     {
-        return ClockhuntConfig.WeatherType;
+        return ClockhuntConfig.WeatherType.Value;
     }
+    
+    public override Enum Track => EffectorTracks.Weather;
 }

@@ -19,4 +19,6 @@ public class ChaseMusicEffector : AudioEffector<ClockhuntMusicContext>
     {
         
     }
+    
+    public override Enum Track => EffectorTracks.Music;
 }

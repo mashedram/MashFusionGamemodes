@@ -43,12 +43,17 @@ internal class OnGameWinPacket : INetSerializable
 public class WinStateManager
 {
     private static GameTeam _localGameTeam;
-    private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin);
+    private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
     private static readonly RemoteEvent<SetLivesPacket> OnLivesChangedEvent = new(OnLivesChanged, false);
-    private static int _lives = 3;
-    public static int Lives => _lives;
-    
+    public static int Lives { get; private set; } = 3;
+
     public static GameTeam LocalGameTeam => _localGameTeam;
+    
+    public static int CountSurvivors()
+    {
+        return NetworkPlayer.Players.Count(e =>
+            !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID));
+    }
     
     public static void SetLocalTeam(GameTeam gameTeam)
     {
@@ -60,11 +65,11 @@ public class WinStateManager
         if (!NetworkInfo.IsHost)
             return;
         
-        _lives = lives;
+        Lives = lives;
         
         OnLivesChangedEvent.Call(new SetLivesPacket()
         {
-            NewLives = _lives,
+            NewLives = Lives,
             ShouldDisplayMessage = shouldDisplayMessage
         });
     }
@@ -81,20 +86,20 @@ public class WinStateManager
         if (NightmareManager.IsNightmare(playerID))
             return;
         
-        _lives = Math.Max(0, _lives - 1);
+        Lives = Math.Max(0, Lives - 1);
         
         OnLivesChangedEvent.Call(new SetLivesPacket()
         {
-            NewLives = _lives,
+            NewLives = Lives,
             ShouldDisplayMessage = true
         });
         
         // TODO: Custom message when lives hit 0
-        if (_lives > 0) return;
+        if (Lives > 0) return;
 
         if (ClockhuntConfig.IsSpectatingEnabled)
         {
-            var aliveSurvivorCount = NetworkPlayer.Players.Count(e => !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID));
+            var aliveSurvivorCount = CountSurvivors();
             if (aliveSurvivorCount <= 1)
             {
                 // Last survivor died, nightmares win
@@ -131,7 +136,7 @@ public class WinStateManager
     
     private static void OnLivesChanged(SetLivesPacket packet)
     {
-        _lives = packet.NewLives;
+        Lives = packet.NewLives;
         
         if (!packet.ShouldDisplayMessage)
             return;
