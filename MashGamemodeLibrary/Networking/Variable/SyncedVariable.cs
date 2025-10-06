@@ -71,7 +71,6 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
         Relay(_value);
     }
     
-    // TODO: Fix a bug where a player joining triggers this on the sender side too
     private void OnPlayerJoined(PlayerID playerId)
     {
         Executor.RunIfHost(() =>

@@ -53,8 +53,9 @@ public class MusicPlayer : IContinuousPlayer
     private static void StopTrack()
     {
         var audio2dManager = Audio2dPlugin.Audio2dManager;
+        if (!audio2dManager)
+            return;
         audio2dManager.StopOverrideMusic();
-        // TODO: This errors on close lol
         audio2dManager.StopMusic(0.2f);
     }
 

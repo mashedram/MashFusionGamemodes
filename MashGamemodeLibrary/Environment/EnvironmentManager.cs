@@ -104,7 +104,6 @@ public class EnvironmentManager<TContext, TInternalContext>
         _profile = null;
     }
     
-    // TODO: Make layers correctly work within the music system
     public void Update(float delta)
     {
         if (_profile == null)

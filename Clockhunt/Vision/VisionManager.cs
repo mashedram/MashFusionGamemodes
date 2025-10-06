@@ -46,7 +46,6 @@ public static class VisionManager
         };
     }
 
-    // TODO: Do this using volumes and post-processing
     private static NightVisionObject GetOrCreate()
     {
         if (_instance != null && _instance.Value.GameObject) return _instance.Value;
