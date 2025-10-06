@@ -7,8 +7,11 @@ using Clockhunt.Game;
 using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
 using Clockhunt.Phase;
+using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
+using LabFusion.Marrow.Pool;
 using LabFusion.Menu.Data;
 using LabFusion.Network;
 using LabFusion.Player;
@@ -54,7 +57,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         return ClockhuntConfigMenu.CreateSettingsGroup();
     }
 
-    public override void OnGamemodeStarted()
+    private void OnStart()
     {
         ClockhuntMusicContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night", new EnvironmentState<ClockhuntMusicContext>[]
@@ -71,12 +74,25 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         LocalAvatar.AvatarOverride = LocalAvatar.AvatarBarcode;
         SpectatorManager.Enable();
         LocalControls.DisableSlowMo = true;
+    }
+
+    public override void OnGamemodeStarted()
+    {
+        OnStart();
         
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
             WinStateManager.SetLives(3, false);
         });
+    }
+
+    public override void OnLevelReady()
+    {
+        if (!IsStarted)
+            return;
+
+        OnStart();
     }
 
     public override void OnGamemodeStopped()
@@ -88,6 +104,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         Context.PhaseManager.Disable();
         
         MarkerManager.ClearMarker();
+        VisionManager.DisableNightVision();
+        GamemodeHelper.ResetSpawnPoints();
         
         SpectatorManager.Disable();
         LocalAvatar.AvatarOverride = null;

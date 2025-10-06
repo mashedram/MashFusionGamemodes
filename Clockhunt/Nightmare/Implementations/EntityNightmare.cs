@@ -1,20 +1,77 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
+﻿using Clockhunt.Vision;
+using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Pool;
+using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Marrow;
+using LabFusion.Marrow.Pool;
 using LabFusion.SDK.Triggers;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Clockhunt.Nightmare.Implementations;
 
 public class EntityNightmareInstance : NightmareInstance
 {
+    private GameObject? _light;
+    
     public EntityNightmareInstance(NetworkPlayer owner, EntityNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
+    public override void OnApplied()
+    {
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            VisionManager.EnableNightVision();
+            VisionManager.SetColor(new Color(255, 255, 255));
+        });
+        
+        Executor.RunIfRemote(Owner.PlayerID, () =>
+        {
+            _light = new GameObject("EntityLight");
+            var light = _light.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.color = Color.red;
+            light.range = 90f;
+            light.spotAngle = 90f;
+            light.intensity = 5f;
+
+            light.shadows = LightShadows.Soft;
+        
+            _light.transform.SetParent(Owner.RigRefs.Head.transform);
+            _light.transform.localPosition = Vector3.forward * 0.5f;
+            _light.transform.localRotation = Quaternion.identity;
+        });
+    }
+
+    public override void OnRemoved()
+    {
+        if (_light)
+            Object.Destroy(_light);
+        _light = null;
+    }
+    
+    private void SpawnMarkerAt(NetworkPlayer player)
+    {
+        var spawnable = LocalAssetSpawner.CreateSpawnable("Mash.ClockhuntAssets.Spawnable.HeartMarker");
+        LocalAssetSpawner.Register(spawnable);
+        LocalAssetSpawner.Spawn(spawnable, Vector3.zero, Quaternion.identity, poolee =>
+        {
+            poolee.transform.position = player.RigRefs.Head.position;
+            
+            PooleeHelper.DespawnDelayed(poolee, 8f);
+        });
+    }
+
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
-        
+        foreach (var player in NetworkPlayer.Players)
+        {
+            SpawnMarkerAt(player);
+        }
     }
 }
 

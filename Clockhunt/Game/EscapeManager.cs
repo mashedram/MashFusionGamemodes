@@ -1,6 +1,7 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Nightmare;
+using Clockhunt.Vision;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;

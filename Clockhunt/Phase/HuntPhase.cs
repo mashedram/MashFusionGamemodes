@@ -4,6 +4,7 @@ using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
 using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
+using Clockhunt.Vision;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
@@ -15,8 +16,10 @@ using LabFusion.Senders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace Clockhunt.Phase;
@@ -25,11 +28,13 @@ public class HuntPhase : GamePhase
 {
     public override string Name => "Hunt";
     public override float Duration => ClockhuntConfig.HuntPhaseDuration;
-    
+    private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
     private readonly Vector3SyncedVariable _deliveryPosition;
 
     public HuntPhase()
     {
+        _teleportToSpawnEvent = new("Clockhunt_HuntPhase_TeleportToSpawn", OnTeleportToSpawnRequest, false);
+        
         _deliveryPosition = new Vector3SyncedVariable("deliveryposition", Vector3.zero);
         _deliveryPosition.OnValueChanged += value =>
         {
@@ -38,6 +43,18 @@ public class HuntPhase : GamePhase
             
             MarkerManager.SetMarker(value);
         };
+    }
+
+    private void OnTeleportToSpawnRequest(DummySerializable _)
+    {
+        GamemodeHelper.TeleportToSpawnPoint();
+    }
+
+    private void SetSpawnPoints()
+    {
+        if (NightmareManager.IsNightmare(Clockhunt.Context.LocalPlayer.PlayerID)) return;
+        
+        GamemodeHelper.SetSpawnPoints(GamemodeMarker.FilterMarkers(null));
     }
     
     private void SetDeliveryPosition()
@@ -59,16 +76,19 @@ public class HuntPhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
+        SetSpawnPoints();
         
         Executor.RunIfHost(() =>
         {
             var context = Clockhunt.Context;
             
-            SetDeliveryPosition();
-            
             var players = NetworkPlayer.Players.ToList();
             players.Shuffle();
             players.Take(ClockhuntConfig.NightmareCount).ForEach(NightmareManager.SetRandomNightmare);
+            
+            _teleportToSpawnEvent.Call(new DummySerializable());
+            
+            SetDeliveryPosition();
             
             EscapeManager.CollectEscapePoints();
             

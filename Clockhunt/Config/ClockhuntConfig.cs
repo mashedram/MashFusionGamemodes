@@ -21,6 +21,10 @@ public static class ClockhuntConfig
     public static float DeliveryDistance = 10.0f;
     
     public static EnumSyncedVariable<WeatherType> WeatherType = new("weather_type", Audio.Effectors.Weather.WeatherType.None);
+    public static BoolSyncedVariable TeleportToSpawn = new("teleport_to_spawn", false);
+    public static BoolSyncedVariable NightVision = new("night_vision", true);
+    public static BoolSyncedVariable NightVisionColor = new("night_vision_color", true);
+    public static FloatSyncedVariable NightVisionBrightness = new("night_vision_brightness", 1.0f);
     
     public static bool DevToolsDisabled = true;
     

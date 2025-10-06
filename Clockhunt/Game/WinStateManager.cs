@@ -42,13 +42,12 @@ internal class OnGameWinPacket : INetSerializable
 
 public class WinStateManager
 {
-    private static GameTeam _localGameTeam;
     private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
     private static readonly RemoteEvent<SetLivesPacket> OnLivesChangedEvent = new(OnLivesChanged, true);
     public static int Lives { get; private set; } = 3;
 
-    public static GameTeam LocalGameTeam => _localGameTeam;
-    
+    public static GameTeam LocalGameTeam { get; private set; }
+
     public static int CountSurvivors()
     {
         return NetworkPlayer.Players.Count(e =>
@@ -57,7 +56,7 @@ public class WinStateManager
     
     public static void SetLocalTeam(GameTeam gameTeam)
     {
-        _localGameTeam = gameTeam;
+        LocalGameTeam = gameTeam;
     }
 
     public static void SetLives(int lives, bool shouldDisplayMessage)
@@ -155,7 +154,7 @@ public class WinStateManager
     private static void OnGameWin(OnGameWinPacket packet)
     {
         var winningTeam = packet.WinningGameTeam;
-        var isWinner = winningTeam == _localGameTeam;
+        var isWinner = winningTeam == LocalGameTeam;
         
         Notifier.Send(new Notification
         {

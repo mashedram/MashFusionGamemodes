@@ -18,12 +18,15 @@ public class NightmareInstance
     public NetworkPlayer Owner { get; }
     public NightmareDescriptor Descriptor { get; }
     protected float AbilityTimer { get; set; }
+    protected bool IsAbilityOnCooldown { get; private set; }
     
 
     protected NightmareInstance(NetworkPlayer owner, NightmareDescriptor descriptor)
     {
         Owner = owner;
         Descriptor = descriptor;
+        AbilityTimer = 0f;
+        IsAbilityOnCooldown = false;
     }
     
     public virtual bool CanStartChaseMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
@@ -74,12 +77,27 @@ public class NightmareInstance
         OnUpdate(delta);
         
         if (!player.PlayerID.IsMe) return;
+        if (AbilityTimer < 0f) return;
         AbilityTimer -= delta;
+
+        if (!IsAbilityOnCooldown || !(AbilityTimer <= 0f)) return;
+        IsAbilityOnCooldown = false;
+        
+        Notifier.Send(new Notification
+        {
+            Title = "Ability Ready",
+            Message = $"{Descriptor.Name}'s ability is ready to use.",
+            PopupLength = 3f,
+            Type = NotificationType.INFORMATION,
+            SaveToMenu = false,
+            ShowPopup = true
+        });
     }
     
     public void ResetAbilityTimer()
     {
         AbilityTimer = Descriptor.AbilityCooldown;
+        IsAbilityOnCooldown = true;
     }
     
     public bool IsAbilityReady()

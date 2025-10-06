@@ -1,8 +1,10 @@
 ﻿using Clockhunt.Game;
+using Clockhunt.Vision;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using UnityEngine;
 
@@ -31,8 +33,15 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        if (!NetworkInfo.IsHost) return;
-        WinStateManager.SetLives(0, false);
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            VisionManager.EnableNightVision();
+            VisionManager.SetColor(Color.white);
+        });
+        Executor.RunIfHost(() =>
+        {
+            WinStateManager.SetLives(0, false);
+        });
     }
 }
 

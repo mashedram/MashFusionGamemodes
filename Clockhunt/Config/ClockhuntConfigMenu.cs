@@ -91,6 +91,37 @@ public static class ClockhuntConfigMenu
             OnValueChanged = value => ClockhuntConfig.IsEscapePhaseEnabled = value
         });
         
+        group.AddElement(new BoolElementData
+        {
+            Title = "Teleport To Spawns on Hunt",
+            Value = ClockhuntConfig.TeleportToSpawn,
+            OnValueChanged = value => ClockhuntConfig.TeleportToSpawn.Value = value
+        });
+        
+        group.AddElement(new BoolElementData
+        {
+            Title = "Night Vision",
+            Value = ClockhuntConfig.NightVision,
+            OnValueChanged = value => ClockhuntConfig.NightVision.Value = value
+        });
+        
+        group.AddElement(new BoolElementData
+        {
+            Title = "Night Vision Color",
+            Value = ClockhuntConfig.NightVisionColor,
+            OnValueChanged = value => ClockhuntConfig.NightVisionColor.Value = value
+        });
+        
+        group.AddElement(new FloatElementData
+        {
+            Title = "Night Vision Brightness",
+            Increment = 0.1f,
+            MinValue = 0.1f,
+            MaxValue = 2f,
+            Value = ClockhuntConfig.NightVisionBrightness,
+            OnValueChanged = value => ClockhuntConfig.NightVisionBrightness.Value = value
+        });
+        
         group.AddElement(new EnumElementData
         {
             EnumType = typeof(WeatherType),

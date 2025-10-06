@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Clockhunt.Game;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
@@ -64,14 +65,22 @@ public static class NightmareManager
         });
     }
 
-    private static void SetNightmare(byte playerId, ulong nightmareId)
+    private static Handedness? GetInput(NetworkPlayer player)
     {
-        PlayerNightmareIds[playerId] = nightmareId;
+        if (player.RigRefs.LeftHand._controller._menuTap) return Handedness.LEFT;
+        if (player.RigRefs.RightHand._controller._menuTap) return Handedness.RIGHT;
+        return null;
     }
     
-    private static void RemoveNightmare(byte playerId)
+    private static void UpdateAbility(NightmareInstance instance)
     {
-        PlayerNightmareIds.Remove(playerId);
+        if (!instance.IsAbilityReady())
+            return;
+        var keyHand = GetInput(instance.Owner);
+        if (keyHand == null)
+            return;
+        instance.ResetAbilityTimer();
+        instance.OnAbilityKeyTapped(keyHand.Value);
     }
     
     // TODO: Make this not break when there is more than 1 nightmare
@@ -114,6 +123,11 @@ public static class NightmareManager
             if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) continue;
             nightmareInstance.Update(player, delta);
         }
+        
+        if (!TryGetNightmare(PlayerIDManager.LocalID, out var instance))
+            return;
+        
+        UpdateAbility(instance);
     }
     
     // Remote

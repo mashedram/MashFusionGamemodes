@@ -1,9 +1,8 @@
 ﻿using Il2CppSLZ.Marrow.Pool;
-using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
 using UnityEngine;
 
-namespace Clockhunt;
+namespace Clockhunt.Vision;
 
 public static class MarkerManager
 {

@@ -1,5 +1,5 @@
 ﻿# TODO
--[ ] Night vision for hunters
--[ ] Go to fusion deathmatch spawns on startup
+-[x] Night vision for hunters
+-[x] Go to fusion deathmatch spawns on startup
 -[ ] Late game joining through synced variables
--[ ] Fix hunter grab blocking persisting after game end
+-[x] Fix hunter grab blocking persisting after game end
