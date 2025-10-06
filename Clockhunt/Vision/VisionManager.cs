@@ -38,12 +38,6 @@ public static class VisionManager
         {
             _instance?.SetBrightness(value);
         };
-
-        ClockhuntConfig.NightVisionColor.OnValueChanged += _ =>
-        {
-            if (!_instance.HasValue) return;
-            SetColor(_instance.Value.ColorAdjustments.colorFilter.value);
-        };
     }
 
     private static NightVisionObject GetOrCreate()
@@ -92,19 +86,6 @@ public static class VisionManager
         
         var go = GetOrCreate();
         go.SetActive(true);
-    }
-
-    public static void SetColor(Color color)
-    {
-        _instance?.SetBrightness(ClockhuntConfig.NightVisionBrightness);
-        
-        if (!ClockhuntConfig.NightVisionColor.Value)
-        {
-            _instance?.SetColor(Color.white);
-            return;
-        }
-
-        _instance?.SetColor(color);
     }
     
     public static void DisableNightVision()

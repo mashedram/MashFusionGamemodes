@@ -8,6 +8,7 @@ using LabFusion.Marrow.Pool;
 using LabFusion.SDK.Triggers;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Spectating;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -23,11 +24,7 @@ public class EntityNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            VisionManager.EnableNightVision();
-            VisionManager.SetColor(new Color(255, 255, 255));
-        });
+        Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
         
         Executor.RunIfRemote(Owner.PlayerID, () =>
         {
@@ -68,7 +65,9 @@ public class EntityNightmareInstance : NightmareInstance
 
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
-        foreach (var player in NetworkPlayer.Players)
+        foreach (var player in NetworkPlayer.Players
+                     .Where(e => !SpectatorManager.IsPlayerSpectating(e.PlayerID) && 
+                                 NightmareManager.IsNightmare(e.PlayerID)))
         {
             SpawnMarkerAt(player);
         }
@@ -86,7 +85,7 @@ public class EntityNightmareDescriptor : NightmareDescriptor
 
     public override PlayerStats Stats => new()
     {
-        Vitality = 8f,
+        Vitality = 4f,
         UpperStrength = 8f,
         Speed = 3f,
         Agility = 2f,

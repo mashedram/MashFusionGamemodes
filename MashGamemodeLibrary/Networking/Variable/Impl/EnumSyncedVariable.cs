@@ -12,7 +12,12 @@ public class EnumSyncedVariable<T> : SyncedVariable<T> where T : struct, Enum
     {
         return sizeof(int);
     }
-    
+
+    protected override bool Equals(T a, T b)
+    {
+        return a.Equals(b);
+    }
+
     protected override T ReadValue(NetReader reader)
     {
         return reader.ReadEnum<T>();

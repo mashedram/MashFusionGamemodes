@@ -105,13 +105,6 @@ public static class ClockhuntConfigMenu
             OnValueChanged = value => ClockhuntConfig.NightVision.Value = value
         });
         
-        group.AddElement(new BoolElementData
-        {
-            Title = "Night Vision Color",
-            Value = ClockhuntConfig.NightVisionColor,
-            OnValueChanged = value => ClockhuntConfig.NightVisionColor.Value = value
-        });
-        
         group.AddElement(new FloatElementData
         {
             Title = "Night Vision Brightness",

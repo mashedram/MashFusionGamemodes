@@ -13,7 +13,7 @@ public static class MarkerManager
     {
         if (_marker)
         {
-            _marker.gameObject.transform.position = position;
+            _marker!.gameObject.transform.position = position;
             return;
         }
 

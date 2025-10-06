@@ -103,9 +103,9 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         Context.PhaseManager.Disable();
         
+        GamemodeHelper.ResetSpawnPoints();
         MarkerManager.ClearMarker();
         VisionManager.DisableNightVision();
-        GamemodeHelper.ResetSpawnPoints();
         
         SpectatorManager.Disable();
         LocalAvatar.AvatarOverride = null;

@@ -8,6 +8,11 @@ public class IntSyncedVariable : SyncedVariable<int>
     {
     }
 
+    protected override bool Equals(int a, int b)
+    {
+        return a == b;
+    }
+
     protected override int? GetSize(int data)
     {
         return sizeof(int);

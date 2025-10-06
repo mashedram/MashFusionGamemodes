@@ -85,16 +85,19 @@ public class WinStateManager
         if (NightmareManager.IsNightmare(playerID))
             return;
         
-        Lives = Math.Max(0, Lives - 1);
+        if (SpectatorManager.IsPlayerSpectating(playerID))
+            return;
+
+        Lives -= 1;
         
         OnLivesChangedEvent.Call(new SetLivesPacket()
         {
             NewLives = Lives,
-            ShouldDisplayMessage = true
+            ShouldDisplayMessage = Lives >= 0
         });
         
         // TODO: Custom message when lives hit 0
-        if (Lives > 0) return;
+        if (Lives >= 0) return;
 
         if (ClockhuntConfig.IsSpectatingEnabled)
         {

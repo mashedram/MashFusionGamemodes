@@ -157,19 +157,14 @@ public class GripPatches
     [HarmonyPrefix]
     public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
     {
-        return !PlayerGrabManager.IsForceDisabled();
+        var marrowEntity = entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
+        
+        return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
     }
 
     [HarmonyPatch(typeof(CollisionSyncer), "OnCollisionEnter")]
     [HarmonyPrefix]
     public static bool OnCollisionEnter_Prefix(Collision collision)
-    {
-        return !PlayerGrabManager.IsForceDisabled();
-    }
-
-    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectDetach))]
-    [HarmonyPrefix]
-    public static bool SendObjectDetach_Prefix(Hand hand)
     {
         return !PlayerGrabManager.IsForceDisabled();
     }

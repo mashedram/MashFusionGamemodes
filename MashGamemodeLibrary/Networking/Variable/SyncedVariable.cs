@@ -32,6 +32,7 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
     
     public static implicit operator T(SyncedVariable<T> variable) => variable.Value;
 
+    protected abstract bool Equals(T a, T b);
     protected abstract T ReadValue(NetReader reader);
     protected abstract void WriteValue(NetWriter writer, T value);
 
@@ -54,7 +55,7 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
     
     private void SetValue(T newValue)
     {
-        if (EqualityComparer<T>.Default.Equals(_value, newValue))
+        if (Equals(_value, newValue))
             return;
         
         var isValid = OnValidate?.Invoke(newValue) ?? true;

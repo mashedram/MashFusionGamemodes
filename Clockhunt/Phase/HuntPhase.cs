@@ -28,17 +28,22 @@ public class HuntPhase : GamePhase
 {
     public override string Name => "Hunt";
     public override float Duration => ClockhuntConfig.HuntPhaseDuration;
+    private static readonly Vector3SyncedVariable DeliveryPosition = new("deliveryposition", Vector3.zero);
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
-    private readonly Vector3SyncedVariable _deliveryPosition;
 
     public HuntPhase()
     {
-        _teleportToSpawnEvent = new("Clockhunt_HuntPhase_TeleportToSpawn", OnTeleportToSpawnRequest, false);
+        _teleportToSpawnEvent = new RemoteEvent<DummySerializable>("Clockhunt_HuntPhase_TeleportToSpawn", OnTeleportToSpawnRequest, true);
         
-        _deliveryPosition = new Vector3SyncedVariable("deliveryposition", Vector3.zero);
-        _deliveryPosition.OnValueChanged += value =>
+        DeliveryPosition.OnValueChanged += value =>
         {
-            if (!IsActive)
+            if (!Clockhunt.IsStarted) 
+                return;
+            
+            if (value == Vector3.zero)
+                return;
+            
+            if (NightmareManager.IsNightmare(PlayerIDManager.LocalID))
                 return;
             
             MarkerManager.SetMarker(value);
@@ -47,14 +52,15 @@ public class HuntPhase : GamePhase
 
     private void OnTeleportToSpawnRequest(DummySerializable _)
     {
-        GamemodeHelper.TeleportToSpawnPoint();
-    }
-
-    private void SetSpawnPoints()
-    {
-        if (NightmareManager.IsNightmare(Clockhunt.Context.LocalPlayer.PlayerID)) return;
+        if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
+        {
+            GamemodeHelper.SetSpawnPoints(GamemodeMarker.FilterMarkers(null));
+        }
         
-        GamemodeHelper.SetSpawnPoints(GamemodeMarker.FilterMarkers(null));
+        if (ClockhuntConfig.TeleportToSpawn)
+        {
+            GamemodeHelper.TeleportToSpawnPoint();
+        }
     }
     
     private void SetDeliveryPosition()
@@ -71,13 +77,11 @@ public class HuntPhase : GamePhase
             position = Clockhunt.Context.LocalPlayer.RigRefs.RigManager.checkpointPosition;
         }
         
-        _deliveryPosition.Value = position;
+        DeliveryPosition.Value = position;
     }
 
     protected override void OnPhaseEnter()
     {
-        SetSpawnPoints();
-        
         Executor.RunIfHost(() =>
         {
             var context = Clockhunt.Context;
@@ -105,7 +109,7 @@ public class HuntPhase : GamePhase
         {
             foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed) 
                      let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity 
-                     let distance = Vector3.Distance(marrowEntity.transform.position, _deliveryPosition) 
+                     let distance = Vector3.Distance(marrowEntity.transform.position, DeliveryPosition) 
                      where distance <= ClockhuntConfig.DeliveryDistance 
                      select networkEntity)
             {
@@ -125,6 +129,8 @@ public class HuntPhase : GamePhase
 
     protected override void OnPhaseExit()
     {
+        DeliveryPosition.Value = Vector3.zero;
+        
         Executor.RunIfHost(() =>
         {
             MultiplayerHooking.OnPlayerAction -= OnPlayerAction;

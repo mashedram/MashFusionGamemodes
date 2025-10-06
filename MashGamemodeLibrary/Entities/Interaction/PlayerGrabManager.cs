@@ -29,7 +29,7 @@ public static class PlayerGrabManager
         return OverwriteMap.Any(predicate => !predicate.Value.Invoke(null, null));
     }
     
-    public static bool IsForceDisabled(NetworkEntity entity, MarrowEntity marrowEntity)
+    public static bool IsForceDisabled(NetworkEntity? entity, MarrowEntity? marrowEntity)
     {
         return OverwriteMap.Count != 0 && OverwriteMap.Any(predicate => !predicate.Value.Invoke(entity, marrowEntity));
     }

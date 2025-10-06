@@ -124,6 +124,10 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         return eventId;
     }
 
+    /// <summary>
+    /// This registers all *STATIC* RemoteEvents in the assembly of type T.
+    /// </summary>
+    /// <typeparam name="T">The mod class type</typeparam>
     public static void RegisterMod<T>()
     {
         foreach (var type in typeof(T).Assembly.GetTypes())
@@ -135,9 +139,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
             foreach (var field in type.GetFields(
                          System.Reflection.BindingFlags.Public |
                          System.Reflection.BindingFlags.NonPublic |
-                         System.Reflection.BindingFlags.Instance |
-                         System.Reflection.BindingFlags.Static |
-                         System.Reflection.BindingFlags.DeclaredOnly
+                         System.Reflection.BindingFlags.Static
                      ))
             {
                 var fieldType = field.FieldType;

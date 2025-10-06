@@ -38,10 +38,6 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
      */
     public void Call(T data)
     {
-        // Call it locally first
-        if (_callOnSender) 
-            _onEvent(data);
-        
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer == null)
         {
@@ -50,6 +46,10 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         }
         
         Relay(data);
+        
+        // Call it local as well if we need to
+        if (_callOnSender) 
+            _onEvent(data);
     }
     
     public void CallFor(PlayerID playerId, T data)

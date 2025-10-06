@@ -13,6 +13,11 @@ public class BoolSyncedVariable : SyncedVariable<bool>
         return sizeof(bool);
     }
 
+    protected override bool Equals(bool a, bool b)
+    {
+        return a == b;
+    }
+
     protected override bool ReadValue(NetReader reader)
     {
         return reader.ReadBoolean();

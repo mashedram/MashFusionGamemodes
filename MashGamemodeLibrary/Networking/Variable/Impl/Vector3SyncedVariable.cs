@@ -14,6 +14,11 @@ public class Vector3SyncedVariable : SyncedVariable<Vector3>
         return sizeof(float) * 3;
     }
 
+    protected override bool Equals(Vector3 a, Vector3 b)
+    {
+        return a.Equals(b);
+    }
+
     protected override Vector3 ReadValue(NetReader reader)
     {
         var x = reader.ReadSingle();

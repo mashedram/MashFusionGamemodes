@@ -33,11 +33,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            VisionManager.EnableNightVision();
-            VisionManager.SetColor(Color.white);
-        });
+        Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
         Executor.RunIfHost(() =>
         {
             WinStateManager.SetLives(0, false);
