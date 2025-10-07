@@ -1,38 +1,42 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using LabFusion.Extensions;
+using MashGamemodeLibrary.Audio.Modifiers;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
 class AudioPoolMember
 {
-    private AudioSource? _source;
+    private AudioSourceEntity? _source;
 
-    public AudioSource GetOrCreate()
+    public AudioSourceEntity GetOrCreate(AudioModifierFactory factory)
     {
-        if (_source)
+        if (_source is { IsValid: true })
             return _source!;
-        
-        var go = new GameObject("PooledAudioSource");
-        _source = go.AddComponent<AudioSource>();
-        _source.playOnAwake = false;
-        
-        return _source;
+
+        return new AudioSourceEntity(factory);
     }
 
-    public bool TryGet([MaybeNullWhen(returnValue: false)] out AudioSource audioSource)
+    public bool TryGet([MaybeNullWhen(returnValue: false)] out AudioSourceEntity audioSource)
     {
         audioSource = _source;
         return _source;
     }
+    
+    public void Update(float delta)
+    {
+        if (_source is { IsValid: true })
+            _source.Update(delta);
+    }
 }
 
-public class PooledAudioSourceProvider : IAudioSourceProvider
+public class PooledAudioSourceProvider : AudioSourceProvider
 {
     private readonly int _poolSize;
     private int _currentIndex;
     private readonly AudioPoolMember[] _sources;
 
-    public PooledAudioSourceProvider(int size)
+    public PooledAudioSourceProvider(int size, AudioModifierFactory modifierFactory) : base(modifierFactory)
     {
         _poolSize = size;
         _sources = Enumerable.Range(0, _poolSize)
@@ -40,32 +44,37 @@ public class PooledAudioSourceProvider : IAudioSourceProvider
             .ToArray();
     }
 
-    public bool IsPlaying => _sources.Any(x => x.GetOrCreate().isPlaying);
+    public override bool IsPlaying => _sources.Any(x => x.TryGet(out var entity) && entity.IsPlaying);
 
-    public AudioSource GetAudioSource()
+    protected override AudioSourceEntity NextAudioSource(AudioModifierFactory modifierFactory)
     {
         var timeout = 0;
         
-        AudioSource source;
+        AudioSourceEntity source;
         do
         {
             _currentIndex = (_currentIndex + 1) % _poolSize;
-            source = _sources[_currentIndex].GetOrCreate();
+            source = _sources[_currentIndex].GetOrCreate(modifierFactory);
 
             timeout++;
             if (timeout >= _poolSize)
                 break;
-        } while (source.isPlaying);
+        } while (source.IsPlaying);
 
         return source;
     }
 
-    public void StopAll()
+    public override void StopAll()
     {
         foreach (var member in _sources)
         {
-            if (member.TryGet(out var source) && source.isPlaying)
+            if (member.TryGet(out var source) && source.IsPlaying)
                 source.Stop();
         }
+    }
+
+    public override void Update(float delta)
+    {
+        _sources.ForEach(source => source.Update(delta));
     }
 }

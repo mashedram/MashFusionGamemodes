@@ -1,5 +1,6 @@
 ﻿using LabFusion.Extensions;
 using MashGamemodeLibrary.Audio.Containers;
+using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
 using UnityEngine;
@@ -8,12 +9,10 @@ namespace MashGamemodeLibrary.Audio.Players.Basic;
 
 public class AudioPlayer : IRandomAudioPlayer
 {
-    public delegate void AudioModifier(ref AudioSource source);
-    
     protected readonly IAudioContainer Container;
-    protected readonly IAudioSourceProvider SourceProvider;
+    protected readonly AudioSourceProvider SourceProvider;
     
-    public AudioPlayer(IAudioContainer container, IAudioSourceProvider sourceProvider)
+    public AudioPlayer(IAudioContainer container, AudioSourceProvider sourceProvider)
     {
         Container = container;
         SourceProvider = sourceProvider;
@@ -23,17 +22,25 @@ public class AudioPlayer : IRandomAudioPlayer
 
     public bool IsPlaying => SourceProvider.IsPlaying;
     
-    public void Play(string name, AudioModifier? modifier = null)
+    public void Play(string name, IAudioModifier? modifier = null)
     {
         Container.RequestClip(name, clip =>
         {
             if (!clip) return;
             
             var source = SourceProvider.GetAudioSource();
-            source.clip = clip;
-            modifier?.Invoke(ref source);
-            source.Play();
+            source.Play(clip!);
         });
+    }
+    
+    /// <summary>
+    /// Update the audio player.
+    /// This may be ignored if you do not use any special effects.
+    /// </summary>
+    /// <param name="delta"></param>
+    public void Update(float delta)
+    {
+        SourceProvider.Update(delta);
     }
 
     public void StopAll()

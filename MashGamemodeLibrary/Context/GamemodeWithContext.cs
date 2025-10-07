@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext
+public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext, new()
 {
     private static T? _internalContext;
     public static T Context => _internalContext ?? throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");

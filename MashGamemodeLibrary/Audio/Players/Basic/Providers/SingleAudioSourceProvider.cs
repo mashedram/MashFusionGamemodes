@@ -1,28 +1,35 @@
-﻿using UnityEngine;
+﻿using MashGamemodeLibrary.Audio.Modifiers;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
-public class SingleAudioSourceProvider : IAudioSourceProvider
+public class SingleAudioSourceProvider : AudioSourceProvider
 {
-    private AudioSource? _audioSource;
+    private readonly AudioSourceEntity? _audioSource = null;
 
-    public bool IsPlaying => _audioSource && _audioSource!.isPlaying;
+    public SingleAudioSourceProvider(AudioModifierFactory modifierFactory) : base(modifierFactory)
+    {
+    }
 
-    public AudioSource GetAudioSource()
+    public override bool IsPlaying => _audioSource && _audioSource!.IsPlaying;
+
+    protected override AudioSourceEntity NextAudioSource(AudioModifierFactory modifierFactory)
     {
         if (_audioSource)
             return _audioSource!;
-        
-        var go = new GameObject("AudioPlayer");
-        _audioSource = go.AddComponent<AudioSource>();
-        _audioSource.playOnAwake = false;
-        
-        return _audioSource;
+
+        return new AudioSourceEntity(modifierFactory);
     }
 
-    public void StopAll()
+    public override void StopAll()
     {
         if (_audioSource)
             _audioSource!.Stop();
+    }
+    
+    public override void Update(float delta)
+    {
+        if (_audioSource)
+            _audioSource!.Update(delta);
     }
 }

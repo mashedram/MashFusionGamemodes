@@ -25,7 +25,7 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
 {
     private readonly RemoteEvent<PlayRequestPacket<T>> _playRequestEvent;
     
-    public SyncedAudioPlayer(string name, ISyncedAudioContainer container, IAudioSourceProvider provider) : base(container, provider)
+    public SyncedAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider provider) : base(container, provider)
     {
         _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true);
     }
@@ -48,10 +48,9 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
                 return;
             
             var source = SourceProvider.GetAudioSource();
-            if (!Modifier(packet.ExtraData, ref source)) return;
-            
-            source.clip = clip;
-            source.Play();
+            if (!Modifier(packet.ExtraData, ref source.SourceRef))
+                return;
+            source.Play(clip!);
         });
     }
 

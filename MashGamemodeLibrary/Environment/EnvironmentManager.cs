@@ -52,7 +52,7 @@ class EnvironmentChangePacket : INetSerializable
 }
 
 public class EnvironmentManager<TContext, TInternalContext> 
-    where TContext : GameContext
+    where TContext : GameContext, new()
 {
     private ImmutableSortedSet<int> _knownLayers = null!;
     private Dictionary<int, EnvironmentState<TInternalContext>?> _activeStates = new();

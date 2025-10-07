@@ -30,7 +30,7 @@ public static class MarkerManager
     {
         if (!_marker) return;
         
-        _marker.Despawn();
+        _marker?.Despawn();
         _marker = null;
     }
 }

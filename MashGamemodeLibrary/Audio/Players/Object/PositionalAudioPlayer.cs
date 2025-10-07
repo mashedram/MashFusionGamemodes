@@ -1,5 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Audio.Containers;
+using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Basic;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
@@ -26,20 +27,15 @@ public class PositionalAudioPlayRequest<T> : INetSerializable where T : INetSeri
 
 public class PositionalAudioPlayer<T> : SyncedAudioPlayer<PositionalAudioPlayRequest<T>> where T : INetSerializable, new()
 {
-    public delegate bool ObjectModifier(T data, ref AudioSource source);
-
-    private readonly ObjectModifier? _modifier;
-    
-    public PositionalAudioPlayer(string name, ISyncedAudioContainer container, ObjectModifier? modifier = null) : base(name, container, new SingleAudioSourceProvider())   
+    public PositionalAudioPlayer(string name, ISyncedAudioContainer container, AudioModifierFactory factory) : base(name, container, new SingleAudioSourceProvider(factory))   
     {
-        _modifier = modifier;
     }
 
     protected override bool Modifier(PositionalAudioPlayRequest<T> data, ref AudioSource source)
     {
         source.gameObject.transform.position = data.Position;
-        
-        return _modifier == null || _modifier(data.Data, ref source);
+
+        return true;
     }
     
     public void Play(string name, Vector3 position, T data)
