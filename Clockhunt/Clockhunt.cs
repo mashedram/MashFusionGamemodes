@@ -83,7 +83,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
-            WinStateManager.SetLives(3, false);
+            WinStateManager.OverwriteLives(3, false);
         });
     }
 

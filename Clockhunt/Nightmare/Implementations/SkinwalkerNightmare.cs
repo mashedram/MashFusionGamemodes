@@ -36,7 +36,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
         Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
         Executor.RunIfHost(() =>
         {
-            WinStateManager.SetLives(0, false);
+            WinStateManager.OverwriteLives(0, false);
         });
     }
 }

@@ -18,7 +18,7 @@ public class EscapePhase : GamePhase
         Executor.RunIfHost(() =>
         {
             EscapeManager.ActivateRandomEscapePoint();
-            WinStateManager.SetLives(0, false);
+            WinStateManager.OverwriteLives(0, false);
         });
         
         Notifier.Send(new Notification

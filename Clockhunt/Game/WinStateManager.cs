@@ -18,15 +18,33 @@ public enum GameTeam
     Survivors
 }
 
-internal class SetLivesPacket : INetSerializable
+internal class OverwriteLivesPacket : INetSerializable
 {
     public int NewLives;
-    public bool ShouldDisplayMessage;
-    
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref NewLives);
-        serializer.SerializeValue(ref ShouldDisplayMessage);
+    }
+}
+
+internal class PlayerFinalDeathPacket : INetSerializable
+{
+    public PlayerID PlayerID = null!;
+
+    public PlayerFinalDeathPacket()
+    {
+        
+    }
+
+    public PlayerFinalDeathPacket(PlayerID playerID)
+    {
+        PlayerID = playerID;
+    }
+
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref PlayerID);
     }
 }
 
@@ -43,7 +61,8 @@ internal class OnGameWinPacket : INetSerializable
 public class WinStateManager
 {
     private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
-    private static readonly RemoteEvent<SetLivesPacket> OnLivesChangedEvent = new(OnLivesChanged, true);
+    private static readonly RemoteEvent<OverwriteLivesPacket> OverwriteLiverEvent = new(OnOverwriteLives, true);
+    private static readonly RemoteEvent<PlayerFinalDeathPacket> PlayerFinalDeathEvent = new(OnPlayerFinalDeath, true);
     public static int Lives { get; private set; } = 3;
 
     public static GameTeam LocalGameTeam { get; private set; }
@@ -53,52 +72,107 @@ public class WinStateManager
         return NetworkPlayer.Players.Count(e =>
             !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID));
     }
-    
+
     public static void SetLocalTeam(GameTeam gameTeam)
     {
         LocalGameTeam = gameTeam;
     }
 
-    public static void SetLives(int lives, bool shouldDisplayMessage)
+    public static void OverwriteLives(int lives, bool shouldDisplayMessage)
     {
         if (!NetworkInfo.IsHost)
             return;
-        
-        Lives = lives;
-        
-        OnLivesChangedEvent.Call(new SetLivesPacket()
+
+        OverwriteLiverEvent.Call(new OverwriteLivesPacket()
         {
             NewLives = Lives,
-            ShouldDisplayMessage = shouldDisplayMessage
         });
     }
-    
+
     public static void PlayerDied(PlayerID playerID)
     {
-        if (!NetworkInfo.IsHost)
-        {
-            MelonLogger.Warning("Only the host can call player deaths!");
+        if (!playerID.IsMe)
             return;
-        }
-        
+
         // Ignore if the player is a nightmare, they don't have lives
         if (NightmareManager.IsNightmare(playerID))
             return;
-        
+
         if (SpectatorManager.IsPlayerSpectating(playerID))
             return;
 
         Lives -= 1;
-        
-        OnLivesChangedEvent.Call(new SetLivesPacket()
+
+        if (Lives == 0)
         {
-            NewLives = Lives,
-            ShouldDisplayMessage = Lives >= 0
-        });
-        
+            Notifier.Send(new Notification
+            {
+                Title = "Player Died",
+                Message = "You are out of lives.",
+                PopupLength = 3f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.ERROR
+            });
+        }
+        else if (Lives > 0)
+        {
+            Notifier.Send(new Notification
+            {
+                Title = "Player Died",
+                Message = $"You have {Lives} lives remaining.",
+                PopupLength = 3f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.ERROR
+            });
+        }
+
         // TODO: Custom message when lives hit 0
         if (Lives >= 0) return;
+        
+        PlayerFinalDeathEvent.Call(new PlayerFinalDeathPacket(playerID));
+    }
 
+    public static void ForceWin(GameTeam winningTeam)
+    {
+        if (!NetworkInfo.IsHost)
+        {
+            MelonLogger.Warning("Only the host can call game wins!");
+            return;
+        }
+
+        OnGameWinEvent.Call(new OnGameWinPacket()
+        {
+            WinningGameTeam = winningTeam
+        });
+
+        GamemodeManager.StopGamemode();
+    }
+
+    // Remote Events
+
+    private static void OnOverwriteLives(OverwriteLivesPacket packet)
+    {
+        Lives = packet.NewLives;
+    }
+    
+    private static void OnPlayerFinalDeath(PlayerFinalDeathPacket packet)
+    {
+        if (!NetworkInfo.IsHost)
+        {
+            MelonLogger.Warning("Only the host can call player final deaths!");
+            return;
+        }
+
+        if (NetworkPlayerManager.TryGetPlayer(packet.PlayerID, out NetworkPlayer player))
+        {
+            MelonLogger.Error("Player not found for final death packet!");
+            return;
+        }
+        
+        var playerID = player.PlayerID;
+        
         if (ClockhuntConfig.IsSpectatingEnabled)
         {
             var aliveSurvivorCount = CountSurvivors();
@@ -108,7 +182,7 @@ public class WinStateManager
                 ForceWin(GameTeam.Nightmares);
                 return;
             }
-            
+
             playerID.SetSpectating(true);
         }
         else
@@ -117,48 +191,12 @@ public class WinStateManager
             ForceWin(GameTeam.Nightmares);
         }
     }
-    
-    public static void ForceWin(GameTeam winningTeam)
-    {
-        if (!NetworkInfo.IsHost)
-        {
-            MelonLogger.Warning("Only the host can call game wins!");
-            return;
-        }
-        
-        OnGameWinEvent.Call(new OnGameWinPacket()
-        {
-            WinningGameTeam = winningTeam
-        });
-        
-        GamemodeManager.StopGamemode();
-    }
-    
-    // Remote Events
-    
-    private static void OnLivesChanged(SetLivesPacket packet)
-    {
-        Lives = packet.NewLives;
-        
-        if (!packet.ShouldDisplayMessage)
-            return;
-        
-        Notifier.Send(new Notification
-        {
-            Title = "Player Died",
-            Message = $"There are now {packet.NewLives} lives remaining.",
-            PopupLength = 3f,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.ERROR
-        });
-    }
 
     private static void OnGameWin(OnGameWinPacket packet)
     {
         var winningTeam = packet.WinningGameTeam;
         var isWinner = winningTeam == LocalGameTeam;
-        
+
         Notifier.Send(new Notification
         {
             Title = "Game Over",
