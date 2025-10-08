@@ -29,6 +29,11 @@ public abstract class NightmareDescriptor
 
     public abstract PlayerStats Stats { get; }
 
+    public virtual PlayerStats GetStats()
+    {
+        return Stats;
+    }  
+
     public abstract NightmareInstance CreateInstance(NetworkPlayer player);
 
     public virtual void Register()

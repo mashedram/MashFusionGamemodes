@@ -90,7 +90,7 @@ public static class SpectatorManager
         if (!bodylog)
             return;
         
-        bodylog.gameObject.SetActive(state);
+        bodylog?.gameObject.SetActive(state);
     }
 
     private static void Hide(PlayerID playerId)

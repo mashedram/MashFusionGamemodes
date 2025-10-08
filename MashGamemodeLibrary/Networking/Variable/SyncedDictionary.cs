@@ -2,6 +2,7 @@
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Execution;
 using Microsoft.VisualBasic;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -20,6 +21,7 @@ public class Pair<TKey, TValue>
     }
 }
 
+// TODO: Bricks on latejoin
 public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<TKey, TValue>> 
     where TKey : notnull 
     where TValue : struct
@@ -35,14 +37,31 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
     protected SyncedDictionary(string name) : base(name)
     {
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        MultiplayerHooking.OnJoinedServer += OnServerChanged;
+        MultiplayerHooking.OnDisconnected += OnServerChanged;
+    }
+    
+    ~SyncedDictionary()
+    {
+        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
+        MultiplayerHooking.OnJoinedServer -= OnServerChanged;
+        MultiplayerHooking.OnDisconnected -= OnServerChanged;
     }
     
     private void OnPlayerJoined(PlayerID playerId)
     {
-        foreach (var (key, value) in _dictionary)
+        Executor.RunIfHost(() =>
         {
-            Relay(new Pair<TKey, TValue>(key, value));
-        }
+            foreach (var (key, value) in _dictionary)
+            {
+                Relay(new Pair<TKey, TValue>(key, value));
+            }
+        });
+    }
+    
+    private void OnServerChanged()
+    {
+        _dictionary.Clear();
     }
     
     // Private methods
@@ -71,7 +90,6 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
         foreach (var key in keys)
         {
             RemoveValue(key, true);
-            Relay(new Pair<TKey, TValue>(key, null));
         }
     }
     

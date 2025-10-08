@@ -2,6 +2,7 @@
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
+using Clockhunt.Joke;
 using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
 using Clockhunt.Vision;
@@ -9,10 +10,12 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.RPC;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Senders;
+using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
@@ -24,12 +27,23 @@ using UnityEngine;
 
 namespace Clockhunt.Phase;
 
+internal class ClockDeliveredPacket : INetSerializable
+{
+    public int ClockCount;
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref ClockCount);
+    }
+}
+
 public class HuntPhase : GamePhase
 {
     public override string Name => "Hunt";
     public override float Duration => ClockhuntConfig.HuntPhaseDuration;
     private static readonly Vector3SyncedVariable DeliveryPosition = new("deliveryposition", Vector3.zero);
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
+    private static readonly RemoteEvent<ClockDeliveredPacket> OnClockDeliveredEvent = new("Clockhunt_HuntPhase_OnClockDelivered", OnClockDelivered, true);
 
     public HuntPhase()
     {
@@ -85,10 +99,8 @@ public class HuntPhase : GamePhase
         Executor.RunIfHost(() =>
         {
             var context = Clockhunt.Context;
-            
-            var players = NetworkPlayer.Players.ToList();
-            players.Shuffle();
-            players.Take(ClockhuntConfig.NightmareCount).ForEach(NightmareManager.SetRandomNightmare);
+
+            NightmareManager.SetRandomNightmare();
             
             _teleportToSpawnEvent.Call(new DummySerializable());
             
@@ -105,9 +117,14 @@ public class HuntPhase : GamePhase
 // TODO: Make players pinged for the nightmare if time runs out
     protected override void OnUpdate()
     {
+        FrogJumpscare.Update();
+        
         Executor.RunIfHost(() =>
         {
-            foreach (var networkEntity in from networkEntity in EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed) 
+            var clocks = EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed);
+            var clockCount = clocks.Count;
+            
+            foreach (var networkEntity in from networkEntity in clocks
                      let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity 
                      let distance = Vector3.Distance(marrowEntity.transform.position, DeliveryPosition) 
                      where distance <= ClockhuntConfig.DeliveryDistance 
@@ -118,6 +135,15 @@ public class HuntPhase : GamePhase
                     DespawnEffect = true,
                     EntityID = networkEntity.ID
                 });
+
+                // When the phase ends, there is a different message
+                if (clockCount > 1)
+                {
+                    OnClockDeliveredEvent.Call(new ClockDeliveredPacket
+                    {
+                        ClockCount = clockCount - 1
+                    });
+                }
             }
         });
     }
@@ -133,8 +159,6 @@ public class HuntPhase : GamePhase
         
         Executor.RunIfHost(() =>
         {
-            MultiplayerHooking.OnPlayerAction -= OnPlayerAction;
-
             if (ClockManager.CountClockEntities() == 0)
             {
                 if (!ClockhuntConfig.IsEscapePhaseEnabled)
@@ -154,5 +178,14 @@ public class HuntPhase : GamePhase
             return;
         
         WinStateManager.PlayerDied(playerId);
+    }
+
+    private static void OnClockDelivered(ClockDeliveredPacket packet)
+    {
+        Notifier.Send(new Notification
+        {
+            Title = "Clock Delivered",
+            Message = $"A clock has been delivered! There are {Mathf.Max(0, ClockManager.CountClockEntities())} clocks remaining.",
+        });
     }
 }

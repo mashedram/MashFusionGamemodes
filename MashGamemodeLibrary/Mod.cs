@@ -4,6 +4,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Vision;
 using MelonLoader;
 
 #if DEBUG
@@ -23,6 +24,8 @@ public class Mod : MelonMod
         ModuleManager.RegisterModule<FusionModule>();
         
         RemoteEventMessageHandler.RegisterMod<Mod>();
+        
+        LocalVisionManager.Register();
     }
     
 #if DEBUG

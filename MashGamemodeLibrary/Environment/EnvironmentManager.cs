@@ -120,9 +120,6 @@ public class EnvironmentManager<TContext, TInternalContext>
         {
             // Get the active state for this layer
             var wantedState = _profile.GetWantedState(layerId, _context);
-            var activeState = _activeStates.GetValueOrDefault(layerId);
-            if (ReferenceEquals(wantedState, activeState))
-                continue;
             _activeStates[layerId] = wantedState;
             
             if (wantedState == null)

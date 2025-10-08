@@ -1,9 +1,13 @@
-﻿using Clockhunt.Game;
+﻿using Clockhunt.Config;
+using Clockhunt.Entities.Tags;
+using Clockhunt.Game;
 using Clockhunt.Vision;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network;
+using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using UnityEngine;
@@ -12,13 +16,17 @@ namespace Clockhunt.Nightmare.Implementations;
 
 public class SkinwalkerNightmareInstance : NightmareInstance
 {
+    private const string NightmareAvatarBarcode = "Random.OWNTeamAvatars.Avatar.Wendigo"; // Example barcode, replace with actual
+    private string _disguiseAvatarBarcode = NightmareAvatarBarcode; // Example barcode, replace with actual
+    private bool _isDisguised = true;
+    
     public SkinwalkerNightmareInstance(NetworkPlayer owner, NightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
     public override bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
     {
-        return true;
+        return (entity != null && entity.HasTag<ClockMarker>()) || base.CanGrab(entity, marrowEntity);
     }
 
     public override bool CanStartTensionMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
@@ -33,11 +41,30 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            VisionManager.EnableNightVision();
+            _disguiseAvatarBarcode = LocalAvatar.AvatarBarcode ?? NightmareAvatarBarcode;
+            _isDisguised = true;
+        });
         Executor.RunIfHost(() =>
         {
-            WinStateManager.OverwriteLives(0, false);
+            WinStateManager.OverwriteLives(0);
         });
+    }
+
+    public override void OnAbilityKeyTapped(Handedness handedness)
+    {
+        if (_isDisguised)
+        {
+            PlayerStatManager.SetAvatarAndStats(NightmareAvatarBarcode, Descriptor.Stats);
+        }
+        else
+        {
+            PlayerStatManager.SetAvatarAndStats(_disguiseAvatarBarcode, Descriptor.GetStats());
+        }
+        
+        _isDisguised = !_isDisguised;
     }
 }
 
@@ -49,15 +76,21 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
     public override string? Avatar => null;
     public override bool RegenerateHealth => true;
     public override int Weight => 4;
+    public override float AbilityCooldown => 10f;
 
     public override PlayerStats Stats => new()
     {
-        Vitality = 5f,
-        UpperStrength = 2f,
-        Speed = 1f,
-        Agility = 1.5f,
-        LowerStrength = 2f
+        Vitality = 2.5f,
+        UpperStrength = 5f,
+        Speed = 2f,
+        Agility = 2f,
+        LowerStrength = 5f
     };
+
+    public override PlayerStats GetStats()
+    {
+        return ClockhuntConfig.DefaultStats;
+    }
 
     public override NightmareInstance CreateInstance(NetworkPlayer player)
     {

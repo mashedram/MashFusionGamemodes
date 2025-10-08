@@ -7,7 +7,7 @@ namespace Clockhunt.Audio;
 
 public class ClockhuntMusicContext
 {
-    private const float ChaseDuration = 15f;
+    private const float ChaseDuration = 5f;
     private static readonly LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
     
     private static float _chaseTimer;
@@ -48,7 +48,7 @@ public class ClockhuntMusicContext
                         NightmareManager.Nightmares.Any(nightmare => IsNightmareChasing(nightmare, localPosition));
 
         _chaseTimer = shouldBeChasing ? ChaseDuration : Mathf.Max(0, _chaseTimer - delta);
-        var isChasing = _chaseTimer > 0f;
+        var isChasing = _chaseTimer > 0.5f;
         
         return new ClockhuntMusicContext
         {

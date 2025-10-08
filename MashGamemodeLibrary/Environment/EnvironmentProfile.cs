@@ -50,7 +50,7 @@ public class EnvironmentProfile<TInternalContent>
     {
         return _states
             .Where(e => e.Layer == layer)
-            .FirstOrDefault(musicState => musicState.CanPlay(context));
+            .FirstOrDefault(musicState => musicState != null && musicState.CanPlay(context), null);
     }
     
     public void Cleanup()

@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
 public class SingleAudioSourceProvider : AudioSourceProvider
 {
-    private readonly AudioSourceEntity? _audioSource = null;
+    private AudioSourceEntity? _audioSource;
 
     public SingleAudioSourceProvider(AudioModifierFactory modifierFactory) : base(modifierFactory)
     {
@@ -18,7 +18,8 @@ public class SingleAudioSourceProvider : AudioSourceProvider
         if (_audioSource)
             return _audioSource!;
 
-        return new AudioSourceEntity(modifierFactory);
+        _audioSource = new AudioSourceEntity(modifierFactory);
+        return _audioSource;
     }
 
     public override void StopAll()

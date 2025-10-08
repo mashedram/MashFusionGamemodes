@@ -37,9 +37,9 @@ public class ClockhuntContext : GameContext
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
                     settings.SetVolume(1f).SetMaxDistance(120f))
                 .AddModifier<MuffleAudioModifier>()),
-        5, 20);
+        10, 30);
 
-    public readonly PositionalAudioPlayer<DummySerializable> EscapeAudioPlayer = new("EscapeSound",
+    public readonly PositionalAudioPlayer EscapeAudioPlayer = new("EscapeSound",
         new SyncedAudioContainer(new AudioFileLoader("Escape")),
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
             settings.SetVolume(1f).SetMaxDistance(180f)

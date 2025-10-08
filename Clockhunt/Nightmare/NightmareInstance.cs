@@ -72,11 +72,11 @@ public class NightmareInstance
         return (T)Descriptor;
     }
     
-    public void Update(NetworkPlayer player, float delta)
+    public void Update(float delta)
     {
         OnUpdate(delta);
         
-        if (!player.PlayerID.IsMe) return;
+        if (!Owner.PlayerID.IsMe) return;
         if (AbilityTimer < 0f) return;
         AbilityTimer -= delta;
 
@@ -116,7 +116,7 @@ public class NightmareInstance
             
         WinStateManager.SetLocalTeam(GameTeam.Nightmares);
             
-        PlayerStatManager.SetStats(Descriptor.Stats);
+        PlayerStatManager.SetStats(Descriptor.GetStats());
         
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }

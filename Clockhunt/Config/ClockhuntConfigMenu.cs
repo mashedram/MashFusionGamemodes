@@ -49,16 +49,6 @@ public static class ClockhuntConfigMenu
         
         group.AddElement(new IntElementData
         {
-            Title = "Number of Nightmares",
-            Increment = 1,
-            MinValue = 1,
-            MaxValue = 10,
-            Value = ClockhuntConfig.NightmareCount,
-            OnValueChanged = value => ClockhuntConfig.NightmareCount = value
-        });
-        
-        group.AddElement(new IntElementData
-        {
             Title = "Clocks Per Player",
             Increment = 1,
             MinValue = 1,

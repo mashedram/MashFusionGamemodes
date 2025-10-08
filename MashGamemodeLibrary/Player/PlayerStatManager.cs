@@ -7,6 +7,12 @@ namespace MashGamemodeLibrary.Player;
 public static class PlayerStatManager
 {
     internal static PlayerStats? LocalStatOverride;
+
+    public static void SetAvatarAndStats(string barcode, PlayerStats stats)
+    {
+        LocalStatOverride = stats;
+        LocalAvatar.AvatarOverride = barcode;
+    }
     
     public static void SetStats(PlayerStats stats)
     {

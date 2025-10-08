@@ -6,7 +6,7 @@ public class Rain3WeatherEffector : ClockhuntWeatherEffector
 {
     public Rain3WeatherEffector() : base(new []
     {
-        "FirePura.BoneWeater.Spawnable.Fog",
+        "FirePura.BoneWeater.Spawnable.FogLight",
         "FirePura.BoneWeater.Spawnable.ThunderStorm"
     }, true)
     {

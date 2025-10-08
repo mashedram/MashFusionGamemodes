@@ -29,6 +29,7 @@ using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
+using MashGamemodeLibrary.Vision;
 using UnityEngine;
 
 namespace Clockhunt;
@@ -70,6 +71,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         }, LocalWeatherManager.ClearLocalWeather));
         
         Context.PhaseManager.Enable();
+        
+        LocalVisionManager.HideAllSpecials();
 
         LocalAvatar.AvatarOverride = LocalAvatar.AvatarBarcode;
         SpectatorManager.Enable();
@@ -83,7 +86,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
-            WinStateManager.OverwriteLives(3, false);
+            WinStateManager.OverwriteLives(3);
         });
     }
 
@@ -106,6 +109,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         GamemodeHelper.ResetSpawnPoints();
         MarkerManager.ClearMarker();
         VisionManager.DisableNightVision();
+        
+        LocalVisionManager.UnhideAll();
         
         SpectatorManager.Disable();
         LocalAvatar.AvatarOverride = null;

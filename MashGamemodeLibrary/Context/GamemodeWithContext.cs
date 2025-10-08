@@ -9,7 +9,10 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext, n
 {
     private static T? _internalContext;
     public static T Context => _internalContext ?? throw new InvalidOperationException("Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
-    public static bool IsStarted { get; private set; }
+    
+    // We want it once per context
+    // ReSharper disable once StaticMemberInGenericType
+    public new static bool IsStarted { get; private set; }
     
     public override void OnGamemodeRegistered()
     {

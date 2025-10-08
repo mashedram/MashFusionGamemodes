@@ -13,7 +13,7 @@ struct RayPassResult
 public class MuffleAudioModifier : IAudioModifier
 {
     private const int BaseCutoffFrequency = 5000;
-    private const int MaxRayPasses = 1;
+    private const int MaxRayPasses = 2;
     private static readonly LayerMask RaycastLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8); // Ignore player layer
     
     private AudioLowPassFilter _filter = null!;
@@ -86,8 +86,16 @@ public class MuffleAudioModifier : IAudioModifier
             return;
         
         var soundPosition = source.transform.position;
+        var toPlayerOffset = playerPosition.Value - soundPosition;
+
+        if (toPlayerOffset.magnitude > source.maxDistance)
+        {
+            return;
+        }
         
-        var rayResult = PerformRayPass(playerPosition.Value, soundPosition, MaxRayPasses);
+        var toPlayerDirection = toPlayerOffset.normalized;
+        
+        var rayResult = PerformRayPass(playerPosition.Value, soundPosition + toPlayerDirection, MaxRayPasses);
         if (!rayResult.HitWall)
         {
             _filter.enabled = false;
@@ -98,6 +106,7 @@ public class MuffleAudioModifier : IAudioModifier
         var thickness = rayResult.WallThickness;
         // MelonLogger.Msg($"Wall thickness: {thickness}");
         var cutoff = BaseCutoffFrequency / Mathf.Pow(thickness, 2);
+        cutoff = Mathf.Clamp(cutoff, 200f, BaseCutoffFrequency);
 
         _filter.cutoffFrequency = cutoff;
     }

@@ -1,6 +1,6 @@
 namespace MashGamemodeLibrary.Audio.Players.Extensions;
 
-public interface IContinuousPlayer
+public interface IContinuousPlayer : IAudioPlayer
 {
     void StartPlaying();
     void StopPlaying();

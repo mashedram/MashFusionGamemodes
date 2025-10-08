@@ -24,10 +24,14 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
         _value = defaultValue;
 
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        MultiplayerHooking.OnJoinedServer += OnServerChanged;
+        MultiplayerHooking.OnDisconnected += OnServerChanged;
     }
     
     ~SyncedVariable() {
         MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
+        MultiplayerHooking.OnJoinedServer -= OnServerChanged;
+        MultiplayerHooking.OnDisconnected -= OnServerChanged;
     }
     
     public static implicit operator T(SyncedVariable<T> variable) => variable.Value;
@@ -78,5 +82,10 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
         {
             Relay(_value, playerId.SmallID);
         });
+    }
+    
+    private void OnServerChanged()
+    {
+        _value = default!;
     }
 }

@@ -30,7 +30,7 @@ internal class OverwriteLivesPacket : INetSerializable
 
 internal class PlayerFinalDeathPacket : INetSerializable
 {
-    public PlayerID PlayerID = null!;
+    public byte PlayerID;
 
     public PlayerFinalDeathPacket()
     {
@@ -78,14 +78,14 @@ public class WinStateManager
         LocalGameTeam = gameTeam;
     }
 
-    public static void OverwriteLives(int lives, bool shouldDisplayMessage)
+    public static void OverwriteLives(int lives)
     {
         if (!NetworkInfo.IsHost)
             return;
 
         OverwriteLiverEvent.Call(new OverwriteLivesPacket()
         {
-            NewLives = Lives,
+            NewLives = lives,
         });
     }
 
@@ -100,22 +100,25 @@ public class WinStateManager
 
         if (SpectatorManager.IsPlayerSpectating(playerID))
             return;
-
-        Lives -= 1;
-
+        
         if (Lives == 0)
+            return;
+
+        Lives = Math.Max(0, Lives - 1);
+
+        if (Lives == 1)
         {
             Notifier.Send(new Notification
             {
                 Title = "Player Died",
-                Message = "You are out of lives.",
+                Message = "This is your last try.",
                 PopupLength = 3f,
                 SaveToMenu = false,
                 ShowPopup = true,
                 Type = NotificationType.ERROR
             });
         }
-        else if (Lives > 0)
+        else if (Lives > 1)
         {
             Notifier.Send(new Notification
             {
@@ -129,9 +132,19 @@ public class WinStateManager
         }
 
         // TODO: Custom message when lives hit 0
-        if (Lives >= 0) return;
+        if (Lives > 0) return;
         
-        PlayerFinalDeathEvent.Call(new PlayerFinalDeathPacket(playerID));
+        Notifier.Send(new Notification
+        {
+            Title = "Game over",
+            Message = "Wait till the next round starts.",
+            PopupLength = 10f,
+            SaveToMenu = false,
+            ShowPopup = true,
+            Type = NotificationType.ERROR
+        });
+        
+        PlayerFinalDeathEvent.CallFor(PlayerIDManager.GetHostID(), new PlayerFinalDeathPacket(playerID));
     }
 
     public static void ForceWin(GameTeam winningTeam)
@@ -165,7 +178,7 @@ public class WinStateManager
             return;
         }
 
-        if (NetworkPlayerManager.TryGetPlayer(packet.PlayerID, out NetworkPlayer player))
+        if (!NetworkPlayerManager.TryGetPlayer(packet.PlayerID, out var player))
         {
             MelonLogger.Error("Player not found for final death packet!");
             return;

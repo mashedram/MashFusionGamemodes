@@ -1,6 +1,6 @@
 ﻿namespace MashGamemodeLibrary.Audio.Players.Extensions;
 
-public interface IRandomAudioPlayer
+public interface IRandomAudioPlayer : IAudioPlayer
 {
     string GetRandomAudioName();
 }

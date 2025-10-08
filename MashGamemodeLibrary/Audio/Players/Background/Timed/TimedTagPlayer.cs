@@ -50,6 +50,8 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
         if (!_isActive)
             return;
         
+        _player.Update(delta);
+        
         var entities = EntityTagManager.GetAllIdsWithTag<T>();
         
         foreach (var (id, _) in _entityTimers)

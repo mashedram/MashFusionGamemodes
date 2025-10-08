@@ -70,7 +70,7 @@ public static class EscapeManager
             
             var context = Clockhunt.Context;
             var name = context.EscapeAudioPlayer.GetRandomAudioName();
-            context.EscapeAudioPlayer.Play(name, _activeEscapePoint, new DummySerializable());
+            context.EscapeAudioPlayer.Play(name, _activeEscapePoint);
         });
     }
     

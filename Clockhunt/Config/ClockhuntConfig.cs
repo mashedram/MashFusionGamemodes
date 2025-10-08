@@ -10,8 +10,6 @@ public static class ClockhuntConfig
     public static int HuntPhaseDuration = 1200;
     public static int EscapePhaseDuration = 240;
     
-    public static int NightmareCount = 1;
-    
     public static int ClocksPerPlayer = 1;
     public static int HuntPhaseClockCount = 2;
     

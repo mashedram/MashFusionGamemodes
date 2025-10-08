@@ -7,13 +7,15 @@ using LightType = UnityEngine.LightType;
 
 namespace Clockhunt.Vision;
 
-struct NightVisionObject
+internal struct NightVisionObject
 {
     public GameObject GameObject;    
     public ColorAdjustments ColorAdjustments;
 
     public void SetActive(bool state)
     {
+        if (!GameObject)
+            return;
         GameObject.SetActive(state);
     }
 

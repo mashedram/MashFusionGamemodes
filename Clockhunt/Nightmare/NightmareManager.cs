@@ -8,6 +8,8 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Impl;
@@ -37,6 +39,8 @@ public static class NightmareManager
     private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
+    private static readonly WeightedPlayerSelector _playerSelector = new();
+    
     public static IReadOnlyCollection<NightmareInstance> Nightmares => NightmareInstances.Values;
 
     static NightmareManager()
@@ -83,8 +87,7 @@ public static class NightmareManager
         instance.OnAbilityKeyTapped(keyHand.Value);
     }
     
-    // TODO: Make this not break when there is more than 1 nightmare
-    public static void SetRandomNightmare(NetworkPlayer player)
+    public static void SetRandomNightmare()
     {
         if (!NetworkInfo.IsHost)
         {
@@ -99,7 +102,8 @@ public static class NightmareManager
         {
             choice -= descriptor.Weight;
             if (choice > 0) continue;
-            PlayerNightmareIds[player.PlayerID.SmallID] = descriptor.ID;
+            var player = _playerSelector.GetRandomPlayerID();
+            PlayerNightmareIds[player] = descriptor.ID;
             return;
         }
         
@@ -118,10 +122,9 @@ public static class NightmareManager
     
     public static void Update(float delta)
     {
-        foreach (var (playerId, nightmareInstance) in NightmareInstances)
+        foreach (var nightmareInstance in NightmareInstances.Values)
         {
-            if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) continue;
-            nightmareInstance.Update(player, delta);
+            nightmareInstance.Update(delta);
         }
         
         if (!TryGetNightmare(PlayerIDManager.LocalID, out var instance))
@@ -144,6 +147,11 @@ public static class NightmareManager
         var instance = descriptor.CreateInstance(player);
         NightmareInstances[playerId] = instance;
         instance.Apply();
+        
+        Executor.RunIfHost(() =>
+        {
+            Loadout.ClearPlayerLoadout(player.RigRefs);
+        });
 
         if (player.PlayerID.IsMe)
         {

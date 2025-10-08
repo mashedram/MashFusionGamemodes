@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Clockhunt.Audio.Effectors.Weather.Fog;
+using Clockhunt.Audio.Effectors.Weather.Night;
 using Clockhunt.Config;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector;
@@ -13,6 +14,7 @@ public class Weather3Effector : MappedSelector<ClockhuntMusicContext, WeatherTyp
         map.Add(WeatherType.None, new NoneWeatherEffector());
         map.Add(WeatherType.Fog, new Fog3WeatherEffector());
         map.Add(WeatherType.Rain, new Rain3WeatherEffector());
+        map.Add(WeatherType.Night, new NightWeatherEffector());
     }
 
     protected override WeatherType Selector(ClockhuntMusicContext context)

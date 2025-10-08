@@ -14,7 +14,8 @@ class AudioPoolMember
         if (_source is { IsValid: true })
             return _source!;
 
-        return new AudioSourceEntity(factory);
+        _source = new AudioSourceEntity(factory);
+        return _source;
     }
 
     public bool TryGet([MaybeNullWhen(returnValue: false)] out AudioSourceEntity audioSource)

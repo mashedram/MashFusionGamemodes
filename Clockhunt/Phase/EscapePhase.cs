@@ -1,6 +1,8 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using LabFusion.Player;
+using LabFusion.Senders;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
@@ -18,7 +20,7 @@ public class EscapePhase : GamePhase
         Executor.RunIfHost(() =>
         {
             EscapeManager.ActivateRandomEscapePoint();
-            WinStateManager.OverwriteLives(0, false);
+            WinStateManager.OverwriteLives(1);
         });
         
         Notifier.Send(new Notification
@@ -40,5 +42,13 @@ public class EscapePhase : GamePhase
     protected override bool PhaseEnterPredicate()
     {
         return ClockhuntConfig.IsEscapePhaseEnabled && ClockManager.CountClockEntities() <= 0;
+    }
+    
+    public override void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    {
+        if (type != PlayerActionType.DEATH)
+            return;
+        
+        WinStateManager.PlayerDied(playerId);
     }
 }

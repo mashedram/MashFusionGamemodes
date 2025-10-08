@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic;
 
-public class AudioPlayer : IRandomAudioPlayer
+public class AudioPlayer : IRandomAudioPlayer, IAudioPlayer
 {
     protected readonly IAudioContainer Container;
     protected readonly AudioSourceProvider SourceProvider;
