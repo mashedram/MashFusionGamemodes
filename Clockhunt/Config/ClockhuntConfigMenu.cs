@@ -115,9 +115,33 @@ public static class ClockhuntConfigMenu
         
         group.AddElement(new BoolElementData
         {
+            Title = "Runtime Spawn Points",
+            Value = ClockhuntConfig.RuntimeSpawnPointsEnabled,
+            OnValueChanged = value => ClockhuntConfig.RuntimeSpawnPointsEnabled.Value = value
+        });
+        
+        group.AddElement(new IntElementData
+        {
+            Title = "Runtime Spawn Point Count",
+            Value = ClockhuntConfig.RuntimeSpawnCount,
+            Increment = 1,
+            MaxValue = 20,
+            MinValue = 0,
+            OnValueChanged = value => ClockhuntConfig.RuntimeSpawnCount.Value = value
+        });
+        
+        group.AddElement(new BoolElementData
+        {
             Title = "Disable Dev Tools",
             Value = ClockhuntConfig.DevToolsDisabled,
-            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled = value
+            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled.Value = value
+        });
+        
+        group.AddElement(new BoolElementData
+        {
+            Title = "Disable Dev Tools",
+            Value = ClockhuntConfig.DevToolsDisabled,
+            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled.Value = value
         });
         
         group.AddElement(new SpawnableElementData

@@ -3,6 +3,7 @@ using Clockhunt.Vision;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
@@ -29,8 +30,11 @@ class SoundTriggerData
 
 public class BlindNightmareInstance : NightmareInstance
 {
+    private const string BlindHiderKey = "BlindHiderKey";
+    
     private static readonly SoundTriggerData ClockSoundTrigger = new(3f, 70);
     private static readonly SoundTriggerData GunshotSoundTrigger = new(5f, 50f);
+    private static readonly SoundTriggerData VoiceSoundTrigger = new(2f, 20f);
     private const float MovementBaseSpeedSqrt = 30f;
     private static readonly SoundTriggerData WalkSoundTrigger = new(1f, 10f);
     private static readonly SoundTriggerData JumpSoundTrigger = new(1f, 15f);
@@ -39,11 +43,6 @@ public class BlindNightmareInstance : NightmareInstance
     
     public BlindNightmareInstance(NetworkPlayer owner, BlindNightmareDescriptor descriptor) : base(owner, descriptor)
     {
-    }
-
-    public override bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
-    {
-        return true;
     }
 
     public override void OnApplied()
@@ -63,27 +62,38 @@ public class BlindNightmareInstance : NightmareInstance
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             PlayerGunManager.OnGunFired -= OnGunFired;
+            
+            NetworkPlayer.Players.ForEach(player => player.PlayerID.SetHidden(BlindHiderKey, false));
         });
     }
 
     public override void OnUpdate(float delta)
     {
-        foreach (var player in NetworkPlayer.Players.Where(p => !p.PlayerID.IsSpectating()))
+        Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            if (player.PlayerID.Equals(Owner.PlayerID))
-                continue;
-            
-            UpdateMovement(player);
-
-            if (ClockGrabNotifier.Holders.Contains(player.PlayerID))
+            foreach (var player in NetworkPlayer.Players.Where(p => !p.PlayerID.IsSpectating()))
             {
-                UpdateVisibilityTimers(player, ClockSoundTrigger);
-            }
+                if (player.PlayerID.Equals(Owner.PlayerID))
+                    continue;
             
-            var timer = _visibilityTimers.GetValueOrDefault(player.PlayerID, 0f);
-            player.PlayerID.ForceHide(timer <= 0f);
-            _visibilityTimers[player.PlayerID] = Math.Max(0f, timer - delta);
-        }
+                UpdateMovement(player);
+
+                var distance = Vector3.Distance(Owner.RigRefs.Head.position, player.RigRefs.Head.position);
+                var distanceMod = Mathf.Clamp01(distance / player.VoiceSource.MaxMicrophoneDistance);
+                var amplitudeMod = Mathf.Clamp01(player.VoiceSource.VoiceSource.Amplitude * 2f);
+                var value = amplitudeMod * distanceMod;
+                UpdateVisibilityTimers(player, VoiceSoundTrigger, value);
+
+                if (ClockGrabNotifier.Holders.Contains(player.PlayerID))
+                {
+                    UpdateVisibilityTimers(player, ClockSoundTrigger);
+                }
+            
+                var timer = _visibilityTimers.GetValueOrDefault(player.PlayerID, 0f);
+                player.PlayerID.SetHidden(BlindHiderKey,timer <= 0f);
+                _visibilityTimers[player.PlayerID] = Math.Max(0f, timer - delta);
+            }
+        });
     }
 
     private void UpdateMovement(NetworkPlayer player)

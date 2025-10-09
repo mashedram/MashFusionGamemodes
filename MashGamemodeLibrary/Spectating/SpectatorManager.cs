@@ -8,6 +8,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
 
@@ -35,12 +36,14 @@ internal class SpectatorSyncPacket : INetSerializable
 
 public static class SpectatorManager
 {
+    private const string SpecatorHideKey = "spectatorhidekey";
+    
     private static bool _enabled;
     private const string GrabOverwriteKey = "spectating";
     private static readonly RemoteEvent<SpectatorSyncPacket> SyncEvent = new(OnSyncReceived, false);
 
     private static readonly HashSet<byte> HiddenIds = new();
-    private static HashSet<byte> SpectatingPlayerIds = new();
+    private static HashSet<byte> _spectatingPlayerIds = new();
 
     public static void Enable()
     {
@@ -57,12 +60,12 @@ public static class SpectatorManager
     public static bool IsLocalPlayerSpectating()
     {
         var localPlayer = LocalPlayer.GetNetworkPlayer();
-        return localPlayer != null && SpectatingPlayerIds.Contains(localPlayer.PlayerID);
+        return localPlayer != null && _spectatingPlayerIds.Contains(localPlayer.PlayerID);
     }
     
     public static bool IsPlayerSpectating(byte playerId)
     {
-        return SpectatingPlayerIds.Contains(playerId);
+        return _spectatingPlayerIds.Contains(playerId);
     }
 
     private static void SetColliders(RigManager rig, bool state)
@@ -103,17 +106,8 @@ public static class SpectatorManager
         
         Executor.RunIfRemote(playerId, () =>
         {
-            player.RigRefs.RigManager.gameObject.active = false;
-            player.HeadUI.Visible = false;
-
-            player.VoiceSource.VoiceSource.AudioSource.mute = true;
+            player.PlayerID.SetHidden(SpecatorHideKey, true);
         });
-        
-        var audioSource = player.VoiceSource?.VoiceSource.AudioSource; 
-        if (audioSource) 
-        { 
-            audioSource!.mute = true;
-        }
         
         if (!playerId.IsMe) return;
         SetColliders(player.RigRefs.RigManager, false);
@@ -124,28 +118,11 @@ public static class SpectatorManager
     {
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player)) return;
         if (!HiddenIds.Remove(playerId)) return;
-        
-        player.RigRefs.LeftHand.DetachObject();
-        player.RigRefs.LeftHand.DetachObject();
 
         Executor.RunIfRemote(playerId, () =>
         {
-            player.RigRefs.RigManager.gameObject.active = true;
-            player.HeadUI.Visible = true;
+            player.PlayerID.SetHidden(SpecatorHideKey, false);
         });
-
-        // A reset might be needed, there are some cases where the rep seems to freak out really badly, assuming its because the rep is trying to
-        // Use velocity to pickup to where its supposed to be, but since its hidden, it cant, so it just freaks out when it comes back.
-        player.RigRefs.RigManager.TeleportToPose(player.RigPose.PelvisPose.position, Vector3.down, true);
-        player.RigRefs.RigManager.physicsRig.ResetHands(Handedness.BOTH);
-        player.RigRefs.RigManager.physicsRig.UnRagdollRig();
-        player.RigRefs.RigManager.TeleportToPose(player.RigPose.PelvisPose.position, Vector3.up, true);
-
-        var audioSource = player.VoiceSource?.VoiceSource.AudioSource; 
-        if (audioSource) 
-        { 
-            audioSource!.mute = false;
-        }
        
         if (!playerId.IsMe) return;
         SetColliders(player.RigRefs.RigManager, true);
@@ -157,7 +134,7 @@ public static class SpectatorManager
         var isLocalSpectating = IsLocalPlayerSpectating();
         foreach (var player in NetworkPlayer.Players)
         {
-            var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
+            var isSpectating = _spectatingPlayerIds.Contains(player.PlayerID);
             var shouldBeHidden = isSpectating && (!isLocalSpectating || player.PlayerID.IsMe);
             
             if (shouldBeHidden && _enabled)
@@ -178,7 +155,7 @@ public static class SpectatorManager
     
     private static void OnSyncReceived(SpectatorSyncPacket packet)
     {
-        SpectatingPlayerIds = packet.SpectatingPlayerIds.ToHashSet();
+        _spectatingPlayerIds = packet.SpectatingPlayerIds.ToHashSet();
 
         ApplyAll();
     }
@@ -186,7 +163,7 @@ public static class SpectatorManager
     private static void SendSync()
     {
         if (!NetworkInfo.IsHost) return;
-        var packet = new SpectatorSyncPacket(SpectatingPlayerIds);
+        var packet = new SpectatorSyncPacket(_spectatingPlayerIds);
         SyncEvent.Call(packet);
     }
     
@@ -200,18 +177,18 @@ public static class SpectatorManager
 
         if (spectating)
         {
-            SpectatingPlayerIds.Add(playerID);
+            _spectatingPlayerIds.Add(playerID);
         }
         else
         {
-            SpectatingPlayerIds.Remove(playerID);
+            _spectatingPlayerIds.Remove(playerID);
         }
         ApplyAll();
     }
 
     public static void Clear()
     {
-        SpectatingPlayerIds.Clear();
+        _spectatingPlayerIds.Clear();
         ApplyAll();
     }
 }

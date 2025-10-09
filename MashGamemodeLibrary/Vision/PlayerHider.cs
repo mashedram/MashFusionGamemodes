@@ -63,6 +63,9 @@ class MagazineHolster
         
         foreach (var magazine in magazines)
         {
+            if (magazine?.gameObject == null)
+                continue;
+            
             foreach (var renderer in magazine.gameObject.GetComponentsInChildren<Renderer>())
             {
                 var visibility = new RendererVisibility(renderer);
@@ -135,15 +138,18 @@ internal class PlayerVisibilityState
 {
     private bool _isSpecialHidden;
     private string? _lastAvatarBarcode;
+    
     private readonly NetworkPlayer _player;
+    private readonly Dictionary<string, bool> _hideOverwrites = new();
+    
     private readonly HashSet<RendererVisibility> _avatarRenderers = new();
     private readonly HashSet<RendererVisibility> _inventoryRenderers = new();
     private readonly HashSet<RendererVisibility> _specialRenderers = new();
     
     private readonly Dictionary<string, HolsteredItem> _holsteredItems = new();
     private readonly Dictionary<string, MagazineHolster> _magazineHolsters = new();
-    
-    public bool IsForceHidden { get; private set; }
+
+    public bool IsHidden => _hideOverwrites.Any(e => e.Value);
     
     public PlayerVisibilityState(NetworkPlayer player, bool specialHidden)
     {
@@ -151,15 +157,31 @@ internal class PlayerVisibilityState
         _isSpecialHidden = specialHidden;
         PopulateRenderers();
     }
+
+    private void SetMute(bool muted)
+    {
+        var audioSource = _player.VoiceSource?.VoiceSource.AudioSource; 
+        if (audioSource) 
+        { 
+            audioSource!.mute = muted;
+        }
+    }
+
+    private void SetHeadUI(bool hidden)
+    {
+        
+        _player.HeadUI.Visible = !hidden;
+    }
     
     public void PopulateRenderers()
     {
         var rigManager = _player.RigRefs.RigManager;
 
-        if (rigManager.avatar.name == _lastAvatarBarcode)
+        var avatarName = rigManager?.avatar?.name;
+        if (avatarName == _lastAvatarBarcode)
             return;
         
-        _lastAvatarBarcode = rigManager.avatarID;
+        _lastAvatarBarcode = avatarName;
         
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
@@ -172,7 +194,7 @@ internal class PlayerVisibilityState
         {
             var visibility = new RendererVisibility(renderer);
             _avatarRenderers.Add(visibility);
-            visibility.SetForceHide(IsForceHidden);
+            visibility.SetForceHide(IsHidden);
         }
         
         foreach (var slotContainer in rigManager.inventory.bodySlots)
@@ -184,7 +206,7 @@ internal class PlayerVisibilityState
             {
                 var visibility = new RendererVisibility(renderer);
                 _inventoryRenderers.Add(visibility);
-                visibility.SetForceHide(IsForceHidden);
+                visibility.SetForceHide(IsHidden);
             }
         }
         
@@ -197,37 +219,8 @@ internal class PlayerVisibilityState
             {
                 var visibility = new RendererVisibility(renderer);
                 _specialRenderers.Add(visibility);
-                visibility.SetForceHide(IsForceHidden || _isSpecialHidden);
+                visibility.SetForceHide(IsHidden || _isSpecialHidden);
             }
-            //
-            // var slotReceiver = slotContainer.inventorySlotReceiver;
-            // if (slotReceiver)
-            // {
-            //     var name = slotReceiver.transform.parent.name;
-            //
-            //     if (_holsteredItems.TryGetValue(name, out var item) && item.Equals(slotReceiver))
-            //     {
-            //         item.PopulateRenderers();
-            //         continue;
-            //     }
-            //     
-            //     _holsteredItems[name] = new HolsteredItem(slotReceiver, IsForceHidden);
-            //     continue;
-            // } 
-            //
-            // var ammoReceiver = slotContainer.inventoryAmmoReceiver;
-            // if (ammoReceiver)
-            // {
-            //     var name = slotReceiver.transform.parent.name;
-            //
-            //     if (_magazineHolsters.TryGetValue(name, out var item))
-            //     {
-            //         item.PopulateRenderers();
-            //         continue;
-            //     }
-            //     
-            //     _magazineHolsters[name] = new MagazineHolster(ammoReceiver, IsForceHidden);
-            // }
         }
     }
     
@@ -237,13 +230,13 @@ internal class PlayerVisibilityState
         
         foreach (var renderer in _specialRenderers)
         {
-            renderer.SetForceHide(hidden || IsForceHidden);
+            renderer.SetForceHide(hidden || IsHidden);
         }
     }
-    
-    public void SetForceHide(bool hidden)
+
+    private void Refresh()
     {
-        IsForceHidden = hidden;
+        var hidden = IsHidden;
         
         foreach (var renderer in _avatarRenderers)
         {
@@ -269,13 +262,24 @@ internal class PlayerVisibilityState
         {
             holster.SetForceHide(hidden);
         }
+
+        SetMute(hidden);
+        SetHeadUI(hidden);
+    }
+    
+    public void SetHidden(string key, bool hidden)
+    {
+        _hideOverwrites[key] = hidden;
+        
+        Refresh();
     }
 
     public void Reset()
     {
         _isSpecialHidden = false;
 
-        SetForceHide(false);
+        _hideOverwrites.Clear();
+        Refresh();
     }
     
     public void OnHolster(InventorySlotReceiver slotReceiver)
@@ -285,11 +289,11 @@ internal class PlayerVisibilityState
         if (_holsteredItems.TryGetValue(name, out var item) && item.Equals(slotReceiver))
         {
             item.PopulateRenderers();
-            item.SetForceHide(IsForceHidden);
+            item.SetForceHide(IsHidden);
             return;
         }
         
-        _holsteredItems[name] = new HolsteredItem(slotReceiver, IsForceHidden);
+        _holsteredItems[name] = new HolsteredItem(slotReceiver, IsHidden);
     }
     
     public void OnUnholster(InventorySlotReceiver slotReceiver)
@@ -309,15 +313,15 @@ internal class PlayerVisibilityState
         if (_magazineHolsters.TryGetValue(name, out var holster))
         {
             holster.PopulateRenderers();
-            holster.SetForceHide(IsForceHidden);
+            holster.SetForceHide(IsHidden);
             return;
         }
         
-        _magazineHolsters[name] = new MagazineHolster(inventoryAmmoReceiver, IsForceHidden);
+        _magazineHolsters[name] = new MagazineHolster(inventoryAmmoReceiver, IsHidden);
     }
 }
 
-public static class LocalVisionManager
+public static class PlayerHider
 {
     private static bool _hideSpecials;
     private static Dictionary<byte, PlayerVisibilityState> _playerStates = new();
@@ -370,14 +374,14 @@ public static class LocalVisionManager
     
     public static bool IsHidden(this PlayerID playerID)
     {
-        return !_playerStates.TryGetValue(playerID, out var state) || state.IsForceHidden;
+        return !_playerStates.TryGetValue(playerID, out var state) || state.IsHidden;
     }
 
-    public static void ForceHide(this PlayerID playerID, bool hidden)
+    public static void SetHidden(this PlayerID playerID, string key, bool hidden)
     {
         var state = GetOrCreateState(playerID);
 
-        state?.SetForceHide(hidden);
+        state?.SetHidden(key, hidden);
     }
 
     public static void HideAllSpecials()

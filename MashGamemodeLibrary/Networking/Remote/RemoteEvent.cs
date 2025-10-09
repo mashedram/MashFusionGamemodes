@@ -95,7 +95,12 @@ public abstract class GenericRemoteEvent<T>
 
     protected GenericRemoteEvent(string name)
     {
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(name, OnPacket);
+        var modName = GetType().Assembly.FullName ??
+                      throw new Exception($"Failed to get mod name for remote event: {name}");
+
+        var fullName = $"{modName}.{name}";
+        
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(fullName, OnPacket);
     }
     
     ~GenericRemoteEvent() {

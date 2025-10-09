@@ -25,7 +25,7 @@ public class Mod : MelonMod
         
         RemoteEventMessageHandler.RegisterMod<Mod>();
         
-        LocalVisionManager.Register();
+        PlayerHider.Register();
     }
     
 #if DEBUG

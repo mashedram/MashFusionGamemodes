@@ -16,6 +16,7 @@ using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 
@@ -45,6 +46,11 @@ public class ClockhuntContext : GameContext
             settings.SetVolume(1f).SetMaxDistance(180f)
                 .SetCustomRolloff(AnimationCurve.Linear(0, 1, 1, 0)).SetSpatialBlend(0.65f).SetLoop(true)));
 
+    public IEnumerable<NetworkPlayer> GetActivePlayers()
+    {
+        return NetworkPlayer.Players.Where(p => !p.PlayerID.IsSpectating());
+    }
+    
     protected override void OnUpdate(float delta)
     {
         NightmareManager.Update(delta);

@@ -11,7 +11,7 @@ public class HideSelfDebugKeybind : DebugKeybind
     protected override Action _onPress => () =>
     {
         MelonLoader.MelonLogger.Msg("Toggling self visibility");
-        PlayerIDManager.LocalID.ForceHide(!PlayerIDManager.LocalID.IsHidden());
+        PlayerIDManager.LocalID.SetHidden( "test", !PlayerIDManager.LocalID.IsHidden());
     };
 }
 #endif

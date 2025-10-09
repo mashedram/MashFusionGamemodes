@@ -33,5 +33,18 @@ public class HidePhase : GamePhase
                     ClockManager.SpawnEntityForPlayer(player);
             });
         });
+
+        if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+        {
+            SpawnManager.Reset();
+        }
+    }
+
+    protected override void OnUpdate()
+    {
+        if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+        {
+            SpawnManager.Update(Time.deltaTime);
+        }
     }
 }

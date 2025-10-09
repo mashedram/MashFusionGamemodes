@@ -2,7 +2,17 @@ using System.Collections.Immutable;
 using Clockhunt.Util;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Network;
+using LabFusion.Network.Serialization;
+using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Variable.Impl;
 using UnityEngine;
+
+#if DEBUG
+using MashGamemodeLibrary.Debug;
+#endif
 
 namespace Clockhunt.Game;
 
@@ -35,7 +45,7 @@ class LocalSpawnCollector
         if (rigManager.physicsRig.footSupported < 0.1f)
             return null;
         
-        var origin = rigManager.physicsRig._football.center;
+        var origin = rigManager.physicsRig._football.gameObject.transform.position;
         var distance = rigManager.physicsRig._footballRadius * 2f;
         
         var ray = new Ray(origin, Vector3.down);
@@ -86,14 +96,47 @@ class LocalSpawnCollector
         
         _nodeIndex += 1;
     }
+
+    public void Reset()
+    {
+        _nodeIndex = 0;
+    }
+}
+
+class SpawnCollectedPacket : INetSerializable
+{
+    public Vector3 Position;
+
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref Position);
+    }
+}
+
+struct SpawnObjectInstance
+{
+    private GameObject? _gameObject;
+
+    public GameObject GetOrCreate()
+    {
+        if (!_gameObject)
+            _gameObject = new GameObject("PlayerSpawn");
+        
+        return _gameObject!;
+    }
 }
 
 public static class SpawnManager
 {
     private const float MinDistanceBetweenSpawns = 5f;
-    
+
+    private static readonly RemoteEvent<SpawnCollectedPacket> SpawnCollectedEvent =
+        new("SpawnCollectedEvent", packet => OnCollect(packet.Position), false);
     private static readonly LocalSpawnCollector Collector = new();
     private static readonly HashSet<Vector3> SpawnPoints = new();
+    private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints");
+
+    private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();
 
     static SpawnManager()
     {
@@ -102,6 +145,15 @@ public static class SpawnManager
 
     private static void OnCollect(Vector3 position)
     {
+        if (!NetworkInfo.IsHost)
+        {
+            SpawnCollectedEvent.CallFor(PlayerIDManager.GetHostID(), new SpawnCollectedPacket
+            {
+                Position = position
+            });
+            return;
+        }
+        
         var distance = SpawnPoints.Any()
             ? SpawnPoints.Min(x => Vector3.Distance(x, position))
             : float.MaxValue;
@@ -111,21 +163,28 @@ public static class SpawnManager
             return;
         
         SpawnPoints.Add(position);
+        
+        #if DEBUG
+        DebugRenderer.RenderCube(position, Vector3.one);
+        #endif
     }
     
-    private static void RemoveUntilCount(int count)
+    public static void SubmitSynced(int count)
     {
-        var toRemove = SpawnPoints.Count - count;
-        if (toRemove <= 0)
-            return;
+        var toRemove = Math.Max(SpawnPoints.Count - count, 0);
 
         var spawnPoints = SpawnPoints
             .GroupBy(position => SpawnPoints.Min(other => Vector3.Distance(position, other)))
-            .OrderBy(group => group.Key);
+            .OrderBy(group => group.Key)
+            .Skip(toRemove);
 
-        foreach (var point in spawnPoints.Take(toRemove))
+        SyncedSpawnPoints.Clear();
+        foreach (var group in spawnPoints)
         {
-            point.ExceptLast().ForEach(item => SpawnPoints.Remove(item));
+            foreach (var spawn in group)
+            {
+                SyncedSpawnPoints.Add(spawn);
+            }
         }
     }
 
@@ -133,6 +192,37 @@ public static class SpawnManager
     {
         Collector.Update(delta);
     }
-    
-    
+
+    public static void Reset()
+    {
+       Collector.Reset();
+       
+       Executor.RunIfHost(() =>
+       {
+           SpawnPoints.Clear();
+       });
+    }
+
+    public static Transform[] GetSpawnPoints()
+    {
+        // Populate the list
+        for (var i = SpawnObjects.Count; i < SpawnPoints.Count; i++)
+        {
+            SpawnObjects.AddLast(new SpawnObjectInstance());
+        }
+        
+        var list = new Transform[SpawnPoints.Count];
+        foreach (var (index, spawnObjectInstance) in SpawnObjects.WithIndices())
+        {
+            var go = spawnObjectInstance.GetOrCreate();
+            list[index] = go.transform;
+        }
+
+        return list;
+    }
+
+    public static IEnumerable<Vector3> GetEnumerator()
+    {
+        return SpawnPoints;
+    }
 }

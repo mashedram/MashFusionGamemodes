@@ -68,7 +68,18 @@ public class HuntPhase : GamePhase
     {
         if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
         {
-            GamemodeHelper.SetSpawnPoints(GamemodeMarker.FilterMarkers(null));
+            var spawns = GamemodeMarker.FilterMarkers(null);
+
+            if (spawns.Count > 0)
+            {
+                GamemodeHelper.SetSpawnPoints(spawns);
+                return;
+            }
+            
+            if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+            {
+                FusionPlayer.SetSpawnPoints(SpawnManager.GetSpawnPoints());
+            }
         }
         
         if (ClockhuntConfig.TeleportToSpawn)
@@ -98,6 +109,11 @@ public class HuntPhase : GamePhase
     {
         Executor.RunIfHost(() =>
         {
+            if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+            {
+                SpawnManager.SubmitSynced(ClockhuntConfig.RuntimeSpawnCount);
+            }
+            
             var context = Clockhunt.Context;
 
             NightmareManager.SetRandomNightmare();

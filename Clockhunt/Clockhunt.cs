@@ -27,6 +27,7 @@ using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
@@ -72,7 +73,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         Context.PhaseManager.Enable();
         
-        LocalVisionManager.HideAllSpecials();
+        PlayerHider.HideAllSpecials();
 
         LocalAvatar.AvatarOverride = LocalAvatar.AvatarBarcode;
         SpectatorManager.Enable();
@@ -106,11 +107,13 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         Context.PhaseManager.Disable();
         
+        PlayerStatManager.ResetStats();
+        
         GamemodeHelper.ResetSpawnPoints();
         MarkerManager.ClearMarker();
         VisionManager.DisableNightVision();
         
-        LocalVisionManager.UnhideAll();
+        PlayerHider.UnhideAll();
         
         SpectatorManager.Disable();
         LocalAvatar.AvatarOverride = null;

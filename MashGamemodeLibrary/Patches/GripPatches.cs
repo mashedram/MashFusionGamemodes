@@ -158,8 +158,11 @@ public class GripPatches
     public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
     {
         var marrowEntity = entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
+
+        if (ownerID.IsMe)
+            return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
         
-        return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
+        return true;
     }
 
     [HarmonyPatch(typeof(CollisionSyncer), "OnCollisionEnter")]

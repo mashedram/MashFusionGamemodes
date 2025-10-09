@@ -15,4 +15,16 @@ public static class EnumerableExtender
             previous = enumerator.Current;
         }
     }
+
+    public static IEnumerable<KeyValuePair<int, T>> WithIndices<T>(this IEnumerable<T> source)
+    {
+        using var enumerator = source.GetEnumerator();
+        
+        var index = 0;
+        while (enumerator.MoveNext())
+        {
+            yield return new KeyValuePair<int, T>(index, enumerator.Current);
+            index += 1;
+        }
+    }
 }

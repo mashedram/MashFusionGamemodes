@@ -22,8 +22,11 @@ public static class ClockhuntConfig
     public static BoolSyncedVariable TeleportToSpawn = new("teleport_to_spawn", false);
     public static BoolSyncedVariable NightVision = new("night_vision", true);
     public static FloatSyncedVariable NightVisionBrightness = new("night_vision_brightness", 1.0f);
+
+    public static BoolSyncedVariable RuntimeSpawnPointsEnabled = new("runtime_spawnpoints_enabled", false);
+    public static IntSyncedVariable RuntimeSpawnCount = new("runtime_spawn_count", 6);
     
-    public static bool DevToolsDisabled = true;
+    public static BoolSyncedVariable DevToolsDisabled = new("dev_tools_disabled", true);
     
     public static PlayerStats DefaultStats = new PlayerStats
     {

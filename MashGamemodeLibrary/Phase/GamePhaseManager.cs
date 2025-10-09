@@ -83,6 +83,9 @@ public class GamePhaseManager
     
     private void PhaseChanged(int newPhaseIndex)
     {
+        if (!_enabled)
+            return;
+        
         GetActivePhase().Exit();
         _activePhaseIndex = newPhaseIndex;
         GetActivePhase().Enter();
@@ -106,6 +109,9 @@ public class GamePhaseManager
 
     public void Update(float delta)
     {
+        if (!_enabled)
+            return;
+        
         var activePhase = GetActivePhase();
         activePhase.Update(delta);
         

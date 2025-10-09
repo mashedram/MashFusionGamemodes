@@ -22,7 +22,7 @@ namespace Clockhunt.Nightmare.Implementations;
 public class StalkerNightmareInstance : NightmareInstance
 {
     private const float VisibilityDistance = 10f;
-    private GameObject? _light;
+    private const string StalkerHideKey = "stalker";
 
     public StalkerNightmareInstance(NetworkPlayer owner, StalkerNightmareDescriptor descriptor) : base(owner, descriptor)
     {
@@ -50,14 +50,12 @@ public class StalkerNightmareInstance : NightmareInstance
 
         var isHidden = distance > VisibilityDistance;
         
-        Owner.PlayerID.ForceHide(isHidden);
+        Owner.PlayerID.SetHidden(StalkerHideKey, isHidden);
     }
 
     public override void OnRemoved()
     {
-        if (_light)
-            Object.Destroy(_light);
-        _light = null;
+        Owner.PlayerID.SetHidden(StalkerHideKey, false);
     }
 }
 

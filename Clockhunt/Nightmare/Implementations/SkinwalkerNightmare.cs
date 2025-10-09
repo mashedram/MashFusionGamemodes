@@ -36,7 +36,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override bool CanStartChaseMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
     {
-        return false;
+        return _isDisguised == false && base.CanStartChaseMusic(nightmare, distance, lineOfSight);
     }
 
     public override void OnApplied()
