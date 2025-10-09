@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Tags;
 using MashGamemodeLibrary.networking;

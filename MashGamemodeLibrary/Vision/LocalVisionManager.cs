@@ -3,6 +3,7 @@ using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
@@ -12,6 +13,10 @@ using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Vision;
+
+/// <summary>
+/// For as much of a mess this code is, it does work!
+/// </summary>
 
 class RendererVisibility
 {
@@ -35,6 +40,97 @@ class RendererVisibility
     }
 }
 
+class MagazineHolster
+{
+    private bool _isHidden;
+    private readonly HashSet<RendererVisibility> _renderers = new();
+    private readonly InventoryAmmoReceiver _slotReceiver;
+    
+    public MagazineHolster(InventoryAmmoReceiver slotReceiver, bool isHidden)
+    {
+        _isHidden = isHidden;
+        _slotReceiver = slotReceiver;
+        PopulateRenderers();
+    }
+    
+    public void PopulateRenderers()
+    {
+        _renderers.Clear();
+
+        var magazines = _slotReceiver._magazineArts;
+        if (magazines.Count == 0)
+            return;
+        
+        foreach (var magazine in magazines)
+        {
+            foreach (var renderer in magazine.gameObject.GetComponentsInChildren<Renderer>())
+            {
+                var visibility = new RendererVisibility(renderer);
+                _renderers.Add(visibility);
+                visibility.SetForceHide(_isHidden);
+            }
+        }
+    }
+    
+    public void SetForceHide(bool hidden)
+    {
+        _isHidden = hidden;
+        
+        foreach (var renderer in _renderers)
+        {
+            renderer.SetForceHide(hidden);
+        }
+    }
+}
+
+class HolsteredItem
+{
+    private bool _isHidden;
+    private readonly HashSet<RendererVisibility> _renderers = new();
+    private readonly InventorySlotReceiver _slotReceiver;
+
+    public HolsteredItem(InventorySlotReceiver slotReceiver, bool isHidden)
+    {
+        _isHidden = isHidden;
+        _slotReceiver = slotReceiver;
+        PopulateRenderers();
+    }
+
+    public bool Equals(InventorySlotReceiver other)
+    {
+        return _slotReceiver == other;
+    }
+    
+    public void PopulateRenderers()
+    {
+        _renderers.Clear();
+        
+        if (!_slotReceiver._slottedWeapon)
+            return;
+
+        var gameObject = _slotReceiver._weaponHost.GetHostGameObject();
+        if (!gameObject)
+            return;
+        
+        foreach (var renderer in gameObject.GetComponentsInChildren<Renderer>())
+        {
+            var visibility = new RendererVisibility(renderer);
+            _renderers.Add(visibility);
+            visibility.SetForceHide(_isHidden);
+        }
+    }
+    
+    public void SetForceHide(bool hidden)
+    {
+        _isHidden = hidden;
+        
+        foreach (var renderer in _renderers)
+        {
+            renderer.SetForceHide(hidden);
+        }
+    }
+}
+
 internal class PlayerVisibilityState
 {
     private bool _isSpecialHidden;
@@ -43,6 +139,9 @@ internal class PlayerVisibilityState
     private readonly HashSet<RendererVisibility> _avatarRenderers = new();
     private readonly HashSet<RendererVisibility> _inventoryRenderers = new();
     private readonly HashSet<RendererVisibility> _specialRenderers = new();
+    
+    private readonly Dictionary<string, HolsteredItem> _holsteredItems = new();
+    private readonly Dictionary<string, MagazineHolster> _magazineHolsters = new();
     
     public bool IsForceHidden { get; private set; }
     
@@ -100,6 +199,35 @@ internal class PlayerVisibilityState
                 _specialRenderers.Add(visibility);
                 visibility.SetForceHide(IsForceHidden || _isSpecialHidden);
             }
+            //
+            // var slotReceiver = slotContainer.inventorySlotReceiver;
+            // if (slotReceiver)
+            // {
+            //     var name = slotReceiver.transform.parent.name;
+            //
+            //     if (_holsteredItems.TryGetValue(name, out var item) && item.Equals(slotReceiver))
+            //     {
+            //         item.PopulateRenderers();
+            //         continue;
+            //     }
+            //     
+            //     _holsteredItems[name] = new HolsteredItem(slotReceiver, IsForceHidden);
+            //     continue;
+            // } 
+            //
+            // var ammoReceiver = slotContainer.inventoryAmmoReceiver;
+            // if (ammoReceiver)
+            // {
+            //     var name = slotReceiver.transform.parent.name;
+            //
+            //     if (_magazineHolsters.TryGetValue(name, out var item))
+            //     {
+            //         item.PopulateRenderers();
+            //         continue;
+            //     }
+            //     
+            //     _magazineHolsters[name] = new MagazineHolster(ammoReceiver, IsForceHidden);
+            // }
         }
     }
     
@@ -131,6 +259,16 @@ internal class PlayerVisibilityState
         {
             renderer.SetForceHide(hidden || _isSpecialHidden);
         }
+        
+        foreach (var item in _holsteredItems.Values)
+        {
+            item.SetForceHide(hidden);
+        }
+        
+        foreach (var holster in _magazineHolsters.Values)
+        {
+            holster.SetForceHide(hidden);
+        }
     }
 
     public void Reset()
@@ -138,6 +276,44 @@ internal class PlayerVisibilityState
         _isSpecialHidden = false;
 
         SetForceHide(false);
+    }
+    
+    public void OnHolster(InventorySlotReceiver slotReceiver)
+    {
+        var name = slotReceiver.transform.parent.name;
+
+        if (_holsteredItems.TryGetValue(name, out var item) && item.Equals(slotReceiver))
+        {
+            item.PopulateRenderers();
+            item.SetForceHide(IsForceHidden);
+            return;
+        }
+        
+        _holsteredItems[name] = new HolsteredItem(slotReceiver, IsForceHidden);
+    }
+    
+    public void OnUnholster(InventorySlotReceiver slotReceiver)
+    {
+        var name = slotReceiver.transform.parent.name;
+        
+        if (!_holsteredItems.Remove(name, out var item))
+            return;
+
+        item.SetForceHide(false);
+    }
+
+    public void UpdateAmmoHolster(InventoryAmmoReceiver inventoryAmmoReceiver)
+    {
+        var name = inventoryAmmoReceiver.transform.parent.name;
+
+        if (_magazineHolsters.TryGetValue(name, out var holster))
+        {
+            holster.PopulateRenderers();
+            holster.SetForceHide(IsForceHidden);
+            return;
+        }
+        
+        _magazineHolsters[name] = new MagazineHolster(inventoryAmmoReceiver, IsForceHidden);
     }
 }
 
@@ -157,7 +333,7 @@ public static class LocalVisionManager
         return NetworkPlayer.Players.Select(player => GetOrCreateState(player.PlayerID)).OfType<PlayerVisibilityState>();
     }
     
-    private static PlayerVisibilityState? GetOrCreateState(PlayerID playerId)
+    private static PlayerVisibilityState? GetOrCreateState(byte playerId)
     {
         if (_playerStates.TryGetValue(playerId, out var state)) return state;
 
@@ -222,5 +398,32 @@ public static class LocalVisionManager
         {
             state.Reset();
         }
+    }
+
+    internal static void OnHolster(InventorySlotReceiver receiver)
+    {
+        if (!InventorySlotReceiverExtender.Cache.TryGet(receiver, out var networkEntity))
+            return;
+
+        var id = (byte)networkEntity.ID;
+        GetOrCreateState(id)?.OnHolster(receiver);
+    }
+    
+    internal static void OnUnholster(InventorySlotReceiver receiver)
+    {
+        if (!InventorySlotReceiverExtender.Cache.TryGet(receiver, out var networkEntity))
+            return;
+
+        var id = (byte)networkEntity.ID;
+        GetOrCreateState(id)?.OnUnholster(receiver);
+    }
+
+    public static void UpdateAmmoHolster(InventoryAmmoReceiver inventoryAmmoReceiver)
+    {
+        if (!InventoryAmmoReceiverExtender.Cache.TryGet(inventoryAmmoReceiver, out var networkEntity))
+            return;
+
+        var id = (byte)networkEntity.ID;
+        GetOrCreateState(id)?.UpdateAmmoHolster(inventoryAmmoReceiver);
     }
 }

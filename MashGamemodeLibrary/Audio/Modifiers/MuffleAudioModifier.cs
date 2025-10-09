@@ -106,7 +106,7 @@ public class MuffleAudioModifier : IAudioModifier
         var thickness = rayResult.WallThickness;
         // MelonLogger.Msg($"Wall thickness: {thickness}");
         var cutoff = BaseCutoffFrequency / Mathf.Pow(thickness, 2);
-        cutoff = Mathf.Clamp(cutoff, 200f, BaseCutoffFrequency);
+        cutoff = Mathf.Clamp(cutoff, 800f, BaseCutoffFrequency);
 
         _filter.cutoffFrequency = cutoff;
     }
