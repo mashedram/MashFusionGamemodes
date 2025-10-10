@@ -24,9 +24,6 @@ namespace Clockhunt;
 
 public class ClockhuntContext : GameContext
 {
-    public readonly GamePhaseManager PhaseManager = new(new GamePhase[]
-        { new HidePhase(), new HuntPhase(), new EscapePhase() });
-
     // Music
 
     public readonly EnvironmentManager<ClockhuntContext, ClockhuntMusicContext> EnvironmentPlayer =
@@ -58,7 +55,7 @@ public class ClockhuntContext : GameContext
         ClockAudioPlayer.Update(delta);
         EscapeAudioPlayer.Update(delta);
 
-        PhaseManager.Update(delta);
+        GamePhaseManager.Update(delta);
         EnvironmentPlayer.Update(delta);
         ClockAudioPlayer.Update(delta);
     }

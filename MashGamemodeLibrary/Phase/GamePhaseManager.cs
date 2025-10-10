@@ -5,6 +5,7 @@ using LabFusion.Senders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Variable.Impl;
 
 namespace MashGamemodeLibrary.Phase;
@@ -24,20 +25,17 @@ class PhaseChangePacket : INetSerializable
     }
 }
 
-public class GamePhaseManager
+public static class GamePhaseManager
 {
-    private readonly IntSyncedVariable wantedPhase;
-    private bool _enabled;
-    private int _activePhaseIndex = 0;
-    private GamePhase[] Phases { get; }
+    private static readonly IntSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", 0, CatchupMoment.LevelLoad);
+    private static bool _enabled;
+    private static int _activePhaseIndex;
+    private static GamePhase[] _phases = Array.Empty<GamePhase>();
     
-    public GamePhaseManager(GamePhase[] phases)
+    static GamePhaseManager()
     {
-        Phases = phases;
-        
-        wantedPhase = new IntSyncedVariable("GamePhaseManager_WantedPhase", 0);
-        wantedPhase.OnValidate += PhaseIndexOnValidate;
-        wantedPhase.OnValueChanged += PhaseChanged;
+        WantedPhase.OnValidate += PhaseIndexOnValidate;
+        WantedPhase.OnValueChanged += PhaseChanged;
         
         // Register things
 
@@ -46,28 +44,33 @@ public class GamePhaseManager
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
     }
 
-    private bool PhaseIndexOnValidate(int value)
+    private static bool PhaseIndexOnValidate(int value)
     {
-        return value >= 0 && value < Phases.Length;
+        return value >= 0 && value < _phases.Length;
     } 
     
-    public void Enable(int startPhase = 0)
+    public static void Enable(GamePhase[] phases, int startPhase = 0)
     {
-        if (_enabled) return;
+        if (_enabled)
+        {
+            Disable();
+        }
         _enabled = true;
         
-        if (wantedPhase.Value == startPhase)
+        _phases = phases;
+        
+        if (WantedPhase.Value == startPhase)
         {
             GetActivePhase().Enter();
         }
         
         Executor.RunIfHost(() =>
         {
-            wantedPhase.Value = startPhase;
+            WantedPhase.Value = startPhase;
         });
     }
     
-    public void Disable()
+    public static void Disable()
     {
         if (!_enabled) return;
         _enabled = false;
@@ -75,13 +78,13 @@ public class GamePhaseManager
         GetActivePhase().Exit();
     }
     
-    public ref GamePhase GetActivePhase()
+    public static ref GamePhase GetActivePhase()
     {
-        var index = Math.Clamp(_activePhaseIndex, 0, Phases.Length - 1);
-        return ref Phases[index];
+        var index = Math.Clamp(_activePhaseIndex, 0, _phases.Length - 1);
+        return ref _phases[index];
     }
     
-    private void PhaseChanged(int newPhaseIndex)
+    private static void PhaseChanged(int newPhaseIndex)
     {
         if (!_enabled)
             return;
@@ -91,23 +94,23 @@ public class GamePhaseManager
         GetActivePhase().Enter();
     }
     
-    public void MoveToNextPhase()
+    public static void MoveToNextPhase()
     {
-        var nextPhaseIndex = wantedPhase.Value;
+        var nextPhaseIndex = WantedPhase.Value;
         do
         {
             nextPhaseIndex++;
             
-            if (nextPhaseIndex >= Phases.Length) return;
+            if (nextPhaseIndex >= _phases.Length) return;
 
-            var nextPhase = Phases[nextPhaseIndex];
+            var nextPhase = _phases[nextPhaseIndex];
             if (nextPhase.CanEnterPhase()) break;
-        } while (nextPhaseIndex < Phases.Length && nextPhaseIndex >= 0);
+        } while (nextPhaseIndex < _phases.Length && nextPhaseIndex >= 0);
         
-        wantedPhase.Value = nextPhaseIndex;
+        WantedPhase.Value = nextPhaseIndex;
     }
 
-    public void Update(float delta)
+    public static void Update(float delta)
     {
         if (!_enabled)
             return;
@@ -122,28 +125,28 @@ public class GamePhaseManager
         });
     }
 
-    public bool IsPhase<T>() where T : GamePhase
+    public static bool IsPhase<T>() where T : GamePhase
     {
-        return Phases[_activePhaseIndex] is T;
+        return _phases[_activePhaseIndex] is T;
     }
     
     // Event Delegators
 
-    private void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
         if (!_enabled)
             return;
         GetActivePhase().OnPlayerAction(playerId, type, otherPlayer);
     }
 
-    private void OnPlayerJoined(PlayerID playerId)
+    private static void OnPlayerJoined(PlayerID playerId)
     {
         if (!_enabled)
             return;
         GetActivePhase().OnPlayerJoined(playerId);
     }
     
-    private void OnPlayerLeft(PlayerID playerId)
+    private static void OnPlayerLeft(PlayerID playerId)
     {
         if (!_enabled)
             return;

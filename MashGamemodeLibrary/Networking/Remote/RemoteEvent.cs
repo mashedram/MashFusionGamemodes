@@ -5,6 +5,7 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Triggers;
+using MashGamemodeLibrary.networking.Control;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking;
@@ -31,6 +32,14 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         _onEvent = onEvent;
         _callOnSender = callOnSender;
     }
+
+    private void OnEvent(byte sender, T data)
+    {
+        if (data is IKnownSenderPacket knownSenderPacket)
+            knownSenderPacket.SenderPlayerID = sender;
+        
+        _onEvent.Invoke(data);
+    }
     
     /**
      * Run the event on all clients connected to the server.
@@ -49,7 +58,7 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         
         // Call it local as well if we need to
         if (_callOnSender) 
-            _onEvent(data);
+            OnEvent(PlayerIDManager.LocalSmallID, data);
     }
     
     public void CallFor(PlayerID playerId, T data)
@@ -57,7 +66,7 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         // Call it locally if it's for us
         if (playerId.IsMe && _callOnSender)
         {
-            _onEvent.Invoke(data);
+            OnEvent(playerId.SmallID, data);
             return;
         }
         
@@ -100,7 +109,7 @@ public abstract class GenericRemoteEvent<T>
 
         var fullName = $"{modName}.{name}";
         
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(fullName, OnPacket);
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(fullName, this);
     }
     
     ~GenericRemoteEvent() {
@@ -110,8 +119,8 @@ public abstract class GenericRemoteEvent<T>
     protected abstract int? GetSize(T data);
     protected abstract void Write(NetWriter writer, T data);
     protected abstract void Read(NetReader reader);
-    
-    protected void Relay(T data, MessageRoute route)
+
+    private void Relay(T data, MessageRoute route)
     {
         using var netWriter = NetWriter.Create(GetSize(data));
         Write(netWriter, data);
@@ -128,7 +137,7 @@ public abstract class GenericRemoteEvent<T>
         Relay(data, new MessageRoute(targetId, NetworkChannel.Reliable));
     }
     
-    private void OnPacket(byte playerId, byte[] bytes)
+    internal void OnPacket(byte playerId, byte[] bytes)
     {
         using var reader = NetReader.Create(bytes);
         Read(reader);

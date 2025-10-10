@@ -1,11 +1,12 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Control;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class FloatSyncedVariable : SyncedVariable<float>
 {
-    public FloatSyncedVariable(string name, float defaultValue) : base(name, defaultValue)
+    public FloatSyncedVariable(string name, float defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
     {
     }
 

@@ -3,6 +3,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
 using Microsoft.VisualBasic;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -22,7 +23,7 @@ public class Pair<TKey, TValue>
 }
 
 // TODO: Bricks on latejoin
-public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<TKey, TValue>> 
+public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<TKey, TValue>>, ICatchup, IResettable
     where TKey : notnull 
     where TValue : struct
 {
@@ -34,34 +35,9 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
     
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
-    protected SyncedDictionary(string name) : base(name)
+    protected SyncedDictionary(string name, CatchupMoment moment) : base(name)
     {
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer += OnServerChanged;
-        MultiplayerHooking.OnDisconnected += OnServerChanged;
-    }
-    
-    ~SyncedDictionary()
-    {
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer -= OnServerChanged;
-        MultiplayerHooking.OnDisconnected -= OnServerChanged;
-    }
-    
-    private void OnPlayerJoined(PlayerID playerId)
-    {
-        Executor.RunIfHost(() =>
-        {
-            foreach (var (key, value) in _dictionary)
-            {
-                Relay(new Pair<TKey, TValue>(key, value));
-            }
-        });
-    }
-    
-    private void OnServerChanged()
-    {
-        _dictionary.Clear();
+        Moment = moment;
     }
     
     // Private methods
@@ -144,5 +120,22 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
         {
             RemoveValue(key, false);
         }
+    }
+
+    public CatchupMoment Moment { get; }
+    public void OnCatchup(PlayerID playerId)
+    {
+        Executor.RunIfHost(() =>
+        {
+            foreach (var (key, value) in _dictionary)
+            {
+                Relay(new Pair<TKey, TValue>(key, value));
+            }
+        });
+    }
+
+    public void Reset()
+    {
+        _dictionary.Clear();
     }
 }

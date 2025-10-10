@@ -52,7 +52,7 @@ public class ClockhuntMusicContext
         
         return new ClockhuntMusicContext
         {
-            _phase = context.PhaseManager.GetActivePhase(),
+            _phase = GamePhaseManager.GetActivePhase(),
             IsChasing = isChasing
         };
     }

@@ -1,10 +1,11 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Control;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class BoolSyncedVariable : SyncedVariable<bool>
 {
-    public BoolSyncedVariable(string name, bool defaultValue) : base(name, defaultValue)
+    public BoolSyncedVariable(string name, bool defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
     {
     }
 

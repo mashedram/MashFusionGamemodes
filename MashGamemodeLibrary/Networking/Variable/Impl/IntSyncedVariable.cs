@@ -1,10 +1,11 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Control;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IntSyncedVariable : SyncedVariable<int>
 {
-    public IntSyncedVariable(string name, int defaultValue) : base(name, defaultValue)
+    public IntSyncedVariable(string name, int defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
     {
     }
 

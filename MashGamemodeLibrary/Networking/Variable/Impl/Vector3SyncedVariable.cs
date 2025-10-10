@@ -1,11 +1,12 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Control;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class Vector3SyncedVariable : SyncedVariable<Vector3>
 {
-    public Vector3SyncedVariable(string name, Vector3 defaultValue) : base(name, defaultValue)
+    public Vector3SyncedVariable(string name, Vector3 defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
     {
     }
 

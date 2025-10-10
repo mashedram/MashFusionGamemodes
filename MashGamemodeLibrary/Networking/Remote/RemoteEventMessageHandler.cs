@@ -7,6 +7,9 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Modules;
+using LabFusion.Utilities;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine.UIElements;
@@ -58,6 +61,11 @@ class InvalidRemoteEventPacket : INetSerializable
 }
 #endif
 
+class RemoteSceneLoadedPacket : DummySerializable, IKnownSenderPacket
+{
+    public byte SenderPlayerID { get; set; }
+}
+
 internal class EventMessage : INetSerializable
 {
     public ulong EventId;
@@ -91,11 +99,33 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 {
     private static readonly Dictionary<ulong, Action<byte, byte[]>> EventCallbacks = new();
 
+    private static readonly Dictionary<CatchupMoment, List<ICatchup>> Catchups = new();
+    private static readonly List<IResettable> Resettables = new();
+    
+    private static readonly RemoteEvent<RemoteSceneLoadedPacket> _LevelLoadedEvent =
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false);
+
 #if DEBUG
     private static readonly Dictionary<ulong, string> EventNames = new();
 
     private static readonly RemoteEvent<InvalidRemoteEventPacket> _onInvalidEventPacket =
         new("RML_InvalidRemoteEventPacket", OnInvalidEventPacket, false);
+
+    static RemoteEventMessageHandler()
+    {
+        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        MultiplayerHooking.OnJoinedServer += OnServerChanged;
+        MultiplayerHooking.OnStartedServer += OnServerChanged;
+        MultiplayerHooking.OnDisconnected += OnServerChanged;
+
+        MultiplayerHooking.OnMainSceneInitialized += () =>
+        {
+            if (!NetworkInfo.HasServer)
+                return;
+            
+            _LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
+        };
+    } 
 
     private static void OnInvalidEventPacket(InvalidRemoteEventPacket packet)
     {
@@ -113,15 +143,38 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
             $"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
     }
 #endif
+    
+    private static List<ICatchup> GetOrCreateCatchupList(CatchupMoment moment)
+    {
+        if (!Catchups.TryGetValue(moment, out var list))
+        {
+            list = new List<ICatchup>();
+            Catchups[moment] = list;
+        }
 
-    public static ulong RegisterEvent(string name, Action<byte, byte[]> callback)
+        return list;
+    }
+
+    public static ulong RegisterEvent<T>(string name, GenericRemoteEvent<T> callback)
     {
         var eventId = StableHash.Fnv1A64(name);
-        EventCallbacks[eventId] = callback;
+        EventCallbacks[eventId] = callback.OnPacket;
 #if DEBUG
         EventNames[eventId] = name;
         MelonLogger.Msg($"Registered RemoteEvent with name: {name} and ID: {eventId}");
 #endif
+
+        if (callback is ICatchup catchup)
+        {
+            var list = GetOrCreateCatchupList(catchup.Moment);
+            list.Add(catchup);
+        }
+        
+        if (callback is IResettable resettable)
+        {
+            Resettables.Add(resettable);
+        }
+        
         return eventId;
     }
 
@@ -138,9 +191,9 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
             var foundRemoteEvent = false;
             foreach (var field in type.GetFields(
-                         System.Reflection.BindingFlags.Public |
-                         System.Reflection.BindingFlags.NonPublic |
-                         System.Reflection.BindingFlags.Static
+                         BindingFlags.Public |
+                         BindingFlags.NonPublic |
+                         BindingFlags.Static
                      ))
             {
                 var fieldType = field.FieldType;
@@ -229,5 +282,39 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
             message,
             route
         );
+    }
+
+    private static void OnPlayerJoined(PlayerID playerId)
+    {
+        Executor.RunIfHost(() =>
+        {
+            var list = GetOrCreateCatchupList(CatchupMoment.Join);
+            foreach (var catchup in list)
+            {
+                catchup.OnCatchup(playerId);
+            }
+        });
+    }
+
+    private static void OnRemoteLevelLoader(RemoteSceneLoadedPacket packet)
+    {
+        Executor.RunIfHost(() =>
+        {
+            var list = GetOrCreateCatchupList(CatchupMoment.LevelLoad);
+            var id = PlayerIDManager.GetPlayerID(packet.SenderPlayerID);
+            
+            if (id == null)
+                return;
+            
+            foreach (var catchup in list)
+            {
+                catchup.OnCatchup(id);
+            }
+        });
+    }
+
+    private static void OnServerChanged()
+    {
+        Resettables.ForEach(r => r.Reset());
     }
 }

@@ -11,6 +11,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Player;
@@ -36,7 +37,7 @@ public static class NightmareManager
     
     public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
     
-    private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
+    private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds", CatchupMoment.LevelLoad);
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
     private static readonly WeightedPlayerSelector _playerSelector = new();

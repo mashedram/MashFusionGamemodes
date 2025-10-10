@@ -6,6 +6,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging.Tags;
+using MashGamemodeLibrary.Phase;
 
 namespace Clockhunt.Entities.Tags;
 
@@ -31,7 +32,7 @@ public class EntityOwner : IEntityTag, IEntityGrabPredicate, INetSerializable
 
     public bool CanGrab(NetworkPlayer grabber, NetworkEntity entity, MarrowEntity marrowEntity)
     {
-        if (!Clockhunt.Context.PhaseManager.IsPhase<HidePhase>())
+        if (!GamePhaseManager.IsPhase<HidePhase>())
         {
             return true;
         }

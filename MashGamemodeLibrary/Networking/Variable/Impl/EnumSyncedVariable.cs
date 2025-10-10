@@ -1,10 +1,11 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Control;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class EnumSyncedVariable<T> : SyncedVariable<T> where T : struct, Enum
 {
-    public EnumSyncedVariable(string name, T defaultValue) : base(name, defaultValue)
+    public EnumSyncedVariable(string name, T defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
     {
     }
 

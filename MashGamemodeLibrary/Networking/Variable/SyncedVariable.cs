@@ -3,35 +3,30 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
-public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
+public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IResettable
 {
     public delegate void OnChangedHandler(T newValue);
     public delegate bool ValidatorHandler(T newValue);
-    
+
     private readonly string _name;
     private T _value;
-    
+
     public event OnChangedHandler? OnValueChanged;
     public event ValidatorHandler? OnValidate;
 
-    protected SyncedVariable(string name, T defaultValue) : base($"sync.{name}")
+    protected SyncedVariable(string name, T defaultValue, CatchupMoment moment) : base($"sync.{name}")
     {
         _name = name;
         _value = defaultValue;
 
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer += OnServerChanged;
-        MultiplayerHooking.OnDisconnected += OnServerChanged;
-    }
-    
-    ~SyncedVariable() {
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer -= OnServerChanged;
-        MultiplayerHooking.OnDisconnected -= OnServerChanged;
+        Moment = moment;
+
+        
     }
     
     public static implicit operator T(SyncedVariable<T> variable) => variable.Value;
@@ -75,16 +70,15 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>
         OnValueChanged?.Invoke(_value);
         Relay(_value);
     }
-    
-    private void OnPlayerJoined(PlayerID playerId)
+
+    public CatchupMoment Moment { get; }
+
+    public void OnCatchup(PlayerID playerId)
     {
-        Executor.RunIfHost(() =>
-        {
-            Relay(_value, playerId.SmallID);
-        });
+        Relay(_value, playerId.SmallID);
     }
-    
-    private void OnServerChanged()
+
+    public void Reset()
     {
         _value = default!;
     }

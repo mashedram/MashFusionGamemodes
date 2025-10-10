@@ -27,6 +27,7 @@ using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
@@ -71,7 +72,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
             new HidePhaseEnvironmentState(),
         }, LocalWeatherManager.ClearLocalWeather));
         
-        Context.PhaseManager.Enable();
+        GamePhaseManager.Enable(new GamePhase[]
+            { new HidePhase(), new HuntPhase(), new EscapePhase() });
         
         PlayerHider.HideAllSpecials();
 
@@ -105,7 +107,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         Context.ClockAudioPlayer.StopPlaying();
         Context.EscapeAudioPlayer.StopAll();
         
-        Context.PhaseManager.Disable();
+        GamePhaseManager.Disable();
         
         PlayerStatManager.ResetStats();
         

@@ -4,6 +4,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
@@ -20,7 +21,7 @@ public class ChangePacket<T>
     public T Value;
 }
 
-public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnumerable<TValue>
+public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnumerable<TValue>, ICatchup, IResettable
 {
      public delegate void ValueChangedHandler(TValue value);
     public delegate void ValueRemovedHandler(TValue oldValue);
@@ -30,18 +31,9 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     
     private readonly HashSet<TValue> _set = new();
 
-    protected SyncedSet(string name) : base(name)
+    protected SyncedSet(string name, CatchupMoment moment = CatchupMoment.Join) : base(name)
     {
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer += OnServerChanged;
-        MultiplayerHooking.OnDisconnected += OnServerChanged;
-    }
-
-    ~SyncedSet()
-    {
-        MultiplayerHooking.OnPlayerJoined -= OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer -= OnServerChanged;
-        MultiplayerHooking.OnDisconnected -= OnServerChanged;
+        Moment = moment;
     }
 
     private void RelayAdd(TValue value)
@@ -59,17 +51,6 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
         {
             Type = ChangeType.Remove,
             Value = value
-        });
-    }
-    
-    private void OnPlayerJoined(PlayerID playerId)
-    {
-        Executor.RunIfHost(() =>
-        {
-            foreach (var value in _set)
-            {
-                RelayAdd(value);
-            }
         });
     }
     
@@ -168,5 +149,20 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    public CatchupMoment Moment { get; }
+    
+    public void OnCatchup(PlayerID playerId)
+    {
+        foreach (var value in _set)
+        {
+            RelayAdd(value);
+        }
+    }
+
+    public void Reset()
+    {
+        Clear(false);
     }
 }
