@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
@@ -25,7 +26,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
 {
      public delegate void ValueChangedHandler(TValue value);
     public delegate void ValueRemovedHandler(TValue oldValue);
-    public event ValueChangedHandler? OnValueChanged;
+    public event ValueChangedHandler? OnValueAdded;
     public event ValueRemovedHandler? OnValueRemoved;
     
     
@@ -64,7 +65,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     private void AddValue(TValue value, bool sendUpdate)
     {
         if (!_set.Add(value)) return;
-        OnValueChanged?.Invoke(value);
+        OnValueAdded?.Invoke(value);
         
         if (sendUpdate)
             RelayAdd(value);
@@ -81,6 +82,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     
     public void Clear(bool sendUpdate = true)
     {
+        _set.ForEach(value => OnValueRemoved?.Invoke(value));
         _set.Clear();
 
         if (sendUpdate)
@@ -118,9 +120,18 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     }
     
     // Abstract methods for serialization
-    
+
+    protected abstract int GetValueSize(TValue value);
     protected abstract void WriteValue(NetWriter writer, TValue value);
     protected abstract TValue ReadValue(NetReader reader);
+
+    protected override int? GetSize(ChangePacket<TValue> data)
+    {
+        if (data.Type == ChangeType.Clear)
+            return sizeof(int);
+        
+        return sizeof(int) + GetValueSize(data.Value);
+    }
 
     protected override void Write(NetWriter writer, ChangePacket<TValue> data)
     {

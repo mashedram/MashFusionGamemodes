@@ -9,9 +9,9 @@ public class Vector3SyncedSet : SyncedSet<Vector3>
     {
     }
 
-    protected override int? GetSize(ChangePacket<Vector3> data)
+    protected override int GetValueSize(Vector3 data)
     {
-        return sizeof(int) + sizeof(float) * 3;
+        return sizeof(float) * 3;
     }
 
     protected override void WriteValue(NetWriter writer, Vector3 value)
