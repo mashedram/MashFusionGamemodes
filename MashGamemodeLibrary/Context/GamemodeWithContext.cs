@@ -1,5 +1,7 @@
-﻿using LabFusion.SDK.Gamemodes;
+﻿using LabFusion.Scene;
+using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Execution;
 using MelonLoader;
 using UnityEngine;
 
@@ -13,6 +15,8 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext, n
     // We want it once per context
     // ReSharper disable once StaticMemberInGenericType
     public new static bool IsStarted { get; private set; }
+
+    protected virtual void OnStart() {}
     
     public override void OnGamemodeRegistered()
     {
@@ -34,10 +38,24 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext, n
     {
         Context.OnUnready();
     }
-
+    
     public override void OnGamemodeStarted()
     {
+        base.OnGamemodeStarted();
+        
+        if (!FusionSceneManager.HasTargetLoaded()) return;
         Context.OnStart();
+        OnStart();
+    }
+
+    public override void OnLevelReady()
+    {
+        base.OnLevelReady();
+        
+        if (!IsStarted)
+            return;
+
+        OnStart();
     }
 
     public override void OnGamemodeStopped()

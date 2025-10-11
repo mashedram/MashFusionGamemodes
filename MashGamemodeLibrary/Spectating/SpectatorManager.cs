@@ -42,7 +42,7 @@ internal class SpectatorSyncPacket : INetSerializable
 
 public static class SpectatorManager
 {
-    private const string SpecatorHideKey = "spectatorhidekey";
+    private const string SpectatorHideKey = "spectatorhidekey";
 
     private static GameObject? _visualEffectObject;
     
@@ -160,6 +160,7 @@ public static class SpectatorManager
             Physics.IgnoreLayerCollision(8, 12, !state);
         });
         
+        // TODO: Ignore physics of inventory items too
         foreach (var otherplayer in NetworkPlayer.Players)
         {
             if (!otherplayer.HasRig) continue;
@@ -187,7 +188,7 @@ public static class SpectatorManager
         
         Executor.RunIfRemote(playerID, () =>
         {
-            player.PlayerID.SetHidden(SpecatorHideKey, true);
+            player.PlayerID.SetHidden(SpectatorHideKey, true);
             SetMute(player, true);
         });
         
@@ -208,7 +209,7 @@ public static class SpectatorManager
         
         Executor.RunIfRemote(playerID, () =>
         {
-            player.PlayerID.SetHidden(SpecatorHideKey, false);
+            player.PlayerID.SetHidden(SpectatorHideKey, false);
             SetMute(player, false);
         });
         

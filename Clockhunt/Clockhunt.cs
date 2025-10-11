@@ -73,8 +73,14 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         LocalAvatar.OnAvatarChanged -= ListenToAvatarChange;
     }
 
-    private void OnStart()
+    protected override void OnStart()
     {
+        Executor.RunIfHost(() =>
+        {
+            NightmareManager.ClearNightmares();
+            WinStateManager.OverwriteLives(3);
+        });
+        
         ClockhuntMusicContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night", new EnvironmentState<ClockhuntMusicContext>[]
         {
@@ -106,31 +112,6 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         SpectatorManager.Enable();
         LocalControls.DisableSlowMo = true;
-    }
-
-    public override void OnGamemodeStarted()
-    {
-        base.OnGamemodeStarted();
-        if (FusionSceneManager.HasTargetLoaded())
-        {
-            OnStart();
-        }
-        
-        Executor.RunIfHost(() =>
-        {
-            NightmareManager.ClearNightmares();
-            WinStateManager.OverwriteLives(3);
-        });
-    }
-
-    public override void OnLevelReady()
-    {
-        base.OnLevelReady();
-        
-        if (!IsStarted)
-            return;
-
-        OnStart();
     }
 
     public override void OnGamemodeStopped()
