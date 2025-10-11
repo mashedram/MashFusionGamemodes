@@ -6,6 +6,7 @@ using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using UnityEngine;
 
@@ -62,6 +63,11 @@ public class NightmareInstance
     }
 
     public virtual void OnAbilityKeyTapped(Handedness handedness)
+    {
+        
+    }
+
+    public virtual void OnPlayerAction(PlayerID playerID, PhaseAction action, Handedness handedness)
     {
         
     }

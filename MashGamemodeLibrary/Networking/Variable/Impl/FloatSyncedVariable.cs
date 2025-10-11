@@ -6,7 +6,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class FloatSyncedVariable : SyncedVariable<float>
 {
-    public FloatSyncedVariable(string name, float defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
+    public FloatSyncedVariable(string name, float defaultValue) : base(name, defaultValue)
     {
     }
 

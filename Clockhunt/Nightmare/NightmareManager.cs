@@ -14,6 +14,7 @@ using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MelonLoader;
 
@@ -37,10 +38,10 @@ public static class NightmareManager
     
     public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
     
-    private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds", CatchupMoment.LevelLoad);
+    private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
-    private static readonly WeightedPlayerSelector _playerSelector = new();
+    private static readonly WeightedPlayerSelector PlayerSelector = new();
     
     public static IReadOnlyCollection<NightmareInstance> Nightmares => NightmareInstances.Values;
 
@@ -103,12 +104,13 @@ public static class NightmareManager
         {
             choice -= descriptor.Weight;
             if (choice > 0) continue;
-            var player = _playerSelector.GetRandomPlayerID();
+            var player = PlayerSelector.GetRandomPlayerID();
             PlayerNightmareIds[player] = descriptor.ID;
             return;
         }
         
         MelonLogger.Error("Failed to select a random nightmare - this should never happen");
+        WinStateManager.ForceWin(GameTeam.Survivors);
     }
 
     public static bool IsNightmare(PlayerID playerID)
@@ -158,7 +160,7 @@ public static class NightmareManager
         {
             Notifier.Send(new Notification
             {
-                Title = descriptor.Name,
+                Title = $"You are the {descriptor.Name}",
                 Message = descriptor.HunterDescription,
                 PopupLength = 5f,
                 SaveToMenu = false,
@@ -170,7 +172,7 @@ public static class NightmareManager
         {
             Notifier.Send(new Notification
             {
-                Title = descriptor.Name,
+                Title = $"There is a {descriptor.Name}",
                 Message = descriptor.SurvivorDescription,
                 PopupLength = 5f,
                 SaveToMenu = false,
@@ -201,5 +203,13 @@ public static class NightmareManager
         }
 
         PlayerNightmareIds.Clear();
+    }
+
+    public static void OnAction(PlayerID playerId, PhaseAction action, Handedness handedness)
+    {
+        foreach (var instance in NightmareInstances.Values)
+        {
+            instance.OnPlayerAction(playerId, action, handedness);
+        }
     }
 }

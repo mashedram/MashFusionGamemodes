@@ -2,6 +2,7 @@ using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -14,6 +15,8 @@ using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace MashGamemodeLibrary.Spectating;
 
@@ -40,16 +43,53 @@ internal class SpectatorSyncPacket : INetSerializable
 public static class SpectatorManager
 {
     private const string SpecatorHideKey = "spectatorhidekey";
+
+    private static GameObject? _visualEffectObject;
     
     private static bool _enabled;
     private const string GrabOverwriteKey = "spectating";
 
-    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds", CatchupMoment.LevelLoad);
+    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds");
+    private static readonly HashSet<byte> HiddenPlayerIds = new();
 
     static SpectatorManager()
     {
-        SpectatingPlayerIds.OnValueAdded += Hide;
-        SpectatingPlayerIds.OnValueRemoved += Show;
+        SpectatingPlayerIds.OnValueAdded += _ => Refresh();
+        SpectatingPlayerIds.OnValueRemoved += _ => Refresh();
+    }
+    
+    private static void SetMute(NetworkPlayer player, bool muted)
+    {
+        var audioSource = player.VoiceSource?.VoiceSource.AudioSource; 
+        if (audioSource) 
+        { 
+            audioSource!.mute = muted;
+        }
+    }
+
+    private static GameObject GetVisualEffectObject()
+    {
+        if (_visualEffectObject != null) return _visualEffectObject;
+
+        _visualEffectObject = new GameObject("SpectatorEffect");
+
+        var volume = _visualEffectObject.AddComponent<Volume>();
+        volume.isGlobal = true;
+        volume.priority = 10;
+        volume.weight = 1f;
+
+        var profile = ScriptableObject.CreateInstance<VolumeProfile>();
+        volume.sharedProfile = profile;
+        
+        var colorAdjustments = profile.Add<ColorAdjustments>(true);
+        colorAdjustments.saturation.value = -100f;
+
+        return _visualEffectObject;
+    }
+
+    private static void ToggleVisualEffect(bool show)
+    {
+        GetVisualEffectObject().SetActive(show);
     }
 
     public static void Enable()
@@ -77,8 +117,27 @@ public static class SpectatorManager
         return SpectatingPlayerIds.Contains(playerId);
     }
 
-    private static void SetColliders(RigManager rig, bool state)
+    private static void SetPhysicsRigColliders(PhysicsRig rig1, PhysicsRig rig2, bool state)
     {
+        var colliders1 = rig1.GetComponentsInChildren<Collider>();
+        var colliders2 = rig2.GetComponentsInChildren<Collider>();
+
+        foreach (var collider1 in colliders1)
+        {
+            foreach (var collider2 in colliders2)
+            {
+                Physics.IgnoreCollision(collider1, collider2, !state);
+            }
+        }
+    }
+
+    private static void SetColliders(NetworkPlayer player, bool state)
+    {
+        if (!player.HasRig)
+            return;
+        
+        var rig = player.RigRefs.RigManager;
+        
         var physicsRig = rig.physicsRig;
         if (state)
         {
@@ -91,13 +150,23 @@ public static class SpectatorManager
             physicsRig.rightHand.DisableCollider();
         }
         
-        // 8: Player
-        // 10: Dynamic
-        // 12: EnemyColliders
-        Physics.IgnoreLayerCollision(8, 8, !state);
-        Physics.IgnoreLayerCollision(8, 10, !state);
-        Physics.IgnoreLayerCollision(8, 12, !state);
-        // TODO: Add footbal layer to dynamic and enemy colliders too
+        Executor.RunIfMe(player.PlayerID, () =>
+        {
+            // 8: Player
+            // 10: Dynamic
+            // 12: EnemyColliders
+            Physics.IgnoreLayerCollision(8, 8, !state);
+            Physics.IgnoreLayerCollision(8, 10, !state);
+            Physics.IgnoreLayerCollision(8, 12, !state);
+        });
+        
+        foreach (var otherplayer in NetworkPlayer.Players)
+        {
+            if (!otherplayer.HasRig) continue;
+            if (otherplayer.PlayerID.Equals(player.PlayerID)) continue;
+
+            SetPhysicsRigColliders(otherplayer.RigRefs.RigManager.physicsRig, player.RigRefs.RigManager.physicsRig, state);
+        }
         
         var bodylog = rig.inventory.specialItems[0]?.GetComponentInChildren<PullCordDevice>(true);
         if (!bodylog)
@@ -108,6 +177,7 @@ public static class SpectatorManager
 
     private static void Hide(byte smallID)
     {
+        if (!HiddenPlayerIds.Add(smallID)) return;
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player)) return;
         
         var playerID = player.PlayerID;
@@ -118,16 +188,20 @@ public static class SpectatorManager
         Executor.RunIfRemote(playerID, () =>
         {
             player.PlayerID.SetHidden(SpecatorHideKey, true);
+            SetMute(player, true);
         });
         
+        SetColliders(player, false);
+        
         if (!playerID.IsMe) return;
+        ToggleVisualEffect(true);
         DevToolsPatches.CanSpawn = false;
-        SetColliders(player.RigRefs.RigManager, false);
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, (_, _) => false);
     }
 
     private static void Show(byte smallID)
     {
+        if (!HiddenPlayerIds.Remove(smallID)) return;
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player)) return;
 
         var playerID = player.PlayerID;
@@ -135,14 +209,35 @@ public static class SpectatorManager
         Executor.RunIfRemote(playerID, () =>
         {
             player.PlayerID.SetHidden(SpecatorHideKey, false);
+            SetMute(player, false);
         });
+        
+        SetColliders(player, true);
        
         if (!playerID.IsMe) return;
+        ToggleVisualEffect(false);
         DevToolsPatches.CanSpawn = true;
-        SetColliders(player.RigRefs.RigManager, true);
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, null);
     }
-    
+
+    private static void Refresh()
+    {
+        var isLocalSpectating = IsLocalPlayerSpectating();
+        foreach (var player in NetworkPlayer.Players)
+        {
+            var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
+            var shouldBeHidden = isSpectating && (!isLocalSpectating || player.PlayerID.IsMe);
+            
+            if (shouldBeHidden && _enabled)
+            {
+                Hide(player.PlayerID);
+            }
+            else
+            {
+                Show(player.PlayerID);
+            }
+        }
+    }
     
     public static void SetSpectating(this PlayerID playerID, bool spectating)
     {

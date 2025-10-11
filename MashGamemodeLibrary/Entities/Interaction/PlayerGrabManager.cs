@@ -5,6 +5,7 @@ using LabFusion.Extensions;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Spectating;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Interaction;
@@ -76,6 +77,13 @@ public static class PlayerGrabManager
         if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return true;
         
         if (IsForceDisabled(networkEntity, entity)) return false;
+
+        var grabbedRig = entity.GetComponentInParent<RigManager>();
+        if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
+            SpectatorManager.IsPlayerSpectating(networkPlayer.PlayerID))
+        {
+            return false;
+        }
 
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();

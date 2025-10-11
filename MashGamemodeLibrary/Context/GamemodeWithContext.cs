@@ -35,6 +35,16 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameContext, n
         Context.OnUnready();
     }
 
+    public override void OnGamemodeStarted()
+    {
+        Context.OnStart();
+    }
+
+    public override void OnGamemodeStopped()
+    {
+        Context.OnStop();
+    }
+
     protected override void OnUpdate()
     {
         IsStarted = base.IsStarted;

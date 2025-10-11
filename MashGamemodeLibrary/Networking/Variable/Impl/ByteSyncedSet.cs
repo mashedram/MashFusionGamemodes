@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class ByteSyncedSet : SyncedSet<byte>
 {
-    public ByteSyncedSet(string name, CatchupMoment moment = CatchupMoment.Join) : base(name, moment)
+    public ByteSyncedSet(string name) : base(name)
     {
     }
 

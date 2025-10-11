@@ -21,7 +21,7 @@ namespace Clockhunt.Nightmare.Implementations;
 
 public class StalkerNightmareInstance : NightmareInstance
 {
-    private const float VisibilityDistance = 10f;
+    private const float VisibilityDistance = 4f;
     private const string StalkerHideKey = "stalker";
 
     public StalkerNightmareInstance(NetworkPlayer owner, StalkerNightmareDescriptor descriptor) : base(owner, descriptor)

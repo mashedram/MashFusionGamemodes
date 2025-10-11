@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Utilities;
@@ -8,22 +9,48 @@ using Microsoft.VisualBasic;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
-public class Pair<TKey, TValue>
+public enum DictionaryEditType
+{
+    Set,
+    Remove,
+    Clear
+}
+
+public class DictionaryEdit<TKey, TValue>
     where TKey: notnull
     where TValue : struct
 {
+    public DictionaryEditType Type;
     public TKey Key;
-    public TValue? Value;
+    public TValue Value;
 
-    public Pair(TKey key, TValue? value)
+    private DictionaryEdit(DictionaryEditType type, TKey key, TValue value)
     {
+        Type = type;
         Key = key;
         Value = value;
     }
+    
+    public static DictionaryEdit<TKey, TValue> Set(TKey key, TValue value)
+    {
+        return new DictionaryEdit<TKey, TValue>(DictionaryEditType.Set, key, value);
+    }
+    
+    public static DictionaryEdit<TKey, TValue> Remove(TKey key)
+    {
+        return new DictionaryEdit<TKey, TValue>(DictionaryEditType.Remove, key, default!);
+    }
+
+    public static DictionaryEdit<TKey, TValue> Clear()
+    {
+        return new DictionaryEdit<TKey, TValue>(DictionaryEditType.Clear, default!, default!);
+    }
+    
+    
 }
 
 // TODO: Bricks on latejoin
-public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<TKey, TValue>>, ICatchup, IResettable
+public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<TKey, TValue>>, ICatchup, IResettable
     where TKey : notnull 
     where TValue : struct
 {
@@ -35,9 +62,9 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
     
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
-    protected SyncedDictionary(string name, CatchupMoment moment) : base(name)
+    
+    protected SyncedDictionary(string name) : base(name)
     {
-        Moment = moment;
     }
     
     // Private methods
@@ -48,7 +75,7 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
         OnValueChanged?.Invoke(key, value);
         
         if (sendUpdate)
-            Relay(new Pair<TKey, TValue>(key, value));
+            Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
     }
     
     private bool RemoveValue(TKey key, bool sendUpdate)
@@ -56,17 +83,13 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
         if (!_dictionary.Remove(key, out var oldValue)) return false;
         OnValueRemoved?.Invoke(key, oldValue);
         if (sendUpdate)
-            Relay(new Pair<TKey, TValue>(key, null));
+            Relay(DictionaryEdit<TKey, TValue>.Remove(key));
         return true;
     }
     
     public void Clear()
     {
-        var keys = _dictionary.Keys.ToList();
-        foreach (var key in keys)
-        {
-            RemoveValue(key, true);
-        }
+        Relay(DictionaryEdit<TKey, TValue>.Clear());
     }
     
     // Setters and Getters
@@ -94,42 +117,51 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Pair<T
     protected abstract void WriteValue(NetWriter writer, TValue value);
     protected abstract TValue ReadValue(NetReader reader);
 
-    protected override void Write(NetWriter writer, Pair<TKey, TValue> data)
+    protected override void Write(NetWriter writer, DictionaryEdit<TKey, TValue> data)
     {
-        WriteKey(writer, data.Key);
-        if (data.Value.HasValue)
+        writer.Write(data.Type);
+        if (data.Type == DictionaryEditType.Set || data.Type == DictionaryEditType.Remove)
         {
-            writer.Write(true);
-            WriteValue(writer, data.Value.Value);
+            WriteKey(writer, data.Key);
         }
-        else
+
+        if (data.Type == DictionaryEditType.Set)
         {
-            writer.Write(false);
+            WriteValue(writer, data.Value);
         }
     }
 
-    protected override void Read(NetReader reader)
+    protected override void Read(byte playerId, NetReader reader)
     {
-        var key = ReadKey(reader);
-        if (reader.ReadBoolean())
+        var type = reader.ReadEnum<DictionaryEditType>();
+        switch (type)
         {
-            var value = ReadValue(reader);
-            SetValue(key, value, false);
-        }
-        else
-        {
-            RemoveValue(key, false);
+            case DictionaryEditType.Set:
+                var setKey = ReadKey(reader);
+                var value = ReadValue(reader);
+                SetValue(setKey, value, false);
+                break;
+            case DictionaryEditType.Remove:
+                var removeKey = ReadKey(reader);
+                RemoveValue(removeKey, false);
+                break;
+            case DictionaryEditType.Clear:
+                _dictionary.ForEach(kvp => OnValueRemoved?.Invoke(kvp.Key, kvp.Value));
+                _dictionary.Clear();
+                break;
+            
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
-
-    public CatchupMoment Moment { get; }
+    
     public void OnCatchup(PlayerID playerId)
     {
         Executor.RunIfHost(() =>
         {
             foreach (var (key, value) in _dictionary)
             {
-                Relay(new Pair<TKey, TValue>(key, value));
+                Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
             }
         });
     }

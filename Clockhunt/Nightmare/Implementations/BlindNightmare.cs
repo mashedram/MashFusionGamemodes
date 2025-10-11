@@ -34,10 +34,10 @@ public class BlindNightmareInstance : NightmareInstance
     
     private static readonly SoundTriggerData ClockSoundTrigger = new(3f, 70);
     private static readonly SoundTriggerData GunshotSoundTrigger = new(5f, 50f);
-    private static readonly SoundTriggerData VoiceSoundTrigger = new(2f, 20f);
-    private const float MovementBaseSpeedSqrt = 30f;
-    private static readonly SoundTriggerData WalkSoundTrigger = new(1f, 10f);
-    private static readonly SoundTriggerData JumpSoundTrigger = new(1f, 15f);
+    private static readonly SoundTriggerData VoiceSoundTrigger = new(2f, 40f);
+    private const float MovementBaseSpeedSqrt = 20f;
+    private static readonly SoundTriggerData WalkSoundTrigger = new(1f, 30f);
+    private static readonly SoundTriggerData JumpSoundTrigger = new(1f, 30f);
     
     private Dictionary<byte, float> _visibilityTimers = new();
     
@@ -47,9 +47,6 @@ public class BlindNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        Owner.RigRefs.RigManager.avatar.footstepsWalk.audioClips.Clear();
-        Owner.RigRefs.RigManager.avatar.footstepsJog.audioClips.Clear();
-        
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             VisionManager.EnableNightVision();
@@ -75,12 +72,15 @@ public class BlindNightmareInstance : NightmareInstance
             {
                 if (player.PlayerID.Equals(Owner.PlayerID))
                     continue;
+                
+                if (!player.HasRig)
+                    continue;
             
                 UpdateMovement(player);
 
                 var distance = Vector3.Distance(Owner.RigRefs.Head.position, player.RigRefs.Head.position);
-                var distanceMod = Mathf.Clamp01(distance / player.VoiceSource.MaxMicrophoneDistance);
-                var amplitudeMod = Mathf.Clamp01(player.VoiceSource.VoiceSource.Amplitude * 2f);
+                var distanceMod = 1.0f - Mathf.Clamp01(distance / player.VoiceSource.MaxMicrophoneDistance);
+                var amplitudeMod = Mathf.Clamp01(player.VoiceSource.VoiceSource.Amplitude * 15f);
                 var value = amplitudeMod * distanceMod;
                 UpdateVisibilityTimers(player, VoiceSoundTrigger, value);
 

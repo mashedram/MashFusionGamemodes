@@ -7,7 +7,9 @@ namespace MashGamemodeLibrary.Context;
 public abstract class GameContext
 {
     private bool _isReady;
+    private bool _isStarted;
     public bool IsReady => _isReady;
+    public bool IsStarted => _isStarted;
     
     private NetworkPlayer? _localPlayer;
     private NetworkPlayer? _hostPlayer;
@@ -20,7 +22,7 @@ public abstract class GameContext
 
     internal void Update(float delta)
     {
-        if (!_isReady) 
+        if (!_isStarted) 
             return;
         
         OnUpdate(delta);
@@ -36,6 +38,16 @@ public abstract class GameContext
         _hostPlayer = NetworkPlayer.Players.FirstOrDefault(e => e.PlayerID.IsHost);
         if (_hostPlayer == null)
             throw new InvalidOperationException("Failed to get host NetworkPlayer.");
+    }
+
+    internal void OnStart()
+    {
+        _isStarted = true;
+    }
+
+    internal void OnStop()
+    {
+        _isStarted = false;
     }
 
     internal void OnUnready()

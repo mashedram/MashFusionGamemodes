@@ -32,9 +32,8 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     
     private readonly HashSet<TValue> _set = new();
 
-    protected SyncedSet(string name, CatchupMoment moment = CatchupMoment.Join) : base(name)
+    protected SyncedSet(string name) : base(name)
     {
-        Moment = moment;
     }
 
     private void RelayAdd(TValue value)
@@ -142,7 +141,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
         WriteValue(writer, data.Value);
     }
 
-    protected override void Read(NetReader reader)
+    protected override void Read(byte playerId, NetReader reader)
     {
         var change = reader.ReadEnum<ChangeType>();
 
@@ -161,8 +160,6 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
                 throw new ArgumentOutOfRangeException();
         }
     }
-
-    public CatchupMoment Moment { get; }
     
     public void OnCatchup(PlayerID playerId)
     {

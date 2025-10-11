@@ -27,8 +27,10 @@ public static class ClockhuntConfig
     public static IntSyncedVariable RuntimeSpawnCount = new("runtime_spawn_count", 6);
     
     public static BoolSyncedVariable DevToolsDisabled = new("dev_tools_disabled", true);
+
+    public static bool DebugForceSpectate = false;
     
-    public static PlayerStats DefaultStats = new PlayerStats
+    public static PlayerStats DefaultStats = new()
     {
         Vitality = 1.0f,
         Speed = 1.0f,

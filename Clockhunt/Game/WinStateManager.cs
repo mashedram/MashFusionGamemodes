@@ -101,35 +101,33 @@ public class WinStateManager
 
         if (SpectatorManager.IsPlayerSpectating(playerID))
             return;
-        
-        if (Lives == 0)
-            return;
 
         Lives = Math.Max(0, Lives - 1);
 
-        if (Lives == 1)
+        switch (Lives)
         {
-            Notifier.Send(new Notification
-            {
-                Title = "Player Died",
-                Message = "This is your last try.",
-                PopupLength = 3f,
-                SaveToMenu = false,
-                ShowPopup = true,
-                Type = NotificationType.ERROR
-            });
-        }
-        else if (Lives > 1)
-        {
-            Notifier.Send(new Notification
-            {
-                Title = "Player Died",
-                Message = $"You have {Lives} lives remaining.",
-                PopupLength = 3f,
-                SaveToMenu = false,
-                ShowPopup = true,
-                Type = NotificationType.ERROR
-            });
+            case 1:
+                Notifier.Send(new Notification
+                {
+                    Title = "Player Died",
+                    Message = "This is your last try.",
+                    PopupLength = 3f,
+                    SaveToMenu = false,
+                    ShowPopup = true,
+                    Type = NotificationType.ERROR
+                });
+                break;
+            case > 1:
+                Notifier.Send(new Notification
+                {
+                    Title = "Player Died",
+                    Message = $"You have {Lives} lives remaining.",
+                    PopupLength = 3f,
+                    SaveToMenu = false,
+                    ShowPopup = true,
+                    Type = NotificationType.ERROR
+                });
+                break;
         }
 
         // TODO: Custom message when lives hit 0
@@ -190,7 +188,7 @@ public class WinStateManager
         if (ClockhuntConfig.IsSpectatingEnabled)
         {
             var aliveSurvivorCount = CountSurvivors();
-            if (aliveSurvivorCount <= 1)
+            if (aliveSurvivorCount <= 1 && !ClockhuntConfig.DebugForceSpectate)
             {
                 // Last survivor died, nightmares win
                 ForceWin(GameTeam.Nightmares);

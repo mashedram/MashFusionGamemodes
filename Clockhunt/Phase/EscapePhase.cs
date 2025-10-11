@@ -1,6 +1,8 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using Clockhunt.Nightmare;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.UI.Popups;
@@ -44,9 +46,10 @@ public class EscapePhase : GamePhase
         return ClockhuntConfig.IsEscapePhaseEnabled && ClockManager.CountClockEntities() <= 0;
     }
     
-    public override void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
     {
-        if (type != PlayerActionType.DEATH)
+        NightmareManager.OnAction(playerId, action, handedness);
+        if (action != PhaseAction.Death)
             return;
         
         WinStateManager.PlayerDied(playerId);

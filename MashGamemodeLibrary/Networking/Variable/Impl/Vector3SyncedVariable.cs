@@ -6,7 +6,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class Vector3SyncedVariable : SyncedVariable<Vector3>
 {
-    public Vector3SyncedVariable(string name, Vector3 defaultValue, CatchupMoment moment = CatchupMoment.Join) : base(name, defaultValue, moment)
+    public Vector3SyncedVariable(string name, Vector3 defaultValue) : base(name, defaultValue)
     {
     }
 

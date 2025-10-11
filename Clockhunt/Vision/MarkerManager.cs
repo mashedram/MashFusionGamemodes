@@ -9,6 +9,7 @@ public static class MarkerManager
     private const string MarkerBarcode = "Sylvie.SignalisMonodiscs.Spawnable.Beam";
     private static Poolee? _marker;
     
+    // TODO: Dubble spawn bug
     public static void SetMarker(Vector3 position)
     {
         if (_marker)
@@ -22,15 +23,19 @@ public static class MarkerManager
         
         LocalAssetSpawner.Spawn(spawnable, position, Quaternion.identity, poolee =>
         {
+            if (_marker != null)
+            {
+                _marker.Despawn();
+            }
             _marker = poolee;
         });
     }
 
     public static void ClearMarker()
     {
-        if (!_marker) return;
+        if (_marker == null) return;
         
-        _marker?.Despawn();
+        _marker.Despawn();
         _marker = null;
     }
 }

@@ -5,15 +5,14 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IDToHashSyncedDictionary : SyncedDictionary<byte, ulong>
 {
-    public IDToHashSyncedDictionary(string name, CatchupMoment moment) : base(name, moment)
+    public IDToHashSyncedDictionary(string name) : base(name)
     {
     }
 
-    protected override int? GetSize(Pair<byte, ulong> data)
+    protected override int? GetSize(DictionaryEdit<byte, ulong> data)
     {
         return sizeof(byte) + sizeof(ulong);
     }
-
 
     protected override void WriteKey(NetWriter writer, byte key)
     {

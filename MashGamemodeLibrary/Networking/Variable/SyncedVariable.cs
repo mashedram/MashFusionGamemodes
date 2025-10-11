@@ -14,19 +14,17 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
     public delegate bool ValidatorHandler(T newValue);
 
     private readonly string _name;
+    private readonly T _default;
     private T _value;
 
     public event OnChangedHandler? OnValueChanged;
     public event ValidatorHandler? OnValidate;
 
-    protected SyncedVariable(string name, T defaultValue, CatchupMoment moment) : base($"sync.{name}")
+    protected SyncedVariable(string name, T defaultValue) : base($"sync.{name}")
     {
         _name = name;
+        _default = defaultValue;
         _value = defaultValue;
-
-        Moment = moment;
-
-        
     }
     
     public static implicit operator T(SyncedVariable<T> variable) => variable.Value;
@@ -40,7 +38,7 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
         WriteValue(writer, data);
     }
 
-    protected override void Read(NetReader reader)
+    protected override void Read(byte playerId, NetReader reader)
     {
         _value = ReadValue(reader);
         OnValueChanged?.Invoke(_value);
@@ -71,8 +69,6 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
         Relay(_value);
     }
 
-    public CatchupMoment Moment { get; }
-
     public void OnCatchup(PlayerID playerId)
     {
         Relay(_value, playerId.SmallID);
@@ -80,6 +76,6 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
 
     public void Reset()
     {
-        _value = default!;
+        _value = _default;
     }
 }

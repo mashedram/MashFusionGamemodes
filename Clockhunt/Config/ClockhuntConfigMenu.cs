@@ -137,12 +137,14 @@ public static class ClockhuntConfigMenu
             OnValueChanged = value => ClockhuntConfig.DevToolsDisabled.Value = value
         });
         
+        #if DEBUG
         group.AddElement(new BoolElementData
         {
-            Title = "Disable Dev Tools",
-            Value = ClockhuntConfig.DevToolsDisabled,
-            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled.Value = value
+            Title = "Force spectator on final death",
+            Value = ClockhuntConfig.DebugForceSpectate,
+            OnValueChanged = value => ClockhuntConfig.DebugForceSpectate = value
         });
+        #endif
         
         group.AddElement(new SpawnableElementData
         {
@@ -157,7 +159,13 @@ public static class ClockhuntConfigMenu
             {
                 Title = descriptor.Name,
                 Value = descriptor.IsEnabled,
-                OnValueChanged = value => descriptor.IsEnabled = value
+                OnValueChanged = value =>
+                {
+                    if (NightmareManager.Descriptors.Count(v => v.Value.IsEnabled) <= 1)
+                        return;
+                    
+                    descriptor.IsEnabled = value;
+                }
             });
         });
         group.AddElement(nightmares);

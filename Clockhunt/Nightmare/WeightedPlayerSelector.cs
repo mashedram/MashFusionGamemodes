@@ -7,13 +7,8 @@ namespace Clockhunt.Nightmare;
 public class WeightedPlayerSelector
 {
     private int? _lastSelectedPlayerID;
-    private int _sameSelectionCount = 0;
+    private int _sameSelectionCount;
     private Dictionary<byte, int> _weights = new();
-    
-    private int GetTotalWeight()
-    {
-        return _weights.Values.Sum();
-    }
 
     private void RebuildWeights()
     {
@@ -32,19 +27,37 @@ public class WeightedPlayerSelector
     
     private byte SelectPlayer()
     {
-        var totalWeight = GetTotalWeight();
+        const int baseWeight = 128;
+        var inversedWeights = new Dictionary<byte, int>();
+        
+        foreach (var (id, weight) in _weights)
+        {
+            if (!NetworkPlayerManager.TryGetPlayer(id, out var player))
+            {
+                continue; 
+            }
+            
+            if (!player.HasRig) 
+                continue;
+            
+            var newWeight = Math.Max(1, baseWeight - weight);
+            inversedWeights[id] = newWeight;
+        }
+        
+        var totalWeight = inversedWeights.Values.Sum();
         if (totalWeight <= 0)
-            return byte.MaxValue;
+            return 0;
         
         var randomValue = UnityEngine.Random.Range(0, totalWeight);
-        foreach (var kvp in _weights)
+        foreach (var kvp in inversedWeights)
         {
             if (randomValue < kvp.Value)
                 return kvp.Key;
             randomValue -= kvp.Value;
         }
         
-        return byte.MaxValue;
+        // 0 Is the host ID
+        return 0;
     }
 
     private int GetNewWeight(byte playerID, int currentWeight)

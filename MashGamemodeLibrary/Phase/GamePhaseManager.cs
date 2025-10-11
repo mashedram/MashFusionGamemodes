@@ -1,4 +1,6 @@
-﻿using LabFusion.Network;
+﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Senders;
@@ -27,7 +29,7 @@ class PhaseChangePacket : INetSerializable
 
 public static class GamePhaseManager
 {
-    private static readonly IntSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", 0, CatchupMoment.LevelLoad);
+    private static readonly IntSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", 0);
     private static bool _enabled;
     private static int _activePhaseIndex;
     private static GamePhase[] _phases = Array.Empty<GamePhase>();
@@ -115,6 +117,8 @@ public static class GamePhaseManager
         if (!_enabled)
             return;
         
+        CheckHands();
+        
         var activePhase = GetActivePhase();
         activePhase.Update(delta);
         
@@ -130,13 +134,62 @@ public static class GamePhaseManager
         return _phases[_activePhaseIndex] is T;
     }
     
+    // Action Logic
+
+    private static readonly Dictionary<Handedness, bool> LastGripStateMap = new();
+    
+    private static void CheckHand(Hand hand)
+    {
+        var controller = hand._controller;
+        var handedness = controller.handedness;
+        
+        if (controller._menuTap)
+        {
+            OnAction(PlayerIDManager.LocalID, PhaseAction.Ability, handedness);
+        }
+
+        var state = controller.isBelowGripThreshold;
+        var lastState = LastGripStateMap.GetValueOrDefault(handedness, false);
+        if (state == lastState) return;
+        
+        var action = state ? PhaseAction.HandClose : PhaseAction.HandOpen;
+        OnAction(PlayerIDManager.LocalID, action, handedness);
+        LastGripStateMap[handedness] = controller.isBelowGripThreshold;
+    }
+
+    private static void CheckHands()
+    {
+        CheckHand(BoneLib.Player.LeftHand);
+        CheckHand(BoneLib.Player.RightHand);
+    }
+
+    private static void OnAction(PlayerID player, PhaseAction action, Handedness handedness = Handedness.BOTH)
+    {
+        GetActivePhase().OnPlayerAction(player, action, handedness);
+    }
+
+    private static PhaseAction? GetPhaseAction(PlayerActionType playerAction)
+    {
+        return playerAction switch
+        {
+            PlayerActionType.DEATH => PhaseAction.Death,
+            PlayerActionType.JUMP => PhaseAction.Jump,
+            _ => null
+        };
+    }
+    
     // Event Delegators
 
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
         if (!_enabled)
             return;
-        GetActivePhase().OnPlayerAction(playerId, type, otherPlayer);
+
+        var action = GetPhaseAction(type);
+        if (!action.HasValue)
+            return;
+        
+        OnAction(playerId, action.Value);
     }
 
     private static void OnPlayerJoined(PlayerID playerId)

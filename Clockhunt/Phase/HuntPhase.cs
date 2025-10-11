@@ -6,6 +6,7 @@ using Clockhunt.Joke;
 using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Implementations;
 using Clockhunt.Vision;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
@@ -138,7 +139,6 @@ public class HuntPhase : GamePhase
         Executor.RunIfHost(() =>
         {
             var clocks = EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed);
-            var clockCount = clocks.Count;
             
             foreach (var networkEntity in from networkEntity in clocks
                      let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity 
@@ -146,6 +146,8 @@ public class HuntPhase : GamePhase
                      where distance <= ClockhuntConfig.DeliveryDistance 
                      select networkEntity)
             {
+                var count = EntityTagManager.CountEntitiesWithTag<ClockMarker>();
+                
                 NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo()
                 {
                     DespawnEffect = true,
@@ -153,11 +155,11 @@ public class HuntPhase : GamePhase
                 });
 
                 // When the phase ends, there is a different message
-                if (clockCount > 1)
+                if (count > 1)
                 {
                     OnClockDeliveredEvent.Call(new ClockDeliveredPacket
                     {
-                        ClockCount = clockCount - 1
+                        ClockCount = count - 1
                     });
                 }
             }
@@ -188,9 +190,10 @@ public class HuntPhase : GamePhase
         });
     }
 
-    public override void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
     {
-        if (type != PlayerActionType.DEATH)
+        NightmareManager.OnAction(playerId, action, handedness);
+        if (action != PhaseAction.Death)
             return;
         
         WinStateManager.PlayerDied(playerId);

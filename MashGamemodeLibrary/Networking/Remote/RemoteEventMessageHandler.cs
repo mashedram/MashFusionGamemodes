@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using BoneLib;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
@@ -99,35 +100,13 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 {
     private static readonly Dictionary<ulong, Action<byte, byte[]>> EventCallbacks = new();
 
-    private static readonly Dictionary<CatchupMoment, List<ICatchup>> Catchups = new();
+    private static readonly List<ICatchup> Catchups = new();
     private static readonly List<IResettable> Resettables = new();
-    
-    private static readonly RemoteEvent<RemoteSceneLoadedPacket> _LevelLoadedEvent =
-        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false);
 
 #if DEBUG
     private static readonly Dictionary<ulong, string> EventNames = new();
 
-    private static readonly RemoteEvent<InvalidRemoteEventPacket> _onInvalidEventPacket =
-        new("RML_InvalidRemoteEventPacket", OnInvalidEventPacket, false);
-
-    static RemoteEventMessageHandler()
-    {
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
-        MultiplayerHooking.OnJoinedServer += OnServerChanged;
-        MultiplayerHooking.OnStartedServer += OnServerChanged;
-        MultiplayerHooking.OnDisconnected += OnServerChanged;
-
-        MultiplayerHooking.OnMainSceneInitialized += () =>
-        {
-            if (!NetworkInfo.HasServer)
-                return;
-            
-            _LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
-        };
-    } 
-
-    private static void OnInvalidEventPacket(InvalidRemoteEventPacket packet)
+    private static void OnInvalidRemoteEvent(InvalidRemoteEventPacket packet)
     {
         var eventId = packet.EventId;
         if (!EventNames.TryGetValue(eventId, out var name))
@@ -142,18 +121,32 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         MelonLogger.Msg(
             $"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
     }
+    
+    private static readonly RemoteEvent<InvalidRemoteEventPacket> OnInvalidEventPacket =
+        new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, false);
 #endif
     
-    private static List<ICatchup> GetOrCreateCatchupList(CatchupMoment moment)
+    // Due to the order in which static fields initialize, this NEEDS to be the lowest one.
+    private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false);
+    
+    static RemoteEventMessageHandler()
     {
-        if (!Catchups.TryGetValue(moment, out var list))
-        {
-            list = new List<ICatchup>();
-            Catchups[moment] = list;
-        }
+        MultiplayerHooking.OnJoinedServer += OnServerChanged;
+        MultiplayerHooking.OnStartedServer += OnServerChanged;
+        MultiplayerHooking.OnDisconnected += OnServerChanged;
 
-        return list;
-    }
+        Hooking.OnLevelLoaded += _ =>
+        {
+            if (!NetworkInfo.HasServer)
+                return;
+         
+            if (NetworkInfo.IsHost)
+                return;
+            
+            LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
+        };
+    } 
 
     public static ulong RegisterEvent<T>(string name, GenericRemoteEvent<T> callback)
     {
@@ -166,8 +159,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
         if (callback is ICatchup catchup)
         {
-            var list = GetOrCreateCatchupList(catchup.Moment);
-            list.Add(catchup);
+            Catchups.Add(catchup);
         }
         
         if (callback is IResettable resettable)
@@ -243,14 +235,14 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
             {
                 MelonLogger.Msg("Received EventMessage with unregistered event ID: " + data.EventId);
 #if DEBUG
-                var host = NetworkPlayer.Players.FirstOrDefault(e => e.PlayerID.IsHost);
-                if (host == null)
+                var hostID = PlayerIDManager.GetHostID();
+                if (hostID == null)
                 {
                     throw new Exception(
                         "How the fuck do we receive a network event without a host to send it. WHAT THE FUCK");
                 }
 
-                _onInvalidEventPacket.CallFor(host.PlayerID,
+                OnInvalidEventPacket.CallFor(hostID,
                     new InvalidRemoteEventPacket(data.EventId, EventCallbacks.Keys.ToArray()));
 #endif
                 return;
@@ -284,29 +276,16 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         );
     }
 
-    private static void OnPlayerJoined(PlayerID playerId)
-    {
-        Executor.RunIfHost(() =>
-        {
-            var list = GetOrCreateCatchupList(CatchupMoment.Join);
-            foreach (var catchup in list)
-            {
-                catchup.OnCatchup(playerId);
-            }
-        });
-    }
-
     private static void OnRemoteLevelLoader(RemoteSceneLoadedPacket packet)
     {
         Executor.RunIfHost(() =>
         {
-            var list = GetOrCreateCatchupList(CatchupMoment.LevelLoad);
             var id = PlayerIDManager.GetPlayerID(packet.SenderPlayerID);
             
             if (id == null)
                 return;
             
-            foreach (var catchup in list)
+            foreach (var catchup in Catchups)
             {
                 catchup.OnCatchup(id);
             }

@@ -1,4 +1,5 @@
-﻿using LabFusion.Player;
+﻿using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Player;
 using LabFusion.Senders;
 
 namespace MashGamemodeLibrary.Phase;
@@ -42,7 +43,7 @@ public abstract class GamePhase
     
     // States
 
-    public virtual void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    public virtual void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
     {
         
     }

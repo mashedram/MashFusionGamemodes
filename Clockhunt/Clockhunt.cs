@@ -15,6 +15,7 @@ using LabFusion.Marrow.Pool;
 using LabFusion.Menu.Data;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Containers;
@@ -33,11 +34,14 @@ using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
+using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace Clockhunt;
 
 public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 {
+    private const string CalibrationAvatar = "c3534c5a-94b2-40a4-912a-24a8506f6c79";
+    
     public override string Title => "Clockhunt";
     public override string Author => "Mash";
 
@@ -60,6 +64,15 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         return ClockhuntConfigMenu.CreateSettingsGroup();
     }
 
+    private static void ListenToAvatarChange(Avatar avatar, string barcode)
+    {
+        if (barcode == CalibrationAvatar) 
+            return;
+
+        LocalAvatar.AvatarOverride = barcode;
+        LocalAvatar.OnAvatarChanged -= ListenToAvatarChange;
+    }
+
     private void OnStart()
     {
         ClockhuntMusicContext.Reset();
@@ -72,19 +85,36 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
             new HidePhaseEnvironmentState(),
         }, LocalWeatherManager.ClearLocalWeather));
         
+        NightmareManager.ClearNightmares();
+        MarkerManager.ClearMarker();
+        
         GamePhaseManager.Enable(new GamePhase[]
             { new HidePhase(), new HuntPhase(), new EscapePhase() });
         
         PlayerHider.HideAllSpecials();
-
-        LocalAvatar.AvatarOverride = LocalAvatar.AvatarBarcode;
+        
+        // TODO: Make it so that once the avatar is loader, it enforces it further
+        var currentAvatar = LocalAvatar.AvatarBarcode;
+        if (currentAvatar != CalibrationAvatar)
+        {
+            LocalAvatar.AvatarOverride = currentAvatar;
+        }
+        else
+        {
+            LocalAvatar.OnAvatarChanged += ListenToAvatarChange;
+        }
+        
         SpectatorManager.Enable();
         LocalControls.DisableSlowMo = true;
     }
 
     public override void OnGamemodeStarted()
     {
-        OnStart();
+        base.OnGamemodeStarted();
+        if (FusionSceneManager.HasTargetLoaded())
+        {
+            OnStart();
+        }
         
         Executor.RunIfHost(() =>
         {
@@ -95,6 +125,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
     public override void OnLevelReady()
     {
+        base.OnLevelReady();
+        
         if (!IsStarted)
             return;
 
@@ -103,6 +135,8 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
     public override void OnGamemodeStopped()
     {
+        base.OnGamemodeStopped();
+        
         Context.EnvironmentPlayer.Stop();
         Context.ClockAudioPlayer.StopPlaying();
         Context.EscapeAudioPlayer.StopAll();

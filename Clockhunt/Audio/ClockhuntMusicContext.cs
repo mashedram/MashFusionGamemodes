@@ -24,6 +24,9 @@ public class ClockhuntMusicContext
 
     private static bool IsNightmareChasing(NightmareInstance nightmare, Vector3 localPosition)
     {
+        if (!nightmare.Owner.HasRig)
+            return false;
+        
         var otherPosition = nightmare.Owner.RigRefs.Head.position;
         var line = otherPosition - localPosition;
         var distance = line.magnitude;

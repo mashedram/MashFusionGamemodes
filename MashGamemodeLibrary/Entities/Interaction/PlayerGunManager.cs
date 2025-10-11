@@ -15,7 +15,14 @@ public static class PlayerGunManager
     
     public static void InvokeOnGunFired(Gun instance)
     {
-        var holder = instance.triggerGrip.attachedHands._items[0];
+        var triggerGrip = instance.triggerGrip;
+        if (triggerGrip == null)
+            return;
+
+        var attachedHands = triggerGrip.attachedHands;
+        if (attachedHands.Count == 0) return;
+        
+        var holder = attachedHands._items[0];
         
         if (!holder)
             return;

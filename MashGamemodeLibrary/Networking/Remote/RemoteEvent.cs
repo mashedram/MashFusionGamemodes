@@ -90,11 +90,11 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         data.Serialize(writer);
     }
 
-    protected override void Read(NetReader reader)
+    protected override void Read(byte playerId, NetReader reader)
     {
         var data = Activator.CreateInstance<T>();
         data.Serialize(reader);
-        _onEvent.Invoke(data);
+        OnEvent(playerId, data);
     }
 }
 
@@ -104,12 +104,7 @@ public abstract class GenericRemoteEvent<T>
 
     protected GenericRemoteEvent(string name)
     {
-        var modName = GetType().Assembly.FullName ??
-                      throw new Exception($"Failed to get mod name for remote event: {name}");
-
-        var fullName = $"{modName}.{name}";
-        
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(fullName, this);
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(name, this);
     }
     
     ~GenericRemoteEvent() {
@@ -118,7 +113,7 @@ public abstract class GenericRemoteEvent<T>
     
     protected abstract int? GetSize(T data);
     protected abstract void Write(NetWriter writer, T data);
-    protected abstract void Read(NetReader reader);
+    protected abstract void Read(byte playerId, NetReader reader);
 
     private void Relay(T data, MessageRoute route)
     {
@@ -140,6 +135,6 @@ public abstract class GenericRemoteEvent<T>
     internal void OnPacket(byte playerId, byte[] bytes)
     {
         using var reader = NetReader.Create(bytes);
-        Read(reader);
+        Read(playerId, reader);
     }
 }

@@ -30,6 +30,11 @@ class RendererVisibility
         
         _renderer = renderer;
     }
+
+    public bool IsValid()
+    {
+        return _renderer != null;
+    }
     
     public void SetForceHide(bool hidden)
     {
@@ -58,12 +63,16 @@ class MagazineHolster
         _renderers.Clear();
 
         var magazines = _slotReceiver._magazineArts;
+        if (magazines == null)
+            return;
         if (magazines.Count == 0)
             return;
         
         foreach (var magazine in magazines)
         {
-            if (magazine?.gameObject == null)
+            if (magazine == null)
+                continue;
+            if (magazine.gameObject == null)
                 continue;
             
             foreach (var renderer in magazine.gameObject.GetComponentsInChildren<Renderer>())
@@ -137,7 +146,7 @@ class HolsteredItem
 internal class PlayerVisibilityState
 {
     private bool _isSpecialHidden;
-    private string? _lastAvatarBarcode;
+    private Avatar? _lastAvatar;
     
     private readonly NetworkPlayer _player;
     private readonly Dictionary<string, bool> _hideOverwrites = new();
@@ -158,15 +167,6 @@ internal class PlayerVisibilityState
         PopulateRenderers();
     }
 
-    private void SetMute(bool muted)
-    {
-        var audioSource = _player.VoiceSource?.VoiceSource.AudioSource; 
-        if (audioSource) 
-        { 
-            audioSource!.mute = muted;
-        }
-    }
-
     private void SetHeadUI(bool hidden)
     {
         
@@ -175,13 +175,16 @@ internal class PlayerVisibilityState
     
     public void PopulateRenderers()
     {
-        var rigManager = _player.RigRefs.RigManager;
-
-        var avatarName = rigManager?.avatar?.name;
-        if (avatarName == _lastAvatarBarcode)
+        if (!_player.HasRig)
             return;
         
-        _lastAvatarBarcode = avatarName;
+        var rigManager = _player.RigRefs.RigManager;
+
+        var avatar = rigManager?.avatar;
+        if (avatar == _lastAvatar)
+            return;
+        
+        _lastAvatar = avatar;
         
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
@@ -237,6 +240,12 @@ internal class PlayerVisibilityState
     private void Refresh()
     {
         var hidden = IsHidden;
+
+        if (!_avatarRenderers.Any(renderer => renderer.IsValid()))
+        {
+            PopulateRenderers();
+            return;
+        }
         
         foreach (var renderer in _avatarRenderers)
         {
@@ -263,7 +272,6 @@ internal class PlayerVisibilityState
             holster.SetForceHide(hidden);
         }
 
-        SetMute(hidden);
         SetHeadUI(hidden);
     }
     

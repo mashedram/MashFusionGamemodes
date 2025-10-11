@@ -28,6 +28,8 @@ public class HidePhase : GamePhase
         {
             NetworkPlayer.Players.ForEach(player =>
             {
+                if (!player.HasRig) return;
+                
                 // TODO: Make this spawn a new one once the old one was placed
                 for (var i = 0; i < ClockhuntConfig.ClocksPerPlayer; i++)
                     ClockManager.SpawnEntityForPlayer(player);
