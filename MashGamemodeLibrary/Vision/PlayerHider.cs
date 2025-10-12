@@ -179,16 +179,12 @@ internal class PlayerVisibilityState
             return;
         
         var rigManager = _player.RigRefs.RigManager;
-
-        var avatar = rigManager?.avatar;
-        if (avatar == _lastAvatar)
-            return;
-        
-        _lastAvatar = avatar;
         
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
         _specialRenderers.Clear();
+        _holsteredItems.Clear();
+        _magazineHolsters.Clear();
 
         if (!_player.HasRig)
             return;
@@ -205,6 +201,19 @@ internal class PlayerVisibilityState
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
             var renderers = slotContainer.gameObject.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                var visibility = new RendererVisibility(renderer);
+                _inventoryRenderers.Add(visibility);
+                visibility.SetForceHide(IsHidden);
+            }
+        }
+        
+        // Check for dualAction compatibility
+        var rightBelt = rigManager.physicsRig.m_pelvis.FindChild("BeltRt1");
+        if (rightBelt != null)
+        {
+            var renderers = rightBelt.gameObject.GetComponentsInChildren<Renderer>();
             foreach (var renderer in renderers)
             {
                 var visibility = new RendererVisibility(renderer);
@@ -327,6 +336,21 @@ internal class PlayerVisibilityState
         
         _magazineHolsters[name] = new MagazineHolster(inventoryAmmoReceiver, IsHidden);
     }
+
+    public void Update()
+    {
+        if (!_player.HasRig) return;
+
+        var rigManager = _player.RigRefs.RigManager;
+        
+        var avatar = rigManager?.avatar;
+        if (avatar == _lastAvatar)
+            return;
+        
+        _lastAvatar = avatar;
+        
+        PopulateRenderers();
+    }
 }
 
 public static class PlayerHider
@@ -437,5 +461,10 @@ public static class PlayerHider
 
         var id = (byte)networkEntity.ID;
         GetOrCreateState(id)?.UpdateAmmoHolster(inventoryAmmoReceiver);
+    }
+
+    public static void Update()
+    {
+        _playerStates.Values.ForEach(action => action.Update());
     }
 }

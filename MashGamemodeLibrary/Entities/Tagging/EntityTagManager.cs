@@ -26,6 +26,7 @@ public class SyncEntityTagPacket : INetSerializable
 }
 
 // TODO: The tag system here is fucked up performance wise
+// TODO: Add catchup support
 public static class EntityTagManager
 {
     private static readonly Dictionary<ulong, Func<IEntityTag>> TagFactories = new();

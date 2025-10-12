@@ -147,7 +147,7 @@ public static class NightmareManager
         }
         
         var descriptor = NightmareDescriptors[nightmareId];
-        var instance = descriptor.CreateInstance(player);
+        var instance = descriptor.CreateInstance(playerId);
         NightmareInstances[playerId] = instance;
         instance.Apply();
         

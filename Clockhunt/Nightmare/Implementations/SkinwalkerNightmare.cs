@@ -20,7 +20,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     private string _disguiseAvatarBarcode = NightmareAvatarBarcode; // Example barcode, replace with actual
     private bool _isDisguised = true;
     
-    public SkinwalkerNightmareInstance(NetworkPlayer owner, NightmareDescriptor descriptor) : base(owner, descriptor)
+    public SkinwalkerNightmareInstance(byte owner, NightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -92,8 +92,8 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
         return ClockhuntConfig.DefaultStats;
     }
 
-    public override NightmareInstance CreateInstance(NetworkPlayer player)
+    public override NightmareInstance CreateInstance(byte ownerID)
     {
-        return new SkinwalkerNightmareInstance(player, this);
+        return new SkinwalkerNightmareInstance(ownerID, this);
     }
 }

@@ -27,7 +27,7 @@ public class EntityNightmareInstance : NightmareInstance
 
     private GameObject? _light;
 
-    public EntityNightmareInstance(NetworkPlayer owner, EntityNightmareDescriptor descriptor) : base(owner, descriptor)
+    public EntityNightmareInstance(byte owner, EntityNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -103,8 +103,8 @@ public class EntityNightmareDescriptor : NightmareDescriptor
         LowerStrength = 8f
     };
 
-    public override NightmareInstance CreateInstance(NetworkPlayer owner)
+    public override NightmareInstance CreateInstance(byte ownerID)
     {
-        return new EntityNightmareInstance(owner, this);
+        return new EntityNightmareInstance(ownerID, this);
     }
 }

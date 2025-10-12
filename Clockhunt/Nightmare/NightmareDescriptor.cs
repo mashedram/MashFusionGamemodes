@@ -34,7 +34,7 @@ public abstract class NightmareDescriptor
         return Stats;
     }  
 
-    public abstract NightmareInstance CreateInstance(NetworkPlayer player);
+    public abstract NightmareInstance CreateInstance(byte ownerID);
 
     public virtual void Register()
     {

@@ -8,6 +8,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
+using MelonLoader;
 using UnityEngine;
 
 namespace Clockhunt.Nightmare;
@@ -15,19 +16,46 @@ namespace Clockhunt.Nightmare;
 public class NightmareInstance
 {
     private static string NightmareGrabKey => "Nightmare_Grab";
-    
-    public NetworkPlayer Owner { get; }
+
+    private byte _smallOwnerID;
+    private NetworkPlayer? _owner;
+    public NetworkPlayer Owner => FetchOwner();
     public NightmareDescriptor Descriptor { get; }
     protected float AbilityTimer { get; set; }
     protected bool IsAbilityOnCooldown { get; private set; }
     
 
-    protected NightmareInstance(NetworkPlayer owner, NightmareDescriptor descriptor)
+    protected NightmareInstance(byte smallId, NightmareDescriptor descriptor)
     {
-        Owner = owner;
+        var owner = NetworkPlayerManager.TryGetPlayer(smallId, out var player) ? player : null;
+        
+        _smallOwnerID = smallId;
+        _owner = owner;
         Descriptor = descriptor;
         AbilityTimer = 0f;
         IsAbilityOnCooldown = false;
+    }
+    
+    private bool IsOwnerValid()
+    {
+        return _owner != null && _owner.PlayerID.IsValid;
+    }
+
+    private NetworkPlayer FetchOwner()
+    {
+        if (IsOwnerValid())
+        {
+            return _owner!;
+        }
+        
+        if (NetworkPlayerManager.TryGetPlayer(_smallOwnerID, out var player))
+        {
+            _owner = player;
+            return _owner;
+        }
+        
+        MelonLogger.Error($"Unable to find the owner of the nightmare with playerid: {_smallOwnerID}");
+        return null!;
     }
     
     public virtual bool CanStartChaseMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
@@ -80,7 +108,14 @@ public class NightmareInstance
     
     public void Update(float delta)
     {
-        OnUpdate(delta);
+        try
+        {
+            OnUpdate(delta);
+        }
+        catch (Exception error)
+        {
+            MelonLogger.Error($"Failed to execute player update. {error}");
+        }
         
         if (!Owner.PlayerID.IsMe) return;
         if (AbilityTimer < 0f) return;

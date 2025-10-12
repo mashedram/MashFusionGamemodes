@@ -15,7 +15,7 @@ public class RushNightmareInstance : NightmareInstance
     private const float MaxVelocity = 50f;
     private const float Acceleration = 300f;
 
-    public RushNightmareInstance(NetworkPlayer owner, RushNightmareDescriptor descriptor) : base(owner, descriptor)
+    public RushNightmareInstance(byte owner, RushNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -98,8 +98,8 @@ public class RushNightmareDescriptor : NightmareDescriptor
         LowerStrength = 8f
     };
 
-    public override NightmareInstance CreateInstance(NetworkPlayer owner)
+    public override NightmareInstance CreateInstance(byte ownerID)
     {
-        return new RushNightmareInstance(owner, this);
+        return new RushNightmareInstance(ownerID, this);
     }
 }

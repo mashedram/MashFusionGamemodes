@@ -117,6 +117,16 @@ public static class SpectatorManager
         return SpectatingPlayerIds.Contains(playerId);
     }
 
+    private static void DetachAll(RigManager rig)
+    {
+        foreach (var slot in rig.inventory.bodySlots)
+        {
+            var receiver = slot.inventorySlotReceiver;
+            if (receiver == null) continue;
+            receiver.DespawnContents();
+        }
+    }
+
     private static void SetPhysicsRigColliders(PhysicsRig rig1, PhysicsRig rig2, bool state)
     {
         var colliders1 = rig1.GetComponentsInChildren<Collider>();
@@ -196,6 +206,7 @@ public static class SpectatorManager
         
         if (!playerID.IsMe) return;
         ToggleVisualEffect(true);
+        DetachAll(player.RigRefs.RigManager);
         DevToolsPatches.CanSpawn = false;
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, (_, _) => false);
     }

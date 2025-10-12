@@ -165,13 +165,6 @@ public class GripPatches
         return true;
     }
 
-    [HarmonyPatch(typeof(CollisionSyncer), "OnCollisionEnter")]
-    [HarmonyPrefix]
-    public static bool OnCollisionEnter_Prefix(Collision collision)
-    {
-        return !PlayerGrabManager.IsForceDisabled();
-    }
-
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]
     [HarmonyPrefix]
     public static bool SendObjectForcePull_Prefix(Hand hand, Grip grip)

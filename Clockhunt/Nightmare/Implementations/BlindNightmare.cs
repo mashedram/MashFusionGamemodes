@@ -41,7 +41,7 @@ public class BlindNightmareInstance : NightmareInstance
     
     private Dictionary<byte, float> _visibilityTimers = new();
     
-    public BlindNightmareInstance(NetworkPlayer owner, BlindNightmareDescriptor descriptor) : base(owner, descriptor)
+    public BlindNightmareInstance(byte owner, BlindNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -145,15 +145,15 @@ public class BlindNightmareDescriptor : NightmareDescriptor
 
     public override PlayerStats Stats => new()
     {
-        Vitality = 20f,
+        Vitality = 50f,
         UpperStrength = 10f,
         Speed = 4f,
         Agility = 4f,
         LowerStrength = 8f
     };
 
-    public override NightmareInstance CreateInstance(NetworkPlayer owner)
+    public override NightmareInstance CreateInstance(byte ownerID)
     {
-        return new BlindNightmareInstance(owner, this);
+        return new BlindNightmareInstance(ownerID, this);
     }
 }

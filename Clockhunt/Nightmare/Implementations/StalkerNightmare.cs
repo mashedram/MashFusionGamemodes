@@ -24,7 +24,7 @@ public class StalkerNightmareInstance : NightmareInstance
     private const float VisibilityDistance = 4f;
     private const string StalkerHideKey = "stalker";
 
-    public StalkerNightmareInstance(NetworkPlayer owner, StalkerNightmareDescriptor descriptor) : base(owner, descriptor)
+    public StalkerNightmareInstance(byte owner, StalkerNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -77,8 +77,8 @@ public class StalkerNightmareDescriptor : NightmareDescriptor
         LowerStrength = 8f
     };
 
-    public override NightmareInstance CreateInstance(NetworkPlayer owner)
+    public override NightmareInstance CreateInstance(byte ownerID)
     {
-        return new StalkerNightmareInstance(owner, this);
+        return new StalkerNightmareInstance(ownerID, this);
     }
 }
