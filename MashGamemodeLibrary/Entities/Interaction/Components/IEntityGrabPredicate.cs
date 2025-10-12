@@ -1,10 +1,10 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Entities.Tagging.Tags;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 
 namespace MashGamemodeLibrary.Entities.Interaction.Components;
 
-public interface IEntityGrabPredicate : IEntityTag
+public interface IEntityGrabPredicate : IAbstractEntityTag
 {
     bool CanGrab(NetworkPlayer grabber, NetworkEntity entity, MarrowEntity marrowEntity);
 }

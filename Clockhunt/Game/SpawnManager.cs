@@ -44,21 +44,11 @@ class LocalSpawnCollector
         
         if (rigManager.physicsRig.footSupported < 0.1f)
             return null;
-        
-        var origin = rigManager.physicsRig._football.gameObject.transform.position;
-        var distance = rigManager.physicsRig._footballRadius * 2f;
-        
-        var ray = new Ray(origin, Vector3.down);
-        if (!Physics.Raycast(ray, out var hitInfo, distance, GroundLayerMask))
+
+        if (rigManager.remapHeptaRig._crouchTarget > 0.2f)
             return null;
 
-        var floor = hitInfo;
-        var center = floor.point + Vector3.up * PlayerHeight;
-        var halfExtents = new Vector3(0.5f, PlayerHeight * 0.45f, 0.5f);
-        if (Physics.CheckBox(center, halfExtents, Quaternion.identity, GroundLayerMask))
-            return null;
-        
-        return hitInfo.point;
+        return rigManager.physicsRig.transform.position;
     }
     
     private void CollectPoints()
@@ -82,6 +72,12 @@ class LocalSpawnCollector
             return;
         _lastNodeCollectionTime = time;
 
+        if (_nodeIndex >= MaxNodes)
+        {
+            CollectPoints();
+            return;
+        }
+
         var position = GetFloorPosition();
         if (position == null)
         {
@@ -90,9 +86,6 @@ class LocalSpawnCollector
         }
         
         _nodes[_nodeIndex] = position.Value;
-        
-        if (_nodeIndex >= MaxNodes)
-            CollectPoints();
         
         _nodeIndex += 1;
     }

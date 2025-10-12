@@ -5,10 +5,12 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.Phase.Tags;
 
 namespace MashGamemodeLibrary.Phase;
 
@@ -94,6 +96,8 @@ public static class GamePhaseManager
         GetActivePhase().Exit();
         _activePhaseIndex = newPhaseIndex;
         GetActivePhase().Enter();
+        
+        EntityTagManager.GetAllExtendingTag<IPhaseChangedTag>().ForEach(tag => tag.OnPhaseChange(GetActivePhase()));
     }
     
     public static void MoveToNextPhase()

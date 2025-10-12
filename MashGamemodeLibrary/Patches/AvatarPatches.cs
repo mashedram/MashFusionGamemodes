@@ -7,6 +7,8 @@ using MashGamemodeLibrary.Player;
 
 namespace MashGamemodeLibrary.Patches;
 
+// Gracious credit to notnotnotswipez and Hahoos for the source code of these patches.
+// Saved my ass so much time.
 [HarmonyPatch(typeof(Avatar))]
 public static class AvatarPatches
 {

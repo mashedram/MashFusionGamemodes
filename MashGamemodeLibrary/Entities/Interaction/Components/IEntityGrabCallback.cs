@@ -1,10 +1,10 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Entities.Tagging.Tags;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 
 namespace MashGamemodeLibrary.Entities.Interaction.Components;
 
-public interface IEntityGrabCallback : IEntityTag
+public interface IEntityGrabCallback : IAbstractEntityTag
 {
     double GrabCooldown => 0.1f;
     void OnGrab(NetworkEntity entity, Hand hand);

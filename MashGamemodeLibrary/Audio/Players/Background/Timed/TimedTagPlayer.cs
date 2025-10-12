@@ -1,7 +1,7 @@
 ﻿using LabFusion.Entities;
 using MashGamemodeLibrary.Audio.Players.Extensions;
 using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Tags;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 
 namespace MashGamemodeLibrary.Audio.Players.Background.Timed;
 

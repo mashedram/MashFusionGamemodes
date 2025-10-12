@@ -1,4 +1,4 @@
-﻿using MashGamemodeLibrary.Entities.Tagging.Tags;
+﻿using MashGamemodeLibrary.Entities.Tagging.Base;
 
 namespace Clockhunt.Vision;
 

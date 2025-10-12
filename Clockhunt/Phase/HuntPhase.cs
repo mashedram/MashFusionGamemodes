@@ -58,8 +58,11 @@ public class HuntPhase : GamePhase
             if (value == Vector3.zero)
                 return;
             
+            // We want the marker to show up if we are debugging
+            #if !DEBUG
             if (NightmareManager.IsNightmare(PlayerIDManager.LocalID))
                 return;
+            #endif
             
             MarkerManager.SetMarker(value);
         };

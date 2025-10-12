@@ -29,7 +29,7 @@ public class IDToHashSyncedDictionary : SyncedDictionary<byte, ulong>
         writer.Write(value);
     }
 
-    protected override ulong ReadValue(NetReader reader)
+    protected override ulong ReadValue(NetReader reader, byte key)
     {
         return reader.ReadUInt64();
     }

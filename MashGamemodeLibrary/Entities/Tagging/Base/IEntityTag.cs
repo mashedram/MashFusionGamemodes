@@ -1,6 +1,4 @@
-﻿using LabFusion.Entities;
-
-namespace MashGamemodeLibrary.Entities.Tagging.Tags;
+﻿namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
 public interface IEntityTag
 {

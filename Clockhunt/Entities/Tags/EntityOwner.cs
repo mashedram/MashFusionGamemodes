@@ -2,10 +2,8 @@
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network.Serialization;
-using LabFusion.Player;
-using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
-using MashGamemodeLibrary.Entities.Tagging.Tags;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Phase;
 
 namespace Clockhunt.Entities.Tags;
@@ -13,6 +11,7 @@ namespace Clockhunt.Entities.Tags;
 public class EntityOwner : IEntityTag, IEntityGrabPredicate, INetSerializable
 {
     public byte OwnerId;
+    
     public NetworkPlayer? NetworkPlayer => NetworkPlayerManager.TryGetPlayer(OwnerId, out var player) ? player : null;
 
     public EntityOwner()

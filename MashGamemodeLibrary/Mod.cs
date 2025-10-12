@@ -24,6 +24,7 @@ public class Mod : MelonMod
         ModuleManager.RegisterModule<FusionModule>();
         
         RemoteEventMessageHandler.RegisterMod<Mod>();
+        EntityTagManager.RegisterAll<Mod>();
         
         PlayerHider.Register();
     }

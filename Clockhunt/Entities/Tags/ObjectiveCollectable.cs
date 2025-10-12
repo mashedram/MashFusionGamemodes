@@ -4,12 +4,13 @@ using LabFusion.Entities;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.Interaction.Components;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ObjectiveCollectable : IEntityGrabCallback, IEntityDropCallback
+public class ObjectiveCollectable : IEntityTag, IEntityGrabCallback, IEntityDropCallback
 {
     public bool IsGrabbed;
     

@@ -18,7 +18,7 @@ public enum DictionaryEditType
 
 public class DictionaryEdit<TKey, TValue>
     where TKey: notnull
-    where TValue : struct
+    where TValue : notnull
 {
     public DictionaryEditType Type;
     public TKey Key;
@@ -52,7 +52,7 @@ public class DictionaryEdit<TKey, TValue>
 // TODO: Bricks on latejoin
 public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<TKey, TValue>>, ICatchup, IResettable
     where TKey : notnull 
-    where TValue : struct
+    where TValue : notnull
 {
     public delegate void ValueChangedHandler(TKey key, TValue value);
     public delegate void ValueRemovedHandler(TKey key, TValue oldValue);
@@ -87,9 +87,12 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
         return true;
     }
     
-    public void Clear()
+    public void Clear(bool sendUpdate = true)
     {
-        Relay(DictionaryEdit<TKey, TValue>.Clear());
+        _dictionary.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
+        _dictionary.Clear();
+        if (sendUpdate)
+            Relay(DictionaryEdit<TKey, TValue>.Clear());
     }
     
     // Setters and Getters
@@ -110,12 +113,17 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
         return _dictionary.TryGetValue(key, out value);
     }
     
+    public bool ContainsKey(TKey key)
+    {
+        return _dictionary.ContainsKey(key);
+    }
+    
     // Abstract methods for serialization
     
     protected abstract void WriteKey(NetWriter writer, TKey key);
     protected abstract TKey ReadKey(NetReader reader);
     protected abstract void WriteValue(NetWriter writer, TValue value);
-    protected abstract TValue ReadValue(NetReader reader);
+    protected abstract TValue ReadValue(NetReader reader, TKey key);
 
     protected override void Write(NetWriter writer, DictionaryEdit<TKey, TValue> data)
     {
@@ -138,7 +146,7 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
         {
             case DictionaryEditType.Set:
                 var setKey = ReadKey(reader);
-                var value = ReadValue(reader);
+                var value = ReadValue(reader, setKey);
                 SetValue(setKey, value, false);
                 break;
             case DictionaryEditType.Remove:
@@ -146,8 +154,7 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
                 RemoveValue(removeKey, false);
                 break;
             case DictionaryEditType.Clear:
-                _dictionary.ForEach(kvp => OnValueRemoved?.Invoke(kvp.Key, kvp.Value));
-                _dictionary.Clear();
+                Clear(false);
                 break;
             
             default:

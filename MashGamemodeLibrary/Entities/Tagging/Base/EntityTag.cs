@@ -1,0 +1,23 @@
+﻿using LabFusion.Entities;
+
+namespace MashGamemodeLibrary.Entities.Tagging.Base;
+
+public class EntityTag : ITagAdded, IEntityTag
+{
+    private NetworkEntityReference _entityID;
+    private NetworkEntity? _entity;
+    protected NetworkEntity Entity => GetEntity();
+
+    private NetworkEntity GetEntity()
+    {
+        if (_entity != null) return _entity;
+
+        _entity = _entityID.GetEntity();
+        return _entity;
+    }
+    
+    public void OnAdded(ushort entityID)
+    {
+        _entityID = new NetworkEntityReference(entityID);
+    }
+}
