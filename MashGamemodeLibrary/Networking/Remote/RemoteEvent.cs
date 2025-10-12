@@ -1,14 +1,10 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using LabFusion.Entities;
-using LabFusion.Network;
-using LabFusion.Network.Serialization;
+﻿using LabFusion.Network.Serialization;
 using LabFusion.Player;
-using LabFusion.SDK.Triggers;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
 
-namespace MashGamemodeLibrary.networking;
+namespace MashGamemodeLibrary.Networking.Remote;
 
 public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, new()
 {
@@ -20,14 +16,14 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
     /**
    * An event that, when called, will run on all specified clients.
    */
-    public RemoteEvent(PacketHandler onEvent, bool callOnSender) : base(
-        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."))
+    public RemoteEvent(PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(
+        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), route)
     {
         _onEvent = onEvent;
         _callOnSender = callOnSender;
     }
     
-    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender) : base(name)
+    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(name, route)
     {
         _onEvent = onEvent;
         _callOnSender = callOnSender;
@@ -95,46 +91,5 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         var data = Activator.CreateInstance<T>();
         data.Serialize(reader);
         OnEvent(playerId, data);
-    }
-}
-
-public abstract class GenericRemoteEvent<T>
-{
-    private readonly ulong _assignedId;
-
-    protected GenericRemoteEvent(string name)
-    {
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(name, this);
-    }
-    
-    ~GenericRemoteEvent() {
-        RemoteEventMessageHandler.UnregisterEvent(_assignedId);
-    }
-    
-    protected abstract int? GetSize(T data);
-    protected abstract void Write(NetWriter writer, T data);
-    protected abstract void Read(byte playerId, NetReader reader);
-
-    private void Relay(T data, MessageRoute route)
-    {
-        using var netWriter = NetWriter.Create(GetSize(data));
-        Write(netWriter, data);
-        RemoteEventMessageHandler.Relay(_assignedId, netWriter.Buffer, route);
-    }
-    
-    protected void Relay(T data)
-    {
-        Relay(data, new MessageRoute(RelayType.ToOtherClients, NetworkChannel.Reliable));
-    }
-
-    protected void Relay(T data, byte targetId)
-    {
-        Relay(data, new MessageRoute(targetId, NetworkChannel.Reliable));
-    }
-    
-    internal void OnPacket(byte playerId, byte[] bytes)
-    {
-        using var reader = NetReader.Create(bytes);
-        Read(playerId, reader);
     }
 }

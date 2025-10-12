@@ -21,6 +21,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;

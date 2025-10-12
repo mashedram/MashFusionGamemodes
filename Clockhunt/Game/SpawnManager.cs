@@ -7,6 +7,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using UnityEngine;
 
@@ -63,7 +64,7 @@ public static class SpawnManager
 {
     private const int MaxCollectedSpawns = 300;
     
-    private static readonly Vector3SyncedSet CollectedSpawnPoints = new("CollectedSpawnPoints");
+    private static readonly Vector3SyncedSet CollectedSpawnPoints = new("CollectedSpawnPoints", CommonNetworkRoutes.BiDirectional);
     private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints");
 
     private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();

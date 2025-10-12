@@ -1,11 +1,12 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IntSyncedVariable : SyncedVariable<int>
 {
-    public IntSyncedVariable(string name, int defaultValue) : base(name, defaultValue)
+    public IntSyncedVariable(string name, int defaultValue, INetworkRoute? route = null) : base(name, defaultValue, route)
     {
     }
 

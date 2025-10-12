@@ -1,11 +1,12 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.networking.Validation;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class Vector3SyncedSet : SyncedSet<Vector3>
 {
-    public Vector3SyncedSet(string name) : base(name)
+    public Vector3SyncedSet(string name, INetworkRoute? route = null) : base(name, route)
     {
     }
 

@@ -11,6 +11,9 @@ using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Validation.Routes;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine.UIElements;
@@ -123,12 +126,12 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     }
     
     private static readonly RemoteEvent<InvalidRemoteEventPacket> OnInvalidEventPacket =
-        new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, false);
+        new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, false, CommonNetworkRoutes.ClientToHost);
 #endif
     
     // Due to the order in which static fields initialize, this NEEDS to be the lowest one.
     private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
-        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false);
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false, new ClientToHostNetworkRoute());
     
     static RemoteEventMessageHandler()
     {

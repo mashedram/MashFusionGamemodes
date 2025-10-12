@@ -1,6 +1,7 @@
 ﻿using BoneLib;
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
@@ -158,6 +159,8 @@ internal class PlayerVisibilityState
     private readonly Dictionary<string, HolsteredItem> _holsteredItems = new();
     private readonly Dictionary<string, MagazineHolster> _magazineHolsters = new();
 
+    private readonly Dictionary<Handedness, HashSet<RendererVisibility>> _heldItems = new();
+
     public bool IsHidden => _hideOverwrites.Any(e => e.Value);
     
     public PlayerVisibilityState(NetworkPlayer player, bool specialHidden)
@@ -171,6 +174,27 @@ internal class PlayerVisibilityState
     {
         
         _player.HeadUI.Visible = !hidden;
+    }
+
+    private void PopulateHand(Hand hand)
+    {
+        if (!hand.HasAttachedObject()) return;
+            
+        if (!hand.AttachedReceiver.HasHost) return;
+
+        var grip = hand.AttachedReceiver.Host.GetHostGameObject();
+        if (grip == null) return;
+
+        var renderers = grip.GetComponentsInChildren<Renderer>();
+        var set = new HashSet<RendererVisibility>();
+        foreach (var renderer in renderers)
+        {
+            var visibility = new RendererVisibility(renderer);
+            set.Add(visibility);
+            visibility.SetForceHide(IsHidden);
+        }
+
+        _heldItems[hand.handedness] = set;
     }
     
     public void PopulateRenderers()
@@ -234,6 +258,12 @@ internal class PlayerVisibilityState
                 visibility.SetForceHide(IsHidden || _isSpecialHidden);
             }
         }
+
+        var hands = new[] { rigManager.physicsRig.leftHand, rigManager.physicsRig.rightHand };
+        foreach (var hand in hands)
+        {
+            PopulateHand(hand);
+        }
     }
     
     public void SetSpecialsHidden(bool hidden)
@@ -281,6 +311,11 @@ internal class PlayerVisibilityState
             holster.SetForceHide(hidden);
         }
 
+        foreach (var rendererVisibility in _heldItems.Values.SelectMany(heldItem => heldItem))
+        {
+            rendererVisibility.SetForceHide(hidden);
+        }
+
         SetHeadUI(hidden);
     }
     
@@ -297,6 +332,17 @@ internal class PlayerVisibilityState
 
         _hideOverwrites.Clear();
         Refresh();
+    }
+
+    public void OnGrab(Hand hand)
+    {
+        PopulateHand(hand);
+    }
+
+    public void OnDrop(Hand hand)
+    {
+        if (!_heldItems.Remove(hand.handedness, out var renderers)) return;
+        renderers.ForEach(visibility => visibility.SetForceHide(false));
     }
     
     public void OnHolster(InventorySlotReceiver slotReceiver)
@@ -434,6 +480,22 @@ public static class PlayerHider
         {
             state.Reset();
         }
+    }
+
+    internal static void OnGrab(Hand hand)
+    {
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) 
+            return;
+        
+        GetOrCreateState(player.PlayerID)?.OnGrab(hand);
+    }
+    
+    internal static void OnDrop(Hand hand)
+    {
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) 
+            return;
+        
+        GetOrCreateState(player.PlayerID)?.OnDrop(hand);
     }
 
     internal static void OnHolster(InventorySlotReceiver receiver)

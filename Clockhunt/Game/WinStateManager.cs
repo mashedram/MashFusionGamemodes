@@ -8,6 +8,7 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Spectating;
 using MelonLoader;
 

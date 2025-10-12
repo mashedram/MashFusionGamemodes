@@ -6,6 +6,8 @@ using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
@@ -32,7 +34,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     
     private readonly HashSet<TValue> _set = new();
 
-    protected SyncedSet(string name) : base(name)
+    protected SyncedSet(string name, INetworkRoute route) : base(name, route)
     {
     }
 

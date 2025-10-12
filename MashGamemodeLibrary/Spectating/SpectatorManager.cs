@@ -10,6 +10,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation.Routes;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Vision;
@@ -49,7 +50,7 @@ public static class SpectatorManager
     private static bool _enabled;
     private const string GrabOverwriteKey = "spectating";
 
-    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds");
+    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds", new HostToClientNetworkRoute());
     private static readonly HashSet<byte> HiddenPlayerIds = new();
 
     static SpectatorManager()

@@ -2,6 +2,8 @@
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
 using UnityEngine;
 
@@ -27,7 +29,7 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
     
     public SyncedAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider provider) : base(container, provider)
     {
-        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true);
+        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true, CommonNetworkRoutes.HostToClient);
     }
     
     protected abstract bool Modifier(T data, ref AudioSource source);

@@ -10,6 +10,7 @@ using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 

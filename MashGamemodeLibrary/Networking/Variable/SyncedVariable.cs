@@ -4,6 +4,8 @@ using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -20,7 +22,7 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
     public event OnChangedHandler? OnValueChanged;
     public event ValidatorHandler? OnValidate;
 
-    protected SyncedVariable(string name, T defaultValue) : base($"sync.{name}")
+    protected SyncedVariable(string name, T defaultValue, INetworkRoute? route = null) : base($"sync.{name}", route)
     {
         _name = name;
         _default = defaultValue;

@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase.Tags;
 
@@ -31,7 +32,7 @@ class PhaseChangePacket : INetSerializable
 
 public static class GamePhaseManager
 {
-    private static readonly IntSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", 0);
+    private static readonly IntSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", 0, CommonNetworkRoutes.HostToClient);
     private static bool _enabled;
     private static int _activePhaseIndex;
     private static GamePhase[] _phases = Array.Empty<GamePhase>();

@@ -5,6 +5,8 @@ using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using Microsoft.VisualBasic;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -63,7 +65,7 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
     
-    protected SyncedDictionary(string name) : base(name)
+    protected SyncedDictionary(string name, INetworkRoute? route = null) : base(name, route)
     {
     }
     

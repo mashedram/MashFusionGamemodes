@@ -1,5 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -34,7 +35,7 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
     
     // Actual implementation
     
-    public EntityTagSyncedDictionary(string name) : base(name)
+    public EntityTagSyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToClient)
     {
         
     }

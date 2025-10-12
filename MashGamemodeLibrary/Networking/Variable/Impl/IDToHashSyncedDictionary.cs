@@ -1,11 +1,12 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IDToHashSyncedDictionary : SyncedDictionary<byte, ulong>
 {
-    public IDToHashSyncedDictionary(string name) : base(name)
+    public IDToHashSyncedDictionary(string name, INetworkRoute? route = null) : base(name, route)
     {
     }
 

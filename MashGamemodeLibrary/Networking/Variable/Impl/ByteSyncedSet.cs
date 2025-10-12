@@ -1,11 +1,12 @@
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class ByteSyncedSet : SyncedSet<byte>
 {
-    public ByteSyncedSet(string name) : base(name)
+    public ByteSyncedSet(string name, INetworkRoute? route = null) : base(name, route)
     {
     }
 

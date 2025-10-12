@@ -9,6 +9,7 @@ using LabFusion.Player;
 using LabFusion.SDK.Extenders;
 using LabFusion.Senders;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Vision;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
@@ -128,6 +129,7 @@ public class GripPatches
         if (DropIfNeeded(__instance, hand))
             return;
         
+        PlayerHider.OnGrab(hand);
         __instance._marrowEntity?.OnGrab(hand);
     }
 
@@ -139,6 +141,7 @@ public class GripPatches
         if (!hand)
             return;
         
+        PlayerHider.OnDrop(hand);
         __instance._marrowEntity?.OnDrop(hand);
     }
 
