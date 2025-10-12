@@ -16,93 +16,33 @@ using MashGamemodeLibrary.Debug;
 
 namespace Clockhunt.Game;
 
-class LocalSpawnCollector
+class TimedCaller
 {
-    private const double NodeCollectionInterval = 1f;
-    private const int MaxNodes = 20;
-    private const float PlayerHeight = 2f;
+    public delegate void TimerCallback();
     
-    private static readonly LayerMask GroundLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8); // Ignore player layer
-    
-    private int _nodeIndex;
-    private Vector3[] _nodes = new Vector3[MaxNodes];
-    private double _lastNodeCollectionTime;
-    
-    public event Action<Vector3>? OnCollect;
-    
-    private NetworkPlayer GetLocalPlayer()
+    private readonly TimerCallback _callback;
+
+    private float _delay;
+    private float _timer;
+
+    public TimedCaller(float delay, TimerCallback callback)
     {
-        return Clockhunt.Context.LocalPlayer;
+        _delay = delay;
+        _callback = callback;
     }
-    
-    private Vector3? GetFloorPosition()
+
+    public void SetDelay(float delay)
     {
-        var player = GetLocalPlayer();
-        var rigManager = player.RigRefs?.RigManager;
-        if (rigManager == null)
-            return null;
-        
-        if (rigManager.physicsRig.footSupported < 0.1f)
-            return null;
-
-        if (rigManager.remapHeptaRig._crouchTarget > 0.2f)
-            return null;
-
-        return rigManager.physicsRig.transform.position;
-    }
-    
-    private void CollectPoints()
-    {
-        var size = _nodeIndex;
-        _nodeIndex = 0;
-        
-        if (size <= 0)
-            return;
-
-        var index = size / 2;
-        var position = _nodes[index];
-        
-        OnCollect?.Invoke(position);
+        _delay = delay;
     }
 
     public void Update(float delta)
     {
-        var time = Time.timeSinceLevelLoadAsDouble;
-        if (time - _lastNodeCollectionTime < NodeCollectionInterval)
-            return;
-        _lastNodeCollectionTime = time;
-
-        if (_nodeIndex >= MaxNodes)
-        {
-            CollectPoints();
-            return;
-        }
-
-        var position = GetFloorPosition();
-        if (position == null)
-        {
-            CollectPoints();
-            return;
-        }
+        _timer = Math.Max(_timer - delta, 0);
+        if (_timer > 0.1f) return;
+        _timer = _delay;
         
-        _nodes[_nodeIndex] = position.Value;
-        
-        _nodeIndex += 1;
-    }
-
-    public void Reset()
-    {
-        _nodeIndex = 0;
-    }
-}
-
-class SpawnCollectedPacket : INetSerializable
-{
-    public Vector3 Position;
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref Position);
+        _callback.Invoke();
     }
 }
 
@@ -121,94 +61,91 @@ struct SpawnObjectInstance
 
 public static class SpawnManager
 {
-    private const float MinDistanceBetweenSpawns = 5f;
-
-    private static readonly RemoteEvent<SpawnCollectedPacket> SpawnCollectedEvent =
-        new("SpawnCollectedEvent", packet => OnCollect(packet.Position), false);
-    private static readonly LocalSpawnCollector Collector = new();
-    private static readonly HashSet<Vector3> SpawnPoints = new();
+    private const int MaxCollectedSpawns = 300;
+    
+    private static readonly Vector3SyncedSet CollectedSpawnPoints = new("CollectedSpawnPoints");
     private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints");
 
     private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();
 
-    static SpawnManager()
-    {
-        Collector.OnCollect += OnCollect;
-    }
+    private static readonly TimedCaller TimedSpawnCollector = new(5f, CollectSpawnPoint);
 
-    private static void OnCollect(Vector3 position)
+    private static void CollectSpawnPoint()
     {
-        if (!NetworkInfo.IsHost)
-        {
-            SpawnCollectedEvent.CallFor(PlayerIDManager.GetHostID(), new SpawnCollectedPacket
-            {
-                Position = position
-            });
+        var player = Clockhunt.Context.LocalPlayer;
+        var rigManager = player.RigRefs?.RigManager;
+        
+        if (rigManager == null)
             return;
-        }
-        
-        var distance = SpawnPoints.Any()
-            ? SpawnPoints.Min(x => Vector3.Distance(x, position))
-            : float.MaxValue;
-        
-        // If it's far enough away from other spawn points, add it
-        if (distance < MinDistanceBetweenSpawns)
+
+        if (rigManager.remapHeptaRig._jumping)
             return;
         
-        SpawnPoints.Add(position);
-        
-        #if DEBUG
-        DebugRenderer.RenderCube(position, Vector3.one);
-        #endif
+        if (rigManager.physicsRig.footSupported < 0.1f)
+            return;
+
+        if (rigManager.remapHeptaRig._crouchTarget < -0.2f)
+            return;
+
+        var position = rigManager.physicsRig.m_pelvis.position;
+        CollectedSpawnPoints.Add(position); 
     }
     
     public static void SubmitSynced(int count)
     {
-        var toRemove = Math.Max(SpawnPoints.Count - count, 0);
-
-        var spawnPoints = SpawnPoints
-            .GroupBy(position => SpawnPoints.Min(other => Vector3.Distance(position, other)))
-            .OrderBy(group => group.Key)
-            .Skip(toRemove);
+        var spawnPoints = CollectedSpawnPoints
+            .GroupBy(position => CollectedSpawnPoints.Where(p => p != position).Min(other => Vector3.Distance(position, other)))
+            .OrderByDescending(group => group.Key)
+            .Take(count);
 
         SyncedSpawnPoints.Clear();
         foreach (var group in spawnPoints)
         {
-            foreach (var spawn in group)
-            {
-                SyncedSpawnPoints.Add(spawn);
-            }
+            var spawn = group.GetRandom();
+            SyncedSpawnPoints.Add(spawn);
         }
     }
 
     public static void Update(float delta)
     {
-        Collector.Update(delta);
+        if (CollectedSpawnPoints.Count > MaxCollectedSpawns)
+            return;
+        
+        TimedSpawnCollector.Update(delta);
     }
 
     public static void Reset()
     {
-       Collector.Reset();
-       
-       Executor.RunIfHost(() =>
-       {
-           SpawnPoints.Clear();
-       });
+        // We want to collect all the points over 2 minutes of gametime
+        const float sampleDurationSeconds = 120f;
+        var playerCount = NetworkPlayer.Players.Count;
+        var samplesPerPlayer = MaxCollectedSpawns / playerCount;
+        var sampleInterval = Math.Max(sampleDurationSeconds / samplesPerPlayer, 1f);
+        TimedSpawnCollector.SetDelay(sampleInterval);
+        
+        Executor.RunIfHost(() =>
+        {
+            CollectedSpawnPoints.Clear();
+        });
     }
 
     public static Transform[] GetSpawnPoints()
     {
         // Populate the list
-        for (var i = SpawnObjects.Count; i < SpawnPoints.Count; i++)
+        for (var i = SpawnObjects.Count; i < SyncedSpawnPoints.Count; i++)
         {
             SpawnObjects.AddLast(new SpawnObjectInstance());
         }
-        
-        var list = new Transform[SpawnPoints.Count];
+
+        using var syncedSpawnPointsEnumerator = SyncedSpawnPoints.GetEnumerator();
+        var list = new Transform[SyncedSpawnPoints.Count];
         foreach (var (index, spawnObjectInstance) in SpawnObjects.WithIndices())
         {
             var go = spawnObjectInstance.GetOrCreate();
+            go.transform.position = syncedSpawnPointsEnumerator.Current;
             list[index] = go.transform;
+
+            syncedSpawnPointsEnumerator.MoveNext();
         }
 
         return list;
@@ -216,6 +153,6 @@ public static class SpawnManager
 
     public static IEnumerable<Vector3> GetEnumerator()
     {
-        return SpawnPoints;
+        return SyncedSpawnPoints;
     }
 }

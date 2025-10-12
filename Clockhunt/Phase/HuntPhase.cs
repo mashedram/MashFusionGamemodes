@@ -70,21 +70,23 @@ public class HuntPhase : GamePhase
 
     private void OnTeleportToSpawnRequest(DummySerializable _)
     {
-        if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
-        {
-            var spawns = GamemodeMarker.FilterMarkers(null);
-
-            if (spawns.Count > 0)
-            {
-                GamemodeHelper.SetSpawnPoints(spawns);
-                return;
-            }
-            
+        // if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
+        // {
             if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
             {
                 FusionPlayer.SetSpawnPoints(SpawnManager.GetSpawnPoints());
             }
-        }
+            else
+            {
+                var spawns = GamemodeMarker.FilterMarkers(null);
+
+                if (spawns.Count > 0)
+                {
+                    GamemodeHelper.SetSpawnPoints(spawns);
+                    return;
+                }
+            }
+        // }
         
         if (ClockhuntConfig.TeleportToSpawn)
         {

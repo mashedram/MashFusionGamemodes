@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using Object = UnityEngine.Object;
 
 #if DEBUG
 namespace MashGamemodeLibrary.Debug;
@@ -38,7 +39,7 @@ public class DebugRenderer
         LineRenderers.Add(go);
     }
 
-    public static void RenderCube(Vector3 center, Vector3 size)
+    public static void RenderCube(Vector3 center, Vector3 size, Color? color = null)
     {
         var half = size / 2f;
         
@@ -73,7 +74,13 @@ public class DebugRenderer
             corners[3], corners[7]
         };
         
-        RenderLine(edgePoints, Color.green);
+        RenderLine(edgePoints, color ?? Color.green);
+    }
+
+    public static void Clear()
+    {
+        LineRenderers.ForEach(Object.Destroy);
+        LineRenderers.Clear();
     }
 }
 #endif

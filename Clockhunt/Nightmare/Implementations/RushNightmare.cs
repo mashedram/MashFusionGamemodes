@@ -11,7 +11,7 @@ namespace Clockhunt.Nightmare.Implementations;
 
 public class RushNightmareInstance : NightmareInstance
 {
-    private bool _grip = false;
+    private bool _grip;
     private const float MaxVelocity = 50f;
     private const float Acceleration = 300f;
 
