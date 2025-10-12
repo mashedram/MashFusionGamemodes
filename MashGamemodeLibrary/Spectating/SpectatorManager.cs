@@ -205,6 +205,7 @@ public static class SpectatorManager
         SetColliders(player, false);
         
         if (!playerID.IsMe) return;
+        Loadout.Loadout.ClearPlayerLoadout(player.RigRefs);
         ToggleVisualEffect(true);
         DetachAll(player.RigRefs.RigManager);
         DevToolsPatches.CanSpawn = false;

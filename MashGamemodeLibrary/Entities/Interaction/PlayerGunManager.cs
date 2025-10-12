@@ -13,7 +13,7 @@ public static class PlayerGunManager
     
     public static event OnGunFiredHandler? OnGunFired;
     
-    public static void InvokeOnGunFired(Gun instance)
+    public static void InvokeGunFired(Gun instance)
     {
         var triggerGrip = instance.triggerGrip;
         if (triggerGrip == null)

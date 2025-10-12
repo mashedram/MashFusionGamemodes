@@ -7,11 +7,11 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch(typeof(Gun))]
 public static class GunPatches
 {
-    [HarmonyPatch(nameof(Gun.OnFire))]
+    [HarmonyPatch(nameof(Gun.Fire))]
     [HarmonyPostfix]
     // ReSharper disable once InconsistentNaming
-    private static void OnFire_Postfix(Gun __instance)
+    private static void Fire_Postfix(Gun __instance)
     {
-        PlayerGunManager.InvokeOnGunFired(__instance);
+        PlayerGunManager.InvokeGunFired(__instance);
     }
 }

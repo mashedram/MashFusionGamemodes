@@ -1,7 +1,11 @@
-﻿using Il2CppSLZ.Marrow.Warehouse;
+﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
+using LabFusion.Marrow.Pool;
 using LabFusion.Network;
+using LabFusion.RPC;
 using MelonLoader;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Loadout;
 
@@ -68,5 +72,15 @@ public class Loadout
         {
             DefaultSlotData.AssignSlot(rig, slotType, null);
         }
+
+        ClearHeadSlot(rig);
+    }
+
+    public static void ClearHeadSlot(RigRefs rig)
+    {
+        var headSlot = rig.RigManager.physicsRig.m_head.FindChild("HeadSlotContainer")?.GetComponentInChildren<InventorySlotReceiver>();
+        if (headSlot == null) return;
+        
+        headSlot.DespawnContents();
     }
 }
