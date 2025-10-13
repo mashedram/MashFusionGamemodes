@@ -2,6 +2,7 @@
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Phase;
@@ -29,13 +30,13 @@ public class EntityOwner : IEntityTag, IEntityGrabPredicate, INetSerializable
         serializer.SerializeValue(ref OwnerId);
     }
 
-    public bool CanGrab(NetworkPlayer grabber, NetworkEntity entity, MarrowEntity marrowEntity)
+    public bool CanGrab(GrabData grabData)
     {
         if (!GamePhaseManager.IsPhase<HidePhase>())
         {
             return true;
         }
         
-        return grabber.PlayerID.SmallID == OwnerId;
+        return grabData.NetworkPlayer.PlayerID == OwnerId;
     }
 }

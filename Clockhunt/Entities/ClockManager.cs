@@ -101,4 +101,9 @@ public static class ClockManager
             EntityID = id
         }));
     }
+
+    public static void AttemptCollection()
+    {
+        
+    }
 }

@@ -68,9 +68,9 @@ public class NightmareInstance
         return distance < 25f && lineOfSight;
     }
     
-    public virtual bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
+    public virtual bool CanGrab(GrabData grabData)
     {
-        return marrowEntity && NetworkPlayerManager.TryGetPlayer(marrowEntity, out _);
+        return !grabData.IsHoldingItem(out var item) || NetworkPlayerManager.TryGetPlayer(item.MarrowEntity, out _);
     }
  
     public virtual void OnApplied()

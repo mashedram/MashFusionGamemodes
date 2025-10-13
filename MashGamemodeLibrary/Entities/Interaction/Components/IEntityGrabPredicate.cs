@@ -6,5 +6,5 @@ namespace MashGamemodeLibrary.Entities.Interaction.Components;
 
 public interface IEntityGrabPredicate : IAbstractEntityTag
 {
-    bool CanGrab(NetworkPlayer grabber, NetworkEntity entity, MarrowEntity marrowEntity);
+    bool CanGrab(GrabData grab);
 }

@@ -3,6 +3,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 
 namespace Clockhunt.Entities.Tags;
@@ -14,19 +15,13 @@ public class ClockGrabNotifier : IEntityGrabCallback, IEntityDropCallback
     public double DropCooldown => 0.05f;
     public double GrabCooldown => 0.05f;
 
-    public void OnGrab(NetworkEntity entity, Hand hand)
+    public void OnGrab(GrabData grab)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player))
-            return;
-
-        Holders.Add(player.PlayerID);
+        Holders.Add(grab.NetworkPlayer.PlayerID);
     }
 
-    public void OnDrop(NetworkEntity networkEntity, Hand hand, MarrowEntity entity)
+    public void OnDrop(GrabData grab)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player))
-            return;
-
-        Holders.Remove(player.PlayerID);
+        Holders.Remove(grab.NetworkPlayer.PlayerID);
     }
 }

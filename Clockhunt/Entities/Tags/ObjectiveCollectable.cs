@@ -3,6 +3,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using UnityEngine;
@@ -14,12 +15,12 @@ public class ObjectiveCollectable : IEntityTag, IEntityGrabCallback, IEntityDrop
 {
     public bool IsGrabbed;
     
-    public void OnGrab(NetworkEntity entity, Hand hand)
+    public void OnGrab(GrabData grab)
     {
         IsGrabbed = true;
     }
 
-    public void OnDrop(NetworkEntity networkEntity, Hand hand, MarrowEntity entity)
+    public void OnDrop(GrabData grab)
     {
         IsGrabbed = false;
     }

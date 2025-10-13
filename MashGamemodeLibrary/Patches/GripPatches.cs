@@ -18,26 +18,15 @@ namespace MashGamemodeLibrary.Patches;
 public class GripPatches
 {
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-    [HarmonyPriority(10000)]
-    public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
-    {
-        if (!objectToAttach)
-            return true;
-        return !objectToAttach.TryGetComponent<MarrowEntity>(out var entity) || entity.CanGrabEntity(__instance);
-    }
-
-    [HarmonyPrefix]
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
     {
-        if (!hand || __instance._weaponHost == null)
-            return true;
+        if (hand == null) return true;
 
-        var entity = __instance._weaponHost?.GetGrip()._marrowEntity;
-        return !entity || entity!.CanGrabEntity(hand);
+        var grab = new GrabData(hand, __instance);
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
 
     [HarmonyPrefix]
@@ -45,14 +34,10 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
     {
-        if (!hand || __instance._weaponHost == null)
-            return true;
+        if (hand == null) return true;
+        var grab = new GrabData(hand, __instance);
 
-        var entity = __instance._weaponHost.GetGrip()._marrowEntity;
-        if (!entity)
-            return true;
-
-        var res = !entity || entity.CanGrabEntity(hand);
+        var res = PlayerGrabManager.CanGrabEntity(grab);
         if (!res)
             __instance.DropWeapon();
 
@@ -65,12 +50,12 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool IconAttempt(InteractableIcon __instance, Hand hand)
     {
-        if (!hand || !__instance.m_Grip || !__instance.m_Grip._marrowEntity)
+        if (!hand || !__instance.m_Grip)
             return true;
         
-        var entity = __instance.m_Grip._marrowEntity;
+        var grab = new GrabData(hand, __instance.m_Grip);
 
-        return !entity || entity.CanGrabEntity(hand);
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
 
     [HarmonyPrefix]
@@ -83,96 +68,102 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
     {
-        if (!hand || !__instance._grip || !__instance._grip._marrowEntity)
+        if (!hand || !__instance._grip)
             return true;
-        
-        var entity = __instance._grip._marrowEntity;
 
-        return !entity || entity.CanGrabEntity(hand);
+        var grab = new GrabData(hand, __instance._grip);
+
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
 
-    private static bool DropIfNeeded(Grip? grip, Hand? hand)
+    private static bool DropIfNeeded(GrabData grab)
     {
+        if (!grab.IsHoldingItem(out var item)) return false;
+
+        if (!PlayerGrabManager.CanGrabEntity(grab)) return false;
         
-        var entity = grip?._marrowEntity;
-        if (!entity)
-            return false;
-
-        if (!hand)
-            return false;
-
-        if (!NetworkPlayerManager.TryGetPlayer(hand!.manager, out var player))
-            return false;
-        
-        if (!player.PlayerID.IsMe)
-            return false;
-        
-        if (entity!.CanGrabEntity(player))
-            return false;
-
-        if (!grip!.HasHost)
-            return false;
-
-        if (!grip.Host.Rb) return false;
-
-        grip.ForceDetach();
+        item.Grip.ForceDetach();
         return true;
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
+    public static bool AttachObject_Prefix(Hand __instance)
+    {
+        var grab = new GrabData(__instance);
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
     
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
-    public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
+    public static void AttachObject_Postfix(Hand __instance)
     {
-        if (!hand)
-            return;
-        
-        if (DropIfNeeded(__instance, hand))
-            return;
-        
-        PlayerHider.OnGrab(hand);
-        __instance._marrowEntity?.OnGrab(hand);
+        var grab = new GrabData(__instance);
+        if (DropIfNeeded(grab)) return;
+        PlayerGrabManager.OnGrab(grab);
     }
 
-
-    [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
     [HarmonyPostfix]
-    public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
+    [HarmonyPatch(typeof(Hand), nameof(Hand.DetachObject))]
+    public static void DetachObject_Postfix(Hand __instance)
     {
-        if (!hand)
-            return;
-        
-        PlayerHider.OnDrop(hand);
-        __instance._marrowEntity?.OnDrop(hand);
+        var grab = new GrabData(__instance);
+        PlayerGrabManager.OnDrop(grab);
     }
+    
+    // [HarmonyPostfix]
+    // [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
+    // public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
+    // {
+    //     if (!hand)
+    //         return;
+    //     
+    //     if (DropIfNeeded(__instance, hand))
+    //         return;
+    //     
+    //     PlayerHider.OnGrab(hand);
+    //     __instance._marrowEntity?.OnGrab(hand);
+    // }
+
+
+    // [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
+    // [HarmonyPostfix]
+    // public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
+    // {
+    //     if (!hand)
+    //         return;
+    //     
+    //     PlayerHider.OnDrop(hand);
+    //     __instance._marrowEntity?.OnDrop(hand);
+    // }
 
     // Other
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
     [HarmonyPrefix]
     public static bool SendObjectAttach_Prefix(Hand hand, Grip grip)
     {
-        var entity = grip._marrowEntity;
-
-        return !entity || entity.CanGrabEntity(hand);
+        var grab = new GrabData(hand, grip);
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
 
     // TODO: Look into if this is needed
-    [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TransferOwnership))]
-    [HarmonyPrefix]
-    public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
-    {
-        var marrowEntity = entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
-
-        if (ownerID.IsMe)
-            return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
-        
-        return true;
-    }
+    // [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TransferOwnership))]
+    // [HarmonyPrefix]
+    // public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
+    // {
+    //     var marrowEntity = entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
+    //
+    //     if (ownerID.IsMe)
+    //         return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
+    //     
+    //     return true;
+    // }
 
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]
     [HarmonyPrefix]
     public static bool SendObjectForcePull_Prefix(Hand hand, Grip grip)
     {
-        var entity = grip._marrowEntity;
-        return !entity || entity.CanGrabEntity(hand);
+        var grab = new GrabData(hand, grip);
+        return PlayerGrabManager.CanGrabEntity(grab);
     }
 }

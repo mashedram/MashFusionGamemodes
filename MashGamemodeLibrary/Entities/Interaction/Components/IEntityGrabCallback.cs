@@ -7,5 +7,5 @@ namespace MashGamemodeLibrary.Entities.Interaction.Components;
 public interface IEntityGrabCallback : IAbstractEntityTag
 {
     double GrabCooldown => 0.1f;
-    void OnGrab(NetworkEntity entity, Hand hand);
+    void OnGrab(GrabData grab);
 }

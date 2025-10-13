@@ -9,6 +9,7 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Interaction;
 using MelonLoader;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
@@ -176,16 +177,11 @@ internal class PlayerVisibilityState
         _player.HeadUI.Visible = !hidden;
     }
 
-    private void PopulateHand(Hand hand)
+    private void PopulateHand(GrabData grabData)
     {
-        if (!hand.HasAttachedObject()) return;
-            
-        if (!hand.AttachedReceiver.HasHost) return;
-
-        var grip = hand.AttachedReceiver.Host.GetHostGameObject();
-        if (grip == null) return;
-
-        var renderers = grip.GetComponentsInChildren<Renderer>();
+        if (!grabData.IsHoldingItem(out var item)) return;
+        
+        var renderers = item.GameObject.GetComponentsInChildren<Renderer>();
         var set = new HashSet<RendererVisibility>();
         foreach (var renderer in renderers)
         {
@@ -194,7 +190,7 @@ internal class PlayerVisibilityState
             visibility.SetForceHide(IsHidden);
         }
 
-        _heldItems[hand.handedness] = set;
+        _heldItems[grabData.Hand.handedness] = set;
     }
     
     public void PopulateRenderers()
@@ -262,7 +258,7 @@ internal class PlayerVisibilityState
         var hands = new[] { rigManager.physicsRig.leftHand, rigManager.physicsRig.rightHand };
         foreach (var hand in hands)
         {
-            PopulateHand(hand);
+            PopulateHand(new GrabData(hand));
         }
     }
     
@@ -334,14 +330,14 @@ internal class PlayerVisibilityState
         Refresh();
     }
 
-    public void OnGrab(Hand hand)
+    public void OnGrab(GrabData hand)
     {
         PopulateHand(hand);
     }
 
-    public void OnDrop(Hand hand)
+    public void OnDrop(GrabData hand)
     {
-        if (!_heldItems.Remove(hand.handedness, out var renderers)) return;
+        if (!_heldItems.Remove(hand.Hand.handedness, out var renderers)) return;
         renderers.ForEach(visibility => visibility.SetForceHide(false));
     }
     
@@ -482,20 +478,14 @@ public static class PlayerHider
         }
     }
 
-    internal static void OnGrab(Hand hand)
+    internal static void OnGrab(GrabData hand)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) 
-            return;
-        
-        GetOrCreateState(player.PlayerID)?.OnGrab(hand);
+        GetOrCreateState(hand.NetworkPlayer.PlayerID)?.OnGrab(hand);
     }
     
-    internal static void OnDrop(Hand hand)
+    internal static void OnDrop(GrabData hand)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out var player)) 
-            return;
-        
-        GetOrCreateState(player.PlayerID)?.OnDrop(hand);
+        GetOrCreateState(hand.NetworkPlayer.PlayerID)?.OnDrop(hand);
     }
 
     internal static void OnHolster(InventorySlotReceiver receiver)

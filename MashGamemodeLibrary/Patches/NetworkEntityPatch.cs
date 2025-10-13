@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 
 namespace MashGamemodeLibrary.Patches;
@@ -14,5 +15,6 @@ public class NetworkEntityPatch
         if (__instance == null) 
             return;
         EntityTagManager.Remove(__instance.ID);
+        PlayerGrabManager.Remove(__instance.ID);
     }
 }

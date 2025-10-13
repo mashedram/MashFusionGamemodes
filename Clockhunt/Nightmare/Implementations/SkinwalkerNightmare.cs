@@ -7,6 +7,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
@@ -24,9 +25,11 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     {
     }
 
-    public override bool CanGrab(NetworkEntity? entity, MarrowEntity? marrowEntity)
+    public override bool CanGrab(GrabData grab)
     {
-        return (entity != null && entity.HasTag<ClockMarker>()) || base.CanGrab(entity, marrowEntity);
+        if (!grab.IsHoldingItem(out var item)) return true;
+        var entity = item.NetworkEntity;
+        return (entity != null && entity.HasTag<ClockMarker>()) || base.CanGrab(grab);
     }
 
     public override bool CanStartTensionMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)

@@ -1,47 +1,141 @@
-﻿using Il2CppSLZ.Marrow;
+﻿using System.Diagnostics.CodeAnalysis;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Vision;
+using MelonLoader;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Interaction;
 
+public class HeldItem
+{
+    public readonly GameObject GameObject;
+    public readonly Grip Grip;
+    public readonly MarrowEntity MarrowEntity;
+    public readonly NetworkEntity? NetworkEntity;
+
+    public HeldItem(IGrippable host)
+    {
+        GameObject = host.GetHostGameObject();
+        Grip = host.GetGrip();
+        MarrowEntity = Grip._marrowEntity;
+        if (Grip == null) return;
+        GripExtender.Cache.TryGet(Grip, out NetworkEntity);
+    }
+
+    public bool IsNetworked()
+    {
+        return NetworkEntity != null;
+    }
+    
+    public bool IsNetworked([MaybeNullWhen(returnValue: false)] out NetworkEntity entity)
+    {
+        entity = NetworkEntity;
+        return NetworkEntity != null;
+    }
+}
+
+public class GrabData
+{
+    public readonly Hand Hand;
+    public readonly NetworkPlayer NetworkPlayer;
+    public readonly HeldItem? HeldItem;
+
+    public GrabData(Hand hand)
+    {
+        Hand = hand;
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out NetworkPlayer))
+        {
+            MelonLogger.Error("Failed to get player from hand manager");
+            return;
+        }
+        
+        if (!hand.HasAttachedObject()) return;
+        if (!hand.AttachedReceiver.HasHost) return;
+        HeldItem = new HeldItem(hand.AttachedReceiver.Host);
+    }
+    
+    public GrabData(Hand hand, Grip grip)
+    {
+        Hand = hand;
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out NetworkPlayer))
+        {
+            MelonLogger.Error("Failed to get player from hand manager");
+            return;
+        }
+
+        if (!grip.HasHost) return;
+        HeldItem = new HeldItem(grip.Host);
+    }
+
+    public GrabData(Hand hand, InventorySlotReceiver slot)
+    {
+        Hand = hand;
+        if (!NetworkPlayerManager.TryGetPlayer(hand.manager, out NetworkPlayer))
+        {
+            MelonLogger.Error("Failed to get player from hand manager");
+            return;
+        }
+
+        if (slot._weaponHost == null) return;
+        HeldItem = new HeldItem(slot._weaponHost);
+    }
+    
+    public bool IsHoldingItem()
+    {
+        return HeldItem != null;
+    }
+
+    public bool IsHoldingItem([MaybeNullWhen(returnValue: false)] out HeldItem item)
+    {
+        if (HeldItem == null)
+        {
+            item = null;
+            return false;
+        }
+        
+        item = HeldItem;
+        return true;
+    }
+}
+
 public static class PlayerGrabManager
 {
-    private static readonly Dictionary<string, Func<NetworkEntity?, MarrowEntity?, bool>> OverwriteMap = new();
+    private static readonly Dictionary<string, Func<GrabData, bool>> OverwriteMap = new();
     private static readonly Dictionary<ushort, double> LastGrabbedTime = new();
     private static readonly Dictionary<ushort, double> LastDroppedTime = new();
 
-    static PlayerGrabManager()
+    public static bool IsForceDisabled(GrabData grab)
     {
-        NetworkEntityManager.IDManager.OnEntityUnregistered += entity =>
-        {
-            LastGrabbedTime.Remove(entity.ID);
-            LastDroppedTime.Remove(entity.ID);
-        };
+        return OverwriteMap.Count != 0 && OverwriteMap.Any(predicate => !predicate.Value.Invoke(grab));
     }
 
-    public static bool IsForceDisabled()
+    public static void OnGrab(GrabData grab)
     {
-        return OverwriteMap.Any(predicate => !predicate.Value.Invoke(null, null));
-    }
-    
-    public static bool IsForceDisabled(NetworkEntity? entity, MarrowEntity? marrowEntity)
-    {
-        return OverwriteMap.Count != 0 && OverwriteMap.Any(predicate => !predicate.Value.Invoke(entity, marrowEntity));
-    }
-    
-    public static void OnGrab(this MarrowEntity entity, Hand hand)
-    {
-        if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return;
+        if (!grab.IsHoldingItem(out var heldItem)) return;
+        if (!heldItem.IsNetworked(out var networkEntity)) return;
+        
+        if (IsForceDisabled(grab)) return;
+        
+        // Callbacks to internal systems
+        
+        PlayerHider.OnGrab(grab);
+        SpectatorManager.OnGrab(grab);
+        
+        // Callbacks to external systems
 
+        var id = networkEntity.ID;
+        
         var time = Time.realtimeSinceStartupAsDouble;
-        var lastGrabbed = LastGrabbedTime.GetValueOrDefault(networkEntity.ID);
-        LastGrabbedTime[networkEntity.ID] = time;
+        var lastGrabbed = LastGrabbedTime.GetValueOrDefault(id);
+        LastGrabbedTime[id] = time;
         
         var timeSinceLastGrab = time - lastGrabbed;
         
@@ -50,37 +144,43 @@ public static class PlayerGrabManager
         
         callbacks
             .Where(e => timeSinceLastGrab > e.GrabCooldown)
-            .ForEach(e => e.OnGrab(networkEntity, hand));
+            .ForEach(e => e.OnGrab(grab));
     }
 
-    public static void OnDrop(this MarrowEntity entity, Hand hand)
+    public static void OnDrop(GrabData grab)
     {
-        if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return;
+        if (!grab.IsHoldingItem(out var item)) return;
+        if (!item.IsNetworked(out var networkEntity)) return;
+        // Callbacks to internal systems
+        
+        PlayerHider.OnDrop(grab);
+        SpectatorManager.OnDrop(grab);
+        
+        // Callback to external systems
+        var id = networkEntity.ID;
         
         var time = Time.realtimeSinceStartupAsDouble;
-        var lastDropped = LastDroppedTime.GetValueOrDefault(networkEntity.ID);
-        LastDroppedTime[networkEntity.ID] = time;
+        var lastDropped = LastDroppedTime.GetValueOrDefault(id);
+        LastDroppedTime[id] = time;
         
         var timeSinceLastDrop = time - lastDropped;
         
         var callbacks = networkEntity
             .GetAllExtendingTag<IEntityDropCallback>();
         
-        callbacks.Where(e => timeSinceLastDrop > e.DropCooldown).ForEach(e => e.OnDrop(networkEntity, hand, entity));
+        callbacks.Where(e => timeSinceLastDrop > e.DropCooldown).ForEach(e => e.OnDrop(grab));
     }
     
-    public static bool CanGrabEntity(this MarrowEntity entity, NetworkPlayer player)
+    public static bool CanGrabEntity(GrabData grab)
     {
         // Only apply grab predicates for the local player
-        if (!player.PlayerID.IsMe) return true;
+        if (!grab.NetworkPlayer.PlayerID.IsMe) return true;
+        if (!grab.IsHoldingItem(out var item)) return true;
+        if (!item.IsNetworked(out var networkEntity)) return true;
         
-        if (!IMarrowEntityExtender.Cache.TryGet(entity, out var networkEntity)) return true;
-        
-        if (IsForceDisabled(networkEntity, entity)) return false;
+        if (IsForceDisabled(grab)) return false;
 
-        var grabbedRig = entity.GetComponentInParent<RigManager>();
-        if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
-            SpectatorManager.IsPlayerSpectating(networkPlayer.PlayerID))
+        if (grab.NetworkPlayer.PlayerID.IsSpectating())
         {
             return false;
         }
@@ -88,17 +188,10 @@ public static class PlayerGrabManager
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();
         
-        return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(player, networkEntity, entity));
-    }
-
-    public static bool CanGrabEntity(this MarrowEntity entity, Hand hand)
-    {
-        if (!entity || !hand || !hand.manager)
-            return false;
-        return !NetworkPlayerManager.TryGetPlayer(hand.manager, out var player) || CanGrabEntity(entity, player);
+        return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(grab));
     }
     
-    public static void SetOverwrite(string key, Func<NetworkEntity?, MarrowEntity?, bool>? predicate)
+    public static void SetOverwrite(string key, Func<GrabData, bool>? predicate)
     {
         if (predicate == null)
         {
@@ -112,5 +205,11 @@ public static class PlayerGrabManager
     public static void ClearOverwrites()
     {
         OverwriteMap.Clear();
+    }
+
+    public static void Remove(ushort entityID)
+    {
+        LastGrabbedTime.Remove(entityID);
+        LastDroppedTime.Remove(entityID);
     }
 }
