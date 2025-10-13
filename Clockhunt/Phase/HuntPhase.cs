@@ -179,10 +179,10 @@ public class HuntPhase : GamePhase
 
     protected override void OnPhaseExit()
     {
-        DeliveryPosition.Value = Vector3.zero;
-        
         Executor.RunIfHost(() =>
         {
+            DeliveryPosition.Value = Vector3.zero;
+            
             if (ClockManager.CountClockEntities() == 0)
             {
                 if (!ClockhuntConfig.IsEscapePhaseEnabled)

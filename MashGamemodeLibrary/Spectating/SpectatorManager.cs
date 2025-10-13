@@ -6,6 +6,7 @@ using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using LabFusion.Scene;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
@@ -18,6 +19,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 
 namespace MashGamemodeLibrary.Spectating;
 
@@ -36,6 +38,8 @@ class ColliderSet
         {
             foreach (var collider2 in other._colliders)
             {
+                // Comes from the same source. One invalid all invalid
+                if (collider1 == null || collider2 == null) return;
                 Physics.IgnoreCollision(collider1, collider2, !colliding);
             }
         }
@@ -44,20 +48,20 @@ class ColliderSet
 
 class PlayerColliderCache
 {
-    private PhysicsRig _physicsRig;
-    private ColliderSet _physicsRigColliders;
+    private PhysicsRig? _physicsRig;
+    private ColliderSet _physicsRigColliders = null!;
     private Dictionary<GameObject, ColliderSet> _itemColliders = new();
-    private HashSet<ColliderSet> _ignoredColliders = new();
-    private HashSet<PlayerColliderCache> _ignoredPlayers = new();
+    private readonly HashSet<ColliderSet> _ignoredColliders = new();
+    private readonly HashSet<PlayerColliderCache> _ignoredPlayers = new();
 
     public PlayerColliderCache(PhysicsRig physicsRig)
     {
-        _physicsRig = physicsRig;
-        _physicsRigColliders = new ColliderSet(physicsRig.gameObject);
+        SetRig(physicsRig);
     }
 
     private void StartItemColliding(ColliderSet otherColliders)
     {
+        if (_physicsRig == null) return;
         if (!_ignoredColliders.Remove(otherColliders)) return;
         _physicsRigColliders.SetColliding(otherColliders, true);
         foreach (var ownItemColliders in _itemColliders.Values)
@@ -68,6 +72,7 @@ class PlayerColliderCache
 
     private void StopItemColliding(ColliderSet otherColliders)
     {
+        if (_physicsRig == null) return;
         if (!_ignoredColliders.Add(otherColliders)) return;
         _physicsRigColliders.SetColliding(otherColliders, false);
         foreach (var ownItemColliders in _itemColliders.Values)
@@ -78,7 +83,9 @@ class PlayerColliderCache
 
     public void StartColliding(PlayerColliderCache other)
     {
-        if (!_ignoredPlayers.Add(other)) return;
+        if (_physicsRig == null) return;
+        if (!_ignoredPlayers.Remove(other)) return;
+        other._ignoredPlayers.Remove(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, true);
         foreach (var otherColliders in other._itemColliders.Values)
         {
@@ -88,7 +95,9 @@ class PlayerColliderCache
 
     public void StopColliding(PlayerColliderCache other)
     {
-        if (!_ignoredPlayers.Remove(other)) return;
+        if (_physicsRig == null) return;
+        if (!_ignoredPlayers.Add(other)) return;
+        other._ignoredPlayers.Add(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, false);
         foreach (var otherColliders in other._itemColliders.Values)
         {
@@ -101,11 +110,41 @@ class PlayerColliderCache
         return _ignoredPlayers.Contains(other);
     }
 
-    public void setRig(PhysicsRig newRig)
+    public void SetRig(PhysicsRig newRig)
     {
         if (_physicsRig == newRig) return;
         _physicsRig = newRig;
         _physicsRigColliders = new ColliderSet(newRig.gameObject);
+
+        foreach (var itemColliders in _itemColliders.Values)
+        {
+            foreach (var other in _ignoredPlayers)
+            {
+                other.StartItemColliding(itemColliders);
+            }
+        }
+        
+        _itemColliders.Clear();
+        
+        var inventory = _physicsRig.gameObject.GetComponent<Inventory>();
+        foreach (var inventoryBodySlot in inventory.bodySlots)
+        {
+            var slot = inventoryBodySlot._inventorySlot;
+            if (slot == null) continue;
+            var weapon = slot._weaponHost;
+            if (weapon == null) continue;
+            var gameObject = weapon.GetHostGameObject();
+            if (gameObject == null) continue;
+            AddItem(gameObject);
+        }
+
+        var hands = new[] { _physicsRig.leftHand, _physicsRig.rightHand };
+        foreach (var hand in hands)
+        {
+            var attached = hand.m_CurrentAttachedGO;
+            if (attached == null) return;
+            AddItem(attached);
+        }
     }
 
     public void AddItem(GameObject item)
@@ -137,7 +176,6 @@ public static class SpectatorManager
 
     private static GameObject? _visualEffectObject;
 
-    private static bool _enabled;
     private const string GrabOverwriteKey = "spectating";
 
     private static bool _isLocalSpectating;
@@ -152,6 +190,11 @@ public static class SpectatorManager
     {
         SpectatingPlayerIds.OnValueAdded += _ => Refresh();
         SpectatingPlayerIds.OnValueRemoved += _ => Refresh();
+        
+        NetworkPlayer.OnNetworkRigCreated += (player, _) =>
+        {
+            RefreshPlayer(player);
+        };
     }
 
     private static void SetMute(NetworkPlayer player, bool muted)
@@ -188,20 +231,6 @@ public static class SpectatorManager
         GetVisualEffectObject().SetActive(show);
     }
 
-    public static void Enable()
-    {
-        _enabled = true;
-
-        Executor.RunIfHost(Clear);
-    }
-
-    public static void Disable()
-    {
-        _enabled = false;
-
-        Executor.RunIfHost(Clear);
-    }
-
     public static bool IsLocalPlayerSpectating()
     {
         return _isLocalSpectating;
@@ -217,7 +246,7 @@ public static class SpectatorManager
         var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
         var shouldBeHidden = isSpectating && (!_isLocalSpectating || player.PlayerID.IsMe);
 
-        return shouldBeHidden && _enabled;
+        return shouldBeHidden;
     }
 
     private static void DetachAll(RigManager rig)
@@ -236,7 +265,7 @@ public static class SpectatorManager
         var rig = player.RigRefs.RigManager.physicsRig;
         if (PlayerColliders.TryGetValue(player.PlayerID, out var cache))
         {
-            cache.setRig(rig);
+            cache.SetRig(rig);
         }
         else
         {
@@ -250,16 +279,42 @@ public static class SpectatorManager
             return;
 
 
-        if (state)
+        var hands = new[] { player.RigRefs.LeftHand, player.RigRefs.RightHand };
+        foreach (var hand in hands)
         {
-            player.RigRefs.LeftHand.EnableCollider();
-            player.RigRefs.RightHand.EnableCollider();
+            hand.TryDetach();
+            if (state)
+            {
+                hand.EnableCollider();
+            }
+            else
+            {
+                hand.DisableCollider();   
+            }
         }
-        else
+        
+        Executor.RunIfMe(player.PlayerID, () =>
         {
-            player.RigRefs.LeftHand.DisableCollider();
-            player.RigRefs.RightHand.DisableCollider();
-        }
+            // 6: Fixtures
+            // 8: Player
+            // 10: Dynamic
+            // 12: EnemyColliders
+            // 15: Interactable
+            // 24: Footbal
+            Physics.IgnoreLayerCollision(8, 8, !state);
+            Physics.IgnoreLayerCollision(24, 8, !state);
+            Physics.IgnoreLayerCollision(24, 24, !state);
+            
+            Physics.IgnoreLayerCollision(8, 10, !state);
+            Physics.IgnoreLayerCollision(24, 10, !state);
+            Physics.IgnoreLayerCollision(10, 10, !state);
+            
+            Physics.IgnoreLayerCollision(8, 12, !state);
+            Physics.IgnoreLayerCollision(24, 12, !state);
+            
+            Physics.IgnoreLayerCollision(8, 6, !state);
+            Physics.IgnoreLayerCollision(24, 6, !state);
+        });
 
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             return;
@@ -282,11 +337,14 @@ public static class SpectatorManager
     {
         if (!HiddenPlayerIds.Add(smallID)) return;
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player)) return;
-
+        
         var playerID = player.PlayerID;
 
-        player.RigRefs.LeftHand.DetachObject();
-        player.RigRefs.RightHand.DetachObject();
+        if (player.HasRig)
+        {
+            player.RigRefs.LeftHand.DetachObject();
+            player.RigRefs.RightHand.DetachObject();
+        }
 
         Executor.RunIfRemote(playerID, () =>
         {
@@ -325,23 +383,31 @@ public static class SpectatorManager
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, null);
     }
 
+    private static void RefreshPlayer(NetworkPlayer player)
+    {
+        if (!player.HasRig)
+            return;
+        
+        var shouldBeHidden = ShouldBeSpectating(player);
+
+        GenerateColliderCache(player);
+
+        if (shouldBeHidden)
+        {
+            Hide(player.PlayerID);
+        }
+        else
+        {
+            Show(player.PlayerID);
+        }
+    }
+    
     private static void Refresh()
     {
         _isLocalSpectating = IsLocalPlayerSpectating();
         foreach (var player in NetworkPlayer.Players)
         {
-            var shouldBeHidden = ShouldBeSpectating(player);
-
-            GenerateColliderCache(player);
-
-            if (shouldBeHidden && _enabled)
-            {
-                Hide(player.PlayerID);
-            }
-            else
-            {
-                Show(player.PlayerID);
-            }
+           RefreshPlayer(player);
         }
     }
 
@@ -387,5 +453,11 @@ public static class SpectatorManager
     public static void Clear()
     {
         SpectatingPlayerIds.Clear();
+    }
+
+    public static void LocalReset()
+    {
+        HiddenPlayerIds.Clear();
+        PlayerColliders.Clear();
     }
 }

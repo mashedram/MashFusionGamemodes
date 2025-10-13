@@ -1,4 +1,5 @@
-﻿using LabFusion.Network;
+﻿using System.Diagnostics;
+using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.networking;
@@ -40,13 +41,21 @@ public abstract class GenericRemoteEvent<T>
         if (_route is not IBroadcastNetworkRoute route)
         {
             MelonLogger.Error($"Attempted to broadcast event: {_name} on route: {_route.GetName()}. It is not broadcasting type.");
+#if DEBUG
+            var stackTrace = new StackTrace();
+            MelonLogger.Error(stackTrace);
+#endif
             return;
         }
         
         var localId = PlayerIDManager.LocalSmallID;
         if (!route.IsValid(localId, out var error))
         {
-            MelonLogger.Error($"Remote Event Validation error on route {_route.GetName()}: {error}");
+            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {_route.GetName()}: {error}");
+            #if DEBUG
+            var stackTrace = new StackTrace();
+            MelonLogger.Error(stackTrace);
+            #endif
             return;
         }
         
@@ -58,13 +67,21 @@ public abstract class GenericRemoteEvent<T>
         if (_route is not ITargetedNetworkRoute route)
         {
             MelonLogger.Error($"Attempted to broadcast event: {_name} on route: {_route.GetName()}. It is not of a targeted type.");
+#if DEBUG
+            var stackTrace = new StackTrace();
+            MelonLogger.Error(stackTrace);
+#endif
             return;
         }
 
         var localId = PlayerIDManager.LocalSmallID;
         if (!route.IsValid(localId, targetId, out var error))
         {
-            MelonLogger.Error($"Remote Event Validation error on route {_route.GetName()}: {error}");
+            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {_route.GetName()}: {error}");
+#if DEBUG
+            var stackTrace = new StackTrace();
+            MelonLogger.Error(stackTrace);
+#endif
             return;
         }
         

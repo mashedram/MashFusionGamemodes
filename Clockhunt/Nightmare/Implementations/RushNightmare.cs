@@ -45,10 +45,19 @@ public class RushNightmareInstance : NightmareInstance
         if (!Owner.HasRig) 
             return;
 
-        var head = Owner.RigRefs.Head.transform.position;
-        var rightHand = Owner.RigRefs.RightHand.transform.position;
+        var rightHand = Owner.RigRefs.RightHand.transform;
 
-        var direction = (rightHand - head).normalized;
+        var forward = rightHand.forward;
+        var ray = new Ray(rightHand.position + Vector3.forward, forward);
+
+        var target = rightHand.position + forward * 30f;
+        if (Physics.Raycast(ray, out var hit, 30f))
+        {
+            target = hit.point;
+        }
+
+        var source = rightHand.position;
+        var direction = (target - source).normalized;
         
         var currentVelocity = Owner.RigRefs.RigManager.physicsRig.rbFeet.velocity;
 

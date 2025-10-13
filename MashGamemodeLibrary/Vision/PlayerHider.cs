@@ -162,6 +162,8 @@ internal class PlayerVisibilityState
 
     private readonly Dictionary<Handedness, HashSet<RendererVisibility>> _heldItems = new();
 
+    private bool _isHiddenInternal = false;
+
     public bool IsHidden => _hideOverwrites.Any(e => e.Value);
     
     public PlayerVisibilityState(NetworkPlayer player, bool specialHidden)
@@ -169,6 +171,12 @@ internal class PlayerVisibilityState
         _player = player;
         _isSpecialHidden = specialHidden;
         PopulateRenderers();
+    }
+
+    private bool IsValid()
+    {
+        var first = _avatarRenderers.FirstOrDefault();
+        return first != null && first.IsValid();
     }
 
     private void SetHeadUI(bool hidden)
@@ -195,25 +203,28 @@ internal class PlayerVisibilityState
     
     public void PopulateRenderers()
     {
-        if (!_player.HasRig)
-            return;
-        
-        var rigManager = _player.RigRefs.RigManager;
-        
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
         _specialRenderers.Clear();
         _holsteredItems.Clear();
         _magazineHolsters.Clear();
-
+        
         if (!_player.HasRig)
+        {
+            _lastAvatar = null;
+            _isHiddenInternal = false;
             return;
+        }
+        
+        var rigManager = _player.RigRefs.RigManager;
+
+        _isHiddenInternal = IsHidden;
         
         foreach (var renderer in rigManager.avatar.GetComponentsInChildren<Renderer>())
         {
             var visibility = new RendererVisibility(renderer);
             _avatarRenderers.Add(visibility);
-            visibility.SetForceHide(IsHidden);
+            visibility.SetForceHide(_isHiddenInternal);
         }
         
         foreach (var slotContainer in rigManager.inventory.bodySlots)
@@ -225,7 +236,7 @@ internal class PlayerVisibilityState
             {
                 var visibility = new RendererVisibility(renderer);
                 _inventoryRenderers.Add(visibility);
-                visibility.SetForceHide(IsHidden);
+                visibility.SetForceHide(_isHiddenInternal);
             }
         }
         
@@ -238,7 +249,7 @@ internal class PlayerVisibilityState
             {
                 var visibility = new RendererVisibility(renderer);
                 _inventoryRenderers.Add(visibility);
-                visibility.SetForceHide(IsHidden);
+                visibility.SetForceHide(_isHiddenInternal);
             }
         }
         
@@ -251,7 +262,7 @@ internal class PlayerVisibilityState
             {
                 var visibility = new RendererVisibility(renderer);
                 _specialRenderers.Add(visibility);
-                visibility.SetForceHide(IsHidden || _isSpecialHidden);
+                visibility.SetForceHide(_isHiddenInternal || _isSpecialHidden);
             }
         }
 
@@ -275,6 +286,14 @@ internal class PlayerVisibilityState
     private void Refresh()
     {
         var hidden = IsHidden;
+
+        if (!_player.HasRig)
+        {
+            _isHiddenInternal = false;
+            return;
+        }
+
+        _isHiddenInternal = hidden;
 
         if (!_avatarRenderers.Any(renderer => renderer.IsValid()))
         {
@@ -381,12 +400,23 @@ internal class PlayerVisibilityState
 
     public void Update()
     {
-        if (!_player.HasRig) return;
+        if (!_player.HasRig)
+        {
+            _lastAvatar = null;
+            return;
+        }
 
         var rigManager = _player.RigRefs.RigManager;
         
-        var avatar = rigManager?.avatar;
-        if (avatar == _lastAvatar)
+        var avatar = rigManager.avatar;
+
+        if (avatar == null)
+        {
+            _lastAvatar = null;
+            return;
+        }
+            
+        if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden || !IsValid())
             return;
         
         _lastAvatar = avatar;
@@ -480,11 +510,17 @@ public static class PlayerHider
 
     internal static void OnGrab(GrabData hand)
     {
+        if (hand.NetworkPlayer == null)
+            return;
+        
         GetOrCreateState(hand.NetworkPlayer.PlayerID)?.OnGrab(hand);
     }
     
     internal static void OnDrop(GrabData hand)
     {
+        if (hand.NetworkPlayer == null)
+            return;
+        
         GetOrCreateState(hand.NetworkPlayer.PlayerID)?.OnDrop(hand);
     }
 
@@ -517,6 +553,6 @@ public static class PlayerHider
 
     public static void Update()
     {
-        _playerStates.Values.ForEach(action => action.Update());
+        _playerStates.Values.ForEach(p => p.Update());
     }
 }

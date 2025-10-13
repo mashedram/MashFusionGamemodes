@@ -13,7 +13,7 @@ public class HostToClientNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
 
     public MessageRoute GetMessageRoute()
     {
-        return CommonMessageRoutes.ReliableToClients;
+        return CommonMessageRoutes.ReliableToOtherClients;
     }
 
     public bool IsValid(byte playerIDFrom, [MaybeNullWhen(returnValue: true)] out string error)

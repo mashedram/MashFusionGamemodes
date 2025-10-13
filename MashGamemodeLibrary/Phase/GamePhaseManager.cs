@@ -12,6 +12,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase.Tags;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Phase;
 
@@ -98,7 +99,17 @@ public static class GamePhaseManager
         _activePhaseIndex = newPhaseIndex;
         GetActivePhase().Enter();
         
-        EntityTagManager.GetAllExtendingTag<IPhaseChangedTag>().ForEach(tag => tag.OnPhaseChange(GetActivePhase()));
+        EntityTagManager.GetAllExtendingTag<IPhaseChangedTag>().ForEach(tag =>
+        {
+            try
+            {
+                tag.OnPhaseChange(GetActivePhase());
+            }
+            catch (Exception exception)
+            {
+                MelonLogger.Error($"Failed to execute tag change for: {tag.GetType().FullName}", exception);
+            }
+        });
     }
     
     public static void MoveToNextPhase()

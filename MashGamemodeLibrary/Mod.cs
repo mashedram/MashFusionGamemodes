@@ -1,4 +1,5 @@
-﻿using LabFusion.SDK.Modules;
+﻿using LabFusion.Patching;
+using LabFusion.SDK.Modules;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -29,18 +30,20 @@ public class Mod : MelonMod
         PlayerHider.Register();
     }
     
-#if DEBUG
     public override void OnUpdate()
     {
+        PlayerHider.Update();
+        
+#if DEBUG
         DebugKeybind.UpdateAll();
-    }
 #endif
+    }
 
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
-        SpectatorManager.Disable();
         EntityTagManager.ClearAll();
         PlayerGrabManager.ClearOverwrites();
-        PlayerHider.Update();
+        PlayerHider.UnhideAll();
+        SpectatorManager.LocalReset();
     }
 }

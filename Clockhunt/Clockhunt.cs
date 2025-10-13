@@ -79,6 +79,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         {
             NightmareManager.ClearNightmares();
             WinStateManager.OverwriteLives(3);
+            SpectatorManager.Clear();
         });
         
         ClockhuntMusicContext.Reset();
@@ -110,7 +111,6 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
             LocalAvatar.OnAvatarChanged += ListenToAvatarChange;
         }
         
-        SpectatorManager.Enable();
         LocalControls.DisableSlowMo = true;
     }
 
@@ -119,8 +119,6 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         base.OnGamemodeStopped();
         
         Context.EnvironmentPlayer.Stop();
-        Context.ClockAudioPlayer.StopPlaying();
-        Context.EscapeAudioPlayer.StopAll();
         
         GamePhaseManager.Disable();
         
@@ -132,12 +130,15 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         PlayerHider.UnhideAll();
         
-        SpectatorManager.Disable();
         LocalAvatar.AvatarOverride = null;
         LocalControls.DisableSlowMo = false;
         
         Executor.RunIfHost(() =>
         {
+            Context.ClockAudioPlayer.StopPlaying();
+            Context.EscapeAudioPlayer.StopAll();
+            
+            SpectatorManager.Clear();
             NightmareManager.ClearNightmares();
             ClockManager.ClearClocks();
         });

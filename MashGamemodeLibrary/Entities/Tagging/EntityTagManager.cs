@@ -5,6 +5,7 @@ using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -113,10 +114,13 @@ public static class EntityTagManager
     
     public static void Remove(ushort id)
     {
-        if (!EntityToTagMap.TryGetValue(id, out var tags))
-            return;
+        Executor.RunIfHost(() =>
+        {
+            if (!EntityToTagMap.TryGetValue(id, out var tags))
+                return;
         
-        tags.ForEach(index => Tags.Remove(index));
+            tags.ForEach(index => Tags.Remove(index));
+        });
     }
 
     private static HashSet<ulong> GetExtensionSet(ulong abstractTagID)

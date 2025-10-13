@@ -21,6 +21,7 @@ public static class HolsterPatches
         PlayerHider.OnHolster(__instance);
     }
 
+    [HarmonyPatch(typeof(InventoryAmmoReceiver), nameof(InventoryAmmoReceiver.SwitchMagazine))]
     [HarmonyPatch(typeof(InventoryAmmoReceiver), nameof(InventoryAmmoReceiver.UpdateAmmoArt))]
     [HarmonyPostfix]
     private static void UpdateAmmoArt_Postfix(InventoryAmmoReceiver __instance)

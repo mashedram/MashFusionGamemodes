@@ -11,6 +11,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 
@@ -52,7 +53,7 @@ public static class EscapeManager
     private static Vector3 _activeEscapePoint = Vector3.zero;
     
     private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent = new(OnEscapePointActivated, true);
-    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent = new(OnEscapeRequest, false);
+    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent = new(OnEscapeRequest, false, CommonNetworkRoutes.ClientToHost);
 
     private static bool _isEscaping;
     private static bool _hasEscaped;

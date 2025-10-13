@@ -1,4 +1,5 @@
-﻿using LabFusion.Network;
+﻿using System.Diagnostics.CodeAnalysis;
+using LabFusion.Network;
 
 namespace MashGamemodeLibrary.networking.Validation;
 

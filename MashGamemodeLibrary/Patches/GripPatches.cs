@@ -3,9 +3,11 @@ using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Grabbables;
 using LabFusion.MonoBehaviours;
 using LabFusion.Player;
+using LabFusion.Scene;
 using LabFusion.SDK.Extenders;
 using LabFusion.Senders;
 using MashGamemodeLibrary.Entities.Interaction;
@@ -14,7 +16,7 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
 
-[HarmonyPatch(typeof(Grip))]
+[HarmonyPatch]
 public class GripPatches
 {
     [HarmonyPrefix]
@@ -80,63 +82,53 @@ public class GripPatches
     {
         if (!grab.IsHoldingItem(out var item)) return false;
 
-        if (!PlayerGrabManager.CanGrabEntity(grab)) return false;
+        if (PlayerGrabManager.CanGrabEntity(grab)) return false;
         
         item.Grip.ForceDetach();
         return true;
     }
-
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-    public static bool AttachObject_Prefix(Hand __instance)
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachJoint))]
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachIgnoreBodyJoints))]
+    [HarmonyPriority(10000)]
+    public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
     {
-        var grab = new GrabData(__instance);
+        if (!objectToAttach)
+            return true;
+
+        var grab = new GrabData(__instance, objectToAttach);
         return PlayerGrabManager.CanGrabEntity(grab);
     }
     
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-    public static void AttachObject_Postfix(Hand __instance)
+    [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
+    public static void AttachObject_Postfix(Grip __instance, Hand hand)
     {
-        var grab = new GrabData(__instance);
-        if (DropIfNeeded(grab)) return;
+        if (hand == null)
+            return;
+        
+        var grab = new GrabData(hand, __instance);
+
+        if (DropIfNeeded(grab))
+            return;
+        
         PlayerGrabManager.OnGrab(grab);
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.DetachObject))]
-    public static void DetachObject_Postfix(Hand __instance)
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
+    public static void DetachObject(Grip __instance)
     {
-        var grab = new GrabData(__instance);
+        var hand = __instance.GetHand();
+        if (hand == null)
+            return;
+        
+        var grab = new GrabData(hand, __instance);
         PlayerGrabManager.OnDrop(grab);
     }
     
-    // [HarmonyPostfix]
-    // [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
-    // public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
-    // {
-    //     if (!hand)
-    //         return;
-    //     
-    //     if (DropIfNeeded(__instance, hand))
-    //         return;
-    //     
-    //     PlayerHider.OnGrab(hand);
-    //     __instance._marrowEntity?.OnGrab(hand);
-    // }
-
-
-    // [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
-    // [HarmonyPostfix]
-    // public static void OnDetachedFromHand_Postfix(Grip __instance, Hand hand)
-    // {
-    //     if (!hand)
-    //         return;
-    //     
-    //     PlayerHider.OnDrop(hand);
-    //     __instance._marrowEntity?.OnDrop(hand);
-    // }
-
     // Other
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
     [HarmonyPrefix]

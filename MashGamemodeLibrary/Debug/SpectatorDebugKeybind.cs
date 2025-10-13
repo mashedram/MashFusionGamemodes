@@ -1,5 +1,6 @@
 ﻿#if DEBUG
 using LabFusion.Entities;
+using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Spectating;
 using MelonLoader;
@@ -16,10 +17,8 @@ public class SpectatorDebugKeybind : DebugKeybind
         MelonLogger.Msg("Toggling spectate for all other players");
         Executor.RunIfHost(() =>
         {
-            foreach (var playerID in from networkPlayer in NetworkPlayer.Players where networkPlayer.PlayerID.IsMe select networkPlayer.PlayerID)
-            {
-                playerID.SetSpectating(!SpectatorManager.IsPlayerSpectating(playerID.SmallID));
-            }
+            var id = PlayerIDManager.LocalID;
+            id.SetSpectating(!SpectatorManager.IsPlayerSpectating(id.SmallID));
         });
     };
 }

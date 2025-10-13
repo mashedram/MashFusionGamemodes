@@ -2,7 +2,7 @@
 using System.Reflection;
 
 using HarmonyLib;
-
+using Il2CppSystem.Diagnostics;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Debug;
@@ -19,7 +19,10 @@ public static class Il2CppDetourMethodPatcherPatches
 
     public static bool Prefix(Exception ex)
     {
+        var trace = new StackTrace();
+        
         MelonLogger.Error("During invoking native->managed trampoline", ex);
+        MelonLogger.Error("Found at trace", trace);
         return false;
     }
 }

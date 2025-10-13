@@ -83,9 +83,10 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     
     public void Clear(bool sendUpdate = true)
     {
-        _set.ForEach(value => OnValueRemoved?.Invoke(value));
+        var removedEntries = _set.ToList();
         _set.Clear();
-
+        removedEntries.ForEach(value => OnValueRemoved?.Invoke(value));
+    
         if (sendUpdate)
         {
             Relay(new ChangePacket<TValue>

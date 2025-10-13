@@ -31,7 +31,7 @@ public class ClockLight : EntityTag, ITagRemoved, IPhaseChangedTag
         var marrow = Entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
         if (marrow == null) return;
 
-        _light = marrow.gameObject.AddComponent<Light>();
+        _light = marrow.gameObject.GetComponent<Light>() ?? marrow.gameObject.AddComponent<Light>();
         _light.type = LightType.Point;
         _light.color = Color.red;
         _light.intensity = 1f;

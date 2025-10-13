@@ -9,6 +9,7 @@ using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Spectating;
 using MelonLoader;
 
@@ -63,8 +64,8 @@ internal class OnGameWinPacket : INetSerializable
 public class WinStateManager
 {
     private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
-    private static readonly RemoteEvent<OverwriteLivesPacket> OverwriteLiverEvent = new(OnOverwriteLives, true);
-    private static readonly RemoteEvent<PlayerFinalDeathPacket> PlayerFinalDeathEvent = new(OnPlayerFinalDeath, true);
+    private static readonly RemoteEvent<OverwriteLivesPacket> OverwriteLivesEvent = new(OnOverwriteLives, true);
+    private static readonly RemoteEvent<PlayerFinalDeathPacket> PlayerFinalDeathEvent = new(OnPlayerFinalDeath, true, CommonNetworkRoutes.ClientToHost);
     public static int Lives { get; private set; } = 3;
 
     public static GameTeam LocalGameTeam { get; private set; }
@@ -85,7 +86,7 @@ public class WinStateManager
         if (!NetworkInfo.IsHost)
             return;
 
-        OverwriteLiverEvent.Call(new OverwriteLivesPacket()
+        OverwriteLivesEvent.Call(new OverwriteLivesPacket()
         {
             NewLives = lives,
         });
@@ -122,7 +123,7 @@ public class WinStateManager
                 Notifier.Send(new Notification
                 {
                     Title = "Player Died",
-                    Message = $"You have {Lives} lives remaining.",
+                    Message = $"You have {Lives - 1} lives remaining.",
                     PopupLength = 3f,
                     SaveToMenu = false,
                     ShowPopup = true,
