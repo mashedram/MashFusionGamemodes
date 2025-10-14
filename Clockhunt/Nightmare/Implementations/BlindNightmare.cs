@@ -1,26 +1,22 @@
 ﻿using Clockhunt.Entities.Tags;
 using Clockhunt.Vision;
 using Il2CppSLZ.Marrow;
-using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
-using LabFusion.Marrow.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
-using UnityEngine.InputSystem.Utilities;
-using BodyPose = Il2CppSLZ.Marrow.BodyPose;
 
 namespace Clockhunt.Nightmare.Implementations;
 
-class SoundTriggerData
+internal class SoundTriggerData
 {
-    public float Duration;
     public float Distance;
-    
+    public float Duration;
+
     public SoundTriggerData(float duration, float distance)
     {
         Duration = duration;
@@ -31,16 +27,16 @@ class SoundTriggerData
 public class BlindNightmareInstance : NightmareInstance
 {
     private const string BlindHiderKey = "BlindHiderKey";
-    
+    private const float MovementBaseSpeedSqrt = 20f;
+
     private static readonly SoundTriggerData ClockSoundTrigger = new(3f, 70);
     private static readonly SoundTriggerData GunshotSoundTrigger = new(5f, 50f);
     private static readonly SoundTriggerData VoiceSoundTrigger = new(2f, 40f);
-    private const float MovementBaseSpeedSqrt = 20f;
     private static readonly SoundTriggerData WalkSoundTrigger = new(1f, 30f);
     private static readonly SoundTriggerData JumpSoundTrigger = new(1f, 30f);
-    
-    private Dictionary<byte, float> _visibilityTimers = new();
-    
+
+    private readonly Dictionary<byte, float> _visibilityTimers = new();
+
     public BlindNightmareInstance(byte owner, BlindNightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
@@ -59,7 +55,7 @@ public class BlindNightmareInstance : NightmareInstance
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             PlayerGunManager.OnGunFired -= OnGunFired;
-            
+
             NetworkPlayer.Players.ForEach(player => player.PlayerID.SetHidden(BlindHiderKey, false));
         });
     }
@@ -72,10 +68,10 @@ public class BlindNightmareInstance : NightmareInstance
             {
                 if (player.PlayerID.Equals(Owner.PlayerID))
                     continue;
-                
+
                 if (!player.HasRig)
                     continue;
-            
+
                 UpdateMovement(player);
 
                 var distance = Vector3.Distance(Owner.RigRefs.Head.position, player.RigRefs.Head.position);
@@ -85,12 +81,10 @@ public class BlindNightmareInstance : NightmareInstance
                 UpdateVisibilityTimers(player, VoiceSoundTrigger, value);
 
                 if (ClockGrabNotifier.Holders.Contains(player.PlayerID))
-                {
                     UpdateVisibilityTimers(player, ClockSoundTrigger);
-                }
-            
+
                 var timer = _visibilityTimers.GetValueOrDefault(player.PlayerID, 0f);
-                player.PlayerID.SetHidden(BlindHiderKey,timer <= 0f);
+                player.PlayerID.SetHidden(BlindHiderKey, timer <= 0f);
                 _visibilityTimers[player.PlayerID] = Math.Max(0f, timer - delta);
             }
         });
@@ -99,7 +93,7 @@ public class BlindNightmareInstance : NightmareInstance
     private void UpdateMovement(NetworkPlayer player)
     {
         var rigManager = player.RigRefs.RigManager;
-        
+
         // Check if we are sprinting
         if (rigManager.remapHeptaRig._jumping)
         {
@@ -112,7 +106,7 @@ public class BlindNightmareInstance : NightmareInstance
         // Check if we are moving at all
         if (normalizedVelocity < 0.1f)
             return;
-        
+
         UpdateVisibilityTimers(player, WalkSoundTrigger, velocity / MovementBaseSpeedSqrt);
     }
 
@@ -122,15 +116,13 @@ public class BlindNightmareInstance : NightmareInstance
         if (distance > data.Distance * modifier)
             return;
 
-        _visibilityTimers[player.PlayerID] = Math.Max(data.Duration * modifier, _visibilityTimers.GetValueOrDefault(player.PlayerID, 0f));
+        _visibilityTimers[player.PlayerID] = Math.Max(data.Duration * modifier,
+            _visibilityTimers.GetValueOrDefault(player.PlayerID, 0f));
     }
 
     private void OnGunFired(NetworkPlayer shooter, Gun gun)
     {
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            UpdateVisibilityTimers(shooter, GunshotSoundTrigger);
-        });
+        Executor.RunIfMe(Owner.PlayerID, () => { UpdateVisibilityTimers(shooter, GunshotSoundTrigger); });
     }
 }
 

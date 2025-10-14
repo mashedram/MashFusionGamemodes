@@ -15,7 +15,7 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
         return CommonMessageRoutes.ReliableToServer;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(returnValue: true)] out string error)
+    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
     {
         if (!NetworkValidatorHelper.IsClient(playerIDFrom))
         {

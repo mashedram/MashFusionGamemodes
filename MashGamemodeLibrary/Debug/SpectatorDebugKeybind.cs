@@ -1,5 +1,4 @@
 ﻿#if DEBUG
-using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Spectating;

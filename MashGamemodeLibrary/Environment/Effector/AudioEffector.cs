@@ -1,15 +1,11 @@
-using Il2CppSLZ.Marrow.Audio;
-using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
-using MelonLoader;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Environment.Effector;
 
 public abstract class AudioEffector<TContext> : EnvironmentEffector<TContext>
 {
     private readonly IContinuousPlayer _audioContainer;
-    
+
     public AudioEffector(IContinuousPlayer audioContainer)
     {
         _audioContainer = audioContainer;

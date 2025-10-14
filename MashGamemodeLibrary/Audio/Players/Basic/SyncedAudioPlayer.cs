@@ -1,7 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
-using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
@@ -13,7 +12,7 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
 {
     public ulong AudioHash;
     public T ExtraData = default!;
-    
+
     public bool ShouldPlay => AudioHash != 0;
 
     public void Serialize(INetSerializer serializer)
@@ -26,14 +25,16 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
 public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializable, new()
 {
     private readonly RemoteEvent<PlayRequestPacket<T>> _playRequestEvent;
-    
-    public SyncedAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider provider) : base(container, provider)
+
+    public SyncedAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider provider) : base(
+        container, provider)
     {
-        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true, CommonNetworkRoutes.HostToClient);
+        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true,
+            CommonNetworkRoutes.HostToClient);
     }
-    
+
     protected abstract bool Modifier(T data, ref AudioSource source);
-    
+
     private void OnPlayRequest(PlayRequestPacket<T> packet)
     {
         if (!packet.ShouldPlay)
@@ -41,14 +42,14 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
             SourceProvider.StopAll();
             return;
         }
-        
+
         var container = (ISyncedAudioContainer)Container;
-        
+
         container.RequestClip(packet.AudioHash, clip =>
         {
             if (!clip)
                 return;
-            
+
             var source = SourceProvider.GetAudioSource();
             if (!Modifier(packet.ExtraData, ref source.SourceRef))
                 return;
@@ -66,8 +67,8 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
             MelonLogger.Error($"Audio with name {name} not found in container of player: {GetType().FullName}");
             return;
         }
-        
-        _playRequestEvent.Call(new PlayRequestPacket<T>()
+
+        _playRequestEvent.Call(new PlayRequestPacket<T>
         {
             AudioHash = hash.Value,
             ExtraData = data

@@ -3,9 +3,9 @@ namespace MashGamemodeLibrary.Audio.Modifiers;
 public class AudioModifierFactory
 {
     public delegate T ModifierDelegate<T>(T source) where T : IAudioModifier;
-    private delegate IAudioModifier ModifierDelegateInternal();
+
     private readonly List<ModifierDelegateInternal> _registeredModifiers = new();
-    
+
     public AudioModifierFactory AddModifier<T>(ModifierDelegate<T>? factory = null) where T : IAudioModifier, new()
     {
         _registeredModifiers.Add(() =>
@@ -21,4 +21,6 @@ public class AudioModifierFactory
     {
         return _registeredModifiers.Select(func => func()).ToHashSet();
     }
+
+    private delegate IAudioModifier ModifierDelegateInternal();
 }

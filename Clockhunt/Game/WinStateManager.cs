@@ -6,8 +6,6 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
-using LabFusion.Utilities;
-using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Spectating;
@@ -37,7 +35,6 @@ internal class PlayerFinalDeathPacket : INetSerializable
 
     public PlayerFinalDeathPacket()
     {
-        
     }
 
     public PlayerFinalDeathPacket(PlayerID playerID)
@@ -65,7 +62,10 @@ public class WinStateManager
 {
     private static readonly RemoteEvent<OnGameWinPacket> OnGameWinEvent = new(OnGameWin, true);
     private static readonly RemoteEvent<OverwriteLivesPacket> OverwriteLivesEvent = new(OnOverwriteLives, true);
-    private static readonly RemoteEvent<PlayerFinalDeathPacket> PlayerFinalDeathEvent = new(OnPlayerFinalDeath, true, CommonNetworkRoutes.ClientToHost);
+
+    private static readonly RemoteEvent<PlayerFinalDeathPacket> PlayerFinalDeathEvent =
+        new(OnPlayerFinalDeath, true, CommonNetworkRoutes.ClientToHost);
+
     public static int Lives { get; private set; } = 3;
 
     public static GameTeam LocalGameTeam { get; private set; }
@@ -86,9 +86,9 @@ public class WinStateManager
         if (!NetworkInfo.IsHost)
             return;
 
-        OverwriteLivesEvent.Call(new OverwriteLivesPacket()
+        OverwriteLivesEvent.Call(new OverwriteLivesPacket
         {
-            NewLives = lives,
+            NewLives = lives
         });
     }
 
@@ -134,7 +134,7 @@ public class WinStateManager
 
         // TODO: Custom message when lives hit 0
         if (Lives > 0) return;
-        
+
         Notifier.Send(new Notification
         {
             Title = "Game over",
@@ -144,7 +144,7 @@ public class WinStateManager
             ShowPopup = true,
             Type = NotificationType.ERROR
         });
-        
+
         PlayerFinalDeathEvent.CallFor(PlayerIDManager.GetHostID(), new PlayerFinalDeathPacket(playerID));
     }
 
@@ -156,7 +156,7 @@ public class WinStateManager
             return;
         }
 
-        OnGameWinEvent.Call(new OnGameWinPacket()
+        OnGameWinEvent.Call(new OnGameWinPacket
         {
             WinningGameTeam = winningTeam
         });
@@ -170,7 +170,7 @@ public class WinStateManager
     {
         Lives = packet.NewLives;
     }
-    
+
     private static void OnPlayerFinalDeath(PlayerFinalDeathPacket packet)
     {
         if (!NetworkInfo.IsHost)
@@ -184,9 +184,9 @@ public class WinStateManager
             MelonLogger.Error("Player not found for final death packet!");
             return;
         }
-        
+
         var playerID = player.PlayerID;
-        
+
         if (ClockhuntConfig.IsSpectatingEnabled)
         {
             var aliveSurvivorCount = CountSurvivors();

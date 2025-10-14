@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using LabFusion.Network;
-
-namespace MashGamemodeLibrary.networking.Validation;
+﻿namespace MashGamemodeLibrary.networking.Validation;
 
 public interface INetworkRoute
 {

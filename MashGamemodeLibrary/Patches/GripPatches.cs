@@ -1,17 +1,8 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
-using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Grabbables;
-using LabFusion.MonoBehaviours;
-using LabFusion.Player;
-using LabFusion.Scene;
-using LabFusion.SDK.Extenders;
-using LabFusion.Senders;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Vision;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
@@ -54,7 +45,7 @@ public class GripPatches
     {
         if (!hand || !__instance.m_Grip)
             return true;
-        
+
         var grab = new GrabData(hand, __instance.m_Grip);
 
         return PlayerGrabManager.CanGrabEntity(grab);
@@ -83,11 +74,11 @@ public class GripPatches
         if (!grab.IsHoldingItem(out var item)) return false;
 
         if (PlayerGrabManager.CanGrabEntity(grab)) return false;
-        
+
         item.Grip.ForceDetach();
         return true;
     }
-    
+
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
     [HarmonyPatch(typeof(Hand), nameof(Hand.AttachJoint))]
@@ -101,19 +92,19 @@ public class GripPatches
         var grab = new GrabData(__instance, objectToAttach);
         return PlayerGrabManager.CanGrabEntity(grab);
     }
-    
+
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
     public static void AttachObject_Postfix(Grip __instance, Hand hand)
     {
         if (hand == null)
             return;
-        
+
         var grab = new GrabData(hand, __instance);
 
         if (DropIfNeeded(grab))
             return;
-        
+
         PlayerGrabManager.OnGrab(grab);
     }
 
@@ -124,11 +115,11 @@ public class GripPatches
         var hand = __instance.GetHand();
         if (hand == null)
             return;
-        
+
         var grab = new GrabData(hand, __instance);
         PlayerGrabManager.OnDrop(grab);
     }
-    
+
     // Other
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
     [HarmonyPrefix]

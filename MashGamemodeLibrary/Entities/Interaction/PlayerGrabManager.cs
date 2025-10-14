@@ -5,7 +5,6 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
-using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Spectating;
@@ -17,8 +16,8 @@ namespace MashGamemodeLibrary.Entities.Interaction;
 
 public class HeldItem
 {
-    public readonly Grip Grip;
     public readonly GameObject GameObject;
+    public readonly Grip Grip;
     public readonly MarrowEntity? MarrowEntity;
     public readonly NetworkEntity? NetworkEntity;
 
@@ -44,8 +43,8 @@ public class HeldItem
     {
         return NetworkEntity != null;
     }
-    
-    public bool IsNetworked([MaybeNullWhen(returnValue: false)] out NetworkEntity entity)
+
+    public bool IsNetworked([MaybeNullWhen(false)] out NetworkEntity entity)
     {
         entity = NetworkEntity;
         return NetworkEntity != null;
@@ -55,16 +54,8 @@ public class HeldItem
 public class GrabData
 {
     public readonly Hand Hand;
-    public readonly NetworkPlayer? NetworkPlayer;
     public readonly HeldItem? HeldItem;
-
-    private void GetNetworkEntity(out NetworkPlayer? player)
-    {
-        player = null;
-        if (!NetworkInfo.HasServer) return;
-        if (NetworkPlayerManager.TryGetPlayer(Hand.manager, out player)) return;
-        MelonLogger.Error("Failed to get player from hand manager");
-    }
+    public readonly NetworkPlayer? NetworkPlayer;
 
     public GrabData(Hand hand)
     {
@@ -84,7 +75,7 @@ public class GrabData
         if (!gameObject.TryGetComponent<Grip>(out var grip)) return;
         HeldItem = new HeldItem(grip);
     }
-    
+
     public GrabData(Hand hand, Grip grip)
     {
         Hand = hand;
@@ -102,20 +93,28 @@ public class GrabData
         if (slot._weaponHost == null) return;
         HeldItem = new HeldItem(slot._weaponHost);
     }
-    
+
+    private void GetNetworkEntity(out NetworkPlayer? player)
+    {
+        player = null;
+        if (!NetworkInfo.HasServer) return;
+        if (NetworkPlayerManager.TryGetPlayer(Hand.manager, out player)) return;
+        MelonLogger.Error("Failed to get player from hand manager");
+    }
+
     public bool IsHoldingItem()
     {
         return HeldItem != null;
     }
 
-    public bool IsHoldingItem([MaybeNullWhen(returnValue: false)] out HeldItem item)
+    public bool IsHoldingItem([MaybeNullWhen(false)] out HeldItem item)
     {
         if (HeldItem == null)
         {
             item = null;
             return false;
         }
-        
+
         item = HeldItem;
         return true;
     }
@@ -136,27 +135,27 @@ public static class PlayerGrabManager
     {
         if (!grab.IsHoldingItem(out var heldItem)) return;
         if (!heldItem.IsNetworked(out var networkEntity)) return;
-        
+
         // Callbacks to internal systems
-        
+
         PlayerHider.OnGrab(grab);
         SpectatorManager.OnGrab(grab);
-        
+
         // Callbacks to external systems
-        
+
         if (IsForceDisabled(grab)) return;
 
         var id = networkEntity.ID;
-        
+
         var time = Time.realtimeSinceStartupAsDouble;
         var lastGrabbed = LastGrabbedTime.GetValueOrDefault(id);
         LastGrabbedTime[id] = time;
-        
+
         var timeSinceLastGrab = time - lastGrabbed;
-        
+
         var callbacks = networkEntity
             .GetAllExtendingTag<IEntityGrabCallback>();
-        
+
         callbacks
             .Where(e => timeSinceLastGrab > e.GrabCooldown)
             .ForEach(e => e.OnGrab(grab));
@@ -166,28 +165,28 @@ public static class PlayerGrabManager
     {
         if (!grab.IsHoldingItem(out var item)) return;
         if (!item.IsNetworked(out var networkEntity)) return;
-        
+
         // Callbacks to internal systems
-        
+
         PlayerHider.OnDrop(grab);
         SpectatorManager.OnDrop(grab);
-        
+
         // Callback to external systems
-        
+
         var id = networkEntity.ID;
-        
+
         var time = Time.realtimeSinceStartupAsDouble;
         var lastDropped = LastDroppedTime.GetValueOrDefault(id);
         LastDroppedTime[id] = time;
-        
+
         var timeSinceLastDrop = time - lastDropped;
-        
+
         var callbacks = networkEntity
             .GetAllExtendingTag<IEntityDropCallback>();
-        
+
         callbacks.Where(e => timeSinceLastDrop > e.DropCooldown).ForEach(e => e.OnDrop(grab));
     }
-    
+
     public static bool CanGrabEntity(GrabData grab)
     {
         // Only apply grab predicates for the local player
@@ -195,22 +194,20 @@ public static class PlayerGrabManager
         if (!grab.NetworkPlayer.PlayerID.IsMe) return true;
         if (!grab.IsHoldingItem(out var item)) return true;
         if (!item.IsNetworked(out var networkEntity)) return true;
-        
+
         if (IsForceDisabled(grab)) return false;
 
         var grabbedRig = item.GameObject.GetComponentInParent<RigManager>();
         if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
             SpectatorManager.IsPlayerSpectating(networkPlayer.PlayerID))
-        {
             return false;
-        }
 
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();
-        
+
         return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(grab));
     }
-    
+
     public static void SetOverwrite(string key, Func<GrabData, bool>? predicate)
     {
         if (predicate == null)
@@ -218,7 +215,7 @@ public static class PlayerGrabManager
             OverwriteMap.Remove(key);
             return;
         }
-        
+
         OverwriteMap[key] = predicate;
     }
 

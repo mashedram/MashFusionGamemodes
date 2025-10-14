@@ -10,9 +10,6 @@ public class PlantPhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
-        Executor.RunIfHost(() =>
-        {
-            BoneStrikeContext.TeamManager.AssignToRandomTeams();
-        });
+        Executor.RunIfHost(() => { BoneStrikeContext.TeamManager.AssignToRandomTeams(); });
     }
 }

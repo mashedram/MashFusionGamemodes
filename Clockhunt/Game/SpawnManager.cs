@@ -1,26 +1,19 @@
-using System.Collections.Immutable;
 using Clockhunt.Util;
 using LabFusion.Entities;
 using LabFusion.Extensions;
-using LabFusion.Network;
-using LabFusion.Network.Serialization;
-using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using UnityEngine;
-
 #if DEBUG
-using MashGamemodeLibrary.Debug;
 #endif
 
 namespace Clockhunt.Game;
 
-class TimedCaller
+internal class TimedCaller
 {
     public delegate void TimerCallback();
-    
+
     private readonly TimerCallback _callback;
 
     private float _delay;
@@ -42,12 +35,12 @@ class TimedCaller
         _timer = Math.Max(_timer - delta, 0);
         if (_timer > 0.1f) return;
         _timer = _delay;
-        
+
         _callback.Invoke();
     }
 }
 
-struct SpawnObjectInstance
+internal struct SpawnObjectInstance
 {
     private GameObject? _gameObject;
 
@@ -55,7 +48,7 @@ struct SpawnObjectInstance
     {
         if (!_gameObject)
             _gameObject = new GameObject("PlayerSpawn");
-        
+
         return _gameObject!;
     }
 }
@@ -63,8 +56,10 @@ struct SpawnObjectInstance
 public static class SpawnManager
 {
     private const int MaxCollectedSpawns = 300;
-    
-    private static readonly Vector3SyncedSet CollectedSpawnPoints = new("CollectedSpawnPoints", CommonNetworkRoutes.BiDirectional);
+
+    private static readonly Vector3SyncedSet CollectedSpawnPoints =
+        new("CollectedSpawnPoints", CommonNetworkRoutes.BiDirectional);
+
     private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints");
 
     private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();
@@ -75,13 +70,13 @@ public static class SpawnManager
     {
         var player = Clockhunt.Context.LocalPlayer;
         var rigManager = player.RigRefs?.RigManager;
-        
+
         if (rigManager == null)
             return;
 
         if (rigManager.remapHeptaRig._jumping)
             return;
-        
+
         if (rigManager.physicsRig.footSupported < 0.1f)
             return;
 
@@ -89,13 +84,14 @@ public static class SpawnManager
             return;
 
         var position = rigManager.physicsRig.m_pelvis.position;
-        CollectedSpawnPoints.Add(position); 
+        CollectedSpawnPoints.Add(position);
     }
-    
+
     public static void SubmitSynced(int count)
     {
         var spawnPoints = CollectedSpawnPoints
-            .GroupBy(position => CollectedSpawnPoints.Where(p => p != position).Min(other => Vector3.Distance(position, other)))
+            .GroupBy(position =>
+                CollectedSpawnPoints.Where(p => p != position).Min(other => Vector3.Distance(position, other)))
             .OrderByDescending(group => group.Key)
             .Take(count);
 
@@ -111,7 +107,7 @@ public static class SpawnManager
     {
         if (CollectedSpawnPoints.Count > MaxCollectedSpawns)
             return;
-        
+
         TimedSpawnCollector.Update(delta);
     }
 
@@ -123,20 +119,15 @@ public static class SpawnManager
         var samplesPerPlayer = MaxCollectedSpawns / playerCount;
         var sampleInterval = Math.Max(sampleDurationSeconds / samplesPerPlayer, 1f);
         TimedSpawnCollector.SetDelay(sampleInterval);
-        
-        Executor.RunIfHost(() =>
-        {
-            CollectedSpawnPoints.Clear();
-        });
+
+        Executor.RunIfHost(() => { CollectedSpawnPoints.Clear(); });
     }
 
     public static Transform[] GetSpawnPoints()
     {
         // Populate the list
         for (var i = SpawnObjects.Count; i < SyncedSpawnPoints.Count; i++)
-        {
             SpawnObjects.AddLast(new SpawnObjectInstance());
-        }
 
         using var syncedSpawnPointsEnumerator = SyncedSpawnPoints.GetEnumerator();
         var list = new Transform[SyncedSpawnPoints.Count];

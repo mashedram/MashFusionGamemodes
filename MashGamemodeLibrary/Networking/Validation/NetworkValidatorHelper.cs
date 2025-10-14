@@ -1,11 +1,10 @@
-﻿using LabFusion.Network;
-using LabFusion.Player;
+﻿using LabFusion.Player;
 
 namespace MashGamemodeLibrary.networking.Validation;
 
 public static class NetworkValidatorHelper
 {
-    public  static bool IsClient(byte playerID)
+    public static bool IsClient(byte playerID)
     {
         return playerID != PlayerIDManager.HostSmallID;
     }

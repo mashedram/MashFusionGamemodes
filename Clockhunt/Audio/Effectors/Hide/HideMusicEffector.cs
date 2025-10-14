@@ -7,7 +7,7 @@ namespace Clockhunt.Audio.Effectors.Hide;
 
 public class HideMusicEffector : AudioEffector<ClockhuntMusicContext>
 {
-    public HideMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new []
+    public HideMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
         "Sylvie.SignalisMonodiscs.MonoDisc.3000Cycles",
         "Sylvie.SignalisMonodiscs.MonoDisc.FalkesTheme",
@@ -15,8 +15,7 @@ public class HideMusicEffector : AudioEffector<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.Home"
     }))))
     {
-        
     }
-    
+
     public override Enum Track => EffectorTracks.Music;
 }

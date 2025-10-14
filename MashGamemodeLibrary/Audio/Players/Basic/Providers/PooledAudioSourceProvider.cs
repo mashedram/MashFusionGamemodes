@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Audio.Modifiers;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
-class AudioPoolMember
+internal class AudioPoolMember
 {
     private AudioSourceEntity? _source;
 
@@ -18,12 +17,12 @@ class AudioPoolMember
         return _source;
     }
 
-    public bool TryGet([MaybeNullWhen(returnValue: false)] out AudioSourceEntity audioSource)
+    public bool TryGet([MaybeNullWhen(false)] out AudioSourceEntity audioSource)
     {
         audioSource = _source;
         return _source;
     }
-    
+
     public void Update(float delta)
     {
         if (_source is { IsValid: true })
@@ -34,8 +33,8 @@ class AudioPoolMember
 public class PooledAudioSourceProvider : AudioSourceProvider
 {
     private readonly int _poolSize;
-    private int _currentIndex;
     private readonly AudioPoolMember[] _sources;
+    private int _currentIndex;
 
     public PooledAudioSourceProvider(int size, AudioModifierFactory modifierFactory) : base(modifierFactory)
     {
@@ -50,7 +49,7 @@ public class PooledAudioSourceProvider : AudioSourceProvider
     protected override AudioSourceEntity NextAudioSource(AudioModifierFactory modifierFactory)
     {
         var timeout = 0;
-        
+
         AudioSourceEntity source;
         do
         {
@@ -68,10 +67,8 @@ public class PooledAudioSourceProvider : AudioSourceProvider
     public override void StopAll()
     {
         foreach (var member in _sources)
-        {
             if (member.TryGet(out var source) && source.IsPlaying)
                 source.Stop();
-        }
     }
 
     public override void Update(float delta)

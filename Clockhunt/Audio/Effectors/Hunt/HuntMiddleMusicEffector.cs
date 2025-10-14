@@ -7,7 +7,7 @@ namespace Clockhunt.Audio.Effectors;
 
 public class HuntMiddleMusicEffector : AudioEffector<ClockhuntMusicContext>
 {
-    public HuntMiddleMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new []
+    public HuntMiddleMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
         "Sylvie.SignalisMonodiscs.MonoDisc.DoubleBack",
         "Sylvie.SignalisMonodiscs.MonoDisc.Liminality",
@@ -15,8 +15,7 @@ public class HuntMiddleMusicEffector : AudioEffector<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.Bodies"
     }))))
     {
-        
     }
-    
+
     public override Enum Track => EffectorTracks.Music;
 }

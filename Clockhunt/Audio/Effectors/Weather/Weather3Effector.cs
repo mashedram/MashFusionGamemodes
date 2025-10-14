@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Clockhunt.Audio.Effectors.Weather.Fog;
+﻿using Clockhunt.Audio.Effectors.Weather.Fog;
 using Clockhunt.Audio.Effectors.Weather.Night;
 using Clockhunt.Config;
 using MashGamemodeLibrary.Environment;
@@ -9,6 +8,8 @@ namespace Clockhunt.Audio.Effectors.Weather;
 
 public class Weather3Effector : MappedSelector<ClockhuntMusicContext, WeatherType>
 {
+    public override Enum Track => EffectorTracks.Weather;
+
     protected override void BuildMap(ref Dictionary<WeatherType, EnvironmentEffector<ClockhuntMusicContext>> map)
     {
         map.Add(WeatherType.None, new NoneWeatherEffector());
@@ -21,6 +22,4 @@ public class Weather3Effector : MappedSelector<ClockhuntMusicContext, WeatherTyp
     {
         return ClockhuntConfig.WeatherType.Value;
     }
-
-    public override Enum Track => EffectorTracks.Weather;
 }

@@ -12,9 +12,10 @@ public static class StableHash
             hash ^= c;
             hash *= fnvPrime;
         }
+
         return hash;
     }
-    
+
     public static ulong GetStableHash(this string input)
     {
         return Fnv1A64(input);

@@ -1,21 +1,8 @@
 ﻿using Clockhunt.Vision;
-using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow.Pool;
-using LabFusion.Data;
 using LabFusion.Entities;
-using LabFusion.Marrow;
-using LabFusion.Marrow.Pool;
-using LabFusion.SDK.Triggers;
-using MashGamemodeLibrary.Audio.Containers;
-using MashGamemodeLibrary.Audio.Loaders;
-using MashGamemodeLibrary.Audio.Modifiers;
-using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
-using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
-using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Clockhunt.Nightmare.Implementations;
 
@@ -40,7 +27,7 @@ public class StalkerNightmareInstance : NightmareInstance
 
     public override void OnUpdate(float delta)
     {
-        if (Owner.PlayerID.IsMe) 
+        if (Owner.PlayerID.IsMe)
             return;
 
         var headPosition = Clockhunt.Context.LocalPlayer.RigRefs.Head.transform.position;
@@ -49,7 +36,7 @@ public class StalkerNightmareInstance : NightmareInstance
         var distance = toHead.magnitude;
 
         var isHidden = distance > VisibilityDistance;
-        
+
         Owner.PlayerID.SetHidden(StalkerHideKey, isHidden);
     }
 

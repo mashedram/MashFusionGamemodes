@@ -6,6 +6,9 @@ namespace MashGamemodeLibrary.Debug;
 
 public class DebugRenderer
 {
+    private static readonly Texture2D LitmasTexture = CreateColorTexture(new Color(0, 255, 59));
+    private static readonly List<GameObject> LineRenderers = new();
+
     private static Texture2D CreateColorTexture(Color color)
     {
         var tex = new Texture2D(1, 1);
@@ -13,9 +16,6 @@ public class DebugRenderer
         tex.Apply();
         return tex;
     }
-
-    private static readonly Texture2D LitmasTexture = CreateColorTexture(new Color(0, 255, 59));
-    private static readonly List<GameObject> LineRenderers = new();
 
     private static void RenderLine(Vector3[] positions, Color color)
     {
@@ -25,7 +25,7 @@ public class DebugRenderer
         lineRenderer.SetPositions(positions);
         lineRenderer.startWidth = 0.01f;
         lineRenderer.endWidth = 0.01f;
-        
+
         var material = new Material(Shader.Find("SLZ/LitMAS/LitMAS Standard"))
         {
             color = color
@@ -33,18 +33,18 @@ public class DebugRenderer
         material.SetTexture("_MetallicGlossMap", LitmasTexture);
         material.SetFloat("_Emission", 1f);
         material.SetColor("_EmissionColor", color);
-        
+
         lineRenderer.material = material;
-        
+
         LineRenderers.Add(go);
     }
 
     public static void RenderCube(Vector3 center, Vector3 size, Color? color = null)
     {
         var half = size / 2f;
-        
+
         // 8 corners
-        Vector3[] corners = new Vector3[8];
+        var corners = new Vector3[8];
         corners[0] = center + new Vector3(-half.x, -half.y, -half.z);
         corners[1] = center + new Vector3(half.x, -half.y, -half.z);
         corners[2] = center + new Vector3(half.x, -half.y, half.z);
@@ -55,7 +55,7 @@ public class DebugRenderer
         corners[7] = center + new Vector3(-half.x, half.y, half.z);
 
         // 12 edges (24 points, each edge is two points)
-        Vector3[] edgePoints = new Vector3[]
+        var edgePoints = new[]
         {
             // Bottom face
             corners[0], corners[1],
@@ -73,7 +73,7 @@ public class DebugRenderer
             corners[2], corners[6],
             corners[3], corners[7]
         };
-        
+
         RenderLine(edgePoints, color ?? Color.green);
     }
 

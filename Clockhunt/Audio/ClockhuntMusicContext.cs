@@ -9,14 +9,14 @@ public class ClockhuntMusicContext
 {
     private const float ChaseDuration = 5f;
     private static readonly LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
-    
+
     private static float _chaseTimer;
     private GamePhase _phase = null!;
-    
+
     public float PhaseProgress => Mathf.Clamp01(_phase.ElapsedTime / _phase.Duration);
     public bool IsChasing { get; private set; }
     public static bool IsLocalNightmare => WinStateManager.LocalGameTeam == GameTeam.Nightmares;
-    
+
     public bool IsPhase<T>() where T : GamePhase
     {
         return _phase is T;
@@ -26,7 +26,7 @@ public class ClockhuntMusicContext
     {
         if (!nightmare.Owner.HasRig)
             return false;
-        
+
         var otherPosition = nightmare.Owner.RigRefs.Head.position;
         var line = otherPosition - localPosition;
         var distance = line.magnitude;
@@ -41,18 +41,19 @@ public class ClockhuntMusicContext
     {
         _chaseTimer = 0f;
     }
-    
+
     public static ClockhuntMusicContext GetContext(ClockhuntContext context)
     {
         var delta = Time.deltaTime;
 
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
-        var shouldBeChasing = WinStateManager.LocalGameTeam != GameTeam.Nightmares && 
-                        NightmareManager.Nightmares.Any(nightmare => IsNightmareChasing(nightmare, localPosition));
+        var shouldBeChasing = WinStateManager.LocalGameTeam != GameTeam.Nightmares &&
+                              NightmareManager.Nightmares.Any(nightmare =>
+                                  IsNightmareChasing(nightmare, localPosition));
 
         _chaseTimer = shouldBeChasing ? ChaseDuration : Mathf.Max(0, _chaseTimer - delta);
         var isChasing = _chaseTimer > 0.5f;
-        
+
         return new ClockhuntMusicContext
         {
             _phase = GamePhaseManager.GetActivePhase(),

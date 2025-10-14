@@ -1,5 +1,4 @@
 ﻿using Clockhunt.Config;
-using MashGamemodeLibrary.networking.Variable.Impl;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -9,7 +8,7 @@ namespace Clockhunt.Vision;
 
 internal struct NightVisionObject
 {
-    public GameObject GameObject;    
+    public GameObject GameObject;
     public ColorAdjustments ColorAdjustments;
 
     public void SetActive(bool state)
@@ -36,16 +35,13 @@ public static class VisionManager
 
     static VisionManager()
     {
-        ClockhuntConfig.NightVisionBrightness.OnValueChanged += value =>
-        {
-            _instance?.SetBrightness(value);
-        };
+        ClockhuntConfig.NightVisionBrightness.OnValueChanged += value => { _instance?.SetBrightness(value); };
     }
 
     private static NightVisionObject GetOrCreate()
     {
         if (_instance != null && _instance.Value.GameObject) return _instance.Value;
-        
+
         var go = new GameObject("VisionManager")
         {
             transform =
@@ -61,7 +57,7 @@ public static class VisionManager
 
         var profile = ScriptableObject.CreateInstance<VolumeProfile>();
         volume.sharedProfile = profile;
-        
+
         var colorAdjustments = profile.Add<ColorAdjustments>(true);
         colorAdjustments.contrast.value = 20f; // Increase contrast
         colorAdjustments.postExposure.value = ClockhuntConfig.NightVisionBrightness; // Slightly increase exposure
@@ -73,11 +69,11 @@ public static class VisionManager
         light.intensity = 1f;
         light.type = LightType.Directional;
         light.shadows = LightShadows.None;
-        
+
         _instance = new NightVisionObject
         {
             GameObject = go,
-            ColorAdjustments = colorAdjustments,
+            ColorAdjustments = colorAdjustments
         };
         return _instance.Value;
     }
@@ -85,11 +81,11 @@ public static class VisionManager
     public static void EnableNightVision()
     {
         if (!ClockhuntConfig.NightVision.Value) return;
-        
+
         var go = GetOrCreate();
         go.SetActive(true);
     }
-    
+
     public static void DisableNightVision()
     {
         _instance?.SetActive(false);

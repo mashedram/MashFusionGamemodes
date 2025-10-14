@@ -2,7 +2,7 @@
 
 public class Fog3WeatherEffector : ClockhuntWeatherEffector
 {
-    public Fog3WeatherEffector() : base(new string[]
+    public Fog3WeatherEffector() : base(new[]
     {
         "FirePura.BoneWeater.Spawnable.FogHeavy"
     }, true)

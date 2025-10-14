@@ -1,9 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using System.Text;
 using BoneLib;
-using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -16,29 +13,16 @@ using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Validation.Routes;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
-using UnityEngine.UIElements;
 
 namespace MashGamemodeLibrary.networking;
 
 #if DEBUG
-class InvalidRemoteEventPacket : INetSerializable
+internal class InvalidRemoteEventPacket : INetSerializable
 {
     private const int IdSize = sizeof(ulong);
 
     public ulong EventId;
     public byte[] KnownIdBytes;
-
-    public ulong[] GetKnownIds()
-    {
-        var count = KnownIdBytes.Length / IdSize;
-        var ids = new ulong[count];
-        for (var i = 0; i < count; i++)
-        {
-            ids[i] = BitConverter.ToUInt64(KnownIdBytes, i * IdSize);
-        }
-
-        return ids;
-    }
 
     public InvalidRemoteEventPacket()
     {
@@ -62,10 +46,19 @@ class InvalidRemoteEventPacket : INetSerializable
         serializer.SerializeValue(ref EventId);
         serializer.SerializeValue(ref KnownIdBytes);
     }
+
+    public ulong[] GetKnownIds()
+    {
+        var count = KnownIdBytes.Length / IdSize;
+        var ids = new ulong[count];
+        for (var i = 0; i < count; i++) ids[i] = BitConverter.ToUInt64(KnownIdBytes, i * IdSize);
+
+        return ids;
+    }
 }
 #endif
 
-class RemoteSceneLoadedPacket : DummySerializable, IKnownSenderPacket
+internal class RemoteSceneLoadedPacket : DummySerializable, IKnownSenderPacket
 {
     public byte SenderPlayerID { get; set; }
 }
@@ -106,33 +99,15 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     private static readonly List<ICatchup> Catchups = new();
     private static readonly List<IResettable> Resettables = new();
 
-#if DEBUG
+    // Due to the order in which static fields initialize, this NEEDS to be the lowest one.
     private static readonly Dictionary<ulong, string> EventNames = new();
 
-    private static void OnInvalidRemoteEvent(InvalidRemoteEventPacket packet)
-    {
-        var eventId = packet.EventId;
-        if (!EventNames.TryGetValue(eventId, out var name))
-        {
-            MelonLogger.Msg($"Received invalid RemoteEvent with unknown ID: {eventId}. Did we even send it?");
-            return;
-        }
-
-        var knownIds = packet.GetKnownIds();
-        var knownNames = knownIds.Select(id =>
-            EventNames.TryGetValue(id, out var knownName) ? $"{id} - {knownName}" : $"Unknown ({id})").ToList();
-        MelonLogger.Msg(
-            $"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
-    }
-    
     private static readonly RemoteEvent<InvalidRemoteEventPacket> OnInvalidEventPacket =
         new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, false, CommonNetworkRoutes.ClientToHost);
-#endif
-    
-    // Due to the order in which static fields initialize, this NEEDS to be the lowest one.
+
     private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
         new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false, new ClientToHostNetworkRoute());
-    
+
     static RemoteEventMessageHandler()
     {
         MultiplayerHooking.OnJoinedServer += OnServerChanged;
@@ -143,13 +118,13 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         {
             if (!NetworkInfo.HasServer)
                 return;
-         
+
             if (NetworkInfo.IsHost)
                 return;
-            
+
             LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
         };
-    } 
+    }
 
     public static ulong RegisterEvent<T>(string name, GenericRemoteEvent<T> callback)
     {
@@ -160,21 +135,15 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         MelonLogger.Msg($"Registered RemoteEvent with name: {name} and ID: {eventId}");
 #endif
 
-        if (callback is ICatchup catchup)
-        {
-            Catchups.Add(catchup);
-        }
-        
-        if (callback is IResettable resettable)
-        {
-            Resettables.Add(resettable);
-        }
-        
+        if (callback is ICatchup catchup) Catchups.Add(catchup);
+
+        if (callback is IResettable resettable) Resettables.Add(resettable);
+
         return eventId;
     }
 
     /// <summary>
-    /// This registers all *STATIC* RemoteEvents in the assembly of type T.
+    ///     This registers all *STATIC* RemoteEvents in the assembly of type T.
     /// </summary>
     /// <typeparam name="T">The mod class type</typeparam>
     public static void RegisterMod<T>()
@@ -204,14 +173,14 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
                     baseType = baseType.BaseType;
                 }
-                
+
                 if (foundRemoteEvent)
                     break;
             }
-            
+
             if (!foundRemoteEvent)
                 continue;
-            
+
             RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }
     }
@@ -240,10 +209,8 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 #if DEBUG
                 var hostID = PlayerIDManager.GetHostID();
                 if (hostID == null)
-                {
                     throw new Exception(
                         "How the fuck do we receive a network event without a host to send it. WHAT THE FUCK");
-                }
 
                 OnInvalidEventPacket.CallFor(hostID,
                     new InvalidRemoteEventPacket(data.EventId, EventCallbacks.Keys.ToArray()));
@@ -284,14 +251,11 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         Executor.RunIfHost(() =>
         {
             var id = PlayerIDManager.GetPlayerID(packet.SenderPlayerID);
-            
+
             if (id == null)
                 return;
-            
-            foreach (var catchup in Catchups)
-            {
-                catchup.OnCatchup(id);
-            }
+
+            foreach (var catchup in Catchups) catchup.OnCatchup(id);
         });
     }
 
@@ -299,4 +263,26 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     {
         Resettables.ForEach(r => r.Reset());
     }
+
+#if DEBUG
+
+
+    private static void OnInvalidRemoteEvent(InvalidRemoteEventPacket packet)
+    {
+        var eventId = packet.EventId;
+        if (!EventNames.TryGetValue(eventId, out var name))
+        {
+            MelonLogger.Msg($"Received invalid RemoteEvent with unknown ID: {eventId}. Did we even send it?");
+            return;
+        }
+
+        var knownIds = packet.GetKnownIds();
+        var knownNames = knownIds.Select(id =>
+            EventNames.TryGetValue(id, out var knownName) ? $"{id} - {knownName}" : $"Unknown ({id})").ToList();
+        MelonLogger.Msg(
+            $"Received invalid RemoteEvent with ID: {eventId} ({name}). Known IDs: {string.Join(", ", knownNames)}");
+    }
+
+
+#endif
 }

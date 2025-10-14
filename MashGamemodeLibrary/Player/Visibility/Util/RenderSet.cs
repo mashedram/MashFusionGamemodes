@@ -4,18 +4,16 @@ namespace MashGamemodeLibrary.Vision;
 
 internal class RenderSet
 {
-    private bool _isValid;
-    private bool _hidden;
     private readonly HashSet<GameObject> _gameObjects = new();
     private readonly HashSet<Renderer> _renderers = new();
-
-    public bool IsValid => CheckValidity();
+    private bool _hidden;
+    private bool _isValid;
 
     public RenderSet(GameObject? root, bool hidden)
     {
         _isValid = true;
         _hidden = hidden;
-        
+
         Set(root);
     }
 
@@ -25,43 +23,37 @@ internal class RenderSet
         _hidden = hidden;
     }
 
+    public bool IsValid => CheckValidity();
+
     private bool CheckValidity()
     {
         if (!_isValid)
             return false;
 
         foreach (var gameObject in _gameObjects)
-        {
             if (gameObject == null)
                 _isValid = false;
-        }
 
         return _isValid;
     }
-    
+
     public void Set(GameObject? root, bool? hidden = null)
     {
-        if (hidden.HasValue)
-        {
-            _hidden = hidden.Value;
-        }
-        
+        if (hidden.HasValue) _hidden = hidden.Value;
+
         _renderers.Clear();
-        
+
         if (root == null) return;
         _isValid = true;
         _gameObjects.Clear();
         _gameObjects.Add(root);
-        
+
         var renderers = root.GetComponentsInChildren<Renderer>();
         _renderers.EnsureCapacity(renderers.Count);
-        
+
         foreach (var renderer in renderers)
         {
-            if (!renderer)
-            {
-                continue;
-            }
+            if (!renderer) continue;
             _renderers.Add(renderer);
             renderer.enabled = !_hidden;
         }
@@ -78,7 +70,7 @@ internal class RenderSet
         if (root == null) return;
         _isValid = true;
         _gameObjects.Add(root);
-        
+
         var renderers = root.GetComponentsInChildren<Renderer>();
         _renderers.EnsureCapacity(_renderers.Count + renderers.Count);
         foreach (var renderer in renderers)
@@ -102,7 +94,7 @@ internal class RenderSet
 
         if (!_isValid)
             return;
-        
+
         foreach (var renderer in _renderers)
         {
             if (!renderer)
@@ -110,6 +102,7 @@ internal class RenderSet
                 _isValid = false;
                 return;
             }
+
             renderer.enabled = !_hidden;
         }
     }

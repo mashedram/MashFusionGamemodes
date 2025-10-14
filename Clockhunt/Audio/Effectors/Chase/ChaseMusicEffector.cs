@@ -1,14 +1,13 @@
 ﻿using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Background;
-using MashGamemodeLibrary.Audio.Players.Extensions;
 using MashGamemodeLibrary.Environment.Effector;
 
 namespace Clockhunt.Audio.Effectors;
 
 public class ChaseMusicEffector : AudioEffector<ClockhuntMusicContext>
 {
-    public ChaseMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new []
+    public ChaseMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
         "Sylvie.SignalisMonodiscs.MonoDisc.RiotControl",
         "Sylvie.SignalisMonodiscs.MonoDisc.Kolibri",
@@ -17,8 +16,7 @@ public class ChaseMusicEffector : AudioEffector<ClockhuntMusicContext>
         "Sylvie.SignalisMonodiscs.MonoDisc.Blockwart"
     }))))
     {
-        
     }
-    
+
     public override Enum Track => EffectorTracks.Music;
 }

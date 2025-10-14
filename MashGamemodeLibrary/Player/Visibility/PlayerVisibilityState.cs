@@ -10,28 +10,27 @@ namespace MashGamemodeLibrary.Vision;
 
 internal class PlayerVisibilityState
 {
-    private bool _isSpecialHidden;
-    private Avatar? _lastAvatar;
-    
-    private readonly NetworkPlayer _player;
-    private readonly Dictionary<string, bool> _hideOverwrites = new();
-    
     private readonly RenderSet _avatarRenderers = new();
-    private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
-    private readonly RenderSet _specialRenderers = new();
 
     private readonly Dictionary<Handedness, RenderSet> _heldItems = new();
+    private readonly Dictionary<string, bool> _hideOverwrites = new();
+    private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
 
-    private bool _isHiddenInternal = false;
+    private readonly NetworkPlayer _player;
+    private readonly RenderSet _specialRenderers = new();
 
-    public bool IsHidden => _hideOverwrites.Any(e => e.Value);
-    
+    private bool _isHiddenInternal;
+    private bool _isSpecialHidden;
+    private Avatar? _lastAvatar;
+
     public PlayerVisibilityState(NetworkPlayer player, bool specialHidden)
     {
         _player = player;
         _isSpecialHidden = specialHidden;
         PopulateRenderers();
     }
+
+    public bool IsHidden => _hideOverwrites.Any(e => e.Value);
 
     private bool IsValid()
     {
@@ -40,7 +39,6 @@ internal class PlayerVisibilityState
 
     private void SetHeadUI(bool hidden)
     {
-        
         _player.HeadUI.Visible = !hidden;
     }
 
@@ -52,36 +50,38 @@ internal class PlayerVisibilityState
 
         _heldItems[grabData.Hand.handedness] = set;
     }
-    
+
     public void PopulateRenderers()
     {
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
         _specialRenderers.Clear();
-        
+
         if (!_player.HasRig)
         {
             _lastAvatar = null;
             _isHiddenInternal = false;
             return;
         }
-        
+
         var rigManager = _player.RigRefs.RigManager;
 
         _isHiddenInternal = IsHidden;
 
         _avatarRenderers.Set(rigManager.avatar.gameObject, _isHiddenInternal);
-        
+
         foreach (var slotContainer in rigManager.inventory.bodySlots)
         {
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
-            InventoryHandReceiver receiver = slotContainer.inventorySlotReceiver != null ? slotContainer.inventorySlotReceiver : slotContainer.inventoryAmmoReceiver;
+            InventoryHandReceiver receiver = slotContainer.inventorySlotReceiver != null
+                ? slotContainer.inventorySlotReceiver
+                : slotContainer.inventoryAmmoReceiver;
             if (receiver == null)
                 continue;
             _inventoryRenderers[receiver] = new HolsterHider(slotContainer, _isHiddenInternal);
         }
-        
+
         // Check for dualAction compatibility
         var rightBelt = rigManager.physicsRig.m_pelvis.FindChild("BeltRt1");
         if (rightBelt != null && rightBelt.TryGetComponent<SlotContainer>(out var rightBeltSlot))
@@ -89,7 +89,7 @@ internal class PlayerVisibilityState
             var receiver = rightBeltSlot.inventoryAmmoReceiver;
             _inventoryRenderers[receiver] = new HolsterHider(rightBeltSlot, _isHiddenInternal);
         }
-        
+
         foreach (var slotContainer in rigManager.inventory.specialItems)
         {
             if (!slotContainer || !slotContainer.gameObject)
@@ -98,16 +98,13 @@ internal class PlayerVisibilityState
         }
 
         var hands = new[] { rigManager.physicsRig.leftHand, rigManager.physicsRig.rightHand };
-        foreach (var hand in hands)
-        {
-            PopulateHand(new GrabData(hand));
-        }
+        foreach (var hand in hands) PopulateHand(new GrabData(hand));
     }
-    
+
     public void SetSpecialsHidden(bool hidden)
     {
         _isSpecialHidden = hidden;
-        
+
         _specialRenderers.SetHidden(_isSpecialHidden);
     }
 
@@ -128,25 +125,23 @@ internal class PlayerVisibilityState
             PopulateRenderers();
             return;
         }
-        
+
         _avatarRenderers.SetHidden(_isHiddenInternal);
-        
+
         _inventoryRenderers.Values.ForEach(v => v.SetHidden(hidden));
-        
+
         _specialRenderers.SetHidden(_isHiddenInternal);
 
         foreach (var rendererVisibility in _heldItems.Values.Select(heldItem => heldItem))
-        {
             rendererVisibility.SetHidden(hidden);
-        }
 
         SetHeadUI(hidden);
     }
-    
+
     public void SetHidden(string key, bool hidden)
     {
         _hideOverwrites[key] = hidden;
-        
+
         Refresh();
     }
 
@@ -168,7 +163,7 @@ internal class PlayerVisibilityState
         if (!_heldItems.Remove(hand.Hand.handedness, out var renderers)) return;
         renderers.SetHidden(false);
     }
-    
+
     public void OnHolster(InventoryHandReceiver slotReceiver)
     {
         if (_inventoryRenderers.TryGetValue(slotReceiver, out var item))
@@ -176,15 +171,15 @@ internal class PlayerVisibilityState
             item.Update(IsHidden);
             return;
         }
-        
+
         _inventoryRenderers[slotReceiver] = new HolsterHider(slotReceiver, IsHidden);
     }
-    
+
     public void OnUnholster(InventorySlotReceiver slotReceiver)
     {
-        if (!_inventoryRenderers.TryGetValue(slotReceiver, out var hider)) 
+        if (!_inventoryRenderers.TryGetValue(slotReceiver, out var hider))
             return;
-        
+
         hider.Update(IsHidden);
     }
 
@@ -197,7 +192,7 @@ internal class PlayerVisibilityState
         }
 
         var rigManager = _player.RigRefs.RigManager;
-        
+
         var avatar = rigManager.avatar;
 
         if (avatar == null)
@@ -205,12 +200,12 @@ internal class PlayerVisibilityState
             _lastAvatar = null;
             return;
         }
-            
-        if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden || !IsValid())
+
+        if ((_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden) || !IsValid())
             return;
-        
+
         _lastAvatar = avatar;
-        
+
         PopulateRenderers();
     }
 }

@@ -1,36 +1,54 @@
-﻿using LabFusion.Entities;
-using LabFusion.Network;
-using LabFusion.SDK.Gamemodes;
+﻿using System.Reflection;
+using LabFusion.Entities;
+using LabFusion.Extensions;
+using MashGamemodeLibrary.Context.Control;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Context;
 
 public abstract class GameModeContext
 {
-    private bool _isReady;
-    private bool _isStarted;
-    public bool IsReady => _isReady;
-    public bool IsStarted => _isStarted;
+    private static HashSet<IUpdating> UpdateCache = new();
     
-    private NetworkPlayer? _localPlayer;
     private NetworkPlayer? _hostPlayer;
-    public NetworkPlayer LocalPlayer => 
+    private NetworkPlayer? _localPlayer;
+    public NetworkPlayer LocalPlayer =>
         _localPlayer ?? throw new InvalidOperationException("LocalPlayer is not set. Make sure to call OnStart.");
-    public NetworkPlayer HostPlayer => 
+    public NetworkPlayer HostPlayer =>
         _hostPlayer ?? throw new InvalidOperationException("Failed to get host NetworkPlayer.");
+    
+    public bool IsReady { get; private set; }
+    public bool IsStarted { get; private set; }
 
-    protected virtual void OnUpdate(float delta) {}
+    public GameModeContext()
+    {
+        var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+        foreach (var field in fields)
+        {
+            if (!typeof(IUpdating).IsAssignableFrom(field.FieldType)) continue;
+            
+#if DEBUG
+            if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
+#endif
+            var value = field.GetValue(this) as IUpdating;
+            if (value == null)
+                continue;
+
+            UpdateCache.Add(value);
+        }
+    }
 
     internal void Update(float delta)
     {
-        if (!_isStarted) 
+        if (!IsStarted)
             return;
-        
-        OnUpdate(delta);
+
+        UpdateCache.ForEach(entry => entry.Update(delta));
     }
-    
+
     internal void OnReady()
     {
-        _isReady = true;
+        IsReady = true;
         _localPlayer = LabFusion.Player.LocalPlayer.GetNetworkPlayer();
         if (_localPlayer == null)
             throw new InvalidOperationException("Failed to get local NetworkPlayer.");
@@ -42,16 +60,16 @@ public abstract class GameModeContext
 
     internal void OnStart()
     {
-        _isStarted = true;
+        IsStarted = true;
     }
 
     internal void OnStop()
     {
-        _isStarted = false;
+        IsStarted = false;
     }
 
     internal void OnUnready()
     {
-        _isReady = false;
+        IsReady = false;
     }
 }

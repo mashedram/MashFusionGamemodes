@@ -18,11 +18,18 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
     // Registry Shenanigans
     private static readonly Dictionary<ulong, Func<IEntityTag>> TagFactories = new();
 
+    // Actual implementation
+
+    public EntityTagSyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToClient)
+    {
+    }
+
     private static ulong GetTagId<T>() where T : IEntityTag
     {
-        return typeof(T).FullName?.GetStableHash() ?? throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
+        return typeof(T).FullName?.GetStableHash() ??
+               throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
     }
-    
+
     public static void Register<T>() where T : IEntityTag, new()
     {
         var tagId = GetTagId<T>();
@@ -31,13 +38,6 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
         MelonLogger.Msg($"Registering type ${fullname} with hash {fullname.GetHashCode()} or {tagId}");
 #endif
         TagFactories[tagId] = () => new T();
-    }
-    
-    // Actual implementation
-    
-    public EntityTagSyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToClient)
-    {
-        
     }
 
     protected override int? GetSize(DictionaryEdit<EntityTagIndex, IEntityTag> data)
@@ -62,29 +62,23 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
 
     protected override void WriteValue(NetWriter writer, IEntityTag value)
     {
-        if (value is INetSerializable serializable)
-        {
-            serializable.Serialize(writer);
-        }
+        if (value is INetSerializable serializable) serializable.Serialize(writer);
     }
 
     protected override IEntityTag ReadValue(NetReader reader, EntityTagIndex key)
     {
-        #if DEBUG
+#if DEBUG
         // ReSharper disable once InvertIf
         if (!TagFactories.ContainsKey(key.TagID))
         {
             MelonLogger.Error($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
             throw new Exception($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
         }
-        #endif
+#endif
 
         var tag = TagFactories[key.TagID].Invoke();
 
-        if (tag is INetSerializable serializable)
-        {
-            serializable.Serialize(reader);
-        }
+        if (tag is INetSerializable serializable) serializable.Serialize(reader);
 
         return tag;
     }

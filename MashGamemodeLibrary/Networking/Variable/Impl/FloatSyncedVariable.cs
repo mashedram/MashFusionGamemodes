@@ -1,5 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using UnityEngine;
 
@@ -7,7 +6,8 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class FloatSyncedVariable : SyncedVariable<float>
 {
-    public FloatSyncedVariable(string name, float defaultValue, INetworkRoute? route = null) : base(name, defaultValue, route)
+    public FloatSyncedVariable(string name, float defaultValue, INetworkRoute? route = null) : base(name, defaultValue,
+        route)
     {
     }
 

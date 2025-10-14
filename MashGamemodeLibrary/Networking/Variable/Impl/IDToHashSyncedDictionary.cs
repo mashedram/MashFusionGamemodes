@@ -1,5 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;

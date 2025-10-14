@@ -3,28 +3,24 @@ using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Environment.State;
-using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.networking;
-using MashGamemodeLibrary.Util;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Environment;
 
 public class Track<TInternalContext>
 {
-    private Enum _id;
     private EnvironmentEffector<TInternalContext>? _effector;
+    private Enum _id;
 
     public Track(Enum id)
     {
         _id = id;
     }
-    
+
     public void SetEffector(EnvironmentEffector<TInternalContext>? effector, TInternalContext context)
     {
         if (_effector == effector)
             return;
-        
+
         _effector?.Remove(context);
         _effector = effector;
         _effector?.Apply(context);
@@ -36,7 +32,7 @@ public class Track<TInternalContext>
     }
 }
 
-class EnvironmentChangePacket : INetSerializable
+internal class EnvironmentChangePacket : INetSerializable
 {
     public ulong StateHash;
 
@@ -51,33 +47,33 @@ class EnvironmentChangePacket : INetSerializable
     }
 }
 
-public class EnvironmentManager<TContext, TInternalContext> 
+public class EnvironmentManager<TContext, TInternalContext>
     where TContext : GameModeContext, new()
 {
-    private ImmutableSortedSet<int> _knownLayers = null!;
-    private Dictionary<int, EnvironmentState<TInternalContext>?> _activeStates = new();
-    private Dictionary<Enum, Track<TInternalContext>> _tracks = new();
-    private EnvironmentProfile<TInternalContext>? _profile;
-    private Func<TContext, TInternalContext> _contextBuilder;
+    private readonly Dictionary<int, EnvironmentState<TInternalContext>?> _activeStates = new();
+    private readonly Func<TContext, TInternalContext> _contextBuilder;
+    private readonly Dictionary<Enum, Track<TInternalContext>> _tracks = new();
     private TInternalContext _context = default!;
+    private ImmutableSortedSet<int> _knownLayers = null!;
+    private EnvironmentProfile<TInternalContext>? _profile;
 
     public EnvironmentManager(Func<TContext, TInternalContext> contextBuilder)
     {
         _contextBuilder = contextBuilder;
     }
-    
+
     // Local
-    
+
     private Track<TInternalContext> GetOrCreateTrack(Enum id)
     {
         if (_tracks.TryGetValue(id, out var value))
             return value;
-        
+
         var track = new Track<TInternalContext>(id);
         _tracks[id] = track;
         return track;
     }
-    
+
     private void BuildContext()
     {
         var context = GamemodeWithContext<TContext>.Context;
@@ -96,24 +92,24 @@ public class EnvironmentManager<TContext, TInternalContext>
     {
         if (_profile == null)
             return;
-        
+
         _tracks.Values.ForEach(track => track.SetEffector(null, _context));
         _tracks.Clear();
         _activeStates.Clear();
         _profile.Cleanup();
         _profile = null;
     }
-    
+
     public void Update(float delta)
     {
         if (_profile == null)
             return;
-        
+
         BuildContext();
-        
+
         // Update existing tracks
         _tracks.Values.ForEach(track => track.Update(_context, delta));
-        
+
         var assignedTracks = new HashSet<Enum>();
 
         foreach (var layerId in _knownLayers)
@@ -121,7 +117,7 @@ public class EnvironmentManager<TContext, TInternalContext>
             // Get the active state for this layer
             var wantedState = _profile.GetWantedState(layerId, _context);
             _activeStates[layerId] = wantedState;
-            
+
             if (wantedState == null)
                 continue;
 

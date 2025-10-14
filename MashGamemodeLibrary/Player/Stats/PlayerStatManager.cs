@@ -1,8 +1,6 @@
 ﻿using LabFusion.Player;
-using LabFusion.Utilities;
-using MelonLoader;
 
-namespace MashGamemodeLibrary.Player;
+namespace MashGamemodeLibrary.Player.Stats;
 
 public static class PlayerStatManager
 {
@@ -15,14 +13,14 @@ public static class PlayerStatManager
 
         LocalHealth.VitalityOverride = value;
     }
-    
+
     public static void SetAvatarAndStats(string barcode, PlayerStats stats)
     {
         LocalStatOverride = stats;
         SetVitality(stats.Vitality);
         LocalAvatar.AvatarOverride = barcode;
     }
-    
+
     public static void SetStats(PlayerStats stats)
     {
         LocalStatOverride = stats;

@@ -4,7 +4,6 @@ using Clockhunt.Game;
 using Clockhunt.Nightmare;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
-using LabFusion.Senders;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
@@ -16,7 +15,7 @@ public class EscapePhase : GamePhase
 {
     public override string Name => "Escape";
     public override float Duration => 300f;
-    
+
     protected override void OnPhaseEnter()
     {
         Executor.RunIfHost(() =>
@@ -24,7 +23,7 @@ public class EscapePhase : GamePhase
             EscapeManager.ActivateRandomEscapePoint();
             WinStateManager.OverwriteLives(1);
         });
-        
+
         Notifier.Send(new Notification
         {
             Title = "All clocks delivered",
@@ -45,13 +44,13 @@ public class EscapePhase : GamePhase
     {
         return ClockhuntConfig.IsEscapePhaseEnabled && ClockManager.CountClockEntities() <= 0;
     }
-    
+
     public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
     {
         NightmareManager.OnAction(playerId, action, handedness);
         if (action != PhaseAction.Death)
             return;
-        
+
         WinStateManager.PlayerDied(playerId);
     }
 }

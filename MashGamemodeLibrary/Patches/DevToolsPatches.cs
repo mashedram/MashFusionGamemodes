@@ -8,7 +8,7 @@ namespace MashGamemodeLibrary.Patches;
 public static class DevToolsPatches
 {
     public static bool CanSpawn = true;
-    
+
     [HarmonyPatch(nameof(NetworkAssetSpawner.Spawn))]
     [HarmonyPrefix]
     public static bool Prefix()

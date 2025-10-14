@@ -1,10 +1,12 @@
-﻿
-using BoneStrike;
+﻿using BoneStrike;
 using LabFusion.SDK.Modules;
+using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
 
 [assembly: MelonInfo(typeof(Mod), "Bonestrike", "0.1.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
+
 namespace BoneStrike;
 
 public class Mod : MelonMod
@@ -13,6 +15,9 @@ public class Mod : MelonMod
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
+
         ModuleManager.RegisterModule<FusionModule>();
+        RemoteEventMessageHandler.RegisterMod<Mod>();
+        TeamManager.RegisterAll<Mod>();
     }
 }

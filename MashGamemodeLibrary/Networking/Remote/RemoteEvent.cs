@@ -9,10 +9,11 @@ namespace MashGamemodeLibrary.Networking.Remote;
 public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, new()
 {
     public delegate void PacketHandler(T onEscapePointActivedPacket);
-    
-    private readonly PacketHandler _onEvent;
+
     private readonly bool _callOnSender;
-    
+
+    private readonly PacketHandler _onEvent;
+
     /**
    * An event that, when called, will run on all specified clients.
    */
@@ -22,8 +23,9 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         _onEvent = onEvent;
         _callOnSender = callOnSender;
     }
-    
-    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(name, route)
+
+    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(name,
+        route)
     {
         _onEvent = onEvent;
         _callOnSender = callOnSender;
@@ -33,10 +35,10 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
     {
         if (data is IKnownSenderPacket knownSenderPacket)
             knownSenderPacket.SenderPlayerID = sender;
-        
+
         _onEvent.Invoke(data);
     }
-    
+
     /**
      * Run the event on all clients connected to the server.
      * This includes the host.
@@ -49,14 +51,14 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
             MelonLogger.Warning("No local player found, cannot call remote event. Is there a server running?");
             return;
         }
-        
+
         Relay(data);
-        
+
         // Call it local as well if we need to
-        if (_callOnSender) 
+        if (_callOnSender)
             OnEvent(PlayerIDManager.LocalSmallID, data);
     }
-    
+
     public void CallFor(PlayerID playerId, T data)
     {
         // Call it locally if it's for us
@@ -65,14 +67,14 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
             OnEvent(playerId.SmallID, data);
             return;
         }
-        
+
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer == null)
         {
             MelonLogger.Warning("No local player found, cannot call remote event. Is there a server running?");
             return;
         }
-        
+
         Relay(data, playerId.SmallID);
     }
 

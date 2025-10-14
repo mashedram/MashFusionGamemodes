@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.Environment.Effector;
 
 public abstract class MappedSelector<TContext, TKey> : EnvironmentEffector<TContext> where TKey : notnull
 {
-    private ImmutableDictionary<TKey, EnvironmentEffector<TContext>> _effectors;
+    private readonly ImmutableDictionary<TKey, EnvironmentEffector<TContext>> _effectors;
     private EnvironmentEffector<TContext>? _currentEffector;
 
     protected MappedSelector()
@@ -16,11 +16,11 @@ public abstract class MappedSelector<TContext, TKey> : EnvironmentEffector<TCont
         BuildMap(ref map);
         _effectors = map.ToImmutableDictionary();
     }
-    
+
     protected abstract void BuildMap(ref Dictionary<TKey, EnvironmentEffector<TContext>> map);
 
     protected abstract TKey Selector(TContext context);
-    
+
     public override void Apply(TContext context)
     {
         _currentEffector?.Apply(context);
@@ -43,7 +43,7 @@ public abstract class MappedSelector<TContext, TKey> : EnvironmentEffector<TCont
     {
         _currentEffector?.Update(context, delta);
     }
-    
+
     public override void Remove(TContext context)
     {
         _currentEffector?.Remove(context);

@@ -2,7 +2,6 @@
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
-using LabFusion.Player;
 using LabFusion.RPC;
 using UnityEngine;
 
@@ -19,20 +18,19 @@ public enum SlotType
 
 public class SlotData
 {
-    public bool ShouldOverride = true;
     public Barcode? Barcode;
+    public bool ShouldOverride = true;
 
     public SlotData()
     {
-        
     }
-    
+
     public SlotData(Barcode? barcode, bool shouldOverride = false)
     {
         Barcode = barcode;
         ShouldOverride = shouldOverride;
     }
-    
+
     public static string GetSlotName(SlotType type)
     {
         return type switch
@@ -51,10 +49,10 @@ public class SlotData
         var itemInSlot = slot._weaponHost?.GetGrip()?._marrowEntity;
         if (itemInSlot == null)
             return null;
-        
+
         return IMarrowEntityExtender.Cache.TryGet(itemInSlot, out var entity) ? entity : null;
     }
-    
+
     public void AssignSlot(RigRefs rig, SlotType slotType, Action<NetworkEntity>? callback)
     {
         var slotName = GetSlotName(slotType);
@@ -64,40 +62,36 @@ public class SlotData
             return;
 
         var networkEntity = GetSlotNetworkEntity(slot);
-        
+
         if (Barcode == null)
         {
             if (ShouldOverride && networkEntity != null)
-            {
                 NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
                 {
                     EntityID = networkEntity.ID,
                     DespawnEffect = false
                 });
-            }
-            
+
             return;
         }
-        
+
         if (networkEntity != null && !ShouldOverride)
             return;
 
         var spawnPosition = rig.Head.transform.position + rig.Head.transform.forward * -0.5f;
-        
+
         var spawnable = LocalAssetSpawner.CreateSpawnable(new SpawnableCrateReference(Barcode));
         if (spawnable == null)
             return;
         LocalAssetSpawner.Register(spawnable);
-        
+
         if (networkEntity != null)
-        {
             NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
             {
                 EntityID = networkEntity.ID,
                 DespawnEffect = false
             });
-        }
-        
+
         NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo
         {
             Position = spawnPosition,

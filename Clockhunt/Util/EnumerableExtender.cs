@@ -8,7 +8,7 @@ public static class EnumerableExtender
         if (!enumerator.MoveNext())
             yield break;
 
-        T previous = enumerator.Current;
+        var previous = enumerator.Current;
         while (enumerator.MoveNext())
         {
             yield return previous;
@@ -19,7 +19,7 @@ public static class EnumerableExtender
     public static IEnumerable<KeyValuePair<int, T>> WithIndices<T>(this IEnumerable<T> source)
     {
         using var enumerator = source.GetEnumerator();
-        
+
         var index = 0;
         while (enumerator.MoveNext())
         {

@@ -17,7 +17,7 @@ public class HuntMiddlePhaseEnvironmentState : EnvironmentState<ClockhuntMusicCo
     }
 
     public override int Priority => 200;
-    
+
     public override bool CanPlay(ClockhuntMusicContext context)
     {
         return context.IsPhase<HuntPhase>() && context.PhaseProgress < 0.66f;

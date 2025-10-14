@@ -1,9 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
-using LabFusion.Entities;
-using LabFusion.Player;
-using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Stats;
 
 namespace MashGamemodeLibrary.Patches;
 
@@ -20,16 +18,16 @@ public static class AvatarPatches
 
         if (stats == null)
             return;
-        
+
         if (!__instance || __instance.name == "[RealHeptaRig (Marrow1)]")
             return;
 
         var rigManager = __instance.GetComponentInParent<RigManager>();
         if (!rigManager) return;
-        
+
         if (rigManager != BoneLib.Player.RigManager)
             return;
-        
+
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;

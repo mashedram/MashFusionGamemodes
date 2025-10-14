@@ -2,7 +2,7 @@
 
 public class NoneWeatherEffector : ClockhuntWeatherEffector
 {
-    public NoneWeatherEffector() : base(Array.Empty<string>(), false)
+    public NoneWeatherEffector() : base(Array.Empty<string>())
     {
     }
 }

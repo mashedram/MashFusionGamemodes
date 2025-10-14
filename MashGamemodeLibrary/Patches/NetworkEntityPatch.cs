@@ -12,7 +12,7 @@ public class NetworkEntityPatch
     [HarmonyPrefix]
     public static void Prefix(NetworkEntity __instance)
     {
-        if (__instance == null) 
+        if (__instance == null)
             return;
         EntityTagManager.Remove(__instance.ID);
         PlayerGrabManager.Remove(__instance.ID);

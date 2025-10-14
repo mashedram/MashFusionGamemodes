@@ -6,23 +6,15 @@ namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
 public class AudioSourceEntity
 {
-    private AudioSource _source;
-    public AudioSource Source => _source;
-    public ref AudioSource SourceRef => ref _source;
     public readonly HashSet<IAudioModifier> Modifiers = new();
-
-    public bool IsValid => Source;
-    public bool IsPlaying => Source.isPlaying;
-    public Transform Transform => Source.transform;
-    
-    public static implicit operator bool(AudioSourceEntity? entity) => entity is { IsValid: true };
+    private AudioSource _source;
 
     public AudioSourceEntity(AudioModifierFactory modifierFactory)
     {
         var go = new GameObject("AudioSourceEntity");
         _source = go.AddComponent<AudioSource>();
         _source.playOnAwake = false;
-        
+
         Modifiers = modifierFactory.Build();
     }
 
@@ -32,14 +24,26 @@ public class AudioSourceEntity
         Modifiers = modifierFactory.Build();
     }
 
+    public AudioSource Source => _source;
+    public ref AudioSource SourceRef => ref _source;
+
+    public bool IsValid => Source;
+    public bool IsPlaying => Source.isPlaying;
+    public Transform Transform => Source.transform;
+
+    public static implicit operator bool(AudioSourceEntity? entity)
+    {
+        return entity is { IsValid: true };
+    }
+
     public void Play(AudioClip clip)
     {
         Modifiers.ForEach(modifier => modifier.OnStart(ref _source));
-        
+
         Source.clip = clip;
         Source.Play();
     }
-    
+
     public void Update(float delta)
     {
         Modifiers.ForEach(modifier => modifier.Update(ref _source, delta));

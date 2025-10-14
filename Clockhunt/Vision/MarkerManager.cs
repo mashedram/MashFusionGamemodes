@@ -8,7 +8,7 @@ public static class MarkerManager
 {
     private const string MarkerBarcode = "Sylvie.SignalisMonodiscs.Spawnable.Beam";
     private static Poolee? _marker;
-    
+
     public static void SetMarker(Vector3 position)
     {
         if (_marker)
@@ -19,13 +19,10 @@ public static class MarkerManager
 
         var spawnable = LocalAssetSpawner.CreateSpawnable(MarkerBarcode);
         LocalAssetSpawner.Register(spawnable);
-        
+
         LocalAssetSpawner.Spawn(spawnable, position, Quaternion.identity, poolee =>
         {
-            if (_marker != null)
-            {
-                _marker.Despawn();
-            }
+            if (_marker != null) _marker.Despawn();
             _marker = poolee;
         });
     }
@@ -33,7 +30,7 @@ public static class MarkerManager
     public static void ClearMarker()
     {
         if (_marker == null) return;
-        
+
         _marker.Despawn();
         _marker = null;
     }

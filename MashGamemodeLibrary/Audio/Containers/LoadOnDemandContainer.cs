@@ -6,7 +6,7 @@ namespace MashGamemodeLibrary.Audio.Containers;
 public class LoadOnDemandContainer : IAudioContainer
 {
     private readonly IAudioLoader _loader;
-    
+
     public LoadOnDemandContainer(IAudioLoader loader)
     {
         _loader = loader;

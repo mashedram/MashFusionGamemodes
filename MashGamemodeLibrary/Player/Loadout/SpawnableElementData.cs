@@ -1,7 +1,6 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
-using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 
 namespace MashGamemodeLibrary.Loadout;
@@ -9,7 +8,7 @@ namespace MashGamemodeLibrary.Loadout;
 public class SpawnableElementData : FunctionElementData
 {
     private SpawnableCrateReference? _spawnable;
-    
+
     public Action<Barcode> OnSetSpawnable = delegate { };
 
     public new Action OnPressed => OnPressedInternal;
@@ -32,7 +31,7 @@ public class SpawnableElementData : FunctionElementData
 
         return (from hand in hands select GetHeldSpawnableBarcode(hand)).FirstOrDefault();
     }
-    
+
     private void OnPressedInternal()
     {
         var held = GetHeldSpawnableBarcode();

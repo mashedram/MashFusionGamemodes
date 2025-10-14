@@ -1,5 +1,4 @@
 ﻿using MashGamemodeLibrary.Audio.Modifiers;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic.Providers;
 
@@ -27,7 +26,7 @@ public class SingleAudioSourceProvider : AudioSourceProvider
         if (_audioSource)
             _audioSource!.Stop();
     }
-    
+
     public override void Update(float delta)
     {
         if (_audioSource)

@@ -1,10 +1,8 @@
-﻿using MashGamemodeLibrary.Environment.Effector;
-
-namespace Clockhunt.Audio.Effectors.Weather;
+﻿namespace Clockhunt.Audio.Effectors.Weather;
 
 public class Rain1WeatherEffector : ClockhuntWeatherEffector
 {
-    public Rain1WeatherEffector() : base(new []
+    public Rain1WeatherEffector() : base(new[]
     {
         "FirePura.BoneWeater.Spawnable.Rainy"
     })

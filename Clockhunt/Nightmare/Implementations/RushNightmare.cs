@@ -1,6 +1,5 @@
 ﻿using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
@@ -11,9 +10,9 @@ namespace Clockhunt.Nightmare.Implementations;
 
 public class RushNightmareInstance : NightmareInstance
 {
-    private bool _grip;
     private const float MaxVelocity = 50f;
     private const float Acceleration = 300f;
+    private bool _grip;
 
     public RushNightmareInstance(byte owner, RushNightmareDescriptor descriptor) : base(owner, descriptor)
     {
@@ -31,18 +30,15 @@ public class RushNightmareInstance : NightmareInstance
 
     public override void OnRemoved()
     {
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            Owner.RigRefs.RigManager.remapHeptaRig.doubleJump = false;
-        });
+        Executor.RunIfMe(Owner.PlayerID, () => { Owner.RigRefs.RigManager.remapHeptaRig.doubleJump = false; });
     }
 
     public override void OnUpdate(float delta)
     {
         if (!_grip)
             return;
-        
-        if (!Owner.HasRig) 
+
+        if (!Owner.HasRig)
             return;
 
         var rightHand = Owner.RigRefs.RightHand.transform;
@@ -51,22 +47,19 @@ public class RushNightmareInstance : NightmareInstance
         var ray = new Ray(rightHand.position + Vector3.forward, forward);
 
         var target = rightHand.position + forward * 30f;
-        if (Physics.Raycast(ray, out var hit, 30f))
-        {
-            target = hit.point;
-        }
+        if (Physics.Raycast(ray, out var hit, 30f)) target = hit.point;
 
         var source = rightHand.position;
         var direction = (target - source).normalized;
-        
+
         var currentVelocity = Owner.RigRefs.RigManager.physicsRig.rbFeet.velocity;
 
         var difference = Mathf.Max((Vector3.Dot(currentVelocity.normalized, direction) - 1) * 2f, 1);
-        
+
         var distance = 1.0f - Mathf.Clamp01(currentVelocity.magnitude / MaxVelocity);
-        
+
         var acceleration = direction * Acceleration * delta * distance * difference;
-        
+
         Owner.RigRefs.RigManager.physicsRig.rbFeet.velocity += acceleration;
     }
 
@@ -76,7 +69,7 @@ public class RushNightmareInstance : NightmareInstance
             return;
 
         if (handedness != Handedness.RIGHT) return;
-        
+
         switch (action)
         {
             case PhaseAction.HandClose:

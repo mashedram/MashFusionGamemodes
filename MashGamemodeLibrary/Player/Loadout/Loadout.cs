@@ -1,11 +1,8 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
-using LabFusion.Marrow.Pool;
 using LabFusion.Network;
-using LabFusion.RPC;
 using MelonLoader;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Loadout;
 
@@ -17,10 +14,7 @@ public class Loadout
 
     public Loadout()
     {
-        foreach (SlotType slotType in Enum.GetValues(typeof(SlotType)))
-        {
-            _slotAssigners[slotType] = new SlotData();
-        }
+        foreach (SlotType slotType in Enum.GetValues(typeof(SlotType))) _slotAssigners[slotType] = new SlotData();
     }
 
     public Loadout SetSlotBarcode(SlotType slotType, Barcode? barcode, bool shouldOverwrite = true)
@@ -28,13 +22,13 @@ public class Loadout
         _slotAssigners[slotType] = new SlotData(barcode, shouldOverwrite);
         return this;
     }
-    
+
     public Loadout ClearSlot(SlotType slotType)
     {
         _slotAssigners[slotType] = new SlotData(null, true);
         return this;
     }
-    
+
     public Loadout IgnoreSlot(SlotType slotType)
     {
         _slotAssigners[slotType] = new SlotData();
@@ -43,10 +37,7 @@ public class Loadout
 
     public Loadout IgnoreAllSlots()
     {
-        foreach (SlotType slotType in AllSlotTypes)
-        {
-            IgnoreSlot(slotType);
-        }
+        foreach (var slotType in AllSlotTypes) IgnoreSlot(slotType);
 
         return this;
     }
@@ -58,29 +49,27 @@ public class Loadout
             MelonLogger.Msg("[Loadout] Cannot assign loadout on client!");
             return;
         }
-        
+
         foreach (var slotType in AllSlotTypes)
         {
             var slotData = _slotAssigners.GetValueOrDefault(slotType, DefaultSlotData);
             slotData.AssignSlot(rig, slotType, onAssign);
         }
     }
-    
+
     public static void ClearPlayerLoadout(RigRefs rig)
     {
-        foreach (SlotType slotType in Enum.GetValues(typeof(SlotType)))
-        {
-            DefaultSlotData.AssignSlot(rig, slotType, null);
-        }
+        foreach (SlotType slotType in Enum.GetValues(typeof(SlotType))) DefaultSlotData.AssignSlot(rig, slotType, null);
 
         ClearHeadSlot(rig);
     }
 
     public static void ClearHeadSlot(RigRefs rig)
     {
-        var headSlot = rig.RigManager.physicsRig.m_head.FindChild("HeadSlotContainer")?.GetComponentInChildren<InventorySlotReceiver>();
+        var headSlot = rig.RigManager.physicsRig.m_head.FindChild("HeadSlotContainer")
+            ?.GetComponentInChildren<InventorySlotReceiver>();
         if (headSlot == null) return;
-        
+
         headSlot.DespawnContents();
     }
 }

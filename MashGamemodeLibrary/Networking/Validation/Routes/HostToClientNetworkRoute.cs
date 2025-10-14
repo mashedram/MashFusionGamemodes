@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using LabFusion.Network;
-using LabFusion.Player;
 
 namespace MashGamemodeLibrary.networking.Validation.Routes;
 
@@ -16,7 +15,7 @@ public class HostToClientNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
         return CommonMessageRoutes.ReliableToOtherClients;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(returnValue: true)] out string error)
+    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
     {
         if (!NetworkValidatorHelper.IsHost(playerIDFrom))
         {

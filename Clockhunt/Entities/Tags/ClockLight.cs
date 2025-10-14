@@ -4,6 +4,7 @@ using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Phase.Tags;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Clockhunt.Entities.Tags;
 
@@ -11,19 +12,12 @@ public class ClockLight : EntityTag, ITagRemoved, IPhaseChangedTag
 {
     private Light? _light;
 
-    public void OnRemoval(ushort entityID)
-    {
-        if (_light == null) return;
-        UnityEngine.Object.Destroy(_light);
-        _light = null;
-    }
-
     public void OnPhaseChange(GamePhase gamePhase)
     {
         if (gamePhase is not HuntPhase)
         {
             if (_light == null) return;
-            UnityEngine.Object.Destroy(_light);
+            Object.Destroy(_light);
             _light = null;
             return;
         }
@@ -35,5 +29,12 @@ public class ClockLight : EntityTag, ITagRemoved, IPhaseChangedTag
         _light.type = LightType.Point;
         _light.color = Color.red;
         _light.intensity = 1f;
+    }
+
+    public void OnRemoval(ushort entityID)
+    {
+        if (_light == null) return;
+        Object.Destroy(_light);
+        _light = null;
     }
 }

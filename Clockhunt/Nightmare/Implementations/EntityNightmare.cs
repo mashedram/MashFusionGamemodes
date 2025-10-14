@@ -1,11 +1,8 @@
 ﻿using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow.Pool;
-using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
-using LabFusion.SDK.Triggers;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
@@ -77,10 +74,8 @@ public class EntityNightmareInstance : NightmareInstance
         foreach (var player in NetworkPlayer.Players
                      .Where(e => !SpectatorManager.IsPlayerSpectating(e.PlayerID) &&
                                  !NightmareManager.IsNightmare(e.PlayerID)))
-        {
             SpawnMarkerAt(player);
-        }
-        
+
         RoarAudioPlayer.PlayRandom(Owner.RigRefs.Head.position);
     }
 }

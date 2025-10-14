@@ -5,14 +5,11 @@ using Clockhunt.Vision;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
-using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace Clockhunt.Game;
@@ -50,16 +47,18 @@ internal class OnEscapeRequestPacket : INetSerializable
 public static class EscapeManager
 {
     private static readonly List<Vector3> EscapePoints = new();
-    private static Vector3 _activeEscapePoint = Vector3.zero;
-    
-    private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent = new(OnEscapePointActivated, true);
-    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent = new(OnEscapeRequest, false, CommonNetworkRoutes.ClientToHost);
+
+    private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent =
+        new(OnEscapePointActivated, true);
+
+    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent =
+        new(OnEscapeRequest, false, CommonNetworkRoutes.ClientToHost);
 
     private static bool _isEscaping;
     private static bool _hasEscaped;
     private static float _localEscapeTime;
 
-    public static Vector3 ActiveEscapePoint => _activeEscapePoint;
+    public static Vector3 ActiveEscapePoint { get; private set; } = Vector3.zero;
 
     public static void ActivateRandomEscapePoint()
     {
@@ -69,13 +68,13 @@ public static class EscapeManager
             {
                 EscapePoint = EscapePoints.GetRandom()
             });
-            
+
             var context = Clockhunt.Context;
             var name = context.EscapeAudioPlayer.GetRandomAudioName();
-            context.EscapeAudioPlayer.Play(name, _activeEscapePoint);
+            context.EscapeAudioPlayer.Play(name, ActiveEscapePoint);
         });
     }
-    
+
     public static void CollectEscapePoints()
     {
         Executor.RunIfHost(() =>
@@ -87,7 +86,7 @@ public static class EscapeManager
                 var position = networkEntity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position;
                 if (position == null)
                     continue;
-                
+
                 EscapePoints.Add(position.Value);
             }
         });
@@ -97,19 +96,15 @@ public static class EscapeManager
     {
         var context = Clockhunt.Context;
         var localPlayer = context.LocalPlayer;
-        
-        if (NightmareManager.IsNightmare(localPlayer.PlayerID))
-        {
-            return;
-        }
 
-        var distance = Vector3.Distance(localPlayer.RigRefs.Head.position, _activeEscapePoint);
-        
+        if (NightmareManager.IsNightmare(localPlayer.PlayerID)) return;
+
+        var distance = Vector3.Distance(localPlayer.RigRefs.Head.position, ActiveEscapePoint);
+
         if (distance > ClockhuntConfig.EscapeDistance)
         {
             _localEscapeTime = 0f;
             if (_isEscaping)
-            {
                 Notifier.Send(new Notification
                 {
                     Title = "Too Far!",
@@ -118,8 +113,7 @@ public static class EscapeManager
                     SaveToMenu = false,
                     ShowPopup = true,
                     Type = NotificationType.WARNING
-                });   
-            }
+                });
             _isEscaping = false;
             return;
         }
@@ -136,19 +130,19 @@ public static class EscapeManager
                 ShowPopup = true,
                 Type = NotificationType.INFORMATION
             });
-            
+
             _isEscaping = true;
-        } 
+        }
 
         _localEscapeTime += delta;
         if (_localEscapeTime < ClockhuntConfig.EscapeDuration || _hasEscaped) return;
         _hasEscaped = true;
-        
+
         OnEscapeRequestEvent.CallFor(context.HostPlayer.PlayerID, new OnEscapeRequestPacket
         {
             PlayerID = context.LocalPlayer.PlayerID.SmallID
         });
-        
+
         Notifier.Send(new Notification
         {
             Title = "You Escaped!",
@@ -159,24 +153,21 @@ public static class EscapeManager
             Type = NotificationType.SUCCESS
         });
     }
-    
+
     // Remote Events
-    
+
     private static void OnEscapePointActivated(OnEscapePointActivatedPacket packet)
     {
         _isEscaping = false;
         _hasEscaped = false;
         _localEscapeTime = 0.0f;
-        _activeEscapePoint = packet.EscapePoint;
-        
-        MarkerManager.SetMarker(_activeEscapePoint);
+        ActiveEscapePoint = packet.EscapePoint;
+
+        MarkerManager.SetMarker(ActiveEscapePoint);
     }
 
     private static void OnEscapeRequest(OnEscapeRequestPacket requestPacket)
     {
-        Executor.RunIfHost(() =>
-        {
-            WinStateManager.ForceWin(GameTeam.Survivors);
-        });
+        Executor.RunIfHost(() => { WinStateManager.ForceWin(GameTeam.Survivors); });
     }
 }

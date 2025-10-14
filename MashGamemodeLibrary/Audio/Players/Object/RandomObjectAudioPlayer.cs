@@ -6,9 +6,10 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Audio.Players.Object;
 
-public class RandomObjectAudioPlayer : ObjectAudioPlayer<DummySerializable>, IRandomObjectAudioPlayer 
+public class RandomObjectAudioPlayer : ObjectAudioPlayer<DummySerializable>, IRandomObjectAudioPlayer
 {
-    public RandomObjectAudioPlayer(string name, ISyncedAudioContainer container, int maxObjectCount, AudioModifierFactory factory) : base(name, container, maxObjectCount, factory)
+    public RandomObjectAudioPlayer(string name, ISyncedAudioContainer container, int maxObjectCount,
+        AudioModifierFactory factory) : base(name, container, maxObjectCount, factory)
     {
     }
 

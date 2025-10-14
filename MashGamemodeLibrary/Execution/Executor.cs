@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.Execution;
 public static class Executor
 {
     public delegate void Runnable();
-    
+
     // TODO: Add option to run an executable after a delay
 
     private static void Run(Runnable runnable)
@@ -26,12 +26,17 @@ public static class Executor
         }
 #endif
     }
-    
-    public static void RunIfHost(Runnable runnable)
+
+    public static void RunIfHost(Runnable runnable, string? error = null)
     {
         if (!NetworkInfo.IsHost)
+        {
+            if (error == null) return;
+
+            MelonLogger.Error($"This can only be ran from a host: {error}");
             return;
-        
+        }
+
         Run(runnable);
     }
 
@@ -39,15 +44,15 @@ public static class Executor
     {
         if (id.IsMe)
             return;
-        
+
         Run(runnable);
     }
-    
+
     public static void RunIfMe(PlayerID id, Runnable runnable)
     {
         if (!id.IsMe)
             return;
-        
+
         Run(runnable);
     }
 }

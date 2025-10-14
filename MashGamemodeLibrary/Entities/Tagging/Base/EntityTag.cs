@@ -5,10 +5,15 @@ namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
 public class EntityTag : ITagAdded, IEntityTag
 {
-    private NetworkEntityReference _entityID;
     private NetworkEntity? _entity;
+    private NetworkEntityReference _entityID;
     private GameObject? _gameObject;
     protected NetworkEntity Entity => GetEntity();
+
+    public void OnAdded(ushort entityID)
+    {
+        _entityID = new NetworkEntityReference(entityID);
+    }
 
     private NetworkEntity GetEntity()
     {
@@ -16,10 +21,5 @@ public class EntityTag : ITagAdded, IEntityTag
 
         _entity = _entityID.GetEntity();
         return _entity;
-    }
-    
-    public void OnAdded(ushort entityID)
-    {
-        _entityID = new NetworkEntityReference(entityID);
     }
 }
