@@ -22,7 +22,7 @@ using UnityEngine;
 
 namespace Clockhunt;
 
-public class ClockhuntContext : GameContext
+public class ClockhuntContext : GameModeContext
 {
     // Music
 

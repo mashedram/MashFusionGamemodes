@@ -4,7 +4,7 @@ using LabFusion.SDK.Gamemodes;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GameContext
+public abstract class GameModeContext
 {
     private bool _isReady;
     private bool _isStarted;

@@ -50,7 +50,6 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override bool DisableSpawnGun => ClockhuntConfig.DevToolsDisabled;
     public override bool DisableManualUnragdoll => ClockhuntConfig.DevToolsDisabled;
 
-
     public override void OnGamemodeRegistered()
     {
         base.OnGamemodeRegistered();
@@ -112,6 +111,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         }
         
         LocalControls.DisableSlowMo = true;
+        LocalHealth.MortalityOverride = true;
     }
 
     public override void OnGamemodeStopped()
@@ -132,6 +132,7 @@ public class Clockhunt : GamemodeWithContext<ClockhuntContext>
         
         LocalAvatar.AvatarOverride = null;
         LocalControls.DisableSlowMo = false;
+        LocalHealth.MortalityOverride = false;
         
         Executor.RunIfHost(() =>
         {

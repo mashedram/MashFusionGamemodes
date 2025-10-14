@@ -1,5 +1,6 @@
 ﻿
 using BoneStrike;
+using LabFusion.SDK.Modules;
 using MelonLoader;
 
 [assembly: MelonInfo(typeof(Mod), "Bonestrike", "0.1.0", "Mash")]
@@ -8,4 +9,10 @@ namespace BoneStrike;
 
 public class Mod : MelonMod
 {
+    public override void OnInitializeMelon()
+    {
+        var fusionMod = FindMelon("LabFusion", "Lakatrazz");
+        if (fusionMod == null) return;
+        ModuleManager.RegisterModule<FusionModule>();
+    }
 }

@@ -1,6 +1,14 @@
-﻿namespace BoneStrike;
+﻿using LabFusion.SDK.Gamemodes;
+using LabFusion.SDK.Modules;
 
-public class FusionModule
+namespace BoneStrike;
+
+public class FusionModule : Module
 {
+    public override string Name => "BoneStrike";
     
+    protected override void OnModuleRegistered()
+    {
+        GamemodeRegistration.RegisterGamemode<BoneStrike>();
+    }
 }
