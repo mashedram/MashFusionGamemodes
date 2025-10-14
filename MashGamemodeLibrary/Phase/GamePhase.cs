@@ -6,29 +6,16 @@ namespace MashGamemodeLibrary.Phase;
 public abstract class GamePhase
 {
     public abstract string Name { get; }
-    public abstract float Duration { get; }
     public bool IsActive { get; private set; }
 
     // Implementation
 
     public float ElapsedTime { get; private set; }
-    public float RemainingTime => Duration - ElapsedTime;
-
-    /**
-     * The phase can only be entered if this predicate returns true.
-     */
-    protected virtual bool PhaseEnterPredicate()
-    {
-        return true;
-    }
 
     /**
      * The pase will exit immediately if this predicate returns true.
      */
-    protected virtual bool ShouldPhaseExit()
-    {
-        return false;
-    }
+    public abstract PhaseIdentifier GetNextPhase();
 
     protected virtual void OnPhaseEnter()
     {
@@ -73,20 +60,5 @@ public abstract class GamePhase
     {
         IsActive = false;
         OnPhaseExit();
-    }
-
-    public bool HasDurationElapsed()
-    {
-        return RemainingTime <= 0f;
-    }
-
-    public bool CanEnterPhase()
-    {
-        return PhaseEnterPredicate();
-    }
-
-    public bool ShouldMoveToNextPhase()
-    {
-        return ShouldPhaseExit() || HasDurationElapsed();
     }
 }

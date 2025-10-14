@@ -41,6 +41,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
         EntityTagManager.RegisterAll<Mod>();
         NightmareManager.RegisterAll<Mod>();
+        GamePhaseManager.Registry.RegisterAll<Mod>();
     }
 
     public override GroupElementData CreateSettingsGroup()
@@ -80,8 +81,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
         NightmareManager.ClearNightmares();
         MarkerManager.ClearMarker();
 
-        GamePhaseManager.Enable(new GamePhase[]
-            { new HidePhase(), new HuntPhase(), new EscapePhase() });
+        GamePhaseManager.Enable<HidePhase>();
 
         PlayerHider.HideAllSpecials();
 

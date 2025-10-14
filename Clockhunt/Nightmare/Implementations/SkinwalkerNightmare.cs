@@ -27,9 +27,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override bool CanGrab(GrabData grab)
     {
-        if (!grab.IsHoldingItem(out var item)) return true;
-        var entity = item.NetworkEntity;
-        return (entity != null && entity.HasTag<ClockMarker>()) || base.CanGrab(grab);
+        return true;
     }
 
     public override bool CanStartTensionMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
@@ -81,7 +79,7 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
 
     public override PlayerStats Stats => new()
     {
-        Vitality = 2.5f,
+        Vitality = 8f,
         UpperStrength = 5f,
         Speed = 2f,
         Agility = 2f,

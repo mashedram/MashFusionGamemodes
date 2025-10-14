@@ -10,10 +10,17 @@ using UnityEngine;
 
 namespace Clockhunt.Phase;
 
-public class HidePhase : GamePhase
+public class HidePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Hide";
-    public override float Duration => ClockhuntConfig.HidePhaseDuration;
+    public float Duration => ClockhuntConfig.HidePhaseDuration;
+
+    public override PhaseIdentifier GetNextPhase()
+    {
+        if (ElapsedTime < Duration) return PhaseIdentifier.Empty();
+        
+        return PhaseIdentifier.Of<HuntPhase>();
+    }
 
     protected override void OnPhaseEnter()
     {

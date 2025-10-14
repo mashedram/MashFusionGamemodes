@@ -35,7 +35,7 @@ internal class ClockDeliveredPacket : INetSerializable
     }
 }
 
-public class HuntPhase : GamePhase
+public class HuntPhase : GamePhase, ITimedPhase
 {
     private static readonly Vector3SyncedVariable DeliveryPosition = new("deliveryposition", Vector3.zero);
 
@@ -44,6 +44,9 @@ public class HuntPhase : GamePhase
 
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
 
+    public override string Name => "Hunt";
+    public float Duration => ClockhuntConfig.HuntPhaseDuration;
+    
     public HuntPhase()
     {
         _teleportToSpawnEvent =
@@ -66,9 +69,6 @@ public class HuntPhase : GamePhase
             MarkerManager.SetMarker(value);
         };
     }
-
-    public override string Name => "Hunt";
-    public override float Duration => ClockhuntConfig.HuntPhaseDuration;
 
     private void OnTeleportToSpawnRequest(DummySerializable _)
     {
@@ -104,6 +104,25 @@ public class HuntPhase : GamePhase
             position = Clockhunt.Context.LocalPlayer.RigRefs.RigManager.checkpointPosition;
 
         DeliveryPosition.Value = position;
+    }
+
+    public override PhaseIdentifier GetNextPhase()
+    {
+        if (ElapsedTime > Duration)
+        {
+            WinStateManager.ForceWin(GameTeam.Nightmares);
+            return PhaseIdentifier.Empty();
+        }
+        
+        if (ClockManager.CountClockEntities() > 0) return PhaseIdentifier.Empty();
+
+        if (!ClockhuntConfig.IsEscapePhaseEnabled)
+        {
+            WinStateManager.ForceWin(GameTeam.Survivors);
+            return PhaseIdentifier.Empty();
+        }
+        
+        return PhaseIdentifier.Of<EscapePhase>();
     }
 
     protected override void OnPhaseEnter()
@@ -159,11 +178,6 @@ public class HuntPhase : GamePhase
                     });
             }
         });
-    }
-
-    protected override bool ShouldPhaseExit()
-    {
-        return ClockManager.CountClockEntities() == 0;
     }
 
     protected override void OnPhaseExit()

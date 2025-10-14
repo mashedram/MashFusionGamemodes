@@ -11,10 +11,15 @@ using UnityEngine;
 
 namespace Clockhunt.Phase;
 
-public class EscapePhase : GamePhase
+public class EscapePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Escape";
-    public override float Duration => 300f;
+    public float Duration => 300f;
+    
+    public override PhaseIdentifier GetNextPhase()
+    {
+        return PhaseIdentifier.Empty();
+    }
 
     protected override void OnPhaseEnter()
     {
@@ -38,11 +43,6 @@ public class EscapePhase : GamePhase
     protected override void OnUpdate()
     {
         EscapeManager.Update(Time.deltaTime);
-    }
-
-    protected override bool PhaseEnterPredicate()
-    {
-        return ClockhuntConfig.IsEscapePhaseEnabled && ClockManager.CountClockEntities() <= 0;
     }
 
     public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
