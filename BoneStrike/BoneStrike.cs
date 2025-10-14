@@ -28,7 +28,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext>
         Executor.RunIfHost(() =>
         {
             TeamManager.AssignAll();
-            GamePhaseManager.Enable(new GamePhase[]{ new PlantPhase(), new DefusePhase()});
+            GamePhaseManager.Enable<PlantPhase>();
         });
     }
 }

@@ -1,4 +1,5 @@
-﻿using LabFusion.Network;
+﻿using System.Diagnostics;
+using LabFusion.Network;
 using LabFusion.Player;
 using MelonLoader;
 
@@ -8,7 +9,20 @@ public static class Executor
 {
     public delegate void Runnable();
 
-    // TODO: Add option to run an executable after a delay
+#if DEBUG
+    private static int _hostDepth;
+    public static bool IsHostContext => _hostDepth == 0;
+
+    private static void StepInHost()
+    {
+        _hostDepth += 1;
+    }
+
+    private static void StepOutHost()
+    {
+        _hostDepth = Math.Max(0, _hostDepth - 1);
+    }
+#endif
 
     private static void Run(Runnable runnable)
     {
@@ -36,8 +50,16 @@ public static class Executor
             MelonLogger.Error($"This can only be ran from a host: {error}");
             return;
         }
+        
+#if DEBUG
+        StepInHost();
+#endif
 
         Run(runnable);
+        
+#if DEBUG
+        StepOutHost();
+#endif
     }
 
     public static void RunIfRemote(PlayerID id, Runnable runnable)
@@ -54,5 +76,16 @@ public static class Executor
             return;
 
         Run(runnable);
+    }
+    
+    // Validation
+    public static void EnsureHost()
+    {
+#if DEBUG
+        if (Executor.IsHostContext) return;
+
+        var trace = new StackTrace();
+        MelonLogger.Warning("Possibly executing a host only method on the client!", trace);
+#endif
     }
 }

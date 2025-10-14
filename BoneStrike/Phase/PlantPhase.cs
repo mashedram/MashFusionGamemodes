@@ -6,7 +6,13 @@ namespace BoneStrike.Phase;
 public class PlantPhase : GamePhase
 {
     public override string Name => "Plant Phase";
-    public override float Duration => 20;
+
+    public override PhaseIdentifier GetNextPhase()
+    {
+        if (ElapsedTime < 10f) return PhaseIdentifier.Empty();
+        
+        return PhaseIdentifier.Of<DefusePhase>();
+    }
 
     protected override void OnPhaseEnter()
     {
