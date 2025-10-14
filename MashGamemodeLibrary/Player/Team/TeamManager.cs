@@ -4,6 +4,7 @@ using LabFusion.Extensions;
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -11,7 +12,7 @@ namespace MashGamemodeLibrary.Player.Team;
 
 public static class TeamManager
 {
-    private static readonly Dictionary<ulong, Team> Registry = new();
+    public static readonly Registry<Team> Registry = new();
     private static readonly HashSet<Team> EnabledTeams = new();
     private static readonly IDToHashSyncedDictionary AssignedTeams = new("sync.AssignedTeams");
 
@@ -26,28 +27,12 @@ public static class TeamManager
         return GetTeamID(typeof(T));
     }
     
-    public static void Register<T>() where T : Team, new()
-    {
-        var id = GetTeamID<T>();
-        Registry[id] = new T();
-    }
-    
-    public static void RegisterAll<T>()
-    {
-        var assembly = typeof(T).Assembly;
-        var registerTypeMethod = typeof(TeamManager).GetMethod(nameof(Register)) ??
-                                 throw new Exception("Failed to find RegisterTag method");
-        assembly.GetTypes()
-            .Where(t => typeof(Team).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
-            .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(null, null); });
-    }
-    
     // Implementations
 
     public static void Enable<T>() where T : Team
     {
         var id = GetTeamID<T>();
-        if (!Registry.TryGetValue(id, out var team))
+        if (!Registry.TryGet(id, out var team))
         {
             MelonLogger.Error($"Failed to find registered team with name: {typeof(T).Name}");
             return;

@@ -18,6 +18,5 @@ public class Mod : MelonMod
 
         ModuleManager.RegisterModule<FusionModule>();
         RemoteEventMessageHandler.RegisterMod<Mod>();
-        TeamManager.RegisterAll<Mod>();
     }
 }

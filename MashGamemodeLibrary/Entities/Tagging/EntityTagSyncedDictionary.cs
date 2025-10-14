@@ -2,6 +2,7 @@
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -16,28 +17,12 @@ public readonly record struct EntityTagIndex(ushort EntityID, ulong TagID)
 public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntityTag>
 {
     // Registry Shenanigans
-    private static readonly Dictionary<ulong, Func<IEntityTag>> TagFactories = new();
+    public static readonly Registry<Func<IEntityTag>> Registry = new();
 
     // Actual implementation
 
     public EntityTagSyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToClient)
     {
-    }
-
-    private static ulong GetTagId<T>() where T : IEntityTag
-    {
-        return typeof(T).FullName?.GetStableHash() ??
-               throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
-    }
-
-    public static void Register<T>() where T : IEntityTag, new()
-    {
-        var tagId = GetTagId<T>();
-#if DEBUG
-        var fullname = typeof(T).FullName!;
-        MelonLogger.Msg($"Registering type ${fullname} with hash {fullname.GetHashCode()} or {tagId}");
-#endif
-        TagFactories[tagId] = () => new T();
     }
 
     protected override int? GetSize(DictionaryEdit<EntityTagIndex, IEntityTag> data)
@@ -69,15 +54,15 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
     {
 #if DEBUG
         // ReSharper disable once InvertIf
-        if (!TagFactories.ContainsKey(key.TagID))
+        if (!Registry.TryGet(key.TagID, out var factory))
         {
             MelonLogger.Error($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
             throw new Exception($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
         }
 #endif
 
-        var tag = TagFactories[key.TagID].Invoke();
-
+        var tag = factory.Invoke();
+        
         if (tag is INetSerializable serializable) serializable.Serialize(reader);
 
         return tag;

@@ -19,10 +19,15 @@ public class Registry<TValue> where TValue : class
         return GetID(typeof(T));
     }
     
+    public void Register(ulong id, TValue value)
+    {
+        _internalRegistry[id] = value;
+    }
+    
     public void Register<T>() where T : TValue, new()
     {
         var id = GetID<T>();
-        _internalRegistry[id] = new T();
+        Register(id, new T());
     }
     
     public void RegisterAll<T>()

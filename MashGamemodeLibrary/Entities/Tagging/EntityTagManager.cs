@@ -4,6 +4,7 @@ using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -138,7 +139,7 @@ public static class EntityTagManager
 
 
         // Register it on the network
-        EntityTagSyncedDictionary.Register<T>();
+        EntityTagSyncedDictionary.Registry.Register(tagID, () => new T());
     }
 
     public static void RegisterAbstractTag<T>() where T : IAbstractEntityTag

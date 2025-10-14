@@ -1,6 +1,7 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Teams;
 using MashGamemodeLibrary.Context;
+using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
@@ -14,9 +15,9 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext>
 
     public override void OnGamemodeRegistered()
     {
-        BoneStrikeContext.TeamManager.Register(this);
-        BoneStrikeContext.TeamManager.AddTeam(BoneStrikeContext.Terrorists);
-        BoneStrikeContext.TeamManager.AddTeam(BoneStrikeContext.CounterTerrorists);
+        EntityTagManager.RegisterAll<Mod>();
+        TeamManager.Registry.RegisterAll<Mod>();
+        GamePhaseManager.Registry.RegisterAll<Mod>();
     }
 
 
