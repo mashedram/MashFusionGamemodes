@@ -10,15 +10,27 @@ internal class HolsterHider
 
     public HolsterHider(SlotContainer container, bool hidden)
     {
-        _holsterSet = new RenderSet(container.art, hidden);
         if (container.inventorySlotReceiver)
         {
+            var receiver = container.inventorySlotReceiver;
+            var art =
+                container.art ??
+                container.transform.FindChild("prop_pouch")?.gameObject;
+            
+            _holsterSet = new RenderSet(art, hidden);
             _receiver = new InventorySlotReceiverHider(container.inventorySlotReceiver, hidden);
+            return;
         }
 
         if (container.inventoryAmmoReceiver)
         {
-            _receiver = new InventoryAmmoReceiverHider(container.inventoryAmmoReceiver, hidden);
+            var receiver = container.inventoryAmmoReceiver;
+            var art =
+                receiver.transform.FindChild("Holder")?.gameObject;
+            
+            _holsterSet = new RenderSet(art, hidden);
+            _receiver = new InventoryAmmoReceiverHider(receiver, hidden);
+            return;
         }
         
         throw new Exception("Invalid holster type, no receiver found!");

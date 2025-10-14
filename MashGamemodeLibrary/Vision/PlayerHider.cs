@@ -67,6 +67,9 @@ public static class PlayerHider
     
     public static bool IsHidden(this PlayerID playerID)
     {
+        if (!NetworkInfo.HasServer)
+            return false;
+        
         return !_playerStates.TryGetValue(playerID, out var state) || state.IsHidden;
     }
 

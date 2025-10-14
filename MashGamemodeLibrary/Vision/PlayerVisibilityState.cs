@@ -17,7 +17,7 @@ internal class PlayerVisibilityState
     private readonly Dictionary<string, bool> _hideOverwrites = new();
     
     private readonly RenderSet _avatarRenderers = new();
-    private readonly Dictionary<string, HolsterHider> _inventoryRenderers = new();
+    private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
     private readonly RenderSet _specialRenderers = new();
 
     private readonly Dictionary<Handedness, RenderSet> _heldItems = new();
@@ -76,15 +76,18 @@ internal class PlayerVisibilityState
         {
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
-            _inventoryRenderers[slotContainer.name] = new HolsterHider(slotContainer, _isHiddenInternal);
+            InventoryHandReceiver receiver = slotContainer.inventorySlotReceiver != null ? slotContainer.inventorySlotReceiver : slotContainer.inventoryAmmoReceiver;
+            if (receiver == null)
+                continue;
+            _inventoryRenderers[receiver] = new HolsterHider(slotContainer, _isHiddenInternal);
         }
         
         // Check for dualAction compatibility
         var rightBelt = rigManager.physicsRig.m_pelvis.FindChild("BeltRt1");
-        if (rightBelt != null)
+        if (rightBelt != null && rightBelt.TryGetComponent<SlotContainer>(out var rightBeltSlot))
         {
-            // TODO: Check what exists on the actual object
-            // _inventoryRenderers[rightBelt.name]
+            var receiver = rightBeltSlot.inventoryAmmoReceiver;
+            _inventoryRenderers[receiver] = new HolsterHider(rightBeltSlot, _isHiddenInternal);
         }
         
         foreach (var slotContainer in rigManager.inventory.specialItems)
@@ -168,22 +171,18 @@ internal class PlayerVisibilityState
     
     public void OnHolster(InventoryHandReceiver slotReceiver)
     {
-        var name = slotReceiver.transform.parent.name;
-
-        if (_inventoryRenderers.TryGetValue(name, out var item))
+        if (_inventoryRenderers.TryGetValue(slotReceiver, out var item))
         {
             item.Update(IsHidden);
             return;
         }
         
-        _inventoryRenderers[name] = new HolsterHider(slotReceiver, IsHidden);
+        _inventoryRenderers[slotReceiver] = new HolsterHider(slotReceiver, IsHidden);
     }
     
     public void OnUnholster(InventorySlotReceiver slotReceiver)
     {
-        var name = slotReceiver.transform.parent.name;
-        
-        if (!_inventoryRenderers.TryGetValue(name, out var hider)) 
+        if (!_inventoryRenderers.TryGetValue(slotReceiver, out var hider)) 
             return;
         
         hider.Update(IsHidden);

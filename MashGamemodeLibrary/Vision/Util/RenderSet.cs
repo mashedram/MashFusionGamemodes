@@ -11,7 +11,7 @@ internal class RenderSet
 
     public bool IsValid => CheckValidity();
 
-    public RenderSet(GameObject root, bool hidden)
+    public RenderSet(GameObject? root, bool hidden)
     {
         _isValid = true;
         _hidden = hidden;
@@ -39,18 +39,20 @@ internal class RenderSet
         return _isValid;
     }
     
-    public void Set(GameObject root, bool? hidden = null)
+    public void Set(GameObject? root, bool? hidden = null)
     {
         if (hidden.HasValue)
         {
             _hidden = hidden.Value;
         }
         
+        _renderers.Clear();
+        
+        if (root == null) return;
         _isValid = true;
         _gameObjects.Clear();
         _gameObjects.Add(root);
         
-        _renderers.Clear();
         var renderers = root.GetComponentsInChildren<Renderer>();
         _renderers.EnsureCapacity(renderers.Count);
         
@@ -65,7 +67,7 @@ internal class RenderSet
         }
     }
 
-    public void Add(GameObject root)
+    public void Add(GameObject? root)
     {
         if (!_isValid)
         {
@@ -73,6 +75,8 @@ internal class RenderSet
             _gameObjects.Clear();
         }
 
+        if (root == null) return;
+        _isValid = true;
         _gameObjects.Add(root);
         
         var renderers = root.GetComponentsInChildren<Renderer>();
