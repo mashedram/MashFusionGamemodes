@@ -1,4 +1,5 @@
 ﻿using LabFusion.Entities;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
@@ -6,6 +7,7 @@ public class EntityTag : ITagAdded, IEntityTag
 {
     private NetworkEntityReference _entityID;
     private NetworkEntity? _entity;
+    private GameObject? _gameObject;
     protected NetworkEntity Entity => GetEntity();
 
     private NetworkEntity GetEntity()
