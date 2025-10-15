@@ -1,62 +1,71 @@
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Vision.Holster.Receivers;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Vision.Holster;
 
 internal class HolsterHider
 {
-    private readonly RenderSet _holsterSet;
-    private readonly IReceiverHider _receiver;
+    private readonly RenderSet? _holsterSet;
+    private readonly IReceiverHider? _receiver;
 
     public HolsterHider(SlotContainer container, bool hidden)
     {
         if (container.inventorySlotReceiver)
         {
             var receiver = container.inventorySlotReceiver;
-            var art =
-                container.art ??
-                container.transform.FindChild("prop_pouch")?.gameObject;
+            var art = container.art;
+
+            if (art == null)
+            {
+                var pouch = container.transform.FindChild("prop_pouch");
+                if (pouch != null) art = pouch.gameObject;
+            }
 
             _holsterSet = new RenderSet(art, hidden);
-            _receiver = new InventorySlotReceiverHider(container.inventorySlotReceiver, hidden);
+            _receiver = new InventorySlotReceiverHider(receiver, hidden);
             return;
         }
 
         if (container.inventoryAmmoReceiver)
         {
             var receiver = container.inventoryAmmoReceiver;
-            var art =
-                receiver.transform.FindChild("Holder")?.gameObject;
+            GameObject? art = null;
+            var holder = receiver.transform.FindChild("Holder");
+            if (holder != null) art = holder.gameObject;
 
             _holsterSet = new RenderSet(art, hidden);
             _receiver = new InventoryAmmoReceiverHider(receiver, hidden);
             return;
         }
 
-        throw new Exception("Invalid holster type, no receiver found!");
+        _holsterSet = new RenderSet(container.gameObject, hidden);
     }
 
     public HolsterHider(InventoryHandReceiver receiver, bool hidden)
     {
-        if (receiver is InventorySlotReceiver slotReceiver)
-            _receiver = new InventorySlotReceiverHider(slotReceiver, hidden);
+        if (_receiver == null)
+            return;
 
-        if (receiver is InventoryAmmoReceiver ammoReceiver)
-            _receiver = new InventoryAmmoReceiverHider(ammoReceiver, hidden);
+        _receiver = receiver switch
+        {
+            InventorySlotReceiver slotReceiver => new InventorySlotReceiverHider(slotReceiver, hidden),
+            InventoryAmmoReceiver ammoReceiver => new InventoryAmmoReceiverHider(ammoReceiver, hidden),
+            _ => _receiver
+        };
 
-        throw new Exception("Invalid holster type, no receiver found!");
     }
 
     public void Update(bool? hidden = null)
     {
-        if (hidden.HasValue) _holsterSet.SetHidden(hidden.Value);
+        if (hidden.HasValue) _holsterSet?.SetHidden(hidden.Value);
 
-        _receiver.Update(hidden);
+        _receiver?.Update(hidden);
     }
 
     public void SetHidden(bool hidden)
     {
-        _holsterSet.SetHidden(hidden);
-        _receiver.SetHidden(hidden);
+        _holsterSet?.SetHidden(hidden);
+        _receiver?.SetHidden(hidden);
     }
 }

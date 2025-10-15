@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IDToHashSyncedDictionary : SyncedDictionary<byte, ulong>
 {
-    public IDToHashSyncedDictionary(string name, INetworkRoute? route = null) : base(name, route)
+    public IDToHashSyncedDictionary(string name) : base(name)
     {
     }
 

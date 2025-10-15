@@ -30,7 +30,11 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
 
     private readonly HashSet<TValue> _set = new();
 
-    protected SyncedSet(string name, INetworkRoute route) : base(name, route)
+    protected SyncedSet(string name) : base(name , CommonNetworkRoutes.HostToAll)
+    {
+    }
+    
+    protected SyncedSet(string name, INetworkRoute route) : base(name , route)
     {
     }
 

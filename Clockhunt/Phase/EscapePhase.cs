@@ -7,6 +7,8 @@ using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 
 namespace Clockhunt.Phase;
@@ -26,7 +28,10 @@ public class EscapePhase : GamePhase, ITimedPhase
         Executor.RunIfHost(() =>
         {
             EscapeManager.ActivateRandomEscapePoint();
-            WinStateManager.OverwriteLives(1);
+            PlayerControllerManager.OnAll<ClockhuntPlayerController>(controller =>
+            {
+                controller.SetLives(0);
+            });
         });
 
         Notifier.Send(new Notification
@@ -45,12 +50,8 @@ public class EscapePhase : GamePhase, ITimedPhase
         EscapeManager.Update(Time.deltaTime);
     }
 
-    public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
+    public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
         NightmareManager.OnAction(playerId, action, handedness);
-        if (action != PhaseAction.Death)
-            return;
-
-        WinStateManager.PlayerDied(playerId);
     }
 }

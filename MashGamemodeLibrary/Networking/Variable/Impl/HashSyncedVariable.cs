@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class HashSyncedVariable : SyncedVariable<ulong?>
 {
-    public HashSyncedVariable(string name, ulong? defaultValue, INetworkRoute? route = null) : base(name, defaultValue, route)
+    public HashSyncedVariable(string name, ulong? defaultValue) : base(name, defaultValue)
     {
     }
 

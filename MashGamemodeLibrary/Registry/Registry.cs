@@ -5,65 +5,59 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Registry;
 
-public class Registry<TValue> where TValue : class
+public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
 {
-    private readonly Dictionary<ulong, TValue> _internalRegistry = new();
-
-    public ulong GetID(MemberInfo type)
+    public virtual ulong GetID(MemberInfo type)
     {
         return type.Name.GetStableHash();
     }
     
-    public ulong GetID<T>() where T : TValue
+    public virtual ulong GetID<T>() where T : TValue
     {
         return GetID(typeof(T));
     }
-    
-    public void Register(ulong id, TValue value)
+
+    public virtual ulong GetID<T>(T instance) where T : TValue
     {
-        _internalRegistry[id] = value;
+        return GetID(instance.GetType());
     }
     
-    public void Register<T>() where T : TValue, new()
+    public abstract void Register<T>(ulong id, T value) where T : TValue, new();
+    
+    public virtual void Register<T>() where T : TValue, new()
     {
         var id = GetID<T>();
-        Register(id, new T());
+        Register(id, new T());  
     }
     
     public void RegisterAll<T>()
     {
         var assembly = typeof(T).Assembly;
-        var registerTypeMethod = typeof(Registry<TValue>).GetMethod(nameof(Register)) ??
-                                 throw new Exception("Failed to find RegisterTag method");
+        var registerTypeMethod = GetType().GetMethod("Register", Type.EmptyTypes);
+
+        if (registerTypeMethod == null)
+            throw new Exception("Could not find register method.");
+        
         assembly.GetTypes()
             .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
     }
 
-    public TValue? Get(ulong id)
-    {
-        return _internalRegistry.GetValueOrDefault(id);
-    }
+    public abstract TValue? Get(ulong id);
 
-    public bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry)
-    {
-        return _internalRegistry.TryGetValue(id, out entry);
-    }
+    public abstract bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry);
 
-    public TValue? Get<T>() where T : TValue
+    public virtual TValue? Get<T>() where T : TValue
     {
         var id = GetID<T>();
         return Get(id);
     }
 
-    public bool TryGet<T>([MaybeNullWhen(false)] out TValue entry) where T : TValue
+    public virtual bool TryGet<T>([MaybeNullWhen(false)] out TValue entry) where T : TValue
     {
         var id = GetID<T>();
         return TryGet(id, out entry);
     }
 
-    public bool Contains(ulong id)
-    {
-        return _internalRegistry.ContainsKey(id);
-    }
+    public abstract bool Contains(ulong id);
 }

@@ -1,9 +1,11 @@
 ﻿using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
+using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
@@ -45,6 +47,27 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
         OnStart();
     }
 
+    private void Reset()
+    {
+        GamePhaseManager.Disable();
+        PlayerStatManager.ResetStats();
+        GamemodeHelper.ResetSpawnPoints();
+        TeamManager.Disable();
+
+        LocalHealth.MortalityOverride = false;
+        LocalControls.DisableSlowMo = false;
+        
+        GameObjectExtender.DestroyAll();
+
+        PlayerHider.UnhideAll();
+        Executor.RunIfHost(() =>
+        {
+            PlayerControllerManager.Disable();
+            EntityTagManager.ClearAll();
+            SpectatorManager.Clear();
+        });
+    }
+    
     public override void OnGamemodeRegistered()
     {
         _internalContext = Activator.CreateInstance<T>();
@@ -57,7 +80,7 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
 
     public override void OnGamemodeReady()
     {
-        EntityTagManager.ClearAll();
+        Reset();
 
         Context.OnReady();
     }
@@ -90,16 +113,7 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
     {
         Context.OnStop();
         
-        GamePhaseManager.Disable();
-        PlayerStatManager.ResetStats();
-        GamemodeHelper.ResetSpawnPoints();
-        TeamManager.Disable();
-
-        LocalHealth.MortalityOverride = false;
-        LocalControls.DisableSlowMo = false;
-
-        PlayerHider.UnhideAll();
-        Executor.RunIfHost(SpectatorManager.Clear);
+        Reset();
     }
 
     protected override void OnUpdate()
@@ -111,6 +125,9 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
             return;
 
         var delta = Time.deltaTime;
+        
+        PlayerControllerManager.Update(delta);
+        
         Context.Update(delta);
         OnUpdate(delta);
     }

@@ -60,7 +60,7 @@ public static class SpawnManager
     private static readonly Vector3SyncedSet CollectedSpawnPoints =
         new("CollectedSpawnPoints", CommonNetworkRoutes.BiDirectional);
 
-    private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints");
+    private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints", CommonNetworkRoutes.AllToHost);
 
     private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();
 

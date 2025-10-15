@@ -63,7 +63,7 @@ public class RushNightmareInstance : NightmareInstance
         Owner.RigRefs.RigManager.physicsRig.rbFeet.velocity += acceleration;
     }
 
-    public override void OnPlayerAction(PlayerID playerID, PhaseAction action, Handedness handedness)
+    public override void OnPlayerAction(PlayerID playerID, PlayerGameActions action, Handedness handedness)
     {
         if (!playerID.IsMe)
             return;
@@ -72,10 +72,10 @@ public class RushNightmareInstance : NightmareInstance
 
         switch (action)
         {
-            case PhaseAction.HandClose:
+            case PlayerGameActions.HandClose:
                 _grip = true;
                 break;
-            case PhaseAction.HandOpen:
+            case PlayerGameActions.HandOpen:
                 _grip = false;
                 break;
         }

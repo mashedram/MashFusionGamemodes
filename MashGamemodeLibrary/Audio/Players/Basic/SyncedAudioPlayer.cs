@@ -1,6 +1,9 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
+using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Context.Control;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
@@ -22,20 +25,25 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
     }
 }
 
-public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializable, new()
+public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlayer, IStoppable where TPacket : INetSerializable, new()
 {
-    private readonly RemoteEvent<PlayRequestPacket<T>> _playRequestEvent;
+    public string Name { get; private set; }
+    private readonly ISyncedAudioContainer _container;
+    private readonly RemoteEvent<PlayRequestPacket<TPacket>> _playRequestEvent;
 
     public SyncedAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider provider) : base(
         container, provider)
     {
-        _playRequestEvent = new RemoteEvent<PlayRequestPacket<T>>($"{name}_PlayRequest", OnPlayRequest, true,
-            CommonNetworkRoutes.HostToClient);
+        Name = name;
+        
+        _container = container;
+        _playRequestEvent = new RemoteEvent<PlayRequestPacket<TPacket>>($"{name}_PlayRequest", OnPlayRequest,
+            CommonNetworkRoutes.HostToAll);
     }
 
-    protected abstract bool Modifier(T data, ref AudioSource source);
+    protected abstract bool Modifier(TPacket data, ref AudioSource source);
 
-    private void OnPlayRequest(PlayRequestPacket<T> packet)
+    private void OnPlayRequest(PlayRequestPacket<TPacket> packet)
     {
         if (!packet.ShouldPlay)
         {
@@ -43,9 +51,7 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
             return;
         }
 
-        var container = (ISyncedAudioContainer)Container;
-
-        container.RequestClip(packet.AudioHash, clip =>
+        _container.RequestClip(packet.AudioHash, clip =>
         {
             if (!clip)
                 return;
@@ -53,14 +59,14 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
             var source = SourceProvider.GetAudioSource();
             if (!Modifier(packet.ExtraData, ref source.SourceRef))
                 return;
+
             source.Play(clip!);
         });
     }
 
-    public void Play(string name, T data)
+    public void Play(string name, TPacket data)
     {
-        var container = (ISyncedAudioContainer)Container;
-        var hash = container.GetAudioHash(name);
+        var hash = _container.GetAudioHash(name);
 
         if (hash == null)
         {
@@ -68,19 +74,22 @@ public abstract class SyncedAudioPlayer<T> : AudioPlayer where T : INetSerializa
             return;
         }
 
-        _playRequestEvent.Call(new PlayRequestPacket<T>
+        _playRequestEvent.Call(new PlayRequestPacket<TPacket>
         {
             AudioHash = hash.Value,
             ExtraData = data
         });
     }
 
-    public new void StopAll()
+    public new void Stop()
     {
-        _playRequestEvent.Call(new PlayRequestPacket<T>
+        Executor.RunIfHost(() =>
         {
-            AudioHash = 0,
-            ExtraData = new T()
+            _playRequestEvent.Call(new PlayRequestPacket<TPacket>
+            {
+                AudioHash = 0,
+                ExtraData = new TPacket()
+            });
         });
     }
 }

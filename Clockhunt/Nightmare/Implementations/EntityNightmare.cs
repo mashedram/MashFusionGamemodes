@@ -3,28 +3,51 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
+using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
+using MashGamemodeLibrary.Audio.Players.Callers;
 using MashGamemodeLibrary.Audio.Players.Object;
+using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Clockhunt.Nightmare.Implementations;
 
+internal class RoarRequest : IParameterPacket<Vector3>
+{
+    public Vector3 RoarPosition;
+
+    public Vector3 Value
+    {
+        get => RoarPosition;
+        init => RoarPosition = value;
+    }
+
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref RoarPosition);
+    }
+}
+
 public class EntityNightmareInstance : NightmareInstance
 {
-    private static readonly PositionalAudioPlayer RoarAudioPlayer = new("EntityRoar",
+    private static readonly ClientCallableAudioPlayer<Vector3, RoarRequest> RoarAudioPlayer = new(new PositionalAudioPlayer("EntityRoar",
         new SyncedAudioContainer(new AudioFileLoader("Growls")),
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
-            modifier.SetMaxDistance(160f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.2f))));
-
+            modifier.SetMaxDistance(160f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.2f)))));
+    
     private GameObject? _light;
 
-    public EntityNightmareInstance(byte owner, EntityNightmareDescriptor descriptor) : base(owner, descriptor)
+    public EntityNightmareInstance(byte owner, NightmareDescriptor descriptor) : base(owner, descriptor)
     {
     }
 
@@ -34,7 +57,7 @@ public class EntityNightmareInstance : NightmareInstance
 
         Executor.RunIfRemote(Owner.PlayerID, () =>
         {
-            _light = new GameObject("EntityLight");
+            _light = Owner.RigRefs.Head.CreateSafeObject("EntityLight");
             var light = _light.AddComponent<Light>();
             light.type = LightType.Spot;
             light.color = Color.red;
@@ -44,7 +67,6 @@ public class EntityNightmareInstance : NightmareInstance
 
             light.shadows = LightShadows.Soft;
 
-            _light.transform.SetParent(Owner.RigRefs.Head.transform);
             _light.transform.localPosition = Vector3.forward * 0.5f;
             _light.transform.localRotation = Quaternion.identity;
         });

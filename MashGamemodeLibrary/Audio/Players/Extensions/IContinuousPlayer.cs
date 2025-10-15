@@ -3,7 +3,7 @@ namespace MashGamemodeLibrary.Audio.Players.Extensions;
 public interface IContinuousPlayer : IAudioPlayer
 {
     bool IsActive { get; }
-    void StartPlaying();
-    void StopPlaying();
+    void Start();
+    void Stop();
     void Update(float delta);
 }

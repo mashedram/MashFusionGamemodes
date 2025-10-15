@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase.Tags;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -17,9 +18,8 @@ namespace MashGamemodeLibrary.Phase;
 
 public static class GamePhaseManager
 {
-    public static readonly Registry<GamePhase> Registry = new();
-    private static readonly HashSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", null,
-        CommonNetworkRoutes.HostToClient);
+    public static readonly SingletonRegistry<GamePhase> Registry = new();
+    private static readonly HashSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", null);
 
     private static GamePhase? _activePhase;
     public static GamePhase? ActivePhase => _activePhase;
@@ -47,13 +47,12 @@ public static class GamePhaseManager
 
     public static void Enable<T>() where T : GamePhase
     {
-        Executor.RunIfHost(() => { WantedPhase.Value = Registry.GetID<T>(); });
+        Executor.RunIfHost(() => WantedPhase.Value = Registry.GetID<T>());
     }
 
     public static void Disable()
     {
-        _activePhase?.Exit();
-        _activePhase = null;
+        Executor.RunIfHost(() => WantedPhase.Value = null);
     }
 
     private static void PhaseChanged(ulong? id)
@@ -104,13 +103,13 @@ public static class GamePhaseManager
         var controller = hand._controller;
         var handedness = controller.handedness;
 
-        if (controller._menuTap) OnAction(PlayerIDManager.LocalID, PhaseAction.Ability, handedness);
+        if (controller._menuTap) OnAction(PlayerIDManager.LocalID, PlayerGameActions.Ability, handedness);
 
         var state = controller.isBelowGripThreshold;
         var lastState = LastGripStateMap.GetValueOrDefault(handedness, false);
         if (state == lastState) return;
 
-        var action = state ? PhaseAction.HandClose : PhaseAction.HandOpen;
+        var action = state ? PlayerGameActions.HandClose : PlayerGameActions.HandOpen;
         OnAction(PlayerIDManager.LocalID, action, handedness);
         LastGripStateMap[handedness] = controller.isBelowGripThreshold;
     }
@@ -121,17 +120,17 @@ public static class GamePhaseManager
         CheckHand(BoneLib.Player.RightHand);
     }
 
-    private static void OnAction(PlayerID player, PhaseAction action, Handedness handedness = Handedness.BOTH)
+    private static void OnAction(PlayerID player, PlayerGameActions action, Handedness handedness = Handedness.BOTH)
     {
         _activePhase?.OnPlayerAction(player, action, handedness);
     }
 
-    private static PhaseAction? GetPhaseAction(PlayerActionType playerAction)
+    private static PlayerGameActions? GetPhaseAction(PlayerActionType playerAction)
     {
         return playerAction switch
         {
-            PlayerActionType.DEATH => PhaseAction.Death,
-            PlayerActionType.JUMP => PhaseAction.Jump,
+            PlayerActionType.DEATH => PlayerGameActions.Death,
+            PlayerActionType.JUMP => PlayerGameActions.Jump,
             _ => null
         };
     }

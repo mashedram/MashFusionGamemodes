@@ -1,7 +1,9 @@
 ﻿using Clockhunt.Game;
+using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Clockhunt.Phase;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 
 namespace Clockhunt.Audio;
@@ -16,7 +18,7 @@ public class ClockhuntMusicContext
 
     public float PhaseProgress => _phase != null ? Mathf.Clamp01(_phase.ElapsedTime / _phase.Duration) : 1f;
     public bool IsChasing { get; private set; }
-    public static bool IsLocalNightmare => WinStateManager.LocalGameTeam == GameTeam.Nightmares;
+    public static bool IsLocalNightmare => TeamManager.IsLocalTeam<NightmareTeam>();
 
     public bool IsPhase<T>() where T : GamePhase
     {
@@ -48,7 +50,7 @@ public class ClockhuntMusicContext
         var delta = Time.deltaTime;
 
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
-        var shouldBeChasing = WinStateManager.LocalGameTeam != GameTeam.Nightmares &&
+        var shouldBeChasing = !IsLocalNightmare &&
                               NightmareManager.Nightmares.Any(nightmare =>
                                   IsNightmareChasing(nightmare, localPosition));
 

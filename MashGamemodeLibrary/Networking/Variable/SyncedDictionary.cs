@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
@@ -62,7 +63,7 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
 
-    protected SyncedDictionary(string name, INetworkRoute? route = null) : base(name, route)
+    protected SyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToAll)
     {
     }
 
@@ -113,8 +114,9 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
 
     public void Clear(bool sendUpdate = true)
     {
-        _dictionary.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
+        var removed = _dictionary.ToImmutableDictionary();
         _dictionary.Clear();
+        removed.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Clear());
     }
@@ -127,6 +129,11 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
     public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         return _dictionary.TryGetValue(key, out value);
+    }
+    
+    public TValue? GetValueOrDefault(TKey key, TValue d = default!)
+    {
+        return _dictionary.GetValueOrDefault(key, d);
     }
 
     public bool ContainsKey(TKey key)

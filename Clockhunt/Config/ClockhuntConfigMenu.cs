@@ -150,6 +150,13 @@ public static class ClockhuntConfigMenu
             Value = ClockhuntConfig.DebugForceSpectate,
             OnValueChanged = value => ClockhuntConfig.DebugForceSpectate = value
         });
+        
+        group.AddElement(new BoolElementData
+        {
+            Title = "Skip nightmare assignment",
+            Value = ClockhuntConfig.DebugSkipNightmare,
+            OnValueChanged = value => ClockhuntConfig.DebugSkipNightmare = value
+        });
 #endif
 
         group.AddElement(new SpawnableElementData

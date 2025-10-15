@@ -86,7 +86,7 @@ public class NightmareInstance
     {
     }
 
-    public virtual void OnPlayerAction(PlayerID playerID, PhaseAction action, Handedness handedness)
+    public virtual void OnPlayerAction(PlayerID playerID, PlayerGameActions action, Handedness handedness)
     {
     }
 
@@ -144,8 +144,6 @@ public class NightmareInstance
 
         if (Descriptor.Avatar != null)
             LocalAvatar.AvatarOverride = Descriptor.Avatar;
-
-        WinStateManager.SetLocalTeam(GameTeam.Nightmares);
 
         PlayerStatManager.SetStats(Descriptor.GetStats());
 

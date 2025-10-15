@@ -1,5 +1,6 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities.Tags;
+using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Clockhunt.Vision;
 using LabFusion.Entities;
@@ -10,6 +11,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Phase;
 using UnityEngine;
 
 namespace Clockhunt.Game;
@@ -49,10 +51,10 @@ public static class EscapeManager
     private static readonly List<Vector3> EscapePoints = new();
 
     private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent =
-        new(OnEscapePointActivated, true);
+        new(OnEscapePointActivated, CommonNetworkRoutes.HostToAll);
 
     private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent =
-        new(OnEscapeRequest, false, CommonNetworkRoutes.ClientToHost);
+        new(OnEscapeRequest, CommonNetworkRoutes.AllToHost);
 
     private static bool _isEscaping;
     private static bool _hasEscaped;
@@ -168,6 +170,6 @@ public static class EscapeManager
 
     private static void OnEscapeRequest(OnEscapeRequestPacket requestPacket)
     {
-        Executor.RunIfHost(() => { WinStateManager.ForceWin(GameTeam.Survivors); });
+        Executor.RunIfHost(WinManager.Win<SurvivorTeam>);
     }
 }

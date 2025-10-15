@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 
 namespace Clockhunt.Nightmare.Implementations;
@@ -27,7 +28,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
 
     public override bool CanGrab(GrabData grab)
     {
-        return true;
+        return _isDisguised || base.CanGrab(grab);
     }
 
     public override bool CanStartTensionMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
@@ -48,7 +49,10 @@ public class SkinwalkerNightmareInstance : NightmareInstance
             _disguiseAvatarBarcode = LocalAvatar.AvatarBarcode ?? NightmareAvatarBarcode;
             _isDisguised = true;
         });
-        Executor.RunIfHost(() => { WinStateManager.OverwriteLives(0); });
+        Executor.RunIfHost(() =>
+        {
+            foreach (var networkPlayer in NetworkPlayer.Players) networkPlayer.GetController<ClockhuntPlayerController>().SetLives(1);
+        });
     }
 
     public override void OnAbilityKeyTapped(Handedness handedness)

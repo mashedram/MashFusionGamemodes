@@ -31,7 +31,7 @@ public abstract class GamePhase
 
     // States
 
-    public virtual void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
+    public virtual void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
     }
 

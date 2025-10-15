@@ -18,7 +18,7 @@ namespace Clockhunt;
 public class ClockhuntContext : GameModeContext
 {
     // Audio
-    public readonly TimedTagPlayer<ClockMarker> ClockAudioPlayer = new(new RandomObjectAudioPlayer("ClockSound",
+    public readonly TimedTagPlayer<ClockMarker> ClockAudioPlayer = new(new ObjectAudioPlayer("ClockSound",
             new SyncedAudioContainer(new AudioFileLoader("Pings")), 10,
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
                     settings.SetVolume(1f).SetMaxDistance(120f))
@@ -34,9 +34,4 @@ public class ClockhuntContext : GameModeContext
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
             settings.SetVolume(1f).SetMaxDistance(180f)
                 .SetCustomRolloff(AnimationCurve.Linear(0, 1, 1, 0)).SetSpatialBlend(0.65f).SetLoop(true)));
-
-    public IEnumerable<NetworkPlayer> GetActivePlayers()
-    {
-        return NetworkPlayer.Players.Where(p => !p.PlayerID.IsSpectating());
-    }
 }

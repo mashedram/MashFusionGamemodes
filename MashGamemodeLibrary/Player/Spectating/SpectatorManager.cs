@@ -92,6 +92,7 @@ internal class PlayerColliderCache
     public void SetRig(PhysicsRig newRig)
     {
         if (_physicsRig == newRig) return;
+
         _physicsRig = newRig;
         _physicsRigColliders = new ColliderSet(newRig.gameObject);
 
@@ -149,8 +150,7 @@ public static class SpectatorManager
 
     private static bool _isLocalSpectating;
 
-    private static readonly ByteSyncedSet SpectatingPlayerIds =
-        new("spectatingPlayerIds", new HostToClientNetworkRoute());
+    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds");
 
     private static readonly HashSet<byte> HiddenPlayerIds = new();
     private static readonly Dictionary<byte, PlayerColliderCache> PlayerColliders = new();
@@ -256,19 +256,23 @@ public static class SpectatorManager
             // 12: EnemyColliders
             // 15: Interactable
             // 24: Footbal
-            Physics.IgnoreLayerCollision(8, 8, !state);
-            Physics.IgnoreLayerCollision(24, 8, !state);
-            Physics.IgnoreLayerCollision(24, 24, !state);
-
-            Physics.IgnoreLayerCollision(8, 10, !state);
-            Physics.IgnoreLayerCollision(24, 10, !state);
-            Physics.IgnoreLayerCollision(10, 10, !state);
-
-            Physics.IgnoreLayerCollision(8, 12, !state);
-            Physics.IgnoreLayerCollision(24, 12, !state);
-
-            Physics.IgnoreLayerCollision(8, 6, !state);
-            Physics.IgnoreLayerCollision(24, 6, !state);
+            
+            // TODO: Find another way to not collide with entities    
+            // Maybe hook into collisions and add the item to the ignore colliders
+            
+            // Physics.IgnoreLayerCollision(8, 8, !state);
+            // Physics.IgnoreLayerCollision(24, 8, !state);
+            // Physics.IgnoreLayerCollision(24, 24, !state);
+            //
+            // Physics.IgnoreLayerCollision(8, 10, !state);
+            // Physics.IgnoreLayerCollision(24, 10, !state);
+            // Physics.IgnoreLayerCollision(10, 10, !state);
+            //
+            // Physics.IgnoreLayerCollision(8, 12, !state);
+            // Physics.IgnoreLayerCollision(24, 12, !state);
+            //
+            // Physics.IgnoreLayerCollision(8, 6, !state);
+            // Physics.IgnoreLayerCollision(24, 6, !state);
         });
 
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))

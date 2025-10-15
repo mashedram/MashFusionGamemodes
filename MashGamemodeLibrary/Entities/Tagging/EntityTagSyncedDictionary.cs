@@ -17,11 +17,11 @@ public readonly record struct EntityTagIndex(ushort EntityID, ulong TagID)
 public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntityTag>
 {
     // Registry Shenanigans
-    public static readonly Registry<Func<IEntityTag>> Registry = new();
+    public static readonly FactoryRegistry<IEntityTag> Registry = new();
 
     // Actual implementation
 
-    public EntityTagSyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToClient)
+    public EntityTagSyncedDictionary(string name) : base(name)
     {
     }
 
@@ -52,16 +52,12 @@ public class EntityTagSyncedDictionary : SyncedDictionary<EntityTagIndex, IEntit
 
     protected override IEntityTag ReadValue(NetReader reader, EntityTagIndex key)
     {
-#if DEBUG
         // ReSharper disable once InvertIf
-        if (!Registry.TryGet(key.TagID, out var factory))
+        if (!Registry.TryGet(key.TagID, out var tag))
         {
             MelonLogger.Error($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
             throw new Exception($"Invalid tag received with id: {key.TagID} on entity: {key.EntityID}");
         }
-#endif
-
-        var tag = factory.Invoke();
         
         if (tag is INetSerializable serializable) serializable.Serialize(reader);
 

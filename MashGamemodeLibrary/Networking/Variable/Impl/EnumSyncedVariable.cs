@@ -5,8 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class EnumSyncedVariable<T> : SyncedVariable<T> where T : struct, Enum
 {
-    public EnumSyncedVariable(string name, T defaultValue, INetworkRoute? route = null) : base(name, defaultValue,
-        route)
+    public EnumSyncedVariable(string name, T defaultValue) : base(name, defaultValue)
     {
     }
 

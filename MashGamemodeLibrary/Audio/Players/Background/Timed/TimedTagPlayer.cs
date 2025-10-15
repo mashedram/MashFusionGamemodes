@@ -1,5 +1,6 @@
 ﻿using LabFusion.Entities;
 using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Context.Control;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using Random = UnityEngine.Random;
@@ -12,9 +13,9 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
 
     private readonly float _maxTimeBetweenPlays;
     private readonly float _minTimeBetweenPlays;
-    private readonly IRandomObjectAudioPlayer _player;
+    private readonly IRandomAudioPlayer<NetworkEntity> _player;
 
-    public TimedTagPlayer(IRandomObjectAudioPlayer player, float minTimeBetweenPlays, float maxTimeBetweenPlays)
+    public TimedTagPlayer(IRandomAudioPlayer<NetworkEntity> player, float minTimeBetweenPlays, float maxTimeBetweenPlays)
     {
         _player = player;
         _minTimeBetweenPlays = minTimeBetweenPlays;
@@ -25,19 +26,21 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
 
     public bool IsActive { get; private set; }
 
-    public void StartPlaying()
+    public void Start()
     {
         if (IsActive) return;
+
         IsActive = true;
         _entityTimers.Clear();
     }
 
-    public void StopPlaying()
+    public void Stop()
     {
         if (!IsActive) return;
+
         IsActive = false;
 
-        _player.StopAll();
+        _player.Stop();
     }
 
     public void Update(float delta)
@@ -52,6 +55,7 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
         foreach (var (id, _) in _entityTimers)
         {
             if (entities.Contains(id)) continue;
+
             _entityTimers.Remove(id);
         }
 
@@ -65,6 +69,7 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
 
             _entityTimers[id] = Math.Max(0, _entityTimers[id] - delta);
             if (_entityTimers[id] > 0) continue;
+
             _entityTimers[id] = GetRandomTimeBetweenPlays();
 
             if (!new NetworkEntityReference(id).TryGetEntity(out var entity))
@@ -73,7 +78,7 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
                 return;
             }
 
-            _player.PlayRandomAt(entity);
+            _player.PlayRandom(entity);
         }
     }
 

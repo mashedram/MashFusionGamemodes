@@ -14,7 +14,7 @@ public abstract class AudioEffector<TContext> : EnvironmentEffector<TContext>
 
     public override void Apply(TContext context)
     {
-        _audioContainer.StartPlaying();
+        _audioContainer.Start();
     }
 
     public override void Update(TContext context, float delta)
@@ -24,6 +24,6 @@ public abstract class AudioEffector<TContext> : EnvironmentEffector<TContext>
 
     public override void Remove(TContext context)
     {
-        _audioContainer.StopPlaying();
+        _audioContainer.Stop();
     }
 }

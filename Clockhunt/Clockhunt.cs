@@ -16,10 +16,12 @@ using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
+using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt;
 
@@ -42,6 +44,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
         EntityTagManager.RegisterAll<Mod>();
         NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
+        TeamManager.Registry.RegisterAll<Mod>();
     }
 
     public override GroupElementData CreateSettingsGroup()
@@ -62,9 +65,12 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
     {
         Executor.RunIfHost(() =>
         {
+            PlayerControllerManager.Enable<ClockhuntPlayerController>();
+            
             NightmareManager.ClearNightmares();
-            WinStateManager.OverwriteLives(3);
             SpectatorManager.Clear();
+            
+            GamePhaseManager.Enable<HidePhase>();
         });
 
         ClockhuntMusicContext.Reset();
@@ -78,11 +84,8 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
                 new HidePhaseEnvironmentState()
             }, LocalWeatherManager.ClearLocalWeather));
 
-        NightmareManager.ClearNightmares();
         MarkerManager.ClearMarker();
-
-        GamePhaseManager.Enable<HidePhase>();
-
+        
         PlayerHider.HideAllSpecials();
 
         // TODO: Make it so that once the avatar is loader, it enforces it further
@@ -95,8 +98,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
     protected override void OnUpdate(float delta)
     {
-
-        
         NightmareManager.Update(delta);
         GamePhaseManager.Update(delta);
     }
@@ -104,8 +105,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override void OnGamemodeStopped()
     {
         base.OnGamemodeStopped();
-
-        Context.EnvironmentPlayer.Stop();
         
         MarkerManager.ClearMarker();
         VisionManager.DisableNightVision();
@@ -114,8 +113,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
 
         Executor.RunIfHost(() =>
         {
-            Context.ClockAudioPlayer.StopPlaying();
-            Context.EscapeAudioPlayer.StopAll();
             NightmareManager.ClearNightmares();
             ClockManager.ClearClocks();
         });

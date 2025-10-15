@@ -31,6 +31,7 @@ public static class ClockhuntConfig
     public static BoolSyncedVariable DevToolsDisabled = new("dev_tools_disabled", true);
 
     public static bool DebugForceSpectate = false;
+    public static bool DebugSkipNightmare = false;
 
     public static PlayerStats DefaultStats = new()
     {

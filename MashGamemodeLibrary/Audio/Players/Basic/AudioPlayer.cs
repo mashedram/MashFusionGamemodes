@@ -3,10 +3,11 @@ using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Context.Control;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic;
 
-public class AudioPlayer : IRandomAudioPlayer, IAudioPlayer
+public class AudioPlayer : IRandomAudioPlayer
 {
     protected readonly IAudioContainer Container;
     protected readonly AudioSourceProvider SourceProvider;
@@ -17,7 +18,7 @@ public class AudioPlayer : IRandomAudioPlayer, IAudioPlayer
         SourceProvider = sourceProvider;
     }
 
-    public List<string> AudioNames => Container.AudioNames;
+    private IEnumerable<string> AudioNames => Container.AudioNames;
 
     public bool IsPlaying => SourceProvider.IsPlaying;
 
@@ -47,7 +48,7 @@ public class AudioPlayer : IRandomAudioPlayer, IAudioPlayer
         });
     }
 
-    public void StopAll()
+    public void Stop()
     {
         SourceProvider.StopAll();
     }

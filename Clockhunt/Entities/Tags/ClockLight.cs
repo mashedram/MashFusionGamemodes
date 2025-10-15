@@ -1,5 +1,6 @@
 ﻿using Clockhunt.Phase;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Phase.Tags;
@@ -8,33 +9,31 @@ using Object = UnityEngine.Object;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ClockLight : EntityTag, ITagRemoved, IPhaseChangedTag
+public class ClockLight : EntityTag, IPhaseChangedTag
 {
-    private Light? _light;
+    private GameObject? _lightGo;
 
     public void OnPhaseChange(GamePhase gamePhase)
     {
         if (gamePhase is not HuntPhase)
         {
-            if (_light == null) return;
-            Object.Destroy(_light);
-            _light = null;
+            if (_lightGo == null) return;
+
+            Object.Destroy(_lightGo);
+            _lightGo = null;
             return;
         }
+        
+        if (_lightGo != null) return;
 
         var marrow = Entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
         if (marrow == null) return;
 
-        _light = marrow.gameObject.GetComponent<Light>() ?? marrow.gameObject.AddComponent<Light>();
-        _light.type = LightType.Point;
-        _light.color = Color.red;
-        _light.intensity = 1f;
-    }
-
-    public void OnRemoval(ushort entityID)
-    {
-        if (_light == null) return;
-        Object.Destroy(_light);
-        _light = null;
+        _lightGo = marrow.gameObject.CreateSafeObject("ClockLight");
+        
+        var light = _lightGo.AddComponent<Light>();
+        light.type = LightType.Point;
+        light.color = Color.red;
+        light.intensity = 1f;
     }
 }

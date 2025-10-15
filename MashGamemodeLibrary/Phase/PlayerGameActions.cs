@@ -1,6 +1,6 @@
 ﻿namespace MashGamemodeLibrary.Phase;
 
-public enum PhaseAction
+public enum PlayerGameActions
 {
     Death,
     Jump,

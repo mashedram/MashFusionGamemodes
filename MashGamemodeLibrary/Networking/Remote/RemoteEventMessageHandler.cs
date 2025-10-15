@@ -103,10 +103,10 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     private static readonly Dictionary<ulong, string> EventNames = new();
 
     private static readonly RemoteEvent<InvalidRemoteEventPacket> OnInvalidEventPacket =
-        new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, false, CommonNetworkRoutes.ClientToHost);
+        new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, CommonNetworkRoutes.ClientToHost);
 
     private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
-        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, false, new ClientToHostNetworkRoute());
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, new ClientToHostNetworkRoute());
 
     static RemoteEventMessageHandler()
     {

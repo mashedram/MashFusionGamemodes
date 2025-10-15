@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class ByteSyncedSet : SyncedSet<byte>
 {
-    public ByteSyncedSet(string name, INetworkRoute? route = null) : base(name, route)
+    public ByteSyncedSet(string name) : base(name)
     {
     }
 

@@ -6,8 +6,8 @@ namespace MashGamemodeLibrary.Player.Team;
 public abstract class Team
 {
     public abstract string Name { get; }
-    public abstract uint Capacity { get; }
-    public abstract uint Weight { get; }
+    public virtual uint Capacity => UInt32.MaxValue;
+    public virtual uint Weight => 1;
 
     public virtual void OnAssigned(PlayerID player)
     {

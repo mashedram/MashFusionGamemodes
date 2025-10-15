@@ -3,6 +3,7 @@ using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Basic;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
+using MashGamemodeLibrary.Audio.Players.Extensions;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Object;
@@ -22,7 +23,7 @@ public class PositionalAudioPlayRequest : INetSerializable
     }
 }
 
-public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayRequest>
+public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayRequest>, IParameterDriven<Vector3>
 {
     public PositionalAudioPlayer(string name, ISyncedAudioContainer container, AudioModifierFactory factory) : base(
         name, container, new SingleAudioSourceProvider(factory))

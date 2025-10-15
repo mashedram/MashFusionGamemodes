@@ -101,8 +101,7 @@ public static class EntityTagManager
 
     private static ulong GetTagId<T>() where T : IEntityTag
     {
-        return typeof(T).FullName?.GetStableHash() ??
-               throw new Exception("Failed to get hash code for tag type: " + typeof(T).FullName);
+        return EntityTagSyncedDictionary.Registry.GetID<T>();
     }
 
     public static void Remove(ushort id)
@@ -139,7 +138,7 @@ public static class EntityTagManager
 
 
         // Register it on the network
-        EntityTagSyncedDictionary.Registry.Register(tagID, () => new T());
+        EntityTagSyncedDictionary.Registry.Register<T>();
     }
 
     public static void RegisterAbstractTag<T>() where T : IAbstractEntityTag
@@ -227,7 +226,9 @@ public static class EntityTagManager
 
         return extending.SelectMany(tagID =>
         {
-            var entities = TagToEntityMap[tagID];
+            if (!TagToEntityMap.TryGetValue(tagID, out var entities))
+                return Array.Empty<T>();
+
             return entities.Select(key => (T)Tags[key]);
         }).ToList();
     }

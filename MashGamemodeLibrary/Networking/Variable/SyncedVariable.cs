@@ -18,7 +18,7 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
     private readonly string _name;
     private T _value;
 
-    protected SyncedVariable(string name, T defaultValue, INetworkRoute? route = null) : base($"sync.{name}", route)
+    protected SyncedVariable(string name, T defaultValue) : base($"sync.{name}", CommonNetworkRoutes.HostToAll)
     {
         _name = name;
         _default = defaultValue;

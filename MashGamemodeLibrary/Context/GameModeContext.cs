@@ -20,7 +20,7 @@ public abstract class GameModeContext
     public bool IsReady { get; private set; }
     public bool IsStarted { get; private set; }
 
-    public GameModeContext()
+    protected GameModeContext()
     {
         var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         foreach (var field in fields)
@@ -30,8 +30,7 @@ public abstract class GameModeContext
 #if DEBUG
             if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
 #endif
-            var value = field.GetValue(this) as IUpdating;
-            if (value == null)
+            if (field.GetValue(this) is not IUpdating value)
                 continue;
 
             UpdateCache.Add(value);
@@ -66,6 +65,13 @@ public abstract class GameModeContext
     internal void OnStop()
     {
         IsStarted = false;
+
+        foreach (var value in UpdateCache)
+        {
+            if (value is not IStoppable stoppable) continue;
+            
+            stoppable.Stop();
+        }
     }
 
     internal void OnUnready()

@@ -5,8 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IntSyncedVariable : SyncedVariable<int>
 {
-    public IntSyncedVariable(string name, int defaultValue, INetworkRoute? route = null) : base(name, defaultValue,
-        route)
+    public IntSyncedVariable(string name, int defaultValue) : base(name, defaultValue)
     {
     }
 

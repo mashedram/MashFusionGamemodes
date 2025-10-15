@@ -1,11 +1,13 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using Clockhunt.Game.Teams;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 
 namespace Clockhunt.Phase;
@@ -24,12 +26,10 @@ public class HidePhase : GamePhase, ITimedPhase
 
     protected override void OnPhaseEnter()
     {
-        WinStateManager.SetLocalTeam(GameTeam.Survivors);
-
-        PlayerStatManager.SetStats(ClockhuntConfig.DefaultStats);
-
         Executor.RunIfHost(() =>
         {
+            TeamManager.AssignAll<SurvivorTeam>();
+            
             NetworkPlayer.Players.ForEach(player =>
             {
                 if (!player.HasRig) return;

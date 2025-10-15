@@ -1,12 +1,13 @@
 using Il2CppSLZ.Marrow.Audio;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Context.Control;
 using MelonLoader;
 using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Audio.Players.Background;
 
-public class MusicPlayer : IContinuousPlayer
+public class MusicPlayer : IContinuousPlayer, IUpdating
 {
     private readonly IAudioContainer _audioContainer;
     private int _trackIndex;
@@ -16,7 +17,7 @@ public class MusicPlayer : IContinuousPlayer
         _audioContainer = audioContainer;
     }
 
-    public void StartPlaying()
+    public void Start()
     {
         if (IsActive)
             return;
@@ -25,7 +26,7 @@ public class MusicPlayer : IContinuousPlayer
         NextTrack();
     }
 
-    public void StopPlaying()
+    public void Stop()
     {
         if (!IsActive)
             return;

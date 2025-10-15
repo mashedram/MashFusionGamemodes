@@ -6,7 +6,11 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class Vector3SyncedSet : SyncedSet<Vector3>
 {
-    public Vector3SyncedSet(string name, INetworkRoute? route = null) : base(name, route)
+    public Vector3SyncedSet(string name) : base(name)
+    {
+    }
+
+    public Vector3SyncedSet(string name, INetworkRoute route) : base(name, route)
     {
     }
 

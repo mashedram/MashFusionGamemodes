@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Clockhunt.Game;
+using Clockhunt.Game.Teams;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
@@ -7,6 +8,7 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Variable.Impl;
@@ -31,6 +33,12 @@ public static class NightmareManager
 {
     private static readonly Dictionary<ulong, NightmareDescriptor> NightmareDescriptors = new();
 
+    private static readonly CircularRandomProvider<ulong> NightmareRandomProvider = new(() => NightmareDescriptors
+        .Where(v => v.Value.IsEnabled)
+        .Select(v => v.Key)
+        .ToList()
+    );
+
     private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
@@ -44,7 +52,7 @@ public static class NightmareManager
 
     public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
 
-    public static IReadOnlyCollection<NightmareInstance> Nightmares => NightmareInstances.Values;
+    public static IEnumerable<NightmareInstance> Nightmares => NightmareInstances.Values;
 
     public static void Register<T>() where T : NightmareDescriptor
     {
@@ -75,16 +83,19 @@ public static class NightmareManager
 
     private static void UpdateAbility(NightmareInstance instance)
     {
+        // TODO: Move to gameactions
         if (!instance.IsAbilityReady())
             return;
+
         var keyHand = GetInput(instance.Owner);
         if (keyHand == null)
             return;
+
         instance.ResetAbilityTimer();
         instance.OnAbilityKeyTapped(keyHand.Value);
     }
 
-    public static void SetRandomNightmare()
+    public static void SetRandomNightmare(PlayerID playerID)
     {
         if (!NetworkInfo.IsHost)
         {
@@ -92,20 +103,24 @@ public static class NightmareManager
             return;
         }
 
-        var enabledDescriptors = NightmareDescriptors.Values.Where(d => d.IsEnabled).ToList();
-        var totalWeight = enabledDescriptors.Sum(d => d.Weight);
-        var choice = Random.Shared.Next(0, totalWeight);
-        foreach (var descriptor in enabledDescriptors)
+        var descriptorID = NightmareRandomProvider.GetRandomValue();
+        
+        // Default value means no id
+        if (descriptorID == 0)
+            throw new Exception($"Failed to assign nightmare to player {playerID}");
+        
+        PlayerNightmareIds[playerID] = descriptorID;
+    }
+
+    public static void RemoveNightmare(PlayerID playerID)
+    {
+        if (!NetworkInfo.IsHost)
         {
-            choice -= descriptor.Weight;
-            if (choice > 0) continue;
-            var player = PlayerSelector.GetRandomPlayerID();
-            PlayerNightmareIds[player] = descriptor.ID;
+            MelonLogger.Error("Only the host can remove nightmares");
             return;
         }
 
-        MelonLogger.Error("Failed to select a random nightmare - this should never happen");
-        WinStateManager.ForceWin(GameTeam.Survivors);
+        PlayerNightmareIds.Remove(playerID);
     }
 
     public static bool IsNightmare(PlayerID playerID)
@@ -190,7 +205,7 @@ public static class NightmareManager
         PlayerNightmareIds.Clear();
     }
 
-    public static void OnAction(PlayerID playerId, PhaseAction action, Handedness handedness)
+    public static void OnAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
         foreach (var instance in NightmareInstances.Values) instance.OnPlayerAction(playerId, action, handedness);
     }

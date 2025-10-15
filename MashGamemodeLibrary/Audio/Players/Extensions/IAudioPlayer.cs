@@ -1,6 +1,7 @@
-﻿namespace MashGamemodeLibrary.Audio.Players.Extensions;
+﻿using MashGamemodeLibrary.Context.Control;
 
-public interface IAudioPlayer
+namespace MashGamemodeLibrary.Audio.Players.Extensions;
+
+public interface IAudioPlayer : IUpdating, IStoppable
 {
-    public void Update(float delta);
 }

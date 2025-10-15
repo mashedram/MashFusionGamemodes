@@ -5,8 +5,7 @@ namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class BoolSyncedVariable : SyncedVariable<bool>
 {
-    public BoolSyncedVariable(string name, bool defaultValue, INetworkRoute? route = null) : base(name, defaultValue,
-        route)
+    public BoolSyncedVariable(string name, bool defaultValue) : base(name, defaultValue)
     {
     }
 

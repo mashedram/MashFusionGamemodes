@@ -2,6 +2,7 @@
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
+using Clockhunt.Game.Teams;
 using Clockhunt.Joke;
 using Clockhunt.Nightmare;
 using Clockhunt.Vision;
@@ -15,13 +16,16 @@ using LabFusion.RPC;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
+using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt.Phase;
 
@@ -37,20 +41,27 @@ internal class ClockDeliveredPacket : INetSerializable
 
 public class HuntPhase : GamePhase, ITimedPhase
 {
+    private static WeightedRandomProvider<PlayerID> NightmarePlayerProvider = new(() =>
+        {
+            return NetworkPlayer.Players.Where(p => p.HasRig).Select(p => p.PlayerID).ToList();
+        }
+    );
+
     private static readonly Vector3SyncedVariable DeliveryPosition = new("deliveryposition", Vector3.zero);
 
     private static readonly RemoteEvent<ClockDeliveredPacket> OnClockDeliveredEvent =
-        new("Clockhunt_HuntPhase_OnClockDelivered", OnClockDelivered, true);
+        new("Clockhunt_HuntPhase_OnClockDelivered", OnClockDelivered, CommonNetworkRoutes.HostToAll);
 
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
 
     public override string Name => "Hunt";
     public float Duration => ClockhuntConfig.HuntPhaseDuration;
-    
+
     public HuntPhase()
     {
         _teleportToSpawnEvent =
-            new RemoteEvent<DummySerializable>("Clockhunt_HuntPhase_TeleportToSpawn", OnTeleportToSpawnRequest, true);
+            new RemoteEvent<DummySerializable>("Clockhunt_HuntPhase_TeleportToSpawn", OnTeleportToSpawnRequest,
+                CommonNetworkRoutes.HostToAll);
 
         DeliveryPosition.OnValueChanged += value =>
         {
@@ -72,23 +83,23 @@ public class HuntPhase : GamePhase, ITimedPhase
 
     private void OnTeleportToSpawnRequest(DummySerializable _)
     {
-        // if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
-        // {
-        if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+        if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
         {
-            FusionPlayer.SetSpawnPoints(SpawnManager.GetSpawnPoints());
-        }
-        else
-        {
-            var spawns = GamemodeMarker.FilterMarkers();
-
-            if (spawns.Count > 0)
+            if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
             {
-                GamemodeHelper.SetSpawnPoints(spawns);
-                return;
+                FusionPlayer.SetSpawnPoints(SpawnManager.GetSpawnPoints());
+            }
+            else
+            {
+                var spawns = GamemodeMarker.FilterMarkers();
+
+                if (spawns.Count > 0)
+                {
+                    GamemodeHelper.SetSpawnPoints(spawns);
+                    return;
+                }
             }
         }
-        // }
 
         if (ClockhuntConfig.TeleportToSpawn) GamemodeHelper.TeleportToSpawnPoint();
     }
@@ -110,18 +121,18 @@ public class HuntPhase : GamePhase, ITimedPhase
     {
         if (ElapsedTime > Duration)
         {
-            WinStateManager.ForceWin(GameTeam.Nightmares);
+            WinManager.Win<NightmareTeam>();
             return PhaseIdentifier.Empty();
         }
-        
+
         if (ClockManager.CountClockEntities() > 0) return PhaseIdentifier.Empty();
 
         if (!ClockhuntConfig.IsEscapePhaseEnabled)
         {
-            WinStateManager.ForceWin(GameTeam.Survivors);
+            WinManager.Win<SurvivorTeam>();
             return PhaseIdentifier.Empty();
         }
-        
+
         return PhaseIdentifier.Of<EscapePhase>();
     }
 
@@ -133,8 +144,11 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             var context = Clockhunt.Context;
 
-            NightmareManager.SetRandomNightmare();
-
+#if DEBUG
+            if (!ClockhuntConfig.DebugSkipNightmare) TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
+#else
+            TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
+#endif
             _teleportToSpawnEvent.Call(new DummySerializable());
 
             SetDeliveryPosition();
@@ -143,7 +157,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             ClockManager.RemoveUntilCount(ClockhuntConfig.HuntPhaseClockCount);
 
-            context.ClockAudioPlayer.StartPlaying();
+            context.ClockAudioPlayer.Start();
         });
     }
 
@@ -188,21 +202,17 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             if (ClockManager.CountClockEntities() == 0)
             {
-                if (!ClockhuntConfig.IsEscapePhaseEnabled) WinStateManager.ForceWin(GameTeam.Survivors);
+                if (!ClockhuntConfig.IsEscapePhaseEnabled) WinManager.Win<SurvivorTeam>();
                 return;
             }
 
-            WinStateManager.ForceWin(GameTeam.Nightmares);
+            WinManager.Win<NightmareTeam>();
         });
     }
 
-    public override void OnPlayerAction(PlayerID playerId, PhaseAction action, Handedness handedness)
+    public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
         NightmareManager.OnAction(playerId, action, handedness);
-        if (action != PhaseAction.Death)
-            return;
-
-        WinStateManager.PlayerDied(playerId);
     }
 
     private static void OnClockDelivered(ClockDeliveredPacket packet)

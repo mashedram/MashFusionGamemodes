@@ -8,27 +8,22 @@ namespace MashGamemodeLibrary.Networking.Remote;
 
 public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, new()
 {
-    public delegate void PacketHandler(T onEscapePointActivedPacket);
-
-    private readonly bool _callOnSender;
-
+    public delegate void PacketHandler(T packet);
     private readonly PacketHandler _onEvent;
 
     /**
    * An event that, when called, will run on all specified clients.
    */
-    public RemoteEvent(PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(
-        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), route)
+    public RemoteEvent(PacketHandler onEvent, INetworkRoute? route = null) : base(
+        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), route ?? CommonNetworkRoutes.HostToClient)
     {
         _onEvent = onEvent;
-        _callOnSender = callOnSender;
     }
 
-    public RemoteEvent(string name, PacketHandler onEvent, bool callOnSender, INetworkRoute? route = null) : base(name,
-        route)
+    public RemoteEvent(string name, PacketHandler onEvent, INetworkRoute? route = null) : base(name,
+        route ?? CommonNetworkRoutes.HostToClient)
     {
         _onEvent = onEvent;
-        _callOnSender = callOnSender;
     }
 
     private void OnEvent(byte sender, T data)
@@ -55,14 +50,14 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
         Relay(data);
 
         // Call it local as well if we need to
-        if (_callOnSender)
+        if (Route.CallOnSender())
             OnEvent(PlayerIDManager.LocalSmallID, data);
     }
 
     public void CallFor(PlayerID playerId, T data)
     {
         // Call it locally if it's for us
-        if (playerId.IsMe && _callOnSender)
+        if (playerId.IsMe && Route.CallOnSender())
         {
             OnEvent(playerId.SmallID, data);
             return;

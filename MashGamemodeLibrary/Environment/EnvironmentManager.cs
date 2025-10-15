@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Context;
+using MashGamemodeLibrary.Context.Control;
 using MashGamemodeLibrary.Environment.State;
 
 namespace MashGamemodeLibrary.Environment;
@@ -47,10 +48,9 @@ internal class EnvironmentChangePacket : INetSerializable
     }
 }
 
-public class EnvironmentManager<TContext, TInternalContext>
+public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IStoppable
     where TContext : GameModeContext, new()
 {
-    private readonly Dictionary<int, EnvironmentState<TInternalContext>?> _activeStates = new();
     private readonly Func<TContext, TInternalContext> _contextBuilder;
     private readonly Dictionary<Enum, Track<TInternalContext>> _tracks = new();
     private TInternalContext _context = default!;
@@ -95,7 +95,6 @@ public class EnvironmentManager<TContext, TInternalContext>
 
         _tracks.Values.ForEach(track => track.SetEffector(null, _context));
         _tracks.Clear();
-        _activeStates.Clear();
         _profile.Cleanup();
         _profile = null;
     }
@@ -116,7 +115,6 @@ public class EnvironmentManager<TContext, TInternalContext>
         {
             // Get the active state for this layer
             var wantedState = _profile.GetWantedState(layerId, _context);
-            _activeStates[layerId] = wantedState;
 
             if (wantedState == null)
                 continue;
@@ -130,6 +128,7 @@ public class EnvironmentManager<TContext, TInternalContext>
                     continue;
                 if (assignedTracks.Contains(trackId))
                     continue;
+
                 var track = GetOrCreateTrack(trackId);
                 track.SetEffector(effector, _context);
                 assignedTracks.Add(trackId);

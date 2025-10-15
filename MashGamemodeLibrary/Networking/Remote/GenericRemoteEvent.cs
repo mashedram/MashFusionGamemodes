@@ -12,12 +12,12 @@ public abstract class GenericRemoteEvent<T>
 {
     private readonly ulong _assignedId;
     private readonly string _name;
-    private readonly INetworkRoute _route;
+    protected readonly INetworkRoute Route;
 
-    protected GenericRemoteEvent(string name, INetworkRoute? route = null)
+    protected GenericRemoteEvent(string name, INetworkRoute route)
     {
         _name = name;
-        _route = route ?? CommonNetworkRoutes.HostToClient;
+        Route = route;
         _assignedId = RemoteEventMessageHandler.RegisterEvent(name, this);
     }
 
@@ -39,10 +39,10 @@ public abstract class GenericRemoteEvent<T>
 
     protected void Relay(T data)
     {
-        if (_route is not IBroadcastNetworkRoute route)
+        if (Route is not IBroadcastNetworkRoute route)
         {
             MelonLogger.Error(
-                $"Attempted to broadcast event: {_name} on route: {_route.GetName()}. It is not broadcasting type.");
+                $"Attempted to broadcast event: {_name} on route: {Route.GetName()}. It is not broadcasting type.");
 #if DEBUG
             var stackTrace = new StackTrace();
             MelonLogger.Error(stackTrace);
@@ -53,7 +53,7 @@ public abstract class GenericRemoteEvent<T>
         var localId = PlayerIDManager.LocalSmallID;
         if (!route.IsValid(localId, out var error))
         {
-            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {_route.GetName()}: {error}");
+            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {Route.GetName()}: {error}");
 #if DEBUG
             var stackTrace = new StackTrace();
             MelonLogger.Error(stackTrace);
@@ -66,10 +66,10 @@ public abstract class GenericRemoteEvent<T>
 
     protected void Relay(T data, byte targetId)
     {
-        if (_route is not ITargetedNetworkRoute route)
+        if (Route is not ITargetedNetworkRoute route)
         {
             MelonLogger.Error(
-                $"Attempted to broadcast event: {_name} on route: {_route.GetName()}. It is not of a targeted type.");
+                $"Attempted to broadcast event: {_name} on route: {Route.GetName()}. It is not of a targeted type.");
 #if DEBUG
             var stackTrace = new StackTrace();
             MelonLogger.Error(stackTrace);
@@ -80,7 +80,7 @@ public abstract class GenericRemoteEvent<T>
         var localId = PlayerIDManager.LocalSmallID;
         if (!route.IsValid(localId, targetId, out var error))
         {
-            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {_route.GetName()}: {error}");
+            MelonLogger.Error($"Remote Event Validation error for event: {_name} on route {Route.GetName()}: {error}");
 #if DEBUG
             var stackTrace = new StackTrace();
             MelonLogger.Error(stackTrace);
