@@ -103,7 +103,7 @@ public static class EscapeManager
 
         var distance = Vector3.Distance(localPlayer.RigRefs.Head.position, ActiveEscapePoint);
 
-        if (distance > ClockhuntConfig.EscapeDistance)
+        if (distance > Clockhunt.Config.EscapeDistance)
         {
             _localEscapeTime = 0f;
             if (_isEscaping)
@@ -122,7 +122,7 @@ public static class EscapeManager
 
         if (!_isEscaping)
         {
-            var remainingTime = Math.Floor(ClockhuntConfig.EscapeDuration - _localEscapeTime);
+            var remainingTime = Math.Floor(Clockhunt.Config.EscapeDuration - _localEscapeTime);
             Notifier.Send(new Notification
             {
                 Title = "Stay Here!",
@@ -137,7 +137,7 @@ public static class EscapeManager
         }
 
         _localEscapeTime += delta;
-        if (_localEscapeTime < ClockhuntConfig.EscapeDuration || _hasEscaped) return;
+        if (_localEscapeTime < Clockhunt.Config.EscapeDuration || _hasEscaped) return;
         _hasEscaped = true;
 
         OnEscapeRequestEvent.CallFor(context.HostPlayer.PlayerID, new OnEscapeRequestPacket

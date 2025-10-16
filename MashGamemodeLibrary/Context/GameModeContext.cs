@@ -6,8 +6,9 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GameModeContext
+public abstract class GameModeContext<TContext> where TContext : GameModeContext<TContext>
 {
+    private static HashSet<IContextfull<TContext>> ContextCache = new();
     private static HashSet<IUpdating> UpdateCache = new();
     
     private NetworkPlayer? _hostPlayer;
@@ -35,6 +36,19 @@ public abstract class GameModeContext
 
             UpdateCache.Add(value);
         }
+
+        foreach (var field in fields)
+        {
+            if (!typeof(IContextfull<TContext>).IsAssignableFrom(field.FieldType)) continue;
+            
+#if DEBUG
+            if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
+#endif
+            if (field.GetValue(this) is not IContextfull<TContext> value)
+                continue;
+
+            ContextCache.Add(value);
+        }
     }
 
     internal void Update(float delta)
@@ -42,7 +56,14 @@ public abstract class GameModeContext
         if (!IsStarted)
             return;
 
-        UpdateCache.ForEach(entry => entry.Update(delta));
+        ContextCache.ForEach(entry =>
+        {
+            entry.SetContext((TContext)this);
+        });
+        UpdateCache.ForEach(entry =>
+        {
+            entry.Update(delta);
+        });
     }
 
     internal void OnReady()

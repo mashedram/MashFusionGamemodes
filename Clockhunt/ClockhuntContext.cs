@@ -15,7 +15,7 @@ using UnityEngine;
 
 namespace Clockhunt;
 
-public class ClockhuntContext : GameModeContext
+public class ClockhuntContext : GameModeContext<ClockhuntContext>
 {
     // Audio
     public readonly TimedTagPlayer<ClockMarker> ClockAudioPlayer = new(new ObjectAudioPlayer("ClockSound",

@@ -14,9 +14,9 @@ public static class AvatarPatches
     [HarmonyPostfix]
     public static void ComputeBaseStatsPostfix(Avatar __instance)
     {
-        var stats = PlayerStatManager.LocalStatOverride;
+        var maybeStats = PlayerStatManager.LocalStatOverride;
 
-        if (stats == null)
+        if (!maybeStats.HasValue)
             return;
 
         if (!__instance || __instance.name == "[RealHeptaRig (Marrow1)]")
@@ -28,6 +28,7 @@ public static class AvatarPatches
         if (rigManager != BoneLib.Player.RigManager)
             return;
 
+        var stats = maybeStats.Value;
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;

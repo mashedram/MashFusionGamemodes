@@ -46,10 +46,10 @@ public class ClockhuntPlayerController : PlayerController
 
     private bool OnFinalLiveLost()
     {
-        if (ClockhuntConfig.IsSpectatingEnabled)
+        if (Clockhunt.Config.IsSpectatingEnabled)
         {
             var aliveSurvivorCount = CountSurvivors();
-            if (aliveSurvivorCount <= 1 && !ClockhuntConfig.DebugForceSpectate)
+            if (aliveSurvivorCount <= 1 && !Clockhunt.Config.DebugForceSpectate)
             {
                 // Last survivor died, nightmares win
                 WinManager.Win<NightmareTeam>();

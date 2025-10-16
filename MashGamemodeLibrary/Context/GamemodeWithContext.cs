@@ -1,6 +1,7 @@
 ﻿using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
+using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
@@ -14,13 +15,20 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContext, new()
+public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode 
+    where TContext : GameModeContext<TContext>, new()
+    where TConfig : class, IConfig, new()
 {
-    private static T? _internalContext;
+    private static TContext? _internalContext;
 
-    public static T Context => _internalContext ??
-                               throw new InvalidOperationException(
-                                   "Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    public static TContext Context => _internalContext ??
+                                      throw new InvalidOperationException(
+                                          "Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    public static TConfig Config => ConfigHolder.Get<TConfig>();
+    
+    public delegate void ConfigChangedHandler(TConfig config);
+    public static event ConfigChangedHandler? OnConfigChanged;
+    
     // Extra Settings
 
     public virtual bool KnockoutAllowed => false;
@@ -38,6 +46,8 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
     {
     }
 
+    
+    
     private void Start()
     {
         LocalHealth.MortalityOverride = !KnockoutAllowed;
@@ -70,10 +80,17 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
     
     public override void OnGamemodeRegistered()
     {
-        _internalContext = Activator.CreateInstance<T>();
+        _internalContext = Activator.CreateInstance<TContext>();
         if (_internalContext == null)
             throw new InvalidOperationException(
-                $"Failed to create instance of {typeof(T).Name}. Ensure it has a public parameterless constructor.");
+                $"Failed to create instance of {typeof(TContext).Name}. Ensure it has a public parameterless constructor.");
+
+        ConfigHolder.Register<TConfig>();
+        ConfigHolder.OnConfigChanged += config =>
+        {
+            if (config is TConfig myConfig)
+                OnConfigChanged?.Invoke(myConfig);
+        };
 
         base.OnGamemodeRegistered();
     }
@@ -82,6 +99,7 @@ public abstract class GamemodeWithContext<T> : Gamemode where T : GameModeContex
     {
         Reset();
 
+        ConfigHolder.Enable<TConfig>();
         Context.OnReady();
     }
 

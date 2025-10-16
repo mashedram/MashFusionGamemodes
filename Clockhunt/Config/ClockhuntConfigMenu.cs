@@ -29,8 +29,8 @@ public static class ClockhuntConfigMenu
             Increment = 0.25f,
             MinValue = 0.25f,
             MaxValue = 10f,
-            Value = SecondsToMinutes(ClockhuntConfig.HidePhaseDuration),
-            OnValueChanged = value => ClockhuntConfig.HidePhaseDuration = MinutesToSeconds(value)
+            Value = SecondsToMinutes(Clockhunt.Config.HidePhaseDuration),
+            OnValueChanged = value => Clockhunt.Config.HidePhaseDuration = MinutesToSeconds(value)
         });
 
         group.AddElement(new FloatElementData
@@ -39,8 +39,8 @@ public static class ClockhuntConfigMenu
             Increment = 0.25f,
             MinValue = 0.25f,
             MaxValue = 30f,
-            Value = SecondsToMinutes(ClockhuntConfig.HuntPhaseDuration),
-            OnValueChanged = value => ClockhuntConfig.HuntPhaseDuration = MinutesToSeconds(value)
+            Value = SecondsToMinutes(Clockhunt.Config.HuntPhaseDuration),
+            OnValueChanged = value => Clockhunt.Config.HuntPhaseDuration = MinutesToSeconds(value)
         });
 
         group.AddElement(new FloatElementData
@@ -49,8 +49,8 @@ public static class ClockhuntConfigMenu
             Increment = 0.25f,
             MinValue = 0.25f,
             MaxValue = 10f,
-            Value = SecondsToMinutes(ClockhuntConfig.EscapePhaseDuration),
-            OnValueChanged = value => ClockhuntConfig.EscapePhaseDuration = MinutesToSeconds(value)
+            Value = SecondsToMinutes(Clockhunt.Config.EscapePhaseDuration),
+            OnValueChanged = value => Clockhunt.Config.EscapePhaseDuration = MinutesToSeconds(value)
         });
 
         group.AddElement(new IntElementData
@@ -59,8 +59,8 @@ public static class ClockhuntConfigMenu
             Increment = 1,
             MinValue = 1,
             MaxValue = 10,
-            Value = ClockhuntConfig.ClocksPerPlayer,
-            OnValueChanged = value => ClockhuntConfig.ClocksPerPlayer = value
+            Value = Clockhunt.Config.ClocksPerPlayer,
+            OnValueChanged = value => Clockhunt.Config.ClocksPerPlayer = value
         });
 
         group.AddElement(new IntElementData
@@ -69,36 +69,36 @@ public static class ClockhuntConfigMenu
             Increment = 1,
             MinValue = 1,
             MaxValue = 20,
-            Value = ClockhuntConfig.HuntPhaseClockCount,
-            OnValueChanged = value => ClockhuntConfig.HuntPhaseClockCount = value
+            Value = Clockhunt.Config.HuntPhaseClockCount,
+            OnValueChanged = value => Clockhunt.Config.HuntPhaseClockCount = value
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Spectator Mode Enabled",
-            Value = ClockhuntConfig.IsSpectatingEnabled,
-            OnValueChanged = value => ClockhuntConfig.IsSpectatingEnabled = value
+            Value = Clockhunt.Config.IsSpectatingEnabled,
+            OnValueChanged = value => Clockhunt.Config.IsSpectatingEnabled = value
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Escape Phase Enabled",
-            Value = ClockhuntConfig.IsEscapePhaseEnabled,
-            OnValueChanged = value => ClockhuntConfig.IsEscapePhaseEnabled = value
+            Value = Clockhunt.Config.IsEscapePhaseEnabled,
+            OnValueChanged = value => Clockhunt.Config.IsEscapePhaseEnabled = value
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Teleport To Spawns on Hunt",
-            Value = ClockhuntConfig.TeleportToSpawn,
-            OnValueChanged = value => ClockhuntConfig.TeleportToSpawn.Value = value
+            Value = Clockhunt.Config.TeleportToSpawn,
+            OnValueChanged = value => Clockhunt.Config.TeleportToSpawn = value
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Night Vision",
-            Value = ClockhuntConfig.NightVision,
-            OnValueChanged = value => ClockhuntConfig.NightVision.Value = value
+            Value = Clockhunt.Config.NightVision,
+            OnValueChanged = value => Clockhunt.Config.NightVision = value
         });
 
         group.AddElement(new FloatElementData
@@ -107,55 +107,55 @@ public static class ClockhuntConfigMenu
             Increment = 0.1f,
             MinValue = 0.1f,
             MaxValue = 2f,
-            Value = ClockhuntConfig.NightVisionBrightness,
-            OnValueChanged = value => ClockhuntConfig.NightVisionBrightness.Value = value
+            Value = Clockhunt.Config.NightVisionBrightness,
+            OnValueChanged = value => Clockhunt.Config.NightVisionBrightness = value
         });
 
         group.AddElement(new EnumElementData
         {
             EnumType = typeof(WeatherType),
-            OnValueChanged = value => ClockhuntConfig.WeatherType.Value = (WeatherType)value,
+            OnValueChanged = value => Clockhunt.Config.WeatherType = (WeatherType)value,
             Title = "Weather Type",
-            Value = ClockhuntConfig.WeatherType.Value
+            Value = Clockhunt.Config.WeatherType
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Runtime Spawn Points",
-            Value = ClockhuntConfig.RuntimeSpawnPointsEnabled,
-            OnValueChanged = value => ClockhuntConfig.RuntimeSpawnPointsEnabled.Value = value
+            Value = Clockhunt.Config.RuntimeSpawnPointsEnabled,
+            OnValueChanged = value => Clockhunt.Config.RuntimeSpawnPointsEnabled = value
         });
 
         group.AddElement(new IntElementData
         {
             Title = "Runtime Spawn Point Count",
-            Value = ClockhuntConfig.RuntimeSpawnCount,
+            Value = Clockhunt.Config.RuntimeSpawnCount,
             Increment = 1,
             MaxValue = 20,
             MinValue = 0,
-            OnValueChanged = value => ClockhuntConfig.RuntimeSpawnCount.Value = value
+            OnValueChanged = value => Clockhunt.Config.RuntimeSpawnCount = value
         });
 
         group.AddElement(new BoolElementData
         {
             Title = "Disable Dev Tools",
-            Value = ClockhuntConfig.DevToolsDisabled,
-            OnValueChanged = value => ClockhuntConfig.DevToolsDisabled.Value = value
+            Value = Clockhunt.Config.DevToolsDisabled,
+            OnValueChanged = value => Clockhunt.Config.DevToolsDisabled = value
         });
 
 #if DEBUG
         group.AddElement(new BoolElementData
         {
             Title = "Force spectator on final death",
-            Value = ClockhuntConfig.DebugForceSpectate,
-            OnValueChanged = value => ClockhuntConfig.DebugForceSpectate = value
+            Value = Clockhunt.Config.DebugForceSpectate,
+            OnValueChanged = value => Clockhunt.Config.DebugForceSpectate = value
         });
         
         group.AddElement(new BoolElementData
         {
             Title = "Skip nightmare assignment",
-            Value = ClockhuntConfig.DebugSkipNightmare,
-            OnValueChanged = value => ClockhuntConfig.DebugSkipNightmare = value
+            Value = Clockhunt.Config.DebugSkipNightmare,
+            OnValueChanged = value => Clockhunt.Config.DebugSkipNightmare = value
         });
 #endif
 

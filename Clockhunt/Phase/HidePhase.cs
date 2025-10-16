@@ -15,7 +15,7 @@ namespace Clockhunt.Phase;
 public class HidePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Hide";
-    public float Duration => ClockhuntConfig.HidePhaseDuration;
+    public float Duration => Clockhunt.Config.HidePhaseDuration;
 
     public override PhaseIdentifier GetNextPhase()
     {
@@ -35,16 +35,16 @@ public class HidePhase : GamePhase, ITimedPhase
                 if (!player.HasRig) return;
 
                 // TODO: Make this spawn a new one once the old one was placed
-                for (var i = 0; i < ClockhuntConfig.ClocksPerPlayer; i++)
+                for (var i = 0; i < Clockhunt.Config.ClocksPerPlayer; i++)
                     ClockManager.SpawnEntityForPlayer(player);
             });
         });
 
-        if (ClockhuntConfig.RuntimeSpawnPointsEnabled) SpawnManager.Reset();
+        if (Clockhunt.Config.RuntimeSpawnPointsEnabled) SpawnManager.Reset();
     }
 
     protected override void OnUpdate()
     {
-        if (ClockhuntConfig.RuntimeSpawnPointsEnabled) SpawnManager.Update(Time.deltaTime);
+        if (Clockhunt.Config.RuntimeSpawnPointsEnabled) SpawnManager.Update(Time.deltaTime);
     }
 }

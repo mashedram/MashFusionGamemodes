@@ -31,11 +31,16 @@ internal struct NightVisionObject
 
 public static class VisionManager
 {
+    private static bool _nightVisionEnabled = false;
     private static NightVisionObject? _instance;
 
     static VisionManager()
     {
-        ClockhuntConfig.NightVisionBrightness.OnValueChanged += value => { _instance?.SetBrightness(value); };
+        Clockhunt.OnConfigChanged += config =>
+        {
+            _instance?.SetActive(_nightVisionEnabled && config.NightVision);
+            _instance?.SetBrightness(config.NightVisionBrightness);
+        };
     }
 
     private static NightVisionObject GetOrCreate()
@@ -60,7 +65,7 @@ public static class VisionManager
 
         var colorAdjustments = profile.Add<ColorAdjustments>(true);
         colorAdjustments.contrast.value = 20f; // Increase contrast
-        colorAdjustments.postExposure.value = ClockhuntConfig.NightVisionBrightness; // Slightly increase exposure
+        colorAdjustments.postExposure.value = Clockhunt.Config.NightVisionBrightness; // Slightly increase exposure
         colorAdjustments.colorFilter.value = Color.white;
 
         var light = go.AddComponent<Light>();
@@ -80,7 +85,9 @@ public static class VisionManager
 
     public static void EnableNightVision()
     {
-        if (!ClockhuntConfig.NightVision.Value) return;
+        _nightVisionEnabled = true;
+        
+        if (!Clockhunt.Config.NightVision) return;
 
         var go = GetOrCreate();
         go.SetActive(true);
@@ -88,6 +95,8 @@ public static class VisionManager
 
     public static void DisableNightVision()
     {
+        _nightVisionEnabled = false;
+        
         _instance?.SetActive(false);
     }
 }

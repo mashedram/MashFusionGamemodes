@@ -10,6 +10,7 @@ using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase.Tags;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -75,6 +76,8 @@ public static class GamePhaseManager
                 MelonLogger.Error($"Failed to execute tag change for: {tag.GetType().FullName}", exception);
             }
         });
+        
+        TeamManager.OnPhaseChanged(_activePhase);
     }
 
     public static void Update(float delta)

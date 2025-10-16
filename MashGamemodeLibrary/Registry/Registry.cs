@@ -66,10 +66,17 @@ public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
         return Get(id);
     }
 
-    public virtual bool TryGet<T>([MaybeNullWhen(false)] out TValue entry) where T : TValue
+    public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : class, TValue
     {
         var id = GetID<T>();
-        return TryGet(id, out entry);
+        if (!TryGet(id, out var maybeEntry))
+        {
+            entry = null;
+            return false;
+        }
+        
+        entry = maybeEntry as T;
+        return entry != null;
     }
 
     public abstract bool Contains(ulong id);

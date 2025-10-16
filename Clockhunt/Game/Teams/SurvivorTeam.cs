@@ -10,11 +10,11 @@ public class SurvivorTeam : Team
 {
     public override string Name => "Survivors";
 
-    public override void OnAssigned(PlayerID player)
+    public override void OnAssigned()
     {
-        Executor.RunIfMe(player, () =>
+        Executor.RunIfMe(Owner.PlayerID,() =>
         {
-            PlayerStatManager.SetStats(ClockhuntConfig.DefaultStats);
+            PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
         });
     }
 }
