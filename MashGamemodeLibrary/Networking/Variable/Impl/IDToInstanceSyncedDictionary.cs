@@ -15,7 +15,10 @@ public class IDToInstanceSyncedDictionary<T> : SyncedDictionary<byte, T> where T
 
     protected override int? GetSize(DictionaryEdit<byte, T> data)
     {
-        return sizeof(byte) + sizeof(ulong);
+        var selfSize = sizeof(byte) + sizeof(ulong);
+        if (data.Value is INetSerializable serializable)
+            selfSize += serializable.GetSize() ?? 4096;
+        return selfSize;
     }
 
     protected override void WriteKey(NetWriter writer, byte key)

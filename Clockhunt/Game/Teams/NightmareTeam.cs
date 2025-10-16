@@ -13,10 +13,12 @@ public class NightmareTeam : Team, INetSerializable
     public override string Name => "Nightmare";
     public override uint Capacity => 1;
 
-    private int _nightmareID;
-    public int NightmareID => _nightmareID;
+    private ulong _nightmareID;
+    public ulong NightmareID => _nightmareID;
 
-    public NightmareTeam(int nightmareID)
+    public NightmareTeam() {}
+
+    public NightmareTeam(ulong nightmareID)
     {
         _nightmareID = nightmareID;
     }
@@ -36,6 +38,11 @@ public class NightmareTeam : Team, INetSerializable
         {
             NightmareManager.RemoveNightmare(player);
         });
+    }
+
+    public int? GetSize()
+    {
+        return sizeof(ulong);
     }
 
     public void Serialize(INetSerializer serializer)

@@ -3,6 +3,7 @@ using Clockhunt.Audio.Hunt;
 using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Clockhunt.Phase;
 using Clockhunt.Vision;

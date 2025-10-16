@@ -2,6 +2,7 @@
 using System.Reflection;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Util;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Registry;
 
@@ -26,6 +27,18 @@ public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
     
     public virtual void Register<T>() where T : TValue, new()
     {
+#if DEBUG
+        // This function is connected to the registerall and needs better runtime logging
+        var type = typeof(T);
+        if (type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes) == null)
+        {
+            MelonLogger.Error($"Type: {type.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
+            return;
+        }
+        
+        MelonLogger.Msg($"Registering type: {type.Name} to registry of: {typeof(TValue).Name}");
+#endif
+        
         var id = GetID<T>();
         Register(id, new T());  
     }

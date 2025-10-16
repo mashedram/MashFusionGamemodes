@@ -42,8 +42,6 @@ public static class NightmareManager
     private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
-    private static readonly WeightedPlayerSelector PlayerSelector = new();
-
     static NightmareManager()
     {
         PlayerNightmareIds.OnValueChanged += OnPlayerNightmareChange;
