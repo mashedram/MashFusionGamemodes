@@ -18,7 +18,7 @@ public interface IRegistry<TValue> where TValue : class
     public TValue? Get(ulong id);
     public bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry);
     public TValue? Get<T>() where T : TValue;
-    public bool TryGet<T>([MaybeNullWhen(false)] out TValue entry) where T : TValue;
+    public bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : class, TValue;
     
     public bool Contains(ulong id);
 }
