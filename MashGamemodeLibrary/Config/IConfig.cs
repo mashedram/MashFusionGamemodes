@@ -2,7 +2,7 @@ using LabFusion.Network.Serialization;
 
 namespace MashGamemodeLibrary.Config;
 
-public interface IConfigInstance : INetSerializable
+public interface IConfig : INetSerializable
 {
-    
+
 }

@@ -25,7 +25,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt;
 
-internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
+internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig>
 {
     private const string CalibrationAvatar = "c3534c5a-94b2-40a4-912a-24a8506f6c79";
 
@@ -33,9 +33,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext>
     public override string Author => "Mash";
 
     public override bool AutoHolsterOnDeath => true;
-    public override bool DisableDevTools => ClockhuntConfig.DevToolsDisabled;
-    public override bool DisableSpawnGun => ClockhuntConfig.DevToolsDisabled;
-    public override bool DisableManualUnragdoll => ClockhuntConfig.DevToolsDisabled;
+    public override bool DisableDevTools => Config.DevToolsDisabled;
+    public override bool DisableSpawnGun => Config.DevToolsDisabled;
+    public override bool DisableManualUnragdoll => Config.DevToolsDisabled;
 
     public override void OnGamemodeRegistered()
     {

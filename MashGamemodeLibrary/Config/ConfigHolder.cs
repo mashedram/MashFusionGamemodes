@@ -1,70 +1,44 @@
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Networking.Remote;
-using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable.Impl.Var;
 using MashGamemodeLibrary.Registry;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Config;
 
-internal class ConfigPacket  : INetSerializable
-{
-    private ulong _configID;
-    public IConfigInstance? ConfigInstance;
-
-    public ConfigPacket()
-    {
-        ConfigInstance = null;
-    }
-    
-    public ConfigPacket(IConfigInstance? configInstance)
-    {
-        if (configInstance != null)
-            _configID = ConfigHolder.ActiveConfigRegistry.GetID(configInstance);
-        ConfigInstance = configInstance;
-    }
-
-    public int? GetSize()
-    {
-        return sizeof(ulong) + ConfigInstance?.GetSize() ?? 0;
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref _configID);
-        if (serializer.IsReader)
-        {
-            ConfigInstance = ConfigHolder.ActiveConfigRegistry.Get(_configID) ?? throw new Exception($"Failed to find config of id: {_configID}");
-        }
-
-        ConfigInstance?.Serialize(serializer);
-    }
-}
-
 public static class ConfigHolder
 {
-    // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.
-    private static readonly SingletonRegistry<IConfigInstance> LocalConfigRegistry = new();
-    internal static readonly FactoryRegistry<IConfigInstance> ActiveConfigRegistry = new();
-    private static IConfigInstance? _remoteConfigInstance;
+    public delegate void ConfigChangedHandler(IConfig config);
+    public static event ConfigChangedHandler? OnConfigChanged;
     
-    private static readonly RemoteEvent<ConfigPacket> ConfigUpdateEvent = new("mgl_config_update", OnConfigReceived, CommonNetworkRoutes.HostToAll);
+    // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.
+    private static readonly SingletonRegistry<IConfig> LocalConfigRegistry = new();
+    private static readonly FactoryRegistry<IConfig> ActiveConfigRegistry = new();
+    
+    private static readonly SyncedInstance<IConfig> RemoteConfigInstance = new("ActiveConfig", ActiveConfigRegistry);
 
-    public static void Register<T>() where T : IConfigInstance, new()
+    static ConfigHolder()
+    {
+        RemoteConfigInstance.OnValueChanged += config =>
+        {
+            if (config != null) OnConfigChanged?.Invoke(config);
+        };
+    }
+    
+    public static void Register<T>() where T : IConfig, new()
     {
         LocalConfigRegistry.Register<T>();
         ActiveConfigRegistry.Register<T>();
     }
 
-    internal static void Enable<T>() where T : IConfigInstance
+    internal static void Enable<T>() where T : IConfig
     {
-        _remoteConfigInstance = ActiveConfigRegistry.Get<T>();
+        RemoteConfigInstance.Value = LocalConfigRegistry.Get<T>();
     }
     
-    public static T Get<T>() where T : class, IConfigInstance
+    public static T Get<T>() where T : class, IConfig
     {
         // If we are remote, and have a remote config, 
-        if (!NetworkInfo.IsHost && _remoteConfigInstance is T instance)
+        if (!NetworkInfo.IsHost && RemoteConfigInstance.Value is T instance)
             return instance;
 
         if (!LocalConfigRegistry.TryGet<T>(out var config))
@@ -73,12 +47,5 @@ public static class ConfigHolder
         }
 
         return config;
-    }
-    
-    // Events
-    
-    private static void OnConfigReceived(ConfigPacket packet)
-    {
-        _remoteConfigInstance = packet.ConfigInstance;
     }
 }

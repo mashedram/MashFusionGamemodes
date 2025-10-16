@@ -20,6 +20,6 @@ public class Weather1Effector : MappedSelector<ClockhuntMusicContext, WeatherTyp
 
     protected override WeatherType Selector(ClockhuntMusicContext context)
     {
-        return ClockhuntConfig.WeatherType.Value;
+        return Clockhunt.Config.WeatherType;
     }
 }

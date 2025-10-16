@@ -1,10 +1,21 @@
-﻿namespace MashGamemodeLibrary.Player;
+﻿using LabFusion.Network.Serialization;
 
-public class PlayerStats
+namespace MashGamemodeLibrary.Player;
+
+public struct PlayerStats : INetSerializable
 {
-    public float Vitality { get; set; }
-    public float Speed { get; set; }
-    public float UpperStrength { get; set; }
-    public float Agility { get; set; }
-    public float LowerStrength { get; set; }
+    public float Vitality;
+    public float Speed;
+    public float UpperStrength;
+    public float Agility;
+    public float LowerStrength;
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref Vitality);
+        serializer.SerializeValue(ref Speed);
+        serializer.SerializeValue(ref UpperStrength);
+        serializer.SerializeValue(ref Agility);
+        serializer.SerializeValue(ref LowerStrength);
+    }
 }

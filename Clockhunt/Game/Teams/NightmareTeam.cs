@@ -16,6 +16,10 @@ public class NightmareTeam : Team, INetSerializable
     private int _nightmareID;
     public int NightmareID => _nightmareID;
 
+    public NightmareTeam()
+    {
+    }
+
     public NightmareTeam(int nightmareID)
     {
         _nightmareID = nightmareID;

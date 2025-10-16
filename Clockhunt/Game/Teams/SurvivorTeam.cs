@@ -14,7 +14,7 @@ public class SurvivorTeam : Team
     {
         Executor.RunIfMe(Owner.PlayerID,() =>
         {
-            PlayerStatManager.SetStats(ClockhuntConfig.DefaultStats);
+            PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
         });
     }
 }

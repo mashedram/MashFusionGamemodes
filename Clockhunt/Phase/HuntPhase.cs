@@ -55,7 +55,7 @@ public class HuntPhase : GamePhase, ITimedPhase
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
 
     public override string Name => "Hunt";
-    public float Duration => ClockhuntConfig.HuntPhaseDuration;
+    public float Duration => Clockhunt.Config.HuntPhaseDuration;
 
     public HuntPhase()
     {
@@ -85,7 +85,7 @@ public class HuntPhase : GamePhase, ITimedPhase
     {
         if (!NightmareManager.IsNightmare(PlayerIDManager.LocalID))
         {
-            if (ClockhuntConfig.RuntimeSpawnPointsEnabled)
+            if (Clockhunt.Config.RuntimeSpawnPointsEnabled)
             {
                 FusionPlayer.SetSpawnPoints(SpawnManager.GetSpawnPoints());
             }
@@ -101,7 +101,7 @@ public class HuntPhase : GamePhase, ITimedPhase
             }
         }
 
-        if (ClockhuntConfig.TeleportToSpawn) GamemodeHelper.TeleportToSpawnPoint();
+        if (Clockhunt.Config.TeleportToSpawn) GamemodeHelper.TeleportToSpawnPoint();
     }
 
     private void SetDeliveryPosition()
@@ -127,7 +127,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 
         if (ClockManager.CountClockEntities() > 0) return PhaseIdentifier.Empty();
 
-        if (!ClockhuntConfig.IsEscapePhaseEnabled)
+        if (!Clockhunt.Config.IsEscapePhaseEnabled)
         {
             WinManager.Win<SurvivorTeam>();
             return PhaseIdentifier.Empty();
@@ -140,12 +140,12 @@ public class HuntPhase : GamePhase, ITimedPhase
     {
         Executor.RunIfHost(() =>
         {
-            if (ClockhuntConfig.RuntimeSpawnPointsEnabled) SpawnManager.SubmitSynced(ClockhuntConfig.RuntimeSpawnCount);
+            if (Clockhunt.Config.RuntimeSpawnPointsEnabled) SpawnManager.SubmitSynced(Clockhunt.Config.RuntimeSpawnCount);
 
             var context = Clockhunt.Context;
 
 #if DEBUG
-            if (!ClockhuntConfig.DebugSkipNightmare) TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
+            if (!Clockhunt.Config.DebugSkipNightmare) TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #else
             TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #endif
@@ -155,7 +155,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             EscapeManager.CollectEscapePoints();
 
-            ClockManager.RemoveUntilCount(ClockhuntConfig.HuntPhaseClockCount);
+            ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
 
             context.ClockAudioPlayer.Start();
         });
@@ -173,7 +173,7 @@ public class HuntPhase : GamePhase, ITimedPhase
             foreach (var networkEntity in from networkEntity in clocks
                      let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity
                      let distance = Vector3.Distance(marrowEntity.transform.position, DeliveryPosition)
-                     where distance <= ClockhuntConfig.DeliveryDistance
+                     where distance <= Clockhunt.Config.DeliveryDistance
                      select networkEntity)
             {
                 var count = EntityTagManager.CountEntitiesWithTag<ClockMarker>();
@@ -202,7 +202,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             if (ClockManager.CountClockEntities() == 0)
             {
-                if (!ClockhuntConfig.IsEscapePhaseEnabled) WinManager.Win<SurvivorTeam>();
+                if (!Clockhunt.Config.IsEscapePhaseEnabled) WinManager.Win<SurvivorTeam>();
                 return;
             }
 

@@ -48,7 +48,7 @@ internal class EnvironmentChangePacket : INetSerializable
     }
 }
 
-public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IStoppable
+public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IContextfull<TContext>, IStoppable
     where TContext : GameModeContext, new()
 {
     private readonly Func<TContext, TInternalContext> _contextBuilder;
@@ -74,9 +74,8 @@ public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IStoppa
         return track;
     }
 
-    private void BuildContext()
+    public void SetContext(TContext context)
     {
-        var context = GamemodeWithContext<TContext>.Context;
         _context = _contextBuilder(context);
     }
 
@@ -103,8 +102,6 @@ public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IStoppa
     {
         if (_profile == null)
             return;
-
-        BuildContext();
 
         // Update existing tracks
         _tracks.Values.ForEach(track => track.Update(_context, delta));

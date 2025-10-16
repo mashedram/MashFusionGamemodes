@@ -92,7 +92,7 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
 
     public override PlayerStats GetStats()
     {
-        return ClockhuntConfig.DefaultStats;
+        return Clockhunt.Config.DefaultStats;
     }
 
     public override NightmareInstance CreateInstance(byte ownerID)

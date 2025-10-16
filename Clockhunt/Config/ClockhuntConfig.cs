@@ -1,39 +1,43 @@
 ﻿using Clockhunt.Audio.Effectors.Weather;
+using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
-public static class ClockhuntConfig
+public class ClockhuntConfig : IConfig
 {
-    public static int HidePhaseDuration = 150;
-    public static int HuntPhaseDuration = 1200;
-    public static int EscapePhaseDuration = 240;
+    private readonly AutoSerializer<ClockhuntConfig> _autoSerializer = new();
+    
+    public int HidePhaseDuration = 150;
+    public int HuntPhaseDuration = 1200;
+    public int EscapePhaseDuration = 240;
 
-    public static int ClocksPerPlayer = 1;
-    public static int HuntPhaseClockCount = 2;
+    public int ClocksPerPlayer = 1;
+    public int HuntPhaseClockCount = 2;
 
-    public static bool IsSpectatingEnabled = true;
-    public static bool IsEscapePhaseEnabled = true;
+    public bool IsSpectatingEnabled = true;
+    public bool IsEscapePhaseEnabled = true;
 
-    public static float DeliveryDistance = 10.0f;
+    public float DeliveryDistance = 10.0f;
 
-    public static EnumSyncedVariable<WeatherType> WeatherType = new("weather_type",
-        Audio.Effectors.Weather.WeatherType.None);
+    public WeatherType WeatherType = WeatherType.None;
 
-    public static BoolSyncedVariable TeleportToSpawn = new("teleport_to_spawn", false);
-    public static BoolSyncedVariable NightVision = new("night_vision", true);
-    public static FloatSyncedVariable NightVisionBrightness = new("night_vision_brightness", 1.0f);
+    public bool TeleportToSpawn = false;
+    public bool NightVision = true;
+    public float NightVisionBrightness = 1.0f;
 
-    public static BoolSyncedVariable RuntimeSpawnPointsEnabled = new("runtime_spawnpoints_enabled", false);
-    public static IntSyncedVariable RuntimeSpawnCount = new("runtime_spawn_count", 6);
+    public bool RuntimeSpawnPointsEnabled = false;
+    public int RuntimeSpawnCount = 6;
 
-    public static BoolSyncedVariable DevToolsDisabled = new("dev_tools_disabled", true);
+    public bool DevToolsDisabled = true;
 
-    public static bool DebugForceSpectate = false;
-    public static bool DebugSkipNightmare = false;
+    public bool DebugForceSpectate = false;
+    public bool DebugSkipNightmare = false;
 
-    public static PlayerStats DefaultStats = new()
+    public PlayerStats DefaultStats = new()
     {
         Vitality = 1.0f,
         Speed = 1.0f,
@@ -42,6 +46,11 @@ public static class ClockhuntConfig
         Agility = 1.0f
     };
 
-    public static float EscapeDistance = 10.0f;
-    public static float EscapeDuration = 15.0f;
+    public float EscapeDistance = 10.0f;
+    public float EscapeDuration = 15.0f;
+
+    public void Serialize(INetSerializer serializer)
+    {
+        _autoSerializer.Serialize(serializer, this);
+    }
 }

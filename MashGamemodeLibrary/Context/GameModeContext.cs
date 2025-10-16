@@ -42,7 +42,12 @@ public abstract class GameModeContext
         if (!IsStarted)
             return;
 
-        UpdateCache.ForEach(entry => entry.Update(delta));
+        UpdateCache.ForEach(entry =>
+        {
+            if (entry is IContextfull<GameModeContext> contextfull)
+                contextfull.SetContext(this);
+            entry.Update(delta);
+        });
     }
 
     internal void OnReady()
