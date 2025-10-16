@@ -1,5 +1,6 @@
 ﻿using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Phase;
 
@@ -16,6 +17,11 @@ public class PlantPhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
-        Executor.RunIfHost(() => { BoneStrikeContext.TeamManager.AssignToRandomTeams(); });
+        Executor.RunIfHost(() =>
+        {
+            TeamManager.AssignAllRandom();
+            
+            
+        });
     }
 }

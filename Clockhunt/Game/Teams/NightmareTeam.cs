@@ -21,20 +21,20 @@ public class NightmareTeam : Team, INetSerializable
         _nightmareID = nightmareID;
     }
 
-    public override void OnAssigned(PlayerID player)
+    public override void OnAssigned()
     {
         Executor.RunIfHost(() =>
         {
-            NightmareManager.SetRandomNightmare(player);
-            MelonLogger.Msg("Assigned nightmare to player " + player + " with nightmare ID " + NightmareID);
+            NightmareManager.SetRandomNightmare(Owner.PlayerID);
+            MelonLogger.Msg("Assigned nightmare to player " + Owner.Username + " with nightmare ID " + NightmareID);
         });
     }
 
-    public override void OnRemoved(PlayerID player)
+    public override void OnRemoved()
     {
         Executor.RunIfHost(() =>
         {
-            NightmareManager.RemoveNightmare(player);
+            NightmareManager.RemoveNightmare(Owner.PlayerID);
         });
     }
 

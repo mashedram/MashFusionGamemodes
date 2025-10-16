@@ -4,23 +4,27 @@ using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Networking.Variable.Impl.Dict;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Entities.Tagging;
 
-public class SyncEntityTagPacket : INetSerializable
+public record struct EntityTagIndex(ushort EntityID, ulong TagID) : INetSerializable
 {
-    public ushort EntityId;
-    public byte[] TagData = Array.Empty<byte>();
-    public ulong TagId;
+    public ushort EntityID = EntityID;
+    public ulong TagID = TagID;
+
+    public int? GetSize()
+    {
+        return sizeof(ushort) + sizeof(ulong);
+    }
 
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref EntityId);
-        serializer.SerializeValue(ref TagId);
-        serializer.SerializeValue(ref TagData);
+        serializer.SerializeValue(ref EntityID);
+        serializer.SerializeValue(ref TagID);
     }
 }
 
@@ -28,7 +32,8 @@ public class SyncEntityTagPacket : INetSerializable
 // TODO: Add catchup support
 public static class EntityTagManager
 {
-    private static readonly EntityTagSyncedDictionary Tags = new("sync.GlobalTagManager");
+    private static readonly KeyToInstanceSyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager");
+    public static Registry<IEntityTag> Registry => Tags.Registry;
 
     // Helper Extension Map
     private static readonly Dictionary<Type, ulong> TypeToHashMap = new();
@@ -101,7 +106,7 @@ public static class EntityTagManager
 
     private static ulong GetTagId<T>() where T : IEntityTag
     {
-        return EntityTagSyncedDictionary.Registry.GetID<T>();
+        return Registry.GetID<T>();
     }
 
     public static void Remove(ushort id)
@@ -138,7 +143,7 @@ public static class EntityTagManager
 
 
         // Register it on the network
-        EntityTagSyncedDictionary.Registry.Register<T>();
+        Registry.Register<T>();
     }
 
     public static void RegisterAbstractTag<T>() where T : IAbstractEntityTag

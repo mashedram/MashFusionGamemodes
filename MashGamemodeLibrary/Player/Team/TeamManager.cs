@@ -5,6 +5,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -78,6 +79,14 @@ public static class TeamManager
     {
         return PlayerIDManager.LocalID.IsTeam<T>();
     }
+    
+    public static void Assign<T>(this NetworkPlayer player, T team) where T : Team
+    {
+        Executor.RunIfHost(() =>
+        {
+            AssignedTeams[player.PlayerID] = team;
+        });
+    }
 
     public static void Assign<T>(this PlayerID playerID) where T : Team
     {
@@ -105,7 +114,7 @@ public static class TeamManager
         }, "Assigning teams");
     }
     
-    public static void RandomAssignAll()
+    public static void AssignAllRandom()
     {
         Executor.RunIfHost(() =>
         {
@@ -169,15 +178,14 @@ public static class TeamManager
 
     private static void OnAssigned(byte smallID, Team team)
     {
-        var playerID = PlayerIDManager.GetPlayerID(smallID);
-        if (playerID == null)
+        if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player))
         {
             MelonLogger.Error($"Failed to assign player of id {smallID} to {team.Name}");
             return;
         }
         
-        team.OnAssigned(playerID);
-        OnAssignedTeam?.Invoke(playerID, team);
+        team.Assign(player);
+        OnAssignedTeam?.Invoke(player.PlayerID, team);
     }
 
     private static void OnRemoved(byte smallID, Team team)
@@ -189,6 +197,21 @@ public static class TeamManager
             return;
         }
         
-        team.OnRemoved(playerID);
+        team.Remove();
+    }
+
+    public static void OnPhaseChanged(GamePhase activePhase)
+    {
+        foreach (var team in AssignedTeams.Values)
+        {
+            try
+            {
+                team.OnPhaseChanged(activePhase);
+            }
+            catch (Exception exception)
+            {
+                MelonLogger.Error($"Failed to execute phase change for team: {team.Name}", exception);
+            }
+        }
     }
 }

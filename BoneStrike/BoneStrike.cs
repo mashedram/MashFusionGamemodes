@@ -16,8 +16,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext>
     public override void OnGamemodeRegistered()
     {
         EntityTagManager.RegisterAll<Mod>();
-        TeamManager.Registry.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
+        TeamManager.Registry.RegisterAll<Mod>();
     }
 
 
@@ -28,7 +28,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext>
 
         Executor.RunIfHost(() =>
         {
-            TeamManager.RandomAssignAll();
+            TeamManager.AssignAllRandom();
             GamePhaseManager.Enable<PlantPhase>();
         });
     }
