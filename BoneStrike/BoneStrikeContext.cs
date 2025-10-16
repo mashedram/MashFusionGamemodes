@@ -3,6 +3,6 @@ using MashGamemodeLibrary.Context;
 
 namespace BoneStrike;
 
-public class BoneStrikeContext : GameModeContext
+public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
 {
 }

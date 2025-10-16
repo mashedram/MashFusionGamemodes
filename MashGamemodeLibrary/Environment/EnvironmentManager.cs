@@ -49,7 +49,7 @@ internal class EnvironmentChangePacket : INetSerializable
 }
 
 public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IContextfull<TContext>, IStoppable
-    where TContext : GameModeContext, new()
+    where TContext : GameModeContext<TContext>, new()
 {
     private readonly Func<TContext, TInternalContext> _contextBuilder;
     private readonly Dictionary<Enum, Track<TInternalContext>> _tracks = new();

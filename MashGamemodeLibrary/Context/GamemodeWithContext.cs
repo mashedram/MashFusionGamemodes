@@ -16,8 +16,8 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 namespace MashGamemodeLibrary.Context;
 
 public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode 
-    where TContext : GameModeContext, new()
-    where TConfig : class, IConfig
+    where TContext : GameModeContext<TContext>, new()
+    where TConfig : class, IConfig, new()
 {
     private static TContext? _internalContext;
 
@@ -85,6 +85,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
             throw new InvalidOperationException(
                 $"Failed to create instance of {typeof(TContext).Name}. Ensure it has a public parameterless constructor.");
 
+        ConfigHolder.Register<TConfig>();
         ConfigHolder.OnConfigChanged += config =>
         {
             if (config is TConfig myConfig)
@@ -98,6 +99,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     {
         Reset();
 
+        ConfigHolder.Enable<TConfig>();
         Context.OnReady();
     }
 

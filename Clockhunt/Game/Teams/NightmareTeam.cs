@@ -42,6 +42,11 @@ public class NightmareTeam : Team, INetSerializable
         });
     }
 
+    public int? GetSize()
+    {
+        return sizeof(ulong);
+    }
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref _nightmareID);
