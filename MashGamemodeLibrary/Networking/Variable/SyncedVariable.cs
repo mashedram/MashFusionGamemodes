@@ -64,12 +64,9 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
         OnValueChanged?.Invoke(_value);
     }
 
-    private void SetValue(T newValue)
+    public void SetAndSync(T value)
     {
-        if (Equals(_value, newValue))
-            return;
-
-        var isValid = OnValidate?.Invoke(newValue) ?? true;
+        var isValid = OnValidate?.Invoke(value) ?? true;
         if (!isValid)
         {
 #if DEBUG
@@ -78,8 +75,16 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
             return;
         }
 
-        _value = newValue;
+        _value = value;
         OnValueChanged?.Invoke(_value);
         Relay(_value);
+    }
+
+    private void SetValue(T newValue)
+    {
+        if (!Equals(_value, newValue))
+            return;
+
+        SetAndSync(newValue);
     }
 }

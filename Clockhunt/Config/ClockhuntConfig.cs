@@ -1,16 +1,35 @@
 ﻿using Clockhunt.Audio.Effectors.Weather;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
+using MashGamemodeLibrary.Config.Constraints;
+using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
+class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer<int, float>
+{
+    public float ToDisplay(int value)
+    {
+        return value / 60f;
+    }
+
+    public int FromDisplay(float display)
+    {
+        return (int)(display * 60);
+    }
+}
+
 public class ClockhuntConfig : IConfig
 {
     private readonly AutoSerializer<ClockhuntConfig> _autoSerializer = new();
     
+    [ConfigMenuEntry("Hide phase duration")]
+    [ConfigRangeConstraint(15, 1200)]
+    [ConfigStepSize(15)]
+    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
     public int HidePhaseDuration = 150;
     public int HuntPhaseDuration = 1200;
     public int EscapePhaseDuration = 240;
