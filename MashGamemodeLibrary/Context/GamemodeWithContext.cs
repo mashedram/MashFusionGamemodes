@@ -1,7 +1,10 @@
-﻿using LabFusion.Player;
+﻿using LabFusion.Marrow.Proxies;
+using LabFusion.Menu.Data;
+using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Config;
+using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
@@ -15,7 +18,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode 
+public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     where TContext : GameModeContext<TContext>, new()
     where TConfig : class, IConfig, new()
 {
@@ -24,7 +27,9 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     public static TContext Context => _internalContext ??
                                       throw new InvalidOperationException(
                                           "Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
-    public static TConfig Config => ConfigHolder.Get<TConfig>();
+    public static TConfig Config => ConfigManager.Get<TConfig>();
+
+    private ConfigMenu _configMenu = null!;
     
     public delegate void ConfigChangedHandler(TConfig config);
     public static event ConfigChangedHandler? OnConfigChanged;
@@ -45,8 +50,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     protected virtual void OnUpdate(float delta)
     {
     }
-
-    
     
     private void Start()
     {
@@ -85,12 +88,14 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
             throw new InvalidOperationException(
                 $"Failed to create instance of {typeof(TContext).Name}. Ensure it has a public parameterless constructor.");
 
-        ConfigHolder.Register<TConfig>();
-        ConfigHolder.OnConfigChanged += config =>
+        ConfigManager.Register<TConfig>();
+        ConfigManager.OnConfigChanged += config =>
         {
             if (config is TConfig myConfig)
                 OnConfigChanged?.Invoke(myConfig);
         };
+        
+        _configMenu = new ConfigMenu(Config);
 
         base.OnGamemodeRegistered();
     }
@@ -99,7 +104,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     {
         Reset();
 
-        ConfigHolder.Enable<TConfig>();
+        ConfigManager.Enable<TConfig>();
         Context.OnReady();
     }
 
@@ -148,5 +153,10 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
         
         Context.Update(delta);
         OnUpdate(delta);
+    }
+
+    public override GroupElementData CreateSettingsGroup()
+    {
+        return _configMenu.GetElementData();
     }
 }

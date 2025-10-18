@@ -7,6 +7,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -16,7 +17,7 @@ public static class TeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();
     private static readonly IDToInstanceSyncedDictionary<Team> AssignedTeams = new("sync.AssignedTeams");
-    public static IRegistry<Team> Registry => AssignedTeams.Registry;
+    public static ITypedRegistry<Team> Registry => AssignedTeams.Registry;
 
     public delegate void OnAssignedTeamHandler(PlayerID playerID, Team team);
 

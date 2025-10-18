@@ -1,6 +1,7 @@
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.Networking.Variable.Impl.Dict;
 
@@ -8,7 +9,7 @@ public class KeyToInstanceSyncedDictionary<TKey, TValue> : SyncedDictionary<TKey
     where TKey : INetSerializable, new()
     where TValue : class
 {
-    public readonly FactoryRegistry<TValue> Registry = new();
+    public readonly FactoryTypedRegistry<TValue> Registry = new();
     
     public KeyToInstanceSyncedDictionary(string name) : base(name)
     {

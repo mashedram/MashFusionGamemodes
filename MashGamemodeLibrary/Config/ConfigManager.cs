@@ -2,21 +2,22 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Variable.Impl.Var;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.Config;
 
-public static class ConfigHolder
+public static class ConfigManager
 {
     public delegate void ConfigChangedHandler(IConfig config);
     public static event ConfigChangedHandler? OnConfigChanged;
     
     // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.
-    private static readonly SingletonRegistry<IConfig> LocalConfigRegistry = new();
-    private static readonly FactoryRegistry<IConfig> ActiveConfigRegistry = new();
+    private static readonly SingletonTypedRegistry<IConfig> LocalConfigTypedRegistry = new();
+    private static readonly FactoryTypedRegistry<IConfig> ActiveConfigTypedRegistry = new();
     
-    private static readonly SyncedInstance<IConfig> RemoteConfigInstance = new("ActiveConfig", ActiveConfigRegistry);
+    private static readonly SyncedInstance<IConfig> RemoteConfigInstance = new("ActiveConfig", ActiveConfigTypedRegistry);
 
-    static ConfigHolder()
+    static ConfigManager()
     {
         RemoteConfigInstance.OnValueChanged += config =>
         {
@@ -26,13 +27,13 @@ public static class ConfigHolder
     
     public static void Register<T>() where T : IConfig, new()
     {
-        LocalConfigRegistry.Register<T>();
-        ActiveConfigRegistry.Register<T>();
+        LocalConfigTypedRegistry.Register<T>();
+        ActiveConfigTypedRegistry.Register<T>();
     }
 
     internal static void Enable<T>() where T : IConfig
     {
-        RemoteConfigInstance.Value = LocalConfigRegistry.Get<T>();
+        RemoteConfigInstance.Value = LocalConfigTypedRegistry.Get<T>();
     }
     
     public static T Get<T>() where T : class, IConfig
@@ -41,11 +42,18 @@ public static class ConfigHolder
         if (!NetworkInfo.IsHost && RemoteConfigInstance.Value is T instance)
             return instance;
 
-        if (!LocalConfigRegistry.TryGet<T>(out var config))
+        if (!LocalConfigTypedRegistry.TryGet<T>(out var config))
         {
             throw new Exception($"No config of type {typeof(T).Name} has been registered!");
         }
 
         return config;
+    }
+
+    internal static void Sync()
+    {
+        if (!NetworkInfo.IsHost) return;
+        
+        RemoteConfigInstance.Sync();
     }
 }

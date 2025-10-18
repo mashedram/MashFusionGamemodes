@@ -1,15 +1,16 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl.Var;
 
 public class SyncedInstance<TValue> : SyncedVariable<TValue?> where TValue : class, INetSerializable
 {
-    private Registry.Registry<TValue> _registry;
+    private readonly ITypedRegistry<TValue> _typedRegistry;
     
-    public SyncedInstance(string name, Registry.Registry<TValue> registry) : base(name, null)
+    public SyncedInstance(string name, ITypedRegistry<TValue> typedRegistry) : base(name, null)
     {
-        _registry = registry;
+        _typedRegistry = typedRegistry;
     }
     
     protected override int? GetSize(TValue? data)
@@ -30,7 +31,7 @@ public class SyncedInstance<TValue> : SyncedVariable<TValue?> where TValue : cla
             return null;
 
         var id = reader.ReadUInt64();
-        var value = _registry.Get(id);
+        var value = _typedRegistry.Get(id);
 
         if (value == null)
         {
@@ -46,7 +47,7 @@ public class SyncedInstance<TValue> : SyncedVariable<TValue?> where TValue : cla
         writer.Write(value != null);
         if (value == null) return;
         
-        writer.Write(_registry.GetID(value));
+        writer.Write(_typedRegistry.GetID(value));
         value.Serialize(writer);
     }
     

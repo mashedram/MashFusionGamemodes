@@ -13,6 +13,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
 
 namespace Clockhunt.Nightmare;
@@ -31,9 +32,9 @@ internal class AnnounceNightmarePacket : INetSerializable
 
 public static class NightmareManager
 {
-    private static readonly Dictionary<ulong, NightmareDescriptor> NightmareDescriptors = new();
+    private static readonly SingletonTypedRegistry<NightmareDescriptor> NightmareRegistry = new();
 
-    private static readonly CircularRandomProvider<ulong> NightmareRandomProvider = new(() => NightmareDescriptors
+    private static readonly CircularRandomProvider<ulong> NightmareRandomProvider = new(() => NightmareRegistry
         .Where(v => v.Value.IsEnabled)
         .Select(v => v.Key)
         .ToList()
@@ -44,33 +45,15 @@ public static class NightmareManager
 
     static NightmareManager()
     {
+        
+        
         PlayerNightmareIds.OnValueChanged += OnPlayerNightmareChange;
         PlayerNightmareIds.OnValueRemoved += OnPlayerNightmareRemove;
     }
 
-    public static IReadOnlyDictionary<ulong, NightmareDescriptor> Descriptors => NightmareDescriptors;
+    public static SingletonTypedRegistry<NightmareDescriptor> Registry => NightmareRegistry;
 
     public static IEnumerable<NightmareInstance> Nightmares => NightmareInstances.Values;
-
-    public static void Register<T>() where T : NightmareDescriptor
-    {
-        var descriptor = (T)Activator.CreateInstance(typeof(T), true)!;
-        var id = descriptor.ID;
-        if (!NightmareDescriptors.TryAdd(id, descriptor))
-            throw new Exception($"Nightmare with ID {id} is already registered");
-
-        descriptor.Register();
-    }
-
-    public static void RegisterAll<T>()
-    {
-        var assembly = typeof(T).Assembly;
-        var method = typeof(NightmareManager).GetMethod(nameof(Register)) ??
-                     throw new Exception("Failed to find RegisterTag method");
-        assembly.GetTypes()
-            .Where(t => typeof(NightmareDescriptor).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
-            .ForEach(t => { method.MakeGenericMethod(t).Invoke(null, null); });
-    }
 
     private static Handedness? GetInput(NetworkPlayer player)
     {
@@ -151,7 +134,12 @@ public static class NightmareManager
             return;
         }
 
-        var descriptor = NightmareDescriptors[nightmareId];
+        if (!NightmareRegistry.TryGet(nightmareId, out var descriptor))
+        {
+            MelonLogger.Error($"Failed to find a nightmare by: {nightmareId}");
+            return;
+        }
+        
         var instance = descriptor.CreateInstance(playerId);
         NightmareInstances[playerId] = instance;
         instance.Apply();

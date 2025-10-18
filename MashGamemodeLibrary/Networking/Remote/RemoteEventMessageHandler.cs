@@ -148,7 +148,9 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     /// <typeparam name="T">The mod class type</typeparam>
     public static void RegisterMod<T>()
     {
-        foreach (var type in typeof(T).Assembly.GetTypes())
+        var assembly = typeof(T).Assembly;
+
+        foreach (var type in assembly.GetTypes())
         {
             if (type.IsGenericType)
                 continue;

@@ -3,6 +3,7 @@ using MashGamemodeLibrary;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
@@ -13,6 +14,7 @@ using MashGamemodeLibrary.Debug;
 [assembly: MelonInfo(typeof(Mod), "Mash's Gamemode Library", "0.1.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 
+[assembly: NetworkIdentifiable("MGL")]
 namespace MashGamemodeLibrary;
 
 public class Mod : MelonMod

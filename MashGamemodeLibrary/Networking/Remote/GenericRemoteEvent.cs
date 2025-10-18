@@ -1,24 +1,40 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Networking.Remote;
 
-public abstract class GenericRemoteEvent<T>
+public abstract class GenericRemoteEvent<TData>
 {
     private readonly ulong _assignedId;
     private readonly string _name;
     protected readonly INetworkRoute Route;
 
+    private static string GetModName(Type type)
+    {
+        var assembly = type.Assembly;
+        var melonInfo = assembly.GetCustomAttribute<NetworkIdentifiable>();
+        if (melonInfo != null)
+        {
+            return melonInfo.Identifier;
+        }
+
+        throw new Exception("Ensure the mod is Network Identifiable before registering it.");
+    }
+    
     protected GenericRemoteEvent(string name, INetworkRoute route)
     {
         _name = name;
         Route = route;
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(name, this);
+
+        var path = $"{GetModName(GetType())}.{name}";
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(path, this);
     }
 
     ~GenericRemoteEvent()
@@ -26,18 +42,18 @@ public abstract class GenericRemoteEvent<T>
         RemoteEventMessageHandler.UnregisterEvent(_assignedId);
     }
 
-    protected abstract int? GetSize(T data);
-    protected abstract void Write(NetWriter writer, T data);
+    protected abstract int? GetSize(TData data);
+    protected abstract void Write(NetWriter writer, TData data);
     protected abstract void Read(byte playerId, NetReader reader);
 
-    private void Relay(T data, MessageRoute route)
+    private void Relay(TData data, MessageRoute route)
     {
         using var netWriter = NetWriter.Create(GetSize(data));
         Write(netWriter, data);
         RemoteEventMessageHandler.Relay(_assignedId, netWriter.Buffer, route);
     }
 
-    protected void Relay(T data)
+    protected void Relay(TData data)
     {
         if (Route is not IBroadcastNetworkRoute route)
         {
@@ -64,7 +80,7 @@ public abstract class GenericRemoteEvent<T>
         Relay(data, route.GetMessageRoute());
     }
 
-    protected void Relay(T data, byte targetId)
+    protected void Relay(TData data, byte targetId)
     {
         if (Route is not ITargetedNetworkRoute route)
         {

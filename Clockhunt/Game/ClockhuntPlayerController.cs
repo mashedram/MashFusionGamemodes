@@ -1,6 +1,7 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
+using Clockhunt.Phase;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network.Serialization;
@@ -8,8 +9,11 @@ using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Config;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Spectating;
@@ -34,9 +38,19 @@ internal class LivesChangedPacket : INetSerializable
 public class ClockhuntPlayerController : PlayerController
 {
     private static readonly RemoteEvent<LivesChangedPacket> LivesChangedEvent = new(OnLivesChanged, CommonNetworkRoutes.HostToAll);
+    private static readonly IntSyncedVariable MaxLives = new("MaxLives", Clockhunt.Config.MaxLives);
+    private static readonly Vector3SyncedVariable EscapePoint = new Vector3SyncedVariable()
     
-    // TODO: Attach to config
     private int _lives = 3;
+
+    static ClockhuntPlayerController()
+    {
+        ConfigManager.OnConfigChanged += config =>
+        {
+            if (config is ClockhuntConfig clockhuntConfig)
+                MaxLives.Value = clockhuntConfig.MaxLives;
+        };
+    }
 
     private static int CountSurvivors()
     {
@@ -91,7 +105,12 @@ public class ClockhuntPlayerController : PlayerController
     
     public override void OnAttach()
     {
-        
+        MaxLives.OnValueChanged += OnMaxLivesChanged;
+    }
+
+    public override void OnDetach()
+    {
+        MaxLives.OnValueChanged -= OnMaxLivesChanged;
     }
 
     public override void OnPlayerAction(PlayerActionType action, PlayerID otherPlayer)
@@ -102,6 +121,17 @@ public class ClockhuntPlayerController : PlayerController
     }
     
     // Events
+
+    private void OnMaxLivesChanged(int maxLives)
+    {
+        if (GamePhaseManager.IsPhase<HidePhase>()) return;
+        
+        // We are in hunt mode
+        if (_lives <= maxLives)
+            return;
+
+        _lives = maxLives;
+    }
 
     private static void OnLivesChanged(LivesChangedPacket packet)
     {
@@ -143,6 +173,11 @@ public class ClockhuntPlayerController : PlayerController
                 });
                 break;
         }
+    }
+
+    public void ResetLives()
+    {
+        _lives = MaxLives;
     }
 
     public void SetLives(int lives)

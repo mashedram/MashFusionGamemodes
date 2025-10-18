@@ -23,6 +23,7 @@ using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
@@ -140,7 +141,8 @@ public class HuntPhase : GamePhase, ITimedPhase
     {
         Executor.RunIfHost(() =>
         {
-            if (Clockhunt.Config.RuntimeSpawnPointsEnabled) SpawnManager.SubmitSynced(Clockhunt.Config.RuntimeSpawnCount);
+            if (Clockhunt.Config.RuntimeSpawnPointsEnabled) 
+                SpawnManager.SubmitSynced(Clockhunt.Config.RuntimeSpawnCount);
 
             var context = Clockhunt.Context;
 
@@ -156,6 +158,11 @@ public class HuntPhase : GamePhase, ITimedPhase
             EscapeManager.CollectEscapePoints();
 
             ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
+            
+            PlayerControllerManager.OnAll<ClockhuntPlayerController>(controller =>
+            {
+                controller.ResetLives();
+            });
 
             context.ClockAudioPlayer.Start();
         });

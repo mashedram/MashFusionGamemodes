@@ -1,9 +1,9 @@
 namespace MashGamemodeLibrary.Config.Menu;
 
-public interface IConfigDisplayTransformer<TValue, TDisplay>
+public interface IConfigDisplayTransformer
 {
-    public TDisplay ToDisplay(TValue value);
-    public TValue FromDisplay(TDisplay display);
+    public object ToDisplay(object value);
+    public object FromDisplay(object display);
 }
 
 [AttributeUsage(AttributeTargets.Field)]

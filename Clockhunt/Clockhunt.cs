@@ -43,14 +43,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         base.OnGamemodeRegistered();
 
         EntityTagManager.RegisterAll<Mod>();
-        NightmareManager.RegisterAll<Mod>();
+        NightmareManager.Registry.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
-    }
-
-    public override GroupElementData CreateSettingsGroup()
-    {
-        return ClockhuntConfigMenu.CreateSettingsGroup();
     }
 
     private static void ListenToAvatarChange(Avatar avatar, string barcode)

@@ -7,6 +7,16 @@
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+        <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+        <DefineConstants>$(DefineConstants);MELONLOADER</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
         <Reference Include="0Harmony">
             <HintPath>$(BONELAB_DIR)\MelonLoader\net6\0Harmony.dll</HintPath>

@@ -1,4 +1,5 @@
-﻿using BoneStrike.Phase;
+﻿using BoneStrike.Config;
+using BoneStrike.Phase;
 using BoneStrike.Teams;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -8,7 +9,7 @@ using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike;
 
-public class BoneStrike : GamemodeWithContext<BoneStrikeContext>
+public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
 {
     public override string Title => "Bone Strike";
     public override string Author => "Mash";

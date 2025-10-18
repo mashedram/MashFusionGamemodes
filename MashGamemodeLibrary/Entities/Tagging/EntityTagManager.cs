@@ -6,6 +6,7 @@ using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Variable.Impl.Dict;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -33,7 +34,7 @@ public record struct EntityTagIndex(ushort EntityID, ulong TagID) : INetSerializ
 public static class EntityTagManager
 {
     private static readonly KeyToInstanceSyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager");
-    public static Registry<IEntityTag> Registry => Tags.Registry;
+    public static ITypedRegistry<IEntityTag> Registry => Tags.Registry;
 
     // Helper Extension Map
     private static readonly Dictionary<Type, ulong> TypeToHashMap = new();

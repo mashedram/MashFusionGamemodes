@@ -4,10 +4,10 @@
 public class ConfigRangeConstraint : Attribute
 {
     public object Lower { get; }
-    public object Higher { get;  }
-    public ConfigRangeConstraint(object lower, object higher)
+    public object Upper { get; }
+    public ConfigRangeConstraint(object lower, object upper)
     {
         Lower = lower;
-        Higher = higher;
+        Upper = upper;
     }
 }

@@ -1,29 +1,33 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using LabFusion.Extensions;
+using MashGamemodeLibrary.Registry.Keyed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
-namespace MashGamemodeLibrary.Registry;
+namespace MashGamemodeLibrary.Registry.Typed;
 
-public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
+public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TInternal>, ITypedRegistry<TValue> 
+    where TValue : notnull
+    where TInternal : notnull
 {
-    public virtual ulong GetID(MemberInfo type)
+    public ulong GetID(MemberInfo type)
     {
         return type.Name.GetStableHash();
     }
     
-    public virtual ulong GetID<T>() where T : TValue
+    public ulong GetID<T>() where T : TValue
     {
         return GetID(typeof(T));
     }
-
-    public virtual ulong GetID<T>(T instance) where T : TValue
+    
+    public ulong GetID<T>(T instance) where T : TValue
     {
         return GetID(instance.GetType());
     }
-    
-    public abstract void Register<T>(ulong id, T value) where T : TValue, new();
+
+    protected abstract TInternal Create<T>() where T : TValue, new();
+    protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);
     
     public virtual void Register<T>() where T : TValue, new()
     {
@@ -40,7 +44,7 @@ public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
 #endif
         
         var id = GetID<T>();
-        Register(id, new T());  
+        Register(id, Create<T>());  
     }
     
     public void RegisterAll<T>()
@@ -55,29 +59,43 @@ public abstract class Registry<TValue> : IRegistry<TValue> where TValue : class
             .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
     }
-
-    public abstract TValue? Get(ulong id);
-
-    public abstract bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry);
+    
+    public new TValue? Get(ulong id)
+    {
+        TryToValue(base.Get(id), out var value);
+        return value;
+    }
 
     public virtual TValue? Get<T>() where T : TValue
     {
         var id = GetID<T>();
         return Get(id);
     }
-
-    public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : class, TValue
+    
+    public bool TryGet(ulong key, [MaybeNullWhen(false)] out TValue value)
     {
-        var id = GetID<T>();
-        if (!TryGet(id, out var maybeEntry))
+        if (!base.TryGet(key, out var maybeEntry) || !TryToValue(maybeEntry, out var internalValue))
         {
-            entry = null;
+            value = default!;
             return false;
         }
-        
-        entry = maybeEntry as T;
-        return entry != null;
+
+        value = internalValue;
+        return true;
     }
 
-    public abstract bool Contains(ulong id);
+    public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue
+    {
+        var id = GetID<T>();
+        if (!TryGet(id, out var value))
+        {
+            entry = default!;
+            return false;
+        }
+
+        entry = (T)value;
+        return true;
+    }
 }
+
+public abstract class TypedRegistry<TValue> : TypedRegistry<TValue, TValue> where TValue : notnull {}

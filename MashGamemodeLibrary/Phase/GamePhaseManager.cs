@@ -12,6 +12,7 @@ using MashGamemodeLibrary.Phase.Tags;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -19,7 +20,7 @@ namespace MashGamemodeLibrary.Phase;
 
 public static class GamePhaseManager
 {
-    public static readonly SingletonRegistry<GamePhase> Registry = new();
+    public static readonly SingletonTypedRegistry<GamePhase> Registry = new();
     private static readonly HashSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", null);
 
     private static GamePhase? _activePhase;

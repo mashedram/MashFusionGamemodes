@@ -77,12 +77,17 @@ public abstract class SyncedVariable<T> : GenericRemoteEvent<T>, ICatchup, IRese
 
         _value = value;
         OnValueChanged?.Invoke(_value);
+        Sync();
+    }
+
+    public void Sync()
+    {
         Relay(_value);
     }
 
     private void SetValue(T newValue)
     {
-        if (!Equals(_value, newValue))
+        if (Equals(_value, newValue))
             return;
 
         SetAndSync(newValue);

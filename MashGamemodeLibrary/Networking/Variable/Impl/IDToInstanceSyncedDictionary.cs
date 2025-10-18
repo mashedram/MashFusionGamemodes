@@ -1,12 +1,13 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.networking.Variable.Impl;
 
 public class IDToInstanceSyncedDictionary<T> : SyncedDictionary<byte, T> where T : class
 {
-    public readonly FactoryRegistry<T> Registry = new();
+    public readonly FactoryTypedRegistry<T> Registry = new();
     
     public IDToInstanceSyncedDictionary(string name) : base(name)
     {
