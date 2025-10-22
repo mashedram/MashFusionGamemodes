@@ -59,6 +59,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     protected override void OnStart()
     {
+        TeamManager.Enable<NightmareTeam>();
+        TeamManager.Enable<SurvivorTeam>();
+        
         Executor.RunIfHost(() =>
         {
             PlayerControllerManager.Enable<ClockhuntPlayerController>();
@@ -95,7 +98,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     protected override void OnUpdate(float delta)
     {
         NightmareManager.Update(delta);
-        GamePhaseManager.Update(delta);
     }
 
     public override void OnGamemodeStopped()

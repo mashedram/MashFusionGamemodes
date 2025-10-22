@@ -21,7 +21,8 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Util;
@@ -48,7 +49,7 @@ public class HuntPhase : GamePhase, ITimedPhase
         }
     );
 
-    private static readonly Vector3SyncedVariable DeliveryPosition = new("deliveryposition", Vector3.zero);
+    private static readonly SyncedVariable<Vector3> DeliveryPosition = new("deliveryposition", new Vector3Encoder(), Vector3.zero);
 
     private static readonly RemoteEvent<ClockDeliveredPacket> OnClockDeliveredEvent =
         new("Clockhunt_HuntPhase_OnClockDelivered", OnClockDelivered, CommonNetworkRoutes.HostToAll);
@@ -56,7 +57,12 @@ public class HuntPhase : GamePhase, ITimedPhase
     private readonly RemoteEvent<DummySerializable> _teleportToSpawnEvent;
 
     public override string Name => "Hunt";
-    public float Duration => Clockhunt.Config.HuntPhaseDuration;
+    public override float Duration => Clockhunt.Config.HuntPhaseDuration;
+
+    protected override TimeMarker[] Markers => new[]
+    {
+        new TimeMarker(MarkerType.BeforeEnd, 60f, timer => Notifier.Send(new Notification()))
+    };
 
     public HuntPhase()
     {
@@ -120,7 +126,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 
     public override PhaseIdentifier GetNextPhase()
     {
-        if (ElapsedTime > Duration)
+        if (HasReachedDuration())
         {
             WinManager.Win<NightmareTeam>();
             return PhaseIdentifier.Empty();

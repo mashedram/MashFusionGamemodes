@@ -15,11 +15,11 @@ namespace Clockhunt.Phase;
 public class HidePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Hide";
-    public float Duration => Clockhunt.Config.HidePhaseDuration;
+    public override float Duration => Clockhunt.Config.HidePhaseDuration;
 
     public override PhaseIdentifier GetNextPhase()
     {
-        if (ElapsedTime < Duration) return PhaseIdentifier.Empty();
+        if (!HasReachedDuration()) return PhaseIdentifier.Empty();
         
         return PhaseIdentifier.Of<HuntPhase>();
     }

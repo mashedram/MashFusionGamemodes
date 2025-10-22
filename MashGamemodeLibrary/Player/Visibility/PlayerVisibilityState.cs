@@ -74,11 +74,13 @@ internal class PlayerVisibilityState
         {
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
+
             InventoryHandReceiver receiver = slotContainer.inventorySlotReceiver != null
                 ? slotContainer.inventorySlotReceiver
                 : slotContainer.inventoryAmmoReceiver;
             if (receiver == null)
                 continue;
+
             _inventoryRenderers[receiver] = new HolsterHider(slotContainer, _isHiddenInternal);
         }
 
@@ -94,6 +96,7 @@ internal class PlayerVisibilityState
         {
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
+
             _specialRenderers.Add(slotContainer.gameObject);
         }
 
@@ -126,7 +129,13 @@ internal class PlayerVisibilityState
             return;
         }
 
-        _avatarRenderers.SetHidden(_isHiddenInternal);
+        var success = _avatarRenderers.SetHidden(_isHiddenInternal);
+
+        if (!success)
+        {
+            PopulateRenderers();
+            return;
+        }
 
         _inventoryRenderers.Values.ForEach(v => v.SetHidden(hidden));
 

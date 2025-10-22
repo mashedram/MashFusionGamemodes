@@ -1,10 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Networking.Variable.Impl.Dict;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
@@ -33,9 +36,9 @@ public record struct EntityTagIndex(ushort EntityID, ulong TagID) : INetSerializ
 // TODO: Add catchup support
 public static class EntityTagManager
 {
-    private static readonly KeyToInstanceSyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager");
-    public static ITypedRegistry<IEntityTag> Registry => Tags.Registry;
-
+    private static readonly FactoryTypedRegistry<IEntityTag> Registry = new();
+    private static readonly SyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager", new NetSerializableEncoder<EntityTagIndex>(), new InstanceEncoder<IEntityTag>(Registry));
+    
     // Helper Extension Map
     private static readonly Dictionary<Type, ulong> TypeToHashMap = new();
     private static readonly Dictionary<ulong, HashSet<ulong>> TagExtensionMap = new();
@@ -43,6 +46,9 @@ public static class EntityTagManager
     // Local Cache Maps
     private static readonly Dictionary<ushort, HashSet<EntityTagIndex>> EntityToTagMap = new();
     private static readonly Dictionary<ulong, HashSet<EntityTagIndex>> TagToEntityMap = new();
+    
+    // Updating
+    private static readonly HashSet<ITagUpdate> UpdatingTags = new();
 
     static EntityTagManager()
     {
@@ -73,12 +79,23 @@ public static class EntityTagManager
     private static void OnTagChanged(EntityTagIndex key, IEntityTag value)
     {
         var entityToTag = GetEntityToTagSet(key.EntityID);
-        entityToTag.Add(key);
+        
+        // Tag already added, this is just a sync
+        // TODO: Seperate set
+        if (!entityToTag.Add(key))
+            return;
 
         var tagToEntity = GetTagToEntitySet(key.TagID);
         tagToEntity.Add(key);
 
-        if (value is ITagAdded added) added.OnAdded(key.EntityID);
+        if (value is ITagUpdate update)
+            UpdatingTags.Add(update);
+        
+        if (value is EntityTag entity) 
+            entity.OnAddInternal(key);
+        
+        if (value is ITagAdded added)
+            added.OnAdded(key.EntityID);
     }
 
     private static void OnTagRemoved(EntityTagIndex key, IEntityTag oldValue)
@@ -89,7 +106,11 @@ public static class EntityTagManager
         var tagToEntity = GetTagToEntitySet(key.TagID);
         tagToEntity.Remove(key);
 
-        if (oldValue is ITagRemoved removed) removed.OnRemoval(key.EntityID);
+        if (oldValue is ITagUpdate update)
+            UpdatingTags.Remove(update);
+        
+        if (oldValue is ITagRemoved removed)
+            removed.OnRemoval(key.EntityID);
     }
 
     // Implementations
@@ -97,6 +118,11 @@ public static class EntityTagManager
     private static EntityTagIndex GetTagIndex<T>(NetworkEntity entity) where T : IEntityTag
     {
         return new EntityTagIndex(entity.ID, GetTagId<T>());
+    }
+    
+    private static EntityTagIndex GetTagIndex(NetworkEntity entity, IEntityTag tag)
+    {
+        return new EntityTagIndex(entity.ID, GetTagId(tag.GetType()));
     }
 
     private static ulong GetAbstractTagId<T>() where T : IAbstractEntityTag
@@ -108,6 +134,11 @@ public static class EntityTagManager
     private static ulong GetTagId<T>() where T : IEntityTag
     {
         return Registry.GetID<T>();
+    }
+    
+    private static ulong GetTagId(MemberInfo type)
+    {
+        return Registry.GetID(type);
     }
 
     public static void Remove(ushort id)
@@ -176,6 +207,13 @@ public static class EntityTagManager
 
     // Network Entity Extensions
 
+    public static void AddTag(this NetworkEntity entity, IEntityTag tag)
+    {
+        var key = GetTagIndex(entity, tag);
+
+        Tags[key] = tag;
+    }
+    
     public static void AddTag<T>(this NetworkEntity entity, T tag) where T : IEntityTag, new()
     {
         var key = GetTagIndex<T>(entity);
@@ -313,6 +351,31 @@ public static class EntityTagManager
 
     public static void ClearAll()
     {
-        Tags.Clear();
+        Executor.RunIfHost(() =>
+        {
+            Tags.Clear();
+            EntityToTagMap.Clear();
+            TagToEntityMap.Clear();
+            UpdatingTags.Clear();
+        });
+    }
+
+    public static void Update(float delta)
+    {
+        var enumerator = UpdatingTags.GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            enumerator.Current.Update(delta);
+        }
+    }
+    
+    public static void Sync(IEntityTag entityTag)
+    {
+        Executor.RunIfHost(() =>
+        {
+            var index = entityTag.GetIndex();
+
+            Tags[index] = entityTag;
+        });
     }
 }

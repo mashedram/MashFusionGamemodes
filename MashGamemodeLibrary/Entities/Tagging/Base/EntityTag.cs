@@ -3,16 +3,17 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
-public class EntityTag : ITagAdded, IEntityTag
+public class EntityTag : IEntityTag
 {
+    private EntityTagIndex _tagIndex;
     private NetworkEntity? _entity;
     private NetworkEntityReference _entityID;
-    private GameObject? _gameObject;
     protected NetworkEntity Entity => GetEntity();
 
-    public void OnAdded(ushort entityID)
+    internal void OnAddInternal(EntityTagIndex tag)
     {
-        _entityID = new NetworkEntityReference(entityID);
+        _entityID = new NetworkEntityReference(tag.EntityID);
+        _tagIndex = tag;
     }
 
     private NetworkEntity GetEntity()
@@ -21,5 +22,15 @@ public class EntityTag : ITagAdded, IEntityTag
 
         _entity = _entityID.GetEntity();
         return _entity;
+    }
+    
+    public EntityTagIndex GetIndex()
+    {
+        return _tagIndex;
+    }
+    
+    protected void Sync()
+    {
+        EntityTagManager.Sync(this);
     }
 }

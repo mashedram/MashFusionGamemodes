@@ -2,4 +2,5 @@
 
 public interface IEntityTag
 {
+    EntityTagIndex GetIndex();
 }

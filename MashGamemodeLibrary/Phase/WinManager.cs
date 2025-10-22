@@ -36,7 +36,9 @@ public static class WinManager
             WinEvent.Call(new WinPacket
             {
                 TeamID = id
-            });   
+            });
+
+            GamemodeManager.StopGamemode();
         }, "Sending win state");
     }
     
@@ -65,7 +67,5 @@ public static class WinManager
                 Type = NotificationType.ERROR,
                 PopupLength = 5f
             });
-
-        Executor.RunIfHost(GamemodeManager.StopGamemode);
     }
 }

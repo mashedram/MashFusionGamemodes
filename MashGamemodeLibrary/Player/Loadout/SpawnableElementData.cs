@@ -11,8 +11,11 @@ public class SpawnableElementData : FunctionElementData
 
     public Action<Barcode> OnSetSpawnable = delegate { };
 
-    public new Action OnPressed => OnPressedInternal;
-
+    public SpawnableElementData()
+    {
+        OnPressed = OnPressedInternal;
+    }
+    
     private static Barcode? GetHeldSpawnableBarcode(Hand hand)
     {
         if (!hand.HasAttachedObject()) return null;
@@ -29,13 +32,15 @@ public class SpawnableElementData : FunctionElementData
             BoneLib.Player.RightHand
         };
 
-        return (from hand in hands select GetHeldSpawnableBarcode(hand)).FirstOrDefault();
+        return hands.Select(GetHeldSpawnableBarcode).OfType<Barcode>().FirstOrDefault();
+
     }
 
     private void OnPressedInternal()
     {
         var held = GetHeldSpawnableBarcode();
         if (held == null) return;
+        
         _spawnable = new SpawnableCrateReference(held);
         OnSetSpawnable.Invoke(_spawnable._barcode);
     }

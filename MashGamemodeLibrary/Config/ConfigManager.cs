@@ -1,7 +1,8 @@
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.networking.Variable.Impl.Var;
-using MashGamemodeLibrary.Registry;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.Config;
@@ -15,7 +16,7 @@ public static class ConfigManager
     private static readonly SingletonTypedRegistry<IConfig> LocalConfigTypedRegistry = new();
     private static readonly FactoryTypedRegistry<IConfig> ActiveConfigTypedRegistry = new();
     
-    private static readonly SyncedInstance<IConfig> RemoteConfigInstance = new("ActiveConfig", ActiveConfigTypedRegistry);
+    private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig", new NullableReferenceEncoder<IConfig>(new InstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
 
     static ConfigManager()
     {

@@ -4,20 +4,22 @@ using LabFusion.Extensions;
 using LabFusion.Player;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
+using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Player.Team;
 
 public static class TeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();
-    private static readonly IDToInstanceSyncedDictionary<Team> AssignedTeams = new("sync.AssignedTeams");
-    public static ITypedRegistry<Team> Registry => AssignedTeams.Registry;
+    public static readonly FactoryTypedRegistry<Team> Registry = new();
+    private static readonly SyncedDictionary<byte, Team> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(), new InstanceEncoder<Team>(Registry));
 
     public delegate void OnAssignedTeamHandler(PlayerID playerID, Team team);
 
@@ -81,6 +83,22 @@ public static class TeamManager
         return PlayerIDManager.LocalID.IsTeam<T>();
     }
     
+    public static Team? GetPlayerTeam(PlayerID player)
+    {
+        return AssignedTeams.GetValueOrDefault(player);
+    }
+
+    public static bool IsTeamMember(PlayerID player)
+    {
+        var localTeam = GetLocalTeam();
+        var playerTeam = GetPlayerTeam(player);
+
+        if (localTeam == null || playerTeam == null)
+            return false;
+
+        return localTeam.GetType() == playerTeam.GetType();
+    }
+    
     public static void Assign<T>(this NetworkPlayer player, T team) where T : Team
     {
         Executor.RunIfHost(() =>
@@ -119,7 +137,7 @@ public static class TeamManager
     {
         Executor.RunIfHost(() =>
         {
-            var teamIndex = 0;
+            var teamIndex = Random.Range(0, 2);
             var ids = EnabledTeams.Select(id => Registry.Get(id)).OfType<Team>().ToList();
             foreach (var networkPlayer in NetworkPlayer.Players)
             {

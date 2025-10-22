@@ -16,7 +16,7 @@ namespace Clockhunt.Phase;
 public class EscapePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Escape";
-    public float Duration => 300f;
+    public override float Duration => 300f;
     
     public override PhaseIdentifier GetNextPhase()
     {
@@ -27,11 +27,16 @@ public class EscapePhase : GamePhase, ITimedPhase
     {
         Executor.RunIfHost(() =>
         {
-            EscapeManager.ActivateRandomEscapePoint();
+            var escapePoint = EscapeManager.GetRandomEscapePoint();
             PlayerControllerManager.OnAll<ClockhuntPlayerController>(controller =>
             {
                 controller.SetLives(0);
+                controller.SetEscapePoint(escapePoint);
             });
+            
+            var context = Clockhunt.Context;
+            var name = context.EscapeAudioPlayer.GetRandomAudioName();
+            context.EscapeAudioPlayer.Play(name, escapePoint);
         });
 
         Notifier.Send(new Notification
@@ -43,11 +48,6 @@ public class EscapePhase : GamePhase, ITimedPhase
             ShowPopup = true,
             Type = NotificationType.SUCCESS
         });
-    }
-
-    protected override void OnUpdate()
-    {
-        EscapeManager.Update(Time.deltaTime);
     }
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)

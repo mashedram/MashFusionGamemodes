@@ -1,5 +1,8 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
+using MashGamemodeLibrary.Util;
+using UnityEngine;
+using Timer = MashGamemodeLibrary.Util.Timer;
 
 namespace MashGamemodeLibrary.Phase;
 
@@ -10,7 +13,17 @@ public abstract class GamePhase
 
     // Implementation
 
-    public float ElapsedTime { get; private set; }
+    private float? _internalDuration;
+    public abstract float Duration { get; }
+
+    protected virtual TimeMarker[] Markers { get; } = Array.Empty<TimeMarker>();
+    private Timer? _timer;
+    public float ElapsedTime => _timer?.GetElapsedTime() ?? 0f;
+
+    public bool HasReachedDuration()
+    {
+        return _timer?.HasReachedTimeout() ?? false;
+    }
 
     /**
      * The pase will exit immediately if this predicate returns true.
@@ -45,14 +58,24 @@ public abstract class GamePhase
 
     public void Update(float delta)
     {
-        ElapsedTime += delta;
+        if (!Equals(_internalDuration, Duration))
+        {
+            _internalDuration = Duration;
+            _timer?.SetTimeout(Duration);
+        }
+        
+        _timer?.Update(delta);
         OnUpdate();
     }
 
     public void Enter()
     {
         IsActive = true;
-        ElapsedTime = 0f;
+
+        _timer ??= new Timer(Duration, Markers);
+        _internalDuration = Duration;
+        
+        _timer.Reset();
         OnPhaseEnter();
     }
 

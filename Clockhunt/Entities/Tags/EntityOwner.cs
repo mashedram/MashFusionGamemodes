@@ -8,7 +8,7 @@ using MashGamemodeLibrary.Phase;
 
 namespace Clockhunt.Entities.Tags;
 
-public class EntityOwner : IEntityTag, IEntityGrabPredicate, INetSerializable
+public class EntityOwner : EntityTag, IEntityGrabPredicate, INetSerializable
 {
     public byte OwnerId;
 

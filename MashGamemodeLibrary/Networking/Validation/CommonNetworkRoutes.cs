@@ -9,4 +9,5 @@ public static class CommonNetworkRoutes
     public static readonly INetworkRoute ClientToHost = new ClientToHostNetworkRoute();
     public static readonly INetworkRoute AllToHost = new AllToHostNetworkRoute();
     public static readonly INetworkRoute HostToAll = new HostToAllNetworkRoute();
+    public static readonly INetworkRoute AllToAll = new AllToAllNetworkRoute();
 }

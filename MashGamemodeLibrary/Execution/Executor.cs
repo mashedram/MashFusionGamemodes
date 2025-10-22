@@ -82,7 +82,7 @@ public static class Executor
     public static void EnsureHost()
     {
 #if DEBUG
-        if (Executor.IsHostContext) return;
+        if (IsHostContext) return;
 
         var trace = new StackTrace();
         MelonLogger.Warning("Possibly executing a host only method on the client!", trace);

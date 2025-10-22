@@ -7,7 +7,9 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Phase.Tags;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
@@ -21,7 +23,7 @@ namespace MashGamemodeLibrary.Phase;
 public static class GamePhaseManager
 {
     public static readonly SingletonTypedRegistry<GamePhase> Registry = new();
-    private static readonly HashSyncedVariable WantedPhase = new("GamePhaseManager_WantedPhase", null);
+    private static readonly SyncedVariable<ulong?> WantedPhase = new("GamePhaseManager_WantedPhase", new NullableValueEncoder<ulong>(new ULongEncoder()), null);
 
     private static GamePhase? _activePhase;
     public static GamePhase? ActivePhase => _activePhase;
@@ -107,7 +109,8 @@ public static class GamePhaseManager
         var controller = hand._controller;
         var handedness = controller.handedness;
 
-        if (controller._menuTap) OnAction(PlayerIDManager.LocalID, PlayerGameActions.Ability, handedness);
+        if (controller._menuTap) 
+            OnAction(PlayerIDManager.LocalID, PlayerGameActions.Ability, handedness);
 
         var state = controller.isBelowGripThreshold;
         var lastState = LastGripStateMap.GetValueOrDefault(handedness, false);

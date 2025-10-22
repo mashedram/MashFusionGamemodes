@@ -50,31 +50,9 @@ public static class EscapeManager
 {
     private static readonly List<Vector3> EscapePoints = new();
 
-    private static readonly RemoteEvent<OnEscapePointActivatedPacket> OnEscapePointActivatedEvent =
-        new(OnEscapePointActivated, CommonNetworkRoutes.HostToAll);
-
-    private static readonly RemoteEvent<OnEscapeRequestPacket> OnEscapeRequestEvent =
-        new(OnEscapeRequest, CommonNetworkRoutes.AllToHost);
-
-    private static bool _isEscaping;
-    private static bool _hasEscaped;
-    private static float _localEscapeTime;
-
-    public static Vector3 ActiveEscapePoint { get; private set; } = Vector3.zero;
-
-    public static void ActivateRandomEscapePoint()
+    public static Vector3 GetRandomEscapePoint()
     {
-        Executor.RunIfHost(() =>
-        {
-            OnEscapePointActivatedEvent.Call(new OnEscapePointActivatedPacket
-            {
-                EscapePoint = EscapePoints.GetRandom()
-            });
-
-            var context = Clockhunt.Context;
-            var name = context.EscapeAudioPlayer.GetRandomAudioName();
-            context.EscapeAudioPlayer.Play(name, ActiveEscapePoint);
-        });
+        return EscapePoints.GetRandom();
     }
 
     public static void CollectEscapePoints()
@@ -92,84 +70,5 @@ public static class EscapeManager
                 EscapePoints.Add(position.Value);
             }
         });
-    }
-
-    public static void Update(float delta)
-    {
-        var context = Clockhunt.Context;
-        var localPlayer = context.LocalPlayer;
-
-        if (NightmareManager.IsNightmare(localPlayer.PlayerID)) return;
-
-        var distance = Vector3.Distance(localPlayer.RigRefs.Head.position, ActiveEscapePoint);
-
-        if (distance > Clockhunt.Config.EscapeDistance)
-        {
-            _localEscapeTime = 0f;
-            if (_isEscaping)
-                Notifier.Send(new Notification
-                {
-                    Title = "Too Far!",
-                    Message = "You have left the escape zone. Return to the area to continue escaping.",
-                    PopupLength = 2f,
-                    SaveToMenu = false,
-                    ShowPopup = true,
-                    Type = NotificationType.WARNING
-                });
-            _isEscaping = false;
-            return;
-        }
-
-        if (!_isEscaping)
-        {
-            var remainingTime = Math.Floor(Clockhunt.Config.EscapeDuration - _localEscapeTime);
-            Notifier.Send(new Notification
-            {
-                Title = "Stay Here!",
-                Message = $"You are in the escape zone! Stay here for {remainingTime} more seconds to escape.",
-                PopupLength = 2f,
-                SaveToMenu = false,
-                ShowPopup = true,
-                Type = NotificationType.INFORMATION
-            });
-
-            _isEscaping = true;
-        }
-
-        _localEscapeTime += delta;
-        if (_localEscapeTime < Clockhunt.Config.EscapeDuration || _hasEscaped) return;
-        _hasEscaped = true;
-
-        OnEscapeRequestEvent.CallFor(context.HostPlayer.PlayerID, new OnEscapeRequestPacket
-        {
-            PlayerID = context.LocalPlayer.PlayerID.SmallID
-        });
-
-        Notifier.Send(new Notification
-        {
-            Title = "You Escaped!",
-            Message = "You have successfully escaped the area.",
-            PopupLength = 2f,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.SUCCESS
-        });
-    }
-
-    // Remote Events
-
-    private static void OnEscapePointActivated(OnEscapePointActivatedPacket packet)
-    {
-        _isEscaping = false;
-        _hasEscaped = false;
-        _localEscapeTime = 0.0f;
-        ActiveEscapePoint = packet.EscapePoint;
-
-        MarkerManager.SetMarker(ActiveEscapePoint);
-    }
-
-    private static void OnEscapeRequest(OnEscapeRequestPacket requestPacket)
-    {
-        Executor.RunIfHost(WinManager.Win<SurvivorTeam>);
     }
 }

@@ -5,5 +5,5 @@ namespace MashGamemodeLibrary.Entities.Interaction.Components;
 public interface IEntityDropCallback : IAbstractEntityTag
 {
     double DropCooldown => 0.1f;
-    void OnDrop(GrabData grabData);
+    void OnDrop(GrabData grab);
 }

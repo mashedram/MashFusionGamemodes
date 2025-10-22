@@ -10,7 +10,7 @@ public class SurvivorTeam : Team
 {
     public override string Name => "Survivors";
 
-    public override void OnAssigned()
+    protected override void OnAssigned()
     {
         Executor.RunIfMe(Owner.PlayerID,() =>
         {

@@ -1,13 +1,21 @@
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Validation.Routes;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Patches;
+using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
@@ -16,6 +24,17 @@ using UnityEngine.Rendering.Universal;
 
 namespace MashGamemodeLibrary.Spectating;
 
+internal struct IgnorePropPacket : INetSerializable, IKnownSenderPacket
+{
+    public byte SenderPlayerID { get; set; }
+    public NetworkEntityReference Reference;
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref Reference);
+    }
+}
+
 internal class ColliderSet
 {
     private readonly HashSet<Collider> _colliders;
@@ -23,6 +42,16 @@ internal class ColliderSet
     public ColliderSet(GameObject root)
     {
         _colliders = root.GetComponentsInChildren<Collider>().ToHashSet();
+    }
+
+    public ColliderSet(MarrowBody body)
+    {
+        _colliders = body._colliders.ToHashSet();
+    }
+
+    public ColliderSet(MarrowEntity entity)
+    {
+        _colliders = entity._bodies.SelectMany(body => body._colliders).ToHashSet();
     }
 
     public void SetColliding(ColliderSet other, bool colliding)
@@ -42,6 +71,7 @@ internal class PlayerColliderCache
     private readonly HashSet<ColliderSet> _ignoredColliders = new();
     private readonly HashSet<PlayerColliderCache> _ignoredPlayers = new();
     private readonly Dictionary<GameObject, ColliderSet> _itemColliders = new();
+    private readonly HashSet<ColliderSet> _propColliders = new();
     private PhysicsRig? _physicsRig;
     private ColliderSet _physicsRigColliders = null!;
 
@@ -50,10 +80,35 @@ internal class PlayerColliderCache
         SetRig(physicsRig);
     }
 
+    public void ClearPropColliders()
+    {
+        foreach (var propCollider in _propColliders)
+        {
+            _physicsRigColliders.SetColliding(propCollider, true);
+        }
+        _propColliders.Clear();
+    }
+
+    public void StopPropColliding(NetworkEntityReference reference)
+    {
+        if (!reference.TryGetEntity(out var networkEntity))
+            return;
+
+        var marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>();
+        if (marrowEntity == null)
+            return;
+
+        var colliderSet = new ColliderSet(marrowEntity.MarrowEntity);
+        
+        _propColliders.Add(colliderSet);
+        _physicsRigColliders.SetColliding(colliderSet, false);
+    }
+
     private void StartItemColliding(ColliderSet otherColliders)
     {
         if (_physicsRig == null) return;
         if (!_ignoredColliders.Remove(otherColliders)) return;
+        
         _physicsRigColliders.SetColliding(otherColliders, true);
         foreach (var ownItemColliders in _itemColliders.Values) ownItemColliders.SetColliding(otherColliders, true);
     }
@@ -62,6 +117,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredColliders.Add(otherColliders)) return;
+        
         _physicsRigColliders.SetColliding(otherColliders, false);
         foreach (var ownItemColliders in _itemColliders.Values) ownItemColliders.SetColliding(otherColliders, false);
     }
@@ -70,6 +126,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredPlayers.Remove(other)) return;
+        
         other._ignoredPlayers.Remove(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, true);
         foreach (var otherColliders in other._itemColliders.Values) StartItemColliding(otherColliders);
@@ -79,6 +136,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredPlayers.Add(other)) return;
+        
         other._ignoredPlayers.Add(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, false);
         foreach (var otherColliders in other._itemColliders.Values) StopItemColliding(otherColliders);
@@ -150,10 +208,21 @@ public static class SpectatorManager
 
     private static bool _isLocalSpectating;
 
-    private static readonly ByteSyncedSet SpectatingPlayerIds = new("spectatingPlayerIds");
+    private static readonly SyncedSet<byte> SpectatingPlayerIds = new("spectatingPlayerIds", new ByteEncoder());
 
     private static readonly HashSet<byte> HiddenPlayerIds = new();
     private static readonly Dictionary<byte, PlayerColliderCache> PlayerColliders = new();
+
+    private static readonly RemoteEvent<IgnorePropPacket> IgnorePropEvent = new(packet =>
+    {
+        if (!SpectatingPlayerIds.Contains(packet.SenderPlayerID))
+            return;
+
+        if (!PlayerColliders.TryGetValue(packet.SenderPlayerID, out var cache))
+            return;
+
+        cache.StopPropColliding(packet.Reference);
+    }, CommonNetworkRoutes.AllToAll);
 
     static SpectatorManager()
     {
@@ -273,18 +342,25 @@ public static class SpectatorManager
             //
             // Physics.IgnoreLayerCollision(8, 6, !state);
             // Physics.IgnoreLayerCollision(24, 6, !state);
+            LocalControls.DisableInteraction = !state;
+            LocalControls.DisableInventory = !state;
+            LocalControls.DisableAmmoPouch = !state;
         });
 
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             return;
 
-        foreach (var otherCollider in PlayerColliders.Values)
+        if (state)
         {
-            if (otherCollider == cache) continue;
+            cache.ClearPropColliders();
+        }
+
+        foreach (var otherCache in PlayerColliders.Values.Where(otherCollider => otherCollider != cache))
+        {
             if (state)
-                cache.StartColliding(otherCollider);
+                cache.StartColliding(otherCache);
             else
-                cache.StopColliding(otherCollider);
+                cache.StopColliding(otherCache);
         }
     }
 
@@ -347,6 +423,11 @@ public static class SpectatorManager
 
         GenerateColliderCache(player);
 
+        if (player.PlayerID.IsMe)
+        {
+            PlayerStatManager.RefreshVitality();
+        }
+
         if (shouldBeHidden)
             Hide(player.PlayerID);
         else
@@ -355,7 +436,7 @@ public static class SpectatorManager
 
     private static void Refresh()
     {
-        _isLocalSpectating = IsLocalPlayerSpectating();
+        _isLocalSpectating = IsPlayerSpectating(PlayerIDManager.LocalSmallID);
         foreach (var player in NetworkPlayer.Players) RefreshPlayer(player);
     }
 
@@ -403,5 +484,13 @@ public static class SpectatorManager
     {
         HiddenPlayerIds.Clear();
         PlayerColliders.Clear();
+    }
+    
+    public static void StartIgnoring(NetworkEntity networkEntity)
+    {
+        IgnorePropEvent.Call(new IgnorePropPacket
+        {
+            Reference = new NetworkEntityReference(networkEntity.ID)
+        });
     }
 }

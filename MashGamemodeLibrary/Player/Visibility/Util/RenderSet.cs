@@ -68,6 +68,7 @@ internal class RenderSet
         }
 
         if (root == null) return;
+
         _isValid = true;
         _gameObjects.Add(root);
 
@@ -77,6 +78,7 @@ internal class RenderSet
         {
             if (!renderer)
                 continue;
+
             _renderers.Add(renderer);
             renderer.enabled = !_hidden;
         }
@@ -88,22 +90,24 @@ internal class RenderSet
         _isValid = false;
     }
 
-    public void SetHidden(bool hidden)
+    public bool SetHidden(bool hidden)
     {
         _hidden = hidden;
 
         if (!_isValid)
-            return;
+            return false;
 
         foreach (var renderer in _renderers)
         {
             if (!renderer)
             {
                 _isValid = false;
-                return;
+                return false;
             }
 
             renderer.enabled = !_hidden;
         }
+
+        return true;
     }
 }

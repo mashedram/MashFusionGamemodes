@@ -3,6 +3,7 @@ using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
 using LabFusion.RPC;
+using MelonLoader;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Loadout;
@@ -57,7 +58,7 @@ public class SlotData
     {
         var slotName = GetSlotName(slotType);
         var slotBase = rig.RigManager.inventory.bodySlots.FirstOrDefault(e => e.name.Equals(slotName));
-        var slot = slotBase?._inventorySlot;
+        var slot = slotBase?.inventorySlotReceiver;
         if (ReferenceEquals(slot, null))
             return;
 
@@ -78,19 +79,19 @@ public class SlotData
         if (networkEntity != null && !ShouldOverride)
             return;
 
-        var spawnPosition = rig.Head.transform.position + rig.Head.transform.forward * -0.5f;
+        var transform = rig.Head.transform;
+        var spawnPosition = transform.position + transform.forward * -0.5f;
+        
+        if (networkEntity != null)
+        {
+            slot.DespawnContents();
+        }
 
         var spawnable = LocalAssetSpawner.CreateSpawnable(new SpawnableCrateReference(Barcode));
         if (spawnable == null)
             return;
-        LocalAssetSpawner.Register(spawnable);
 
-        if (networkEntity != null)
-            NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
-            {
-                EntityID = networkEntity.ID,
-                DespawnEffect = false
-            });
+        LocalAssetSpawner.Register(spawnable);
 
         NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo
         {
@@ -100,8 +101,26 @@ public class SlotData
             SpawnCallback = result =>
             {
                 callback?.Invoke(result.Entity);
+
+                // TODO: Doesnt sync
+                // var gun = result.Spawned.GetComponent<Gun>();
+                // if (gun)
+                // {
+                //     try
+                //     {
+                //         gun.InstantLoadAsync();
+                //         gun.CompleteSlidePull();
+                //         gun.CompleteSlideReturn();
+                //     }
+                //     catch (Exception err)
+                //     {
+                //         MelonLogger.Error("Failed to reload gun in holster", err);
+                //     }
+                // }
+                
                 if (!result.Spawned.TryGetComponent<InteractableHost>(out var interactableHost))
                     return;
+
                 slot.InsertInSlot(interactableHost);
             },
             SpawnEffect = false

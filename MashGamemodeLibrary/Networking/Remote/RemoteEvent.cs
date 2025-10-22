@@ -2,6 +2,8 @@
 using LabFusion.Player;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable.Encoder;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Networking.Remote;

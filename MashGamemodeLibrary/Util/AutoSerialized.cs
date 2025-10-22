@@ -3,8 +3,8 @@ using LabFusion.Network.Serialization;
 
 namespace MashGamemodeLibrary.Util;
 
-[AttributeUsage(AttributeTargets.Field)]
-public class Synchronise : Attribute
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Struct)]
+public class NetSerializable : Attribute
 {
     
 }
@@ -28,28 +28,37 @@ internal class FieldSerializer
     }
 }
 
-public abstract class AutoSerialized : INetSerializable
+public abstract class AutoSerialized<TValue> : INetSerializable where TValue: AutoSerialized<TValue>
 {
-    private readonly List<FieldSerializer> _serializables = new();
-
-    protected AutoSerialized()
+    // This is the exact behaviour we want
+    // ReSharper disable once StaticMemberInGenericType
+    private static readonly List<FieldSerializer> Serializables = new();
+    
+    static AutoSerialized()
     {
-        var type = GetType();
+        var type = typeof(TValue);
+        var serializeAll = type.GetCustomAttribute<NetSerializable>() != null;
+        
         var fields = type.GetFields();
         foreach (var fieldInfo in fields)
         {
-            if (fieldInfo.GetCustomAttribute<Synchronise>() == null)
+            if (!serializeAll && fieldInfo.GetCustomAttribute<NetSerializable>() == null)
                 continue;
 
-            _serializables.Add(new FieldSerializer(fieldInfo));
+            Serializables.Add(new FieldSerializer(fieldInfo));
         }
     }
-    
+
+    public static void Serialize(INetSerializer serializer, TValue value)
+    {
+        foreach (var fieldSerializer in Serializables)
+        {
+            fieldSerializer.SerializeField(serializer, value);
+        }
+    }
+
     public void Serialize(INetSerializer serializer)
     {
-        foreach (var fieldSerializer in _serializables)
-        {
-            fieldSerializer.SerializeField(serializer, this);
-        }
+        Serialize(serializer, (TValue) this);
     }
 }

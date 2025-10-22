@@ -8,6 +8,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable.Encoder;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
@@ -49,8 +50,7 @@ public class DictionaryEdit<TKey, TValue>
     }
 }
 
-// TODO: Bricks on latejoin
-public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, ICatchup,
+public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, ICatchup,
     IResettable
     where TKey : notnull
     where TValue : notnull
@@ -59,12 +59,15 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
 
     public delegate void ValueRemovedHandler(TKey key, TValue oldValue);
 
-
+    private readonly IEncoder<TKey> _keyEncoder;
+    private readonly IEncoder<TValue> _valueEncoder;
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
 
-    protected SyncedDictionary(string name) : base(name, CommonNetworkRoutes.HostToAll)
+    public SyncedDictionary(string name, IEncoder<TKey> keyEncoder, IEncoder<TValue> valueEncoder) : base(name, CommonNetworkRoutes.HostToAll)
     {
+        _keyEncoder = keyEncoder;
+        _valueEncoder = valueEncoder;
     }
 
     // Setters and Getters
@@ -157,18 +160,21 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
     
 
     // Abstract methods for serialization
-
-    protected abstract void WriteKey(NetWriter writer, TKey key);
-    protected abstract TKey ReadKey(NetReader reader);
-    protected abstract void WriteValue(NetWriter writer, TValue value);
-    protected abstract TValue ReadValue(NetReader reader, TKey key);
-
+    
+    protected override int? GetSize(DictionaryEdit<TKey, TValue> data)
+    {
+        var size = sizeof(DictionaryEditType);
+        if (data.Type is DictionaryEditType.Set or DictionaryEditType.Remove) size += _keyEncoder.GetSize(data.Key);
+        if (data.Type is DictionaryEditType.Set) size += _valueEncoder.GetSize(data.Value);
+        return size;
+    }
+    
     protected override void Write(NetWriter writer, DictionaryEdit<TKey, TValue> data)
     {
         writer.Write(data.Type);
-        if (data.Type == DictionaryEditType.Set || data.Type == DictionaryEditType.Remove) WriteKey(writer, data.Key);
+        if (data.Type == DictionaryEditType.Set || data.Type == DictionaryEditType.Remove) _keyEncoder.Write(writer, data.Key);
 
-        if (data.Type == DictionaryEditType.Set) WriteValue(writer, data.Value);
+        if (data.Type == DictionaryEditType.Set) _valueEncoder.Write(writer, data.Value);
     }
 
     protected override void Read(byte playerId, NetReader reader)
@@ -177,12 +183,12 @@ public abstract class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<Dictio
         switch (type)
         {
             case DictionaryEditType.Set:
-                var setKey = ReadKey(reader);
-                var value = ReadValue(reader, setKey);
+                var setKey = _keyEncoder.Read(reader);
+                var value = _valueEncoder.Read(reader);
                 SetValue(setKey, value, false);
                 break;
             case DictionaryEditType.Remove:
-                var removeKey = ReadKey(reader);
+                var removeKey = _keyEncoder.Read(reader);
                 RemoveValue(removeKey, false);
                 break;
             case DictionaryEditType.Clear:

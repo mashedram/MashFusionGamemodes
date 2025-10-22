@@ -3,7 +3,8 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using UnityEngine;
 #if DEBUG
 #endif
@@ -34,6 +35,7 @@ internal class TimedCaller
     {
         _timer = Math.Max(_timer - delta, 0);
         if (_timer > 0.1f) return;
+
         _timer = _delay;
 
         _callback.Invoke();
@@ -57,10 +59,10 @@ public static class SpawnManager
 {
     private const int MaxCollectedSpawns = 300;
 
-    private static readonly Vector3SyncedSet CollectedSpawnPoints =
-        new("CollectedSpawnPoints", CommonNetworkRoutes.BiDirectional);
+    private static readonly SyncedSet<Vector3> CollectedSpawnPoints =
+        new("CollectedSpawnPoints", new Vector3Encoder(), CommonNetworkRoutes.BiDirectional);
 
-    private static readonly Vector3SyncedSet SyncedSpawnPoints = new("SpawnPoints", CommonNetworkRoutes.AllToHost);
+    private static readonly SyncedSet<Vector3> SyncedSpawnPoints = new("SpawnPoints", new Vector3Encoder(), CommonNetworkRoutes.AllToHost);
 
     private static readonly LinkedList<SpawnObjectInstance> SpawnObjects = new();
 

@@ -6,11 +6,16 @@ namespace MashGamemodeLibrary.Audio.Loaders;
 
 public class MonoDiscLoader : IAudioLoader
 {
-    public MonoDiscLoader(string[] monoDiscs)
+    public MonoDiscLoader(IEnumerable<string> monoDiscs)
     {
         AudioNames = monoDiscs.ToList();
     }
-
+    
+    public MonoDiscLoader(IEnumerable<MonoDiscReference> monoDiscs)
+    {
+        AudioNames = monoDiscs.Select(v => v._barcode.ID).ToList();
+    }
+    
     public List<string> AudioNames { get; }
 
     public void RefreshNames()
@@ -24,6 +29,7 @@ public class MonoDiscLoader : IAudioLoader
     {
         IsLoading = true;
 
+        // This technically does load any monodisc you give it.
         var monoDiscReference = new MonoDiscReference(name);
         var audioReference = new AudioReference(monoDiscReference);
 

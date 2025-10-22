@@ -2,6 +2,6 @@
 
 namespace Clockhunt.Entities.Tags;
 
-public class ClockMarker : IEntityTag
+public class ClockMarker : EntityTag
 {
 }

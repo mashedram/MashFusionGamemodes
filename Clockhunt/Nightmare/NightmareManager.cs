@@ -5,30 +5,18 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
-using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
-using MashGamemodeLibrary.networking.Variable.Impl;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
 
 namespace Clockhunt.Nightmare;
-
-internal class AnnounceNightmarePacket : INetSerializable
-{
-    public ulong NightmareID;
-    public byte PlayerID;
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref PlayerID);
-        serializer.SerializeValue(ref NightmareID);
-    }
-}
 
 public static class NightmareManager
 {
@@ -40,7 +28,7 @@ public static class NightmareManager
         .ToList()
     );
 
-    private static readonly IDToHashSyncedDictionary PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds");
+    private static readonly SyncedDictionary<byte, ulong> PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds", new ByteEncoder(), new ULongEncoder());
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
     static NightmareManager()
@@ -59,6 +47,7 @@ public static class NightmareManager
     {
         if (player.RigRefs.LeftHand._controller._menuTap) return Handedness.LEFT;
         if (player.RigRefs.RightHand._controller._menuTap) return Handedness.RIGHT;
+
         return null;
     }
 

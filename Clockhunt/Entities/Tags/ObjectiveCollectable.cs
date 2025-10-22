@@ -4,7 +4,7 @@ using MashGamemodeLibrary.Entities.Tagging.Base;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ObjectiveCollectable : IEntityTag, IEntityGrabCallback, IEntityDropCallback
+public class ObjectiveCollectable : EntityTag, IEntityGrabCallback, IEntityDropCallback
 {
     public bool IsGrabbed;
 

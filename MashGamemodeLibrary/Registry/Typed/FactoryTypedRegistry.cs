@@ -4,8 +4,6 @@ namespace MashGamemodeLibrary.Registry.Typed;
 
 public class FactoryTypedRegistry<TValue> : TypedRegistry<Func<TValue>, TValue> where TValue : class
 {
-    private readonly Dictionary<ulong, Func<TValue>> _internalRegistry = new();
-
     protected override Func<TValue> Create<T>()
     {
         return () => new T();

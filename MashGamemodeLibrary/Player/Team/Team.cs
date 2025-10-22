@@ -11,9 +11,9 @@ public abstract class Team
     public virtual uint Capacity => UInt32.MaxValue;
     public virtual uint Weight => 1;
 
-    public NetworkPlayer Owner { get; internal set; } = null!;
+    public NetworkPlayer Owner { get; private set; } = null!;
 
-    public virtual void OnAssigned()
+    protected virtual void OnAssigned()
     {
     }
 
@@ -22,7 +22,7 @@ public abstract class Team
         
     }
 
-    public virtual void OnRemoved()
+    protected virtual void OnRemoved()
     {
     }
 

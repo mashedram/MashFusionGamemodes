@@ -7,6 +7,7 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
@@ -206,6 +207,26 @@ public static class PlayerGrabManager
             .GetAllExtendingTag<IEntityGrabPredicate>();
 
         return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(grab));
+    }
+
+    private static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
+    {
+        if (!hand.HasAttachedObject()) return false;
+
+        var attached = hand.AttachedReceiver;
+        var rb = attached?.Host?.Rb;
+        if (rb == null) return false;
+        if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return false;
+        if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return false;
+
+        return entity.HasTag<T>();
+    }
+    
+    public static bool IsHoldingTag<T>(NetworkPlayer player) where T : IEntityTag
+    {
+        if (!player.HasRig) return false;
+        
+        return IsHoldingTag<T>(player.RigRefs.RightHand) || IsHoldingTag<T>(player.RigRefs.LeftHand);
     }
 
     public static void SetOverwrite(string key, Func<GrabData, bool>? predicate)

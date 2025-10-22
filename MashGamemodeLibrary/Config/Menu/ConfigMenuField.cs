@@ -79,7 +79,7 @@ public class ConfigMenuField
         
         _bounds = field.GetCustomAttribute<ConfigRangeConstraint>();
 
-        _synced = field.GetCustomAttribute<Synchronise>() != null;
+        _synced = field.GetCustomAttribute<NetSerializable>() != null;
     }
 
     private T ToDisplayValue<T>(object? value, T fallback) where T : notnull

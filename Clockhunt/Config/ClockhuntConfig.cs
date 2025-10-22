@@ -5,13 +5,12 @@ using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
-using MashGamemodeLibrary.networking.Variable.Impl;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
-class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer
+internal class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer
 {
     public object ToDisplay(object value)
     {
@@ -24,18 +23,20 @@ class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer
     }
 }
 
-public class ClockhuntConfig : AutoSerialized, IConfig, IConfigMenuProvider
+public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfigMenuProvider
 {
     [ConfigMenuEntry("Hide phase duration")]
     [ConfigRangeConstraint(15, 1200)]
     [ConfigStepSize(15)]
     [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
     public int HidePhaseDuration = 150;
+    
     [ConfigMenuEntry("Hide phase duration")]
     [ConfigRangeConstraint(15, 1200)]
     [ConfigStepSize(15)]
     [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
     public int HuntPhaseDuration = 1200;
+    
     [ConfigMenuEntry("Hide phase duration")]
     [ConfigRangeConstraint(15, 1200)]
     [ConfigStepSize(15)]
@@ -50,6 +51,7 @@ public class ClockhuntConfig : AutoSerialized, IConfig, IConfigMenuProvider
 
     [ConfigMenuEntry("Spectating Enabled")]
     public bool IsSpectatingEnabled = true;
+    
     [ConfigMenuEntry("Escape Enabled")]
     public bool IsEscapePhaseEnabled = true;
 
@@ -61,10 +63,10 @@ public class ClockhuntConfig : AutoSerialized, IConfig, IConfigMenuProvider
     [ConfigMenuEntry("Teleport to Spawn")]
     public bool TeleportToSpawn = false;
     [ConfigMenuEntry("Nightmare Night Vision")]
-    [Synchronise]
+    [NetSerializable]
     public bool NightVision = true;
     [ConfigMenuEntry("Night Vision Brightness")]
-    [Synchronise]
+    [NetSerializable]
     public float NightVisionBrightness = 1.0f;
 
     [ConfigMenuEntry("Runtime Spawnpoints")]
@@ -74,12 +76,12 @@ public class ClockhuntConfig : AutoSerialized, IConfig, IConfigMenuProvider
     public int RuntimeSpawnCount = 6;
 
     [ConfigMenuEntry("Dev Tools Enabled")]
-    [Synchronise]
+    [NetSerializable]
     public bool DevToolsDisabled = true;
     
     [ConfigMenuEntry("Debug - Force Spectate")]
     public bool DebugForceSpectate = false;
-    [ConfigMenuEntry("Debug - Skip Enabled")]
+    [ConfigMenuEntry("Debug - Skip Nightmare")]
     public bool DebugSkipNightmare = false;
 
     public PlayerStats DefaultStats = new()
@@ -92,7 +94,6 @@ public class ClockhuntConfig : AutoSerialized, IConfig, IConfigMenuProvider
     };
 
     public float EscapeDistance = 10.0f;
-    public float EscapeDuration = 15.0f;
 
     [ConfigMenuEntry("Max Lives")]
     [ConfigRangeConstraint(0, 5)]

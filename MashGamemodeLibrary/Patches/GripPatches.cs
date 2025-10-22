@@ -1,8 +1,11 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
+using LabFusion.Entities;
 using LabFusion.Grabbables;
+using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Spectating;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
@@ -16,7 +19,7 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
     {
-        if (hand == null) return true;
+        if (!__instance || !hand) return true;
 
         var grab = new GrabData(hand, __instance);
         return PlayerGrabManager.CanGrabEntity(grab);
@@ -27,7 +30,8 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
     {
-        if (hand == null) return true;
+        if (!__instance || !hand) return true;
+        
         var grab = new GrabData(hand, __instance);
 
         var res = PlayerGrabManager.CanGrabEntity(grab);
@@ -43,7 +47,9 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool IconAttempt(InteractableIcon __instance, Hand hand)
     {
-        if (!hand || !__instance.m_Grip)
+        if (!__instance || !hand)
+            return true;
+        if (!__instance.m_Grip)
             return true;
 
         var grab = new GrabData(hand, __instance.m_Grip);
@@ -61,7 +67,10 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
     {
-        if (!hand || !__instance._grip)
+        if (!__instance || !hand)
+            return true;
+        
+        if (!__instance._grip)
             return true;
 
         var grab = new GrabData(hand, __instance._grip);
@@ -86,6 +95,9 @@ public class GripPatches
     [HarmonyPriority(10000)]
     public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
     {
+        if (!__instance || !objectToAttach)
+            return true;
+        
         if (!objectToAttach)
             return true;
 
@@ -97,7 +109,7 @@ public class GripPatches
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
     public static void AttachObject_Postfix(Grip __instance, Hand hand)
     {
-        if (hand == null)
+        if (!__instance || !hand)
             return;
 
         var grab = new GrabData(hand, __instance);
@@ -112,6 +124,9 @@ public class GripPatches
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
     public static void DetachObject(Grip __instance)
     {
+        if (!__instance)
+            return;
+        
         var hand = __instance.GetHand();
         if (hand == null)
             return;
@@ -125,22 +140,20 @@ public class GripPatches
     [HarmonyPrefix]
     public static bool SendObjectAttach_Prefix(Hand hand, Grip grip)
     {
+        if (!hand || !grip)
+            return true;
+        
         var grab = new GrabData(hand, grip);
         return PlayerGrabManager.CanGrabEntity(grab);
     }
 
-    // TODO: Look into if this is needed
-    // [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TransferOwnership))]
-    // [HarmonyPrefix]
-    // public static bool TransferOwnership_Prefix(NetworkEntity entity, PlayerID ownerID)
-    // {
-    //     var marrowEntity = entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
-    //
-    //     if (ownerID.IsMe)
-    //         return !PlayerGrabManager.IsForceDisabled(entity, marrowEntity);
-    //     
-    //     return true;
-    // }
+    [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TakeOwnership))]
+    [HarmonyPrefix]
+    public static bool TakeOwnership_Prefix(NetworkEntity entity)
+    {
+        return !SpectatorManager.IsLocalPlayerSpectating();
+    }
+
 
     [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]
     [HarmonyPrefix]

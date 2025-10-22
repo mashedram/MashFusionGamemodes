@@ -1,6 +1,8 @@
 ﻿using BoneStrike.Phase;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using Team = MashGamemodeLibrary.Player.Team.Team;
 
@@ -14,11 +16,34 @@ public class CounterTerroristTeam : Team
 
     public override void OnPhaseChanged(GamePhase phase)
     {
-        LocalVision.Blind = phase is PlantPhase;
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            var isLocked = phase is PlantPhase;
+            LocalControls.LockedMovement = isLocked;
+        });
     }
 
-    public override void OnRemoved()
+    protected override void OnAssigned()
     {
-        LocalVision.Blind = false;
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            Notifier.Send(new Notification
+            {
+                Title = "Counter Terrorists",
+                Message = $"Once the bomb has been planted, disarm it by holding it. You have {BoneStrike.Config.MaxRespawns} lives.",
+                PopupLength = 10f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
+        });
+    }
+
+    protected override void OnRemoved()
+    {
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            LocalControls.LockedMovement = false;
+        });
     }
 }

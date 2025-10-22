@@ -21,11 +21,11 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         return GetID(typeof(T));
     }
     
-    public ulong GetID<T>(T instance) where T : TValue
+    public ulong GetID(TValue instance)
     {
         return GetID(instance.GetType());
     }
-
+    
     protected abstract TInternal Create<T>() where T : TValue, new();
     protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);
     
@@ -39,11 +39,12 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             MelonLogger.Error($"Type: {type.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
             return;
         }
-        
-        MelonLogger.Msg($"Registering type: {type.Name} to registry of: {typeof(TValue).Name}");
 #endif
         
         var id = GetID<T>();
+#if DEBUG
+        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
+#endif
         Register(id, Create<T>());  
     }
     
@@ -56,7 +57,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             throw new Exception("Could not find register method.");
         
         assembly.GetTypes()
-            .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false })
+            .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false, IsInterface: false })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
     }
     

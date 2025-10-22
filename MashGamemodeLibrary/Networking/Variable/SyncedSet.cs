@@ -4,6 +4,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable.Encoder;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
@@ -20,22 +21,22 @@ public class ChangePacket<T>
     public T Value;
 }
 
-public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnumerable<TValue>, ICatchup,
-    IResettable
+public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnumerable<TValue>, ICatchup, IResettable
+    where TValue : notnull
 {
     public delegate void ValueChangedHandler(TValue value);
-
     public delegate void ValueRemovedHandler(TValue oldValue);
 
-
+    private readonly IEncoder<TValue> _encoder;
     private readonly HashSet<TValue> _set = new();
 
-    protected SyncedSet(string name) : base(name , CommonNetworkRoutes.HostToAll)
+    public SyncedSet(string name, IEncoder<TValue> encoder) : this(name, encoder, CommonNetworkRoutes.HostToAll)
     {
     }
     
-    protected SyncedSet(string name, INetworkRoute route) : base(name , route)
+    public SyncedSet(string name, IEncoder<TValue> encoder, INetworkRoute route) : base(name , route)
     {
+        _encoder = encoder;
     }
 
     public int Count => _set.Count;
@@ -133,19 +134,13 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
     {
         RemoveValue(value, true);
     }
-
-    // Abstract methods for serialization
-
-    protected abstract int GetValueSize(TValue value);
-    protected abstract void WriteValue(NetWriter writer, TValue value);
-    protected abstract TValue ReadValue(NetReader reader);
-
+    
     protected override int? GetSize(ChangePacket<TValue> data)
     {
         if (data.Type == ChangeType.Clear)
             return sizeof(int);
 
-        return sizeof(int) + GetValueSize(data.Value);
+        return sizeof(int) + _encoder.GetSize(data.Value);
     }
 
     protected override void Write(NetWriter writer, ChangePacket<TValue> data)
@@ -154,7 +149,7 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
         if (data.Type == ChangeType.Clear)
             return;
 
-        WriteValue(writer, data.Value);
+        _encoder.Write(writer, data.Value);
     }
 
     protected override void Read(byte playerId, NetReader reader)
@@ -164,10 +159,10 @@ public abstract class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue
         switch (change)
         {
             case ChangeType.Add:
-                AddValue(ReadValue(reader), false);
+                AddValue(_encoder.Read(reader), false);
                 break;
             case ChangeType.Remove:
-                RemoveValue(ReadValue(reader), false);
+                RemoveValue(_encoder.Read(reader), false);
                 break;
             case ChangeType.Clear:
                 Clear(false);

@@ -43,11 +43,19 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     // ReSharper disable once StaticMemberInGenericType
     public new static bool IsStarted { get; private set; }
 
+    protected virtual void OnRegistered()
+    {
+    }
+    
     protected virtual void OnStart()
     {
     }
 
     protected virtual void OnUpdate(float delta)
+    {
+    }
+
+    protected virtual void OnCleanup()
     {
     }
     
@@ -62,6 +70,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
 
     private void Reset()
     {
+        OnCleanup();
+        
         GamePhaseManager.Disable();
         PlayerStatManager.ResetStats();
         GamemodeHelper.ResetSpawnPoints();
@@ -97,6 +107,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
         
         _configMenu = new ConfigMenu(Config);
 
+        OnRegistered();
         base.OnGamemodeRegistered();
     }
 
@@ -104,7 +115,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     {
         Reset();
 
-        ConfigManager.Enable<TConfig>();
+        Executor.RunIfHost(ConfigManager.Enable<TConfig>);
         Context.OnReady();
     }
 
@@ -150,6 +161,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
         var delta = Time.deltaTime;
         
         PlayerControllerManager.Update(delta);
+        GamePhaseManager.Update(delta);
+        EntityTagManager.Update(delta);
         
         Context.Update(delta);
         OnUpdate(delta);

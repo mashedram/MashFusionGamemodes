@@ -23,7 +23,7 @@ public class NightmareTeam : Team, INetSerializable
         _nightmareID = nightmareID;
     }
 
-    public override void OnAssigned()
+    protected override void OnAssigned()
     {
         Executor.RunIfHost(() =>
         {
@@ -32,7 +32,7 @@ public class NightmareTeam : Team, INetSerializable
         });
     }
 
-    public override void OnRemoved()
+    protected override void OnRemoved()
     {
         Executor.RunIfHost(() =>
         {
