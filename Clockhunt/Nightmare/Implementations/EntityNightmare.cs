@@ -1,4 +1,5 @@
-﻿using Clockhunt.Vision;
+﻿using Clockhunt.Nightmare.Config;
+using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Marrow;
@@ -109,7 +110,6 @@ public class EntityNightmareDescriptor : NightmareDescriptor
     public override string SurvivorDescription => "Avoid the entity and escape.";
     public override string Avatar => "fa534c5a83ee4ec6bd641fec424c4142.Avatar.CharTallv4";
     public override int Weight => 10;
-    public override float AbilityCooldown => 60f;
 
     public override PlayerStats Stats => new()
     {
@@ -119,6 +119,12 @@ public class EntityNightmareDescriptor : NightmareDescriptor
         Agility = 2f,
         LowerStrength = 8f
     };
+
+    // We want this to be the only one enabled by default
+    public EntityNightmareDescriptor()
+    {
+        Enabled = true;
+    }
 
     public override NightmareInstance CreateInstance(byte ownerID)
     {

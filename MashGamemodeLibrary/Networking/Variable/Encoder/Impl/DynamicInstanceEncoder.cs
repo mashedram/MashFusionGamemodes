@@ -4,11 +4,11 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 
-public class InstanceEncoder<TValue> : IEncoder<TValue> where TValue : class
+public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue : class
 {
     private readonly ITypedRegistry<TValue> _typedRegistry;
     
-    public InstanceEncoder(ITypedRegistry<TValue> typedRegistry)
+    public DynamicInstanceEncoder(ITypedRegistry<TValue> typedRegistry)
     {
         _typedRegistry = typedRegistry;
     }
@@ -47,5 +47,16 @@ public class InstanceEncoder<TValue> : IEncoder<TValue> where TValue : class
         if (value is not INetSerializable serializable) return;
         
         serializable.Serialize(writer);
+    }
+    
+    public void Serialize(INetSerializer serializer, TValue value)
+    {
+
+        var id = serializer.IsReader ? 0 : _typedRegistry.GetID(value);
+        serializer.SerializeValue(ref id);
+        
+        
+        if (value is INetSerializable value2)
+            value2.Serialize(serializer);
     }
 }

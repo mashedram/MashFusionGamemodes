@@ -87,11 +87,12 @@ public static class PlayerHider
         foreach (var state in GetOrCreateAllStates()) state.SetSpecialsHidden(true);
     }
 
-    public static void UnhideAll()
+    public static void Reset()
     {
         _hideSpecials = false;
 
         foreach (var state in _playerStates.Values) state.Reset();
+        _playerStates.Clear();
     }
 
     internal static void OnGrab(GrabData hand)

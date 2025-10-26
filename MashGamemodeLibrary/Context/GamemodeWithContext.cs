@@ -1,10 +1,13 @@
-﻿using LabFusion.Marrow.Proxies;
+﻿using LabFusion.Entities;
+using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
+using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
@@ -18,7 +21,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
+public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLateJoin
     where TContext : GameModeContext<TContext>, new()
     where TConfig : class, IConfig, new()
 {
@@ -43,20 +46,48 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     // ReSharper disable once StaticMemberInGenericType
     public new static bool IsStarted { get; private set; }
 
+    /// <summary>
+    /// Register data related to your gamemode here.
+    /// </summary>
     protected virtual void OnRegistered()
     {
     }
     
+    /// <summary>
+    /// Called when the gamemode starts.
+    /// If a player late-joins, this also gets called once their level has fully loaded.
+    /// </summary>
     protected virtual void OnStart()
     {
     }
 
+    /// <summary>
+    /// Called every update of the unity engine.
+    /// </summary>
+    /// <param name="delta">The time since the last frame</param>
     protected virtual void OnUpdate(float delta)
     {
     }
 
+    /// <summary>
+    /// Most things are already cleaned up automatically.
+    /// Use this only to clean up either spawned instances, external side effects and other things affecting other mods.
+    /// </summary>
     protected virtual void OnCleanup()
     {
+    }
+
+    /// <summary>
+    /// Called on the host when a player joins after the gamemode has started.
+    /// </summary>
+    /// <param name="playerID">The ID of the player that joined.</param>
+    public virtual void OnLateJoin(PlayerID playerID)
+    {
+    }
+
+    public virtual bool CanAttackPlayer(PlayerID player)
+    {
+        return true;
     }
     
     private void Start()
@@ -82,7 +113,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
         
         GameObjectExtender.DestroyAll();
 
-        PlayerHider.UnhideAll();
+        PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
             PlayerControllerManager.Disable();
@@ -124,27 +155,17 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
         Context.OnUnready();
     }
 
-    public override void OnGamemodeStarted()
-    {
-        base.OnGamemodeStarted();
-
-        if (!FusionSceneManager.HasTargetLoaded()) return;
-
-        Start();
-    }
-
     public override void OnLevelReady()
     {
         base.OnLevelReady();
 
-        if (!IsStarted)
-            return;
-
-        OnStart();
+        IsStarted = true;
+        Start();
     }
 
     public override void OnGamemodeStopped()
     {
+        IsStarted = false;
         Context.OnStop();
         
         Reset();
@@ -154,18 +175,24 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode
     {
         base.OnUpdate();
         
-        IsStarted = base.IsStarted;
         if (!IsStarted)
             return;
 
         var delta = Time.deltaTime;
         
-        PlayerControllerManager.Update(delta);
         GamePhaseManager.Update(delta);
         EntityTagManager.Update(delta);
         
         Context.Update(delta);
         OnUpdate(delta);
+    }
+
+    public override bool CanAttack(PlayerID player)
+    {
+        if (!IsStarted)
+            return true;
+
+        return CanAttackPlayer(player);
     }
 
     public override GroupElementData CreateSettingsGroup()

@@ -1,47 +1,45 @@
 ﻿using Clockhunt.Audio.Effectors.Weather;
 using Clockhunt.Nightmare;
+using Clockhunt.Nightmare.Config;
 using LabFusion.Menu.Data;
-using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
+using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
-internal class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer
+internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public object ToDisplay(object value)
+    public ElementData GetElementData(string name, object value, Action<object> setter)
     {
-        return (int)value / 60f;
-    }
-
-    public object FromDisplay(object display)
-    {
-        return (int)((float)display * 60);
+        return new FloatElementData
+        {
+            Title = name,
+            Increment = 0.25f,
+            MaxValue = 10f,
+            MinValue = 0.25f,
+            Value = Convert.ToSingle(value) / 60f,
+            OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
+        };
     }
 }
 
 public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfigMenuProvider
 {
     [ConfigMenuEntry("Hide phase duration")]
-    [ConfigRangeConstraint(15, 1200)]
-    [ConfigStepSize(15)]
-    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
-    public int HidePhaseDuration = 150;
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float HidePhaseDuration = 150f;
     
     [ConfigMenuEntry("Hide phase duration")]
-    [ConfigRangeConstraint(15, 1200)]
-    [ConfigStepSize(15)]
-    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
-    public int HuntPhaseDuration = 1200;
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float HuntPhaseDuration = 1200f;
     
     [ConfigMenuEntry("Hide phase duration")]
-    [ConfigRangeConstraint(15, 1200)]
-    [ConfigStepSize(15)]
-    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
-    public int EscapePhaseDuration = 240;
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float EscapePhaseDuration = 240f;
     
     // TODO: Add to config screen once clock overhaul
     public int ClocksPerPlayer = 1;
@@ -63,10 +61,10 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     [ConfigMenuEntry("Teleport to Spawn")]
     public bool TeleportToSpawn = false;
     [ConfigMenuEntry("Nightmare Night Vision")]
-    [NetSerializable]
+    [SerializableField]
     public bool NightVision = true;
     [ConfigMenuEntry("Night Vision Brightness")]
-    [NetSerializable]
+    [SerializableField]
     public float NightVisionBrightness = 1.0f;
 
     [ConfigMenuEntry("Runtime Spawnpoints")]
@@ -76,11 +74,11 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     public int RuntimeSpawnCount = 6;
 
     [ConfigMenuEntry("Dev Tools Enabled")]
-    [NetSerializable]
+    [SerializableField]
     public bool DevToolsDisabled = true;
     
     [ConfigMenuEntry("Debug - Force Spectate")]
-    public bool DebugForceSpectate = false;
+    public bool DebugSkipSpectate = false;
     [ConfigMenuEntry("Debug - Skip Nightmare")]
     public bool DebugSkipNightmare = false;
 
@@ -95,23 +93,24 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
 
     public float EscapeDistance = 10.0f;
 
-    [ConfigMenuEntry("Max Lives")]
+    [ConfigMenuEntry("Max Respawns")]
     [ConfigRangeConstraint(0, 5)]
-    public int MaxLives = 3;
+    public int MaxRespawns = 2;
 
     public void AddExtraFields(GroupElementData root)
     {
-        var nightmares = new GroupElementData("Nightmares");
-        foreach (var (_, descriptor) in NightmareManager.Registry)
+        foreach (var (_, descriptor) in NightmareManager.Descriptors)
         {
-            nightmares.AddElement(new BoolElementData
+            var group = new GroupElementData(descriptor.Name);
+            group.AddElement(new BoolElementData
             {
-                Title = descriptor.Name,
-                Value = descriptor.IsEnabled,
-                OnValueChanged = value => descriptor.IsEnabled = value
+                Title = "Enabled",
+                Value = descriptor.Enabled,
+                OnValueChanged = value => descriptor.Enabled = value
             });
+
+            descriptor.GetConfig<NightmareConfig>().AttachToGroup(group);
+            root.AddElement(group);
         }
-        
-        root.AddElement(nightmares);
     }
 }

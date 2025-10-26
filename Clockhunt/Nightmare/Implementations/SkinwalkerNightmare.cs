@@ -1,12 +1,14 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
+using Clockhunt.Nightmare.Config;
 using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
@@ -17,9 +19,9 @@ namespace Clockhunt.Nightmare.Implementations;
 public class SkinwalkerNightmareInstance : NightmareInstance
 {
     private const string
-        NightmareAvatarBarcode = "Random.OWNTeamAvatars.Avatar.Wendigo"; // Example barcode, replace with actual
+        NightmareAvatarBarcode = "Random.OWNTeamAvatars.Avatar.Wendigo";
 
-    private string _disguiseAvatarBarcode = NightmareAvatarBarcode; // Example barcode, replace with actual
+    private string _disguiseAvatarBarcode = NightmareAvatarBarcode;
     private bool _isDisguised = true;
 
     public SkinwalkerNightmareInstance(byte owner, NightmareDescriptor descriptor) : base(owner, descriptor)
@@ -51,14 +53,20 @@ public class SkinwalkerNightmareInstance : NightmareInstance
         });
         Executor.RunIfHost(() =>
         {
-            foreach (var networkPlayer in NetworkPlayer.Players) networkPlayer.GetController<ClockhuntPlayerController>().SetLives(1);
+            foreach (var networkPlayer in NetworkPlayer.Players)
+            {
+                if (networkPlayer.TryGetTag<LimitedRespawnTag>(out var tag))
+                {
+                    tag.SetRespawns(0);
+                }
+            }
         });
     }
 
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
         if (_isDisguised)
-            PlayerStatManager.SetAvatarAndStats(NightmareAvatarBarcode, Descriptor.Stats);
+            PlayerStatManager.SetAvatarAndStats(GetConfig<NightmareConfig>().AvatarOverride ?? NightmareAvatarBarcode, Descriptor.Stats);
         else
             PlayerStatManager.SetAvatarAndStats(_disguiseAvatarBarcode, Descriptor.GetStats());
 
@@ -79,7 +87,11 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
     public override string? Avatar => null;
     public override bool RegenerateHealth => true;
     public override int Weight => 4;
-    public override float AbilityCooldown => 10f;
+
+    public override Func<NightmareConfig> ConfigFactory => () => new NightmareConfig
+    {
+        AbilityCooldown = 10f
+    };
 
     public override PlayerStats Stats => new()
     {

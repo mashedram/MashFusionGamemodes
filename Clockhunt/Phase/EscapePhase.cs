@@ -1,10 +1,12 @@
 ﻿using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using Clockhunt.Game.Player;
 using Clockhunt.Nightmare;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
@@ -16,7 +18,7 @@ namespace Clockhunt.Phase;
 public class EscapePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Escape";
-    public override float Duration => 300f;
+    public override float Duration => Clockhunt.Config.EscapePhaseDuration;
     
     public override PhaseIdentifier GetNextPhase()
     {
@@ -28,10 +30,11 @@ public class EscapePhase : GamePhase, ITimedPhase
         Executor.RunIfHost(() =>
         {
             var escapePoint = EscapeManager.GetRandomEscapePoint();
-            PlayerControllerManager.OnAll<ClockhuntPlayerController>(controller =>
+            PlayerEscapeTag.EscapePosition = escapePoint;
+            PlayerControllerManager.Enable(() => new PlayerEscapeTag());
+            PlayerControllerManager.OnAll<LimitedRespawnTag>(controller =>
             {
-                controller.SetLives(0);
-                controller.SetEscapePoint(escapePoint);
+                controller.SetRespawns(0);
             });
             
             var context = Clockhunt.Context;

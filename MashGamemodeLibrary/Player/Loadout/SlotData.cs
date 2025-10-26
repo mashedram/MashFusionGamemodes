@@ -78,15 +78,15 @@ public class SlotData
 
         if (networkEntity != null && !ShouldOverride)
             return;
-
-        var transform = rig.Head.transform;
-        var spawnPosition = transform.position + transform.forward * -0.5f;
         
         if (networkEntity != null)
         {
             slot.DespawnContents();
         }
 
+        var transform = rig.Head.transform;
+        var spawnPosition = transform.position + transform.forward * -0.5f;
+        
         var spawnable = LocalAssetSpawner.CreateSpawnable(new SpawnableCrateReference(Barcode));
         if (spawnable == null)
             return;

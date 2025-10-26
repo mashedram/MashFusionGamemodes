@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using HarmonyLib;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Registry.Keyed;
 using MashGamemodeLibrary.Util;
@@ -7,13 +8,22 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Registry.Typed;
 
-public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TInternal>, ITypedRegistry<TValue> 
+public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TInternal>, ITypedRegistry<TValue>
     where TValue : notnull
     where TInternal : notnull
 {
-    public ulong GetID(MemberInfo type)
+    private readonly Dictionary<Type, ulong> _stableHashCache = new();
+    private readonly Dictionary<ulong, Type> _typeCache = new();
+    
+    private ulong GetRegisteredID<T>()
     {
-        return type.Name.GetStableHash();
+        return _stableHashCache[typeof(T)];
+    }
+    
+    public ulong GetID(Type type)
+    {
+        var fullName = type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
+        return fullName.GetStableHash();
     }
     
     public ulong GetID<T>() where T : TValue
@@ -40,8 +50,10 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             return;
         }
 #endif
-        
+
         var id = GetID<T>();
+        _stableHashCache[type] = id;
+        _typeCache[id] = type;
 #if DEBUG
         MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
 #endif
@@ -60,17 +72,30 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false, IsInterface: false })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
     }
-    
+
+    public Type? GetType(ulong id)
+    {
+        return _typeCache.GetValueOrDefault(id);
+    }
+
+    public bool TryGetType(ulong id, [MaybeNullWhen(false)] out Type type)
+    {
+        return _typeCache.TryGetValue(id, out type);
+    }
+
     public new TValue? Get(ulong id)
     {
         TryToValue(base.Get(id), out var value);
         return value;
     }
 
-    public virtual TValue? Get<T>() where T : TValue
+    public virtual T? Get<T>() where T : TValue
     {
-        var id = GetID<T>();
-        return Get(id);
+        var id = GetRegisteredID<T>();
+        if (Get(id) is not T tag)
+            return default!;
+
+        return tag;
     }
     
     public bool TryGet(ulong key, [MaybeNullWhen(false)] out TValue value)
@@ -87,7 +112,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue
     {
-        var id = GetID<T>();
+        var id = GetRegisteredID<T>();
         if (!TryGet(id, out var value))
         {
             entry = default!;

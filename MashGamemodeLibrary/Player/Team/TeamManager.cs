@@ -19,7 +19,7 @@ public static class TeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();
     public static readonly FactoryTypedRegistry<Team> Registry = new();
-    private static readonly SyncedDictionary<byte, Team> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(), new InstanceEncoder<Team>(Registry));
+    private static readonly SyncedDictionary<byte, Team> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(), new DynamicInstanceEncoder<Team>(Registry));
 
     public delegate void OnAssignedTeamHandler(PlayerID playerID, Team team);
 
@@ -27,13 +27,13 @@ public static class TeamManager
 
     static TeamManager()
     {
-        AssignedTeams.OnValueChanged += OnAssigned;
+        AssignedTeams.OnValueAdded += OnAssigned;
         AssignedTeams.OnValueRemoved += OnRemoved;
     }
 
-    private static ulong GetTeamID(MemberInfo type)
+    private static ulong GetTeamID(Type type)
     {
-        return type.Name.GetStableHash();
+        return Registry.GetID(type);
     }
 
     
@@ -130,7 +130,7 @@ public static class TeamManager
                 return;
             }
             AssignedTeams[playerID] = team;
-        }, "Assigning teams");
+        });
     }
     
     public static void AssignAllRandom()
@@ -146,7 +146,7 @@ public static class TeamManager
                 
                 teamIndex = (teamIndex + 1) % EnabledTeams.Count;
             }
-        }, "Randomly Assigning All Player Teams");
+        });
     }
 
     public static void AssignAll<T>() where T : Team
@@ -160,20 +160,32 @@ public static class TeamManager
             }
             
             foreach (var networkPlayer in NetworkPlayer.Players) AssignedTeams[networkPlayer.PlayerID] = team;
-        }, "Assigning All Player Teams");
+        });
     }
 
     public static void AssignToSmallest(this PlayerID playerID)
     {
         Executor.RunIfHost(() =>
         {
-            var teamID = AssignedTeams.Values.GroupBy(team => Registry.GetID(team)).MinBy(g => g.Count())?.Key;
-            if (!teamID.HasValue) return;
+            if (EnabledTeams.Count == 0)
+                return;
             
-            var team = Registry.Get(teamID.Value)!;
+            var teamCounts = new Dictionary<ulong, int>();
+            
+            foreach (var enabledTeam in EnabledTeams)
+            {
+                if (!Registry.TryGetType(enabledTeam, out var type))
+                    continue;
+
+                teamCounts[enabledTeam] = AssignedTeams.Count(kv => kv.Value.GetType() == type);
+            }
+
+            var teamID = teamCounts.DefaultIfEmpty().MinBy(kv => kv.Value);
+            
+            var team = Registry.Get(teamID.Key)!;
 
             AssignedTeams[playerID] = team;
-        }, "Assigning Player To Smallest Team");
+        });
     }
 
     public static void AssignRandom<T>(IRandomProvider<PlayerID>? provider = null) where T : Team

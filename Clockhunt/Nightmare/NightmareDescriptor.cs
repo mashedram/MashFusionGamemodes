@@ -1,13 +1,14 @@
-﻿using MashGamemodeLibrary.Player;
+﻿using Clockhunt.Nightmare.Config;
+using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Nightmare;
 
 public abstract class NightmareDescriptor
 {
+    public bool Enabled = false;
     public ulong ID => GetType().FullName?.GetStableHash() ?? throw new Exception("Type has no FullName");
 
-    public bool IsEnabled { get; set; } = true;
     public abstract string Name { get; }
     public abstract string HunterDescription { get; }
 
@@ -19,11 +20,17 @@ public abstract class NightmareDescriptor
     public virtual bool KillOnGrab => false;
 
     public virtual float AbilityCooldown => 30f;
-
     /**
      * When null, avatar will be the avatar the player is using
      */
     public abstract string? Avatar { get; }
+    
+    public virtual Func<NightmareConfig> ConfigFactory => () => new NightmareConfig();
+    
+    public T GetConfig<T>() where T : NightmareConfig
+    {
+        return NightmareManager.GetConfig<T>(this);
+    }
 
     public abstract PlayerStats Stats { get; }
 

@@ -1,19 +1,18 @@
-namespace MashGamemodeLibrary.Config.Menu;
+using LabFusion.Menu.Data;
 
-public interface IConfigDisplayTransformer
+namespace MashGamemodeLibrary.Config.Menu.Attributes;
+
+public interface IConfigElementProvider
 {
-    public object ToDisplay(object value);
-    public object FromDisplay(object display);
+    public ElementData GetElementData(string name, object value, Action<object> setter);
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class ConfigDisplayTransformer : Attribute
+public class ConfigElementProvider : Attribute
 {
-    public Type DisplayType { get; }
-    public Type TransformerType { get; }
-    public ConfigDisplayTransformer(Type displayType, Type transformerTypeType)
+    public Type ProviderType { get; }
+    public ConfigElementProvider(Type providerTypeType)
     {
-        DisplayType = displayType;
-        TransformerType = transformerTypeType;
+        ProviderType = providerTypeType;
     }
 }

@@ -2,29 +2,12 @@
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using MashGamemodeLibrary.Config.Constraints;
+using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Config.Menu.Element;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Config.Menu;
-
-class RangeBounds
-{
-    private object _lower;
-    private object _higher;
-}
-
-class DirectDisplayTransformer : IConfigDisplayTransformer
-{
-    public object ToDisplay(object value)
-    {
-        return value;
-    }
-    public object FromDisplay(object display)
-    {
-        return display;
-    }
-}
 
 public class ConfigMenuField
 {
@@ -32,10 +15,11 @@ public class ConfigMenuField
     
     private string Name;
     private FieldInfo fieldInfo;
-    private object DefaultValue;
-    
-    private Type DisplayType;
-    private IConfigDisplayTransformer displayTransformer;
+    private Type _fieldType;
+    // TODO: Add default value reseting
+    private object _defaultValue;
+
+    private IConfigElementProvider? elementProvider;
 
     private object? _incrementStep;
 
@@ -50,26 +34,20 @@ public class ConfigMenuField
         Name = entry.Name;
 
         fieldInfo = field;
-        var fieldType = field.FieldType;
-        
-        var display = field.GetCustomAttribute<ConfigDisplayTransformer>();
-        if (display != null)
+        _fieldType = field.FieldType;
+
+        var element = field.GetCustomAttribute<ConfigElementProvider>();
+        if (element != null)
         {
-            DisplayType = display.DisplayType;
-            displayTransformer = displayTransformer = (IConfigDisplayTransformer?)Activator.CreateInstance(display.TransformerType) ?? new DirectDisplayTransformer();
-        }
-        else
-        {
-            DisplayType = fieldType;
-            displayTransformer = new DirectDisplayTransformer();
+            elementProvider = (IConfigElementProvider?)Activator.CreateInstance(element.ProviderType);
         }
 
         var increment = field.GetCustomAttribute<ConfigStepSize>();
         if (increment != null)
         {
-            if (increment.StepSize.GetType() != fieldType)
+            if (increment.StepSize.GetType() != _fieldType)
             {
-                MelonLogger.Warning($"Can't step {Name} by {increment.GetType().Name}. It is not of the same type as the field. ({fieldType})");
+                MelonLogger.Warning($"Can't step {Name} by {increment.GetType().Name}. It is not of the same type as the field. ({_fieldType})");
             }
             else
             {
@@ -79,33 +57,19 @@ public class ConfigMenuField
         
         _bounds = field.GetCustomAttribute<ConfigRangeConstraint>();
 
-        _synced = field.GetCustomAttribute<NetSerializable>() != null;
-    }
+        _defaultValue = fieldInfo.GetValue(instance) ?? throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
 
-    private T ToDisplayValue<T>(object? value, T fallback) where T : notnull
-    {
-        if (value == null)
-            return fallback;
-        
-        return (T)displayTransformer.ToDisplay(value);
-    }
-    
-    private T FromDisplayValue<T>(object? value, T fallback) where T : notnull
-    {
-        if (value == null)
-            return fallback;
-        
-        return (T)displayTransformer.FromDisplay(value);
+        _synced = field.GetCustomAttribute<SerializableField>() != null;
     }
 
     private T ReadValue<T>(T fallback) where T : notnull
     {
-        return ToDisplayValue(fieldInfo.GetValue(_instance), fallback);
+        return (T?)fieldInfo.GetValue(_instance) ?? fallback;
     }
 
     private void WriteValue<T>(T value) where T : notnull
     {
-        fieldInfo.SetValue(_instance, displayTransformer.FromDisplay(value));
+        fieldInfo.SetValue(_instance, value);
         
         if (_synced)
             ConfigManager.Sync();
@@ -113,16 +77,21 @@ public class ConfigMenuField
 
     public ElementData GetElementData()
     {
-        // TODO: Use a registry
-        if (DisplayType == typeof(float))
+        if (elementProvider != null)
         {
-            var min = ToDisplayValue(_bounds?.Lower, 1f);
-            var max = ToDisplayValue(_bounds?.Upper, 10f);
+            return elementProvider.GetElementData(Name, ReadValue<object>(null!), WriteValue);
+        }
+        
+        // TODO: Use a registry
+        if (_fieldType == typeof(float))
+        {
+            var min = (float?)_bounds?.Lower ?? 1f;
+            var max = (float?)_bounds?.Upper ?? 10f;
             
             return new FloatElementData
             {
                 Title = Name,
-                Increment = ToDisplayValue(_incrementStep, 1f),
+                Increment = (float?)_incrementStep ?? 1f,
                 MinValue = min,
                 MaxValue = max,
                 Value = ReadValue(min),
@@ -130,25 +99,25 @@ public class ConfigMenuField
             };
         }
 
-        if (DisplayType == typeof(bool))
+        if (_fieldType == typeof(bool))
         {
             return new BoolElementData
             {
                 Title = Name,
-                Value = ToDisplayValue(fieldInfo.GetValue(_instance), false),
+                Value = (bool?)fieldInfo.GetValue(_instance) ?? false,
                 OnValueChanged = WriteValue
             };
         }
 
-        if (DisplayType == typeof(int))
+        if (_fieldType == typeof(int))
         {
-            var min = ToDisplayValue(_bounds?.Lower, 1);
-            var max = ToDisplayValue(_bounds?.Upper, 10);
+            var min = (int?)_bounds?.Lower ?? 1;
+            var max = (int?)_bounds?.Upper ?? 10;
             
             return new IntElementData
             {
                 Title = Name,
-                Increment = ToDisplayValue(_incrementStep, 1),
+                Increment = (int?)_incrementStep ?? 1,
                 MinValue = min,
                 MaxValue = max,
                 Value = ReadValue(min),
@@ -156,17 +125,17 @@ public class ConfigMenuField
             };
         }
 
-        if (typeof(Enum).IsAssignableFrom(DisplayType))
+        if (typeof(Enum).IsAssignableFrom(_fieldType))
         {
             return new EnumElementData
             {
                 Title = Name,
-                EnumType = DisplayType,
-                Value = (Enum)ReadValue(Activator.CreateInstance(DisplayType)!),
+                EnumType = _fieldType,
+                Value = (Enum)ReadValue(Activator.CreateInstance(_fieldType)!),
                 OnValueChanged = WriteValue
             };
         }
 
-        return new LabelElementData {Title = $"Field {Name} with {DisplayType.Name} is not supported."};
+        return new LabelElementData {Title = $"Field {Name} with {_fieldType.Name} is not supported."};
     }
 }

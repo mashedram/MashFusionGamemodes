@@ -1,4 +1,5 @@
 ﻿using Clockhunt.Entities.Tags;
+using Clockhunt.Nightmare.Config;
 using Clockhunt.Vision;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
@@ -133,7 +134,6 @@ public class BlindNightmareDescriptor : NightmareDescriptor
     public override string SurvivorDescription => "Stand Still";
     public override string Avatar => "Random.OWNTeamAvatars.Avatar.Entity";
     public override int Weight => 5;
-    public override float AbilityCooldown => 60f;
 
     public override PlayerStats Stats => new()
     {

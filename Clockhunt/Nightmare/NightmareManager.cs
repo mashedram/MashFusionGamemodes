@@ -1,15 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Clockhunt.Game;
 using Clockhunt.Game.Teams;
+using Clockhunt.Nightmare.Config;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
+using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
@@ -21,9 +24,14 @@ namespace Clockhunt.Nightmare;
 public static class NightmareManager
 {
     private static readonly SingletonTypedRegistry<NightmareDescriptor> NightmareRegistry = new();
+    private static readonly FactoryTypedRegistry<NightmareConfig> NightmareConfigRegistry = new();
+
+    private static readonly Dictionary<ulong, NightmareConfig> LocalConfigs = new();
+    private static readonly SyncedDictionary<ulong, NightmareConfig> ActiveConfigs = new("NightmareConfigs", new ULongEncoder(),
+        new DynamicInstanceEncoder<NightmareConfig>(NightmareConfigRegistry));
 
     private static readonly CircularRandomProvider<ulong> NightmareRandomProvider = new(() => NightmareRegistry
-        .Where(v => v.Value.IsEnabled)
+        .Where(v => v.Value.Enabled)
         .Select(v => v.Key)
         .ToList()
     );
@@ -33,15 +41,25 @@ public static class NightmareManager
 
     static NightmareManager()
     {
-        
-        
+        PlayerNightmareIds.OnValueAdded += OnPlayerNightmareChange;
         PlayerNightmareIds.OnValueChanged += OnPlayerNightmareChange;
+        
         PlayerNightmareIds.OnValueRemoved += OnPlayerNightmareRemove;
+
+        NightmareRegistry.OnRegister += (key, descriptor) =>
+        {
+            NightmareConfigRegistry.Register(key, descriptor.ConfigFactory);
+            LocalConfigs[key] = descriptor.ConfigFactory.Invoke();
+        };
     }
 
-    public static SingletonTypedRegistry<NightmareDescriptor> Registry => NightmareRegistry;
-
     public static IEnumerable<NightmareInstance> Nightmares => NightmareInstances.Values;
+    public static IEnumerable<KeyValuePair<ulong, NightmareDescriptor>> Descriptors => NightmareRegistry;
+
+    public static void RegisterAll<T>()
+    {
+        NightmareRegistry.RegisterAll<T>();
+    }
 
     private static Handedness? GetInput(NetworkPlayer player)
     {
@@ -113,6 +131,17 @@ public static class NightmareManager
         UpdateAbility(instance);
     }
 
+    public static T GetConfig<T>(NightmareDescriptor descriptor) where T : NightmareConfig
+    {
+        var id = NightmareRegistry.GetID(descriptor);
+        if (ActiveConfigs.TryGetValue(id, out var remoteConfig))
+        {
+            return (T)remoteConfig;
+        }
+
+        return (T)LocalConfigs[id];
+    }
+
     // Remote
 
     private static void OnPlayerNightmareChange(byte playerId, ulong nightmareId)
@@ -128,6 +157,11 @@ public static class NightmareManager
             MelonLogger.Error($"Failed to find a nightmare by: {nightmareId}");
             return;
         }
+
+        Executor.RunIfHost(() =>
+        {
+            ActiveConfigs[nightmareId] = LocalConfigs[nightmareId];
+        });
         
         var instance = descriptor.CreateInstance(playerId);
         NightmareInstances[playerId] = instance;

@@ -11,6 +11,7 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
+using MashGamemodeLibrary.Util.Timer;
 
 namespace BoneStrike.Phase;
 
@@ -22,6 +23,12 @@ public class PlantPhase : GamePhase
     public override float Duration => BoneStrike.Config.PlantDuration;
 
     public static readonly SyncedVariable<bool> PhaseShouldQuit = new("SkipPlantPhase", new BoolEncoder(), false, CommonNetworkRoutes.AllToAll);
+    
+    protected override TimeMarker[] Markers => new[]
+    {
+        CommonTimeMarkerEvents.TimeRemaining(10f),
+        CommonTimeMarkerEvents.TimeRemaining(60f)
+    };
 
     public override PhaseIdentifier GetNextPhase()
     {
@@ -36,8 +43,6 @@ public class PlantPhase : GamePhase
         LocalInventory.SetAmmo(2000);
         Executor.RunIfHost(() =>
         {
-            TeamManager.AssignAllRandom();
-
             var preset = new PalletLoadouts(BoneStrike.Config.PalletBarcode);
             
             foreach (var networkPlayer in NetworkPlayer.Players)
@@ -47,7 +52,7 @@ public class PlantPhase : GamePhase
             }
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
-            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(15f));
+            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(7f));
         });
     }
 

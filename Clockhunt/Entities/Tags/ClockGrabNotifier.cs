@@ -12,6 +12,9 @@ public class ClockGrabNotifier : IEntityGrabCallback, IEntityDropCallback
 
     public void OnDrop(GrabData grab)
     {
+        if (grab.NetworkPlayer == null)
+            return;
+        
         Holders.Remove(grab.NetworkPlayer.PlayerID);
     }
 
@@ -19,6 +22,9 @@ public class ClockGrabNotifier : IEntityGrabCallback, IEntityDropCallback
 
     public void OnGrab(GrabData grab)
     {
+        if (grab.NetworkPlayer == null)
+            return;
+        
         Holders.Add(grab.NetworkPlayer.PlayerID);
     }
 }

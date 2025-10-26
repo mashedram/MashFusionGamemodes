@@ -18,6 +18,7 @@ using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -26,6 +27,7 @@ using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Util;
+using MashGamemodeLibrary.Util.Timer;
 using UnityEngine;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -164,11 +166,6 @@ public class HuntPhase : GamePhase, ITimedPhase
             EscapeManager.CollectEscapePoints();
 
             ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
-            
-            PlayerControllerManager.OnAll<ClockhuntPlayerController>(controller =>
-            {
-                controller.ResetLives();
-            });
 
             context.ClockAudioPlayer.Start();
         });

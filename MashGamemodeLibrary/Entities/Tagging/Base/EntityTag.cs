@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
-public class EntityTag : IEntityTag
+public class EntityTag : IEntityTag, ITagAddedInternal
 {
     private EntityTagIndex _tagIndex;
     private NetworkEntity? _entity;
     private NetworkEntityReference _entityID;
     protected NetworkEntity Entity => GetEntity();
 
-    internal void OnAddInternal(EntityTagIndex tag)
+    public void OnAddInternal(EntityTagIndex tag)
     {
         _entityID = new NetworkEntityReference(tag.EntityID);
         _tagIndex = tag;

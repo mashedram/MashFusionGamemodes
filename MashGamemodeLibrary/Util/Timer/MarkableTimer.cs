@@ -1,4 +1,4 @@
-﻿namespace MashGamemodeLibrary.Util;
+﻿namespace MashGamemodeLibrary.Util.Timer;
 
 public enum MarkerType
 {
@@ -23,19 +23,19 @@ public class TimeMarker
     }
 }
 
-public class Timer
+public class MarkableTimer
 {
     private TimeMarker[] _markers;
 
     private float _timeout;
 
-    private bool _hitTimeout = false;
+    private bool _hitTimeout;
     private float _timer;
     
     public event Action? OnReset;
     public event Action<float>? OnTimeout;
     
-    public Timer(float timeout, params TimeMarker[] markers)
+    public MarkableTimer(float timeout, params TimeMarker[] markers)
     {
         _timeout = timeout;
         _markers = markers;
@@ -77,6 +77,9 @@ public class Timer
         if (marker.Hit) return;
             
         marker.Hit = true;
+        if (markerTime > _timeout || markerTime <= 0)
+            return;
+        
         marker.OnHit.Invoke(markerTime);
     }
 

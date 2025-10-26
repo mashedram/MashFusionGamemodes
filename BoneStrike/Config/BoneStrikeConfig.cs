@@ -3,57 +3,87 @@ using LabFusion.Menu.Data;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
+using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Util;
 
 namespace BoneStrike.Config;
 
-internal class SecondsToMinutesDisplayTransformer : IConfigDisplayTransformer
+internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public object ToDisplay(object value)
+    public ElementData GetElementData(string name, object value, Action<object> setter)
     {
-        return (float)value / 60f;
+        return new FloatElementData
+        {
+            Title = name,
+            Increment = 0.25f,
+            MaxValue = 10f,
+            MinValue = 0.25f,
+            Value = Convert.ToSingle(value) / 60f,
+            OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
+        };
     }
+}
 
-    public object FromDisplay(object display)
+internal class CrateBarcodeElement : IConfigElementProvider
+{
+    public ElementData GetElementData(string name, object value, Action<object> setter)
     {
-        return (float)display * 60;
+        return new SpawnableElementData
+        {
+            Title = name,
+            OnSetSpawnable = barcode =>
+            {
+                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
+                    return;
+
+                setter.Invoke(crate._pallet._barcode._id);
+            }
+        };
     }
 }
 
 
-public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig, IConfigMenuProvider
+
+public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
 {
     [ConfigMenuEntry("Plant Phase Duration")]
-    [ConfigStepSize(15f)]
-    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
-    [ConfigRangeConstraint(15f, 600f)]
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     public float PlantDuration = 60f;
     
     [ConfigMenuEntry("Defuse Phase Duration")]
-    [ConfigStepSize(15f)]
-    [ConfigDisplayTransformer(typeof(float), typeof(SecondsToMinutesDisplayTransformer))]
-    [ConfigRangeConstraint(15f, 600f)]
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     public float DefuseDuration = 60f;
 
     [ConfigMenuEntry("Max Respawns")]
     [ConfigRangeConstraint(0, 3)]
     public int MaxRespawns = 0;
 
-    public string PalletBarcode;
+    [ConfigMenuEntry("Defuse timer")] 
+    [ConfigRangeConstraint(2f, 20f)]
+    [SerializableField]
+    public float DefuseTime = 7f;
     
-    public void AddExtraFields(GroupElementData root)
-    {
-        root.AddElement(new SpawnableElementData
-        {
-            Title = "Spawnable",
-            OnSetSpawnable = barcode =>
-            {
-                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
-                    return;
+    [ConfigMenuEntry("Dev Tools Enabled")]
+    [SerializableField]
+    public bool DevToolsDisabled = true;
 
-                PalletBarcode = crate._pallet._barcode._id;
-            }
-        });
-    }
+    [ConfigMenuEntry("Spawnable")]
+    [ConfigElementProvider(typeof(CrateBarcodeElement))]
+    public string PalletBarcode = "";
+    
+    // public void AddExtraFields(GroupElementData root)
+    // {
+    //     root.AddElement(new SpawnableElementData
+    //     {
+    //         Title = "Spawnable",
+    //         OnSetSpawnable = barcode =>
+    //         {
+    //             if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
+    //                 return;
+    //
+    //             PalletBarcode = crate._pallet._barcode._id;
+    //         }
+    //     });
+    // }
 }

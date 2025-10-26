@@ -63,8 +63,8 @@ public class GrabData
         Hand = hand;
         GetNetworkEntity(out NetworkPlayer);
 
-        if (!hand.HasAttachedObject()) return;
-        if (!hand.AttachedReceiver.HasHost) return;
+        if (hand.AttachedReceiver == null) return;
+        if (hand.AttachedReceiver.Host == null) return;
         HeldItem = new HeldItem(hand.AttachedReceiver.Host);
     }
 
@@ -143,8 +143,6 @@ public static class PlayerGrabManager
         SpectatorManager.OnGrab(grab);
 
         // Callbacks to external systems
-
-        if (IsForceDisabled(grab)) return;
 
         var id = networkEntity.ID;
 

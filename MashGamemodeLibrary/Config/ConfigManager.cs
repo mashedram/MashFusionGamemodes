@@ -16,7 +16,7 @@ public static class ConfigManager
     private static readonly SingletonTypedRegistry<IConfig> LocalConfigTypedRegistry = new();
     private static readonly FactoryTypedRegistry<IConfig> ActiveConfigTypedRegistry = new();
     
-    private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig", new NullableReferenceEncoder<IConfig>(new InstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
+    private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig", new NullableReferenceEncoder<IConfig>(new DynamicInstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
 
     static ConfigManager()
     {

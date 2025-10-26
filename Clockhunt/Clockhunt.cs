@@ -12,6 +12,7 @@ using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
@@ -43,7 +44,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         base.OnGamemodeRegistered();
 
         EntityTagManager.RegisterAll<Mod>();
-        NightmareManager.Registry.RegisterAll<Mod>();
+        NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
     }
@@ -64,7 +65,19 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         
         Executor.RunIfHost(() =>
         {
-            PlayerControllerManager.Enable<ClockhuntPlayerController>();
+            PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns, player =>
+            {
+                if (GamePhaseManager.IsPhase<HidePhase>())
+                    return false;
+
+                if (TeamManager.IsTeam<NightmareTeam>(player.PlayerID))
+                    return false;
+
+                if (Config.DebugSkipSpectate)
+                    return false;
+
+                return true;
+            }));
             
             NightmareManager.ClearNightmares();
             SpectatorManager.Clear();
@@ -87,12 +100,16 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         
         PlayerHider.HideAllSpecials();
 
-        // TODO: Make it so that once the avatar is loader, it enforces it further
         var currentAvatar = LocalAvatar.AvatarBarcode;
         if (currentAvatar != CalibrationAvatar)
             LocalAvatar.AvatarOverride = currentAvatar;
         else
             LocalAvatar.OnAvatarChanged += ListenToAvatarChange;
+    }
+
+    public override void OnLateJoin(PlayerID playerID)
+    {
+        TeamManager.Assign<SurvivorTeam>(playerID);
     }
 
     protected override void OnUpdate(float delta)

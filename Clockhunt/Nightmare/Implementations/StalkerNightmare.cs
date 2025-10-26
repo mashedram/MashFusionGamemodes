@@ -1,4 +1,5 @@
-﻿using Clockhunt.Vision;
+﻿using Clockhunt.Nightmare.Config;
+using Clockhunt.Vision;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
@@ -53,7 +54,6 @@ public class StalkerNightmareDescriptor : NightmareDescriptor
     public override string SurvivorDescription => "Watch your back.";
     public override string Avatar => "Random.OWNTeamAvatars.Avatar.Creature";
     public override int Weight => 8;
-    public override float AbilityCooldown => 60f;
 
     public override PlayerStats Stats => new()
     {

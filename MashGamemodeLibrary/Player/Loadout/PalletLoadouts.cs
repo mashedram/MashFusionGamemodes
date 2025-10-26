@@ -68,6 +68,9 @@ public class PalletLoadouts
         
         foreach (var crate in pallet.Crates)
         {
+            if (crate._redacted)
+                continue;
+            
             var type = GetCrateType(crate);
             if (!type.HasValue)
                 continue;

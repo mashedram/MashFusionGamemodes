@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using LabFusion.Entities;
 using LabFusion.Extensions;
@@ -32,12 +33,118 @@ public record struct EntityTagIndex(ushort EntityID, ulong TagID) : INetSerializ
     }
 }
 
-// TODO: The tag system here is fucked up performance wise
-// TODO: Add catchup support
+public interface ITagCache
+{
+    void Add(EntityTagIndex index, IEntityTag tag);
+
+    void Remove(EntityTagIndex index, IEntityTag tag);
+    void Clear();
+}
+
+public class TagCache<TTag> : ITagCache, IEnumerable<TTag> where TTag : class
+{
+    private HashSet<TTag> _cache = new();
+    
+    public void Add(EntityTagIndex index, IEntityTag tag)
+    {
+        if (tag is not TTag tag2)
+            return;
+
+        _cache.Add(tag2);
+    }
+
+    public void Remove(EntityTagIndex index, IEntityTag tag)
+    {
+        if (tag is not TTag tag2)
+            return;
+
+        _cache.Remove(tag2);
+    }
+    
+    public void Clear()
+    {
+        _cache.Clear();
+    }
+
+    public IEnumerator<TTag> GetEnumerator()
+    {
+        return _cache.GetEnumerator();
+    }
+    
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+}
+
+public class EntityTagCache<TTag> : ITagCache where TTag : class
+{
+    private readonly Dictionary<ushort, HashSet<TTag>> _cache = new();
+    
+    private HashSet<TTag> GetSet(ushort entityID)
+    {
+        if (_cache.TryGetValue(entityID, out var set)) return set;
+
+        var newSet = new HashSet<TTag>();
+        _cache[entityID] = newSet;
+        return newSet;
+    }
+
+    
+    public void Add(EntityTagIndex index, IEntityTag tag)
+    {
+        if (tag is not TTag tag2)
+            return;
+
+        var entityID = index.EntityID;
+        GetSet(entityID).Add(tag2);
+    }
+
+    public void Remove(EntityTagIndex index, IEntityTag tag)
+    {
+        var entityID = index.EntityID;
+        if (!_cache.TryGetValue(entityID, out var set))
+            return;
+        
+        if (tag is not TTag tag2)
+            return;
+
+        set.Remove(tag2);
+        if (set.Count == 0)
+            _cache.Remove(entityID);
+    }
+    
+    public void Clear()
+    {
+        _cache.Clear();
+    }
+    
+    public HashSet<TTag>? Get(ushort index)
+    {
+        return _cache.GetValueOrDefault(index);
+    }
+
+    public bool TryGet(ushort entityID, [MaybeNullWhen(false)] out HashSet<TTag> tags)
+    {
+        return _cache.TryGetValue(entityID, out tags);
+    }
+}
+
+class UpdateTagCache : TagCache<ITagUpdate>
+{
+    public void Call(float delta)
+    {
+        foreach (var entry in this)
+        {
+            entry.Update(delta);
+        }
+    }
+}
+
 public static class EntityTagManager
 {
     private static readonly FactoryTypedRegistry<IEntityTag> Registry = new();
-    private static readonly SyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager", new NetSerializableEncoder<EntityTagIndex>(), new InstanceEncoder<IEntityTag>(Registry));
+    private static readonly SyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager", new NetSerializableEncoder<EntityTagIndex>(), new DynamicInstanceEncoder<IEntityTag>(Registry));
     
     // Helper Extension Map
     private static readonly Dictionary<Type, ulong> TypeToHashMap = new();
@@ -47,13 +154,19 @@ public static class EntityTagManager
     private static readonly Dictionary<ushort, HashSet<EntityTagIndex>> EntityToTagMap = new();
     private static readonly Dictionary<ulong, HashSet<EntityTagIndex>> TagToEntityMap = new();
     
-    // Updating
-    private static readonly HashSet<ITagUpdate> UpdatingTags = new();
+    // Special Tags
+    private static readonly SingletonTypedRegistry<ITagCache> TypedTagCache = new();
+    // Updates every frame, don't want to hash and stuff just to access it
+    private static readonly UpdateTagCache DirectUpdateTagCache;
 
     static EntityTagManager()
     {
+        Tags.OnValueAdded += OnTagAdded;
         Tags.OnValueChanged += OnTagChanged;
         Tags.OnValueRemoved += OnTagRemoved;
+        
+        TypedTagCache.Register<UpdateTagCache>();
+        DirectUpdateTagCache = TypedTagCache.Get<UpdateTagCache>() ?? throw new InvalidOperationException("Failed to get update tag cache");
     }
 
     // Sync Callback
@@ -76,26 +189,31 @@ public static class EntityTagManager
         return newSet;
     }
 
-    private static void OnTagChanged(EntityTagIndex key, IEntityTag value)
+    private static void OnTagAdded(EntityTagIndex key, IEntityTag value)
     {
         var entityToTag = GetEntityToTagSet(key.EntityID);
-        
-        // Tag already added, this is just a sync
-        // TODO: Seperate set
-        if (!entityToTag.Add(key))
-            return;
+       
+        entityToTag.Add(key);
 
         var tagToEntity = GetTagToEntitySet(key.TagID);
         tagToEntity.Add(key);
 
-        if (value is ITagUpdate update)
-            UpdatingTags.Add(update);
-        
-        if (value is EntityTag entity) 
+        if (value is ITagAddedInternal entity) 
             entity.OnAddInternal(key);
+        
+        foreach (var (_, cache) in TypedTagCache)
+        {
+            cache.Add(key, value);
+        }
         
         if (value is ITagAdded added)
             added.OnAdded(key.EntityID);
+    }
+
+    private static void OnTagChanged(EntityTagIndex index, IEntityTag value)
+    {
+        if (value is ITagChanged changed)
+            changed.OnChanged();
     }
 
     private static void OnTagRemoved(EntityTagIndex key, IEntityTag oldValue)
@@ -106,8 +224,10 @@ public static class EntityTagManager
         var tagToEntity = GetTagToEntitySet(key.TagID);
         tagToEntity.Remove(key);
 
-        if (oldValue is ITagUpdate update)
-            UpdatingTags.Remove(update);
+        foreach (var (_, cache) in TypedTagCache)
+        {
+            cache.Remove(key, oldValue);
+        }
         
         if (oldValue is ITagRemoved removed)
             removed.OnRemoval(key.EntityID);
@@ -136,7 +256,7 @@ public static class EntityTagManager
         return Registry.GetID<T>();
     }
     
-    private static ulong GetTagId(MemberInfo type)
+    private static ulong GetTagId(Type type)
     {
         return Registry.GetID(type);
     }
@@ -349,24 +469,28 @@ public static class EntityTagManager
             .ToList();
     }
 
+    public static T RegisterCache<T>() where T : ITagCache, new()
+    {
+        TypedTagCache.Register<T>();
+        return TypedTagCache.Get<T>()!;
+    }
+    
+    public static T GetCache<T>() where T : ITagCache
+    {
+        return TypedTagCache.Get<T>() ?? throw new Exception($"Can't find tag cache of type: {typeof(T).Name}. Did you forget to register it?");
+    }
+
     public static void ClearAll()
     {
         Executor.RunIfHost(() =>
         {
             Tags.Clear();
-            EntityToTagMap.Clear();
-            TagToEntityMap.Clear();
-            UpdatingTags.Clear();
         });
     }
 
     public static void Update(float delta)
     {
-        var enumerator = UpdatingTags.GetEnumerator();
-        while (enumerator.MoveNext())
-        {
-            enumerator.Current.Update(delta);
-        }
+        DirectUpdateTagCache.Call(delta);
     }
     
     public static void Sync(IEntityTag entityTag)
@@ -375,7 +499,7 @@ public static class EntityTagManager
         {
             var index = entityTag.GetIndex();
 
-            Tags[index] = entityTag;
+            Tags.Sync(index);
         });
     }
 }

@@ -4,6 +4,8 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
@@ -35,7 +37,7 @@ public class Mod : MelonMod
     public override void OnUpdate()
     {
         PlayerHider.Update();
-
+        PlayerActionManager.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif
@@ -45,7 +47,7 @@ public class Mod : MelonMod
     {
         EntityTagManager.ClearAll();
         PlayerGrabManager.ClearOverwrites();
-        PlayerHider.UnhideAll();
+        PlayerHider.Reset();
         SpectatorManager.LocalReset();
     }
 }

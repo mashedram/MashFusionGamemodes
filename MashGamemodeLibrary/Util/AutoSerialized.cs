@@ -4,7 +4,7 @@ using LabFusion.Network.Serialization;
 namespace MashGamemodeLibrary.Util;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Struct)]
-public class NetSerializable : Attribute
+public class SerializableField : Attribute
 {
     
 }
@@ -37,12 +37,12 @@ public abstract class AutoSerialized<TValue> : INetSerializable where TValue: Au
     static AutoSerialized()
     {
         var type = typeof(TValue);
-        var serializeAll = type.GetCustomAttribute<NetSerializable>() != null;
+        var serializeAll = type.GetCustomAttribute<SerializableField>() != null;
         
         var fields = type.GetFields();
         foreach (var fieldInfo in fields)
         {
-            if (!serializeAll && fieldInfo.GetCustomAttribute<NetSerializable>() == null)
+            if (!serializeAll && fieldInfo.GetCustomAttribute<SerializableField>() == null)
                 continue;
 
             Serializables.Add(new FieldSerializer(fieldInfo));

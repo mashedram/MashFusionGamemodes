@@ -61,6 +61,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
 
     private readonly IEncoder<TKey> _keyEncoder;
     private readonly IEncoder<TValue> _valueEncoder;
+    private readonly IRefEncoder<TValue>? _refEncoder;
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
 
@@ -68,6 +69,8 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     {
         _keyEncoder = keyEncoder;
         _valueEncoder = valueEncoder;
+
+        _refEncoder = valueEncoder as IRefEncoder<TValue>;
     }
 
     // Setters and Getters
@@ -91,6 +94,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         _dictionary.Clear();
     }
 
+    public event ValueChangedHandler? OnValueAdded;
     public event ValueChangedHandler? OnValueChanged;
     public event ValueRemovedHandler? OnValueRemoved;
 
@@ -99,7 +103,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     private void SetValue(TKey key, TValue value, bool sendUpdate)
     {
         _dictionary[key] = value;
-        OnValueChanged?.Invoke(key, value);
+        OnValueAdded?.Invoke(key, value);   
 
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
@@ -157,6 +161,14 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         return GetEnumerator();
     }
 
+    public void Sync(TKey key)
+    {
+        if (!TryGetValue(key, out var value))
+            return;
+        
+        OnValueChanged?.Invoke(key, value);
+        Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
+    }
     
 
     // Abstract methods for serialization
@@ -172,9 +184,32 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     protected override void Write(NetWriter writer, DictionaryEdit<TKey, TValue> data)
     {
         writer.Write(data.Type);
-        if (data.Type == DictionaryEditType.Set || data.Type == DictionaryEditType.Remove) _keyEncoder.Write(writer, data.Key);
+        if (data.Type is DictionaryEditType.Set or DictionaryEditType.Remove) _keyEncoder.Write(writer, data.Key);
+        
+        if (data.Type is not DictionaryEditType.Set)
+            return;
 
-        if (data.Type == DictionaryEditType.Set) _valueEncoder.Write(writer, data.Value);
+        if (_refEncoder == null)
+        {
+            _valueEncoder.Write(writer, data.Value);
+            return;
+        }
+        
+        _refEncoder.Write(writer, data.Value);
+    }
+
+    private void SetOrUpdate(NetReader reader)
+    {
+        var setKey = _keyEncoder.Read(reader);
+        if (_refEncoder != null && TryGetValue(setKey, out var value))
+        {
+            _refEncoder.Serialize(reader, value);
+            OnValueChanged?.Invoke(setKey, value);
+            return;
+        }
+
+        var readValue = _valueEncoder.Read(reader);
+        SetValue(setKey, readValue, false);
     }
 
     protected override void Read(byte playerId, NetReader reader)
@@ -183,9 +218,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         switch (type)
         {
             case DictionaryEditType.Set:
-                var setKey = _keyEncoder.Read(reader);
-                var value = _valueEncoder.Read(reader);
-                SetValue(setKey, value, false);
+                SetOrUpdate(reader);
                 break;
             case DictionaryEditType.Remove:
                 var removeKey = _keyEncoder.Read(reader);

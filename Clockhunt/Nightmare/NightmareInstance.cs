@@ -1,4 +1,5 @@
 ﻿using Clockhunt.Game;
+using Clockhunt.Nightmare.Config;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Player;
@@ -51,7 +52,7 @@ public class NightmareInstance
         MelonLogger.Error($"Unable to find the owner of the nightmare with playerid: {_smallOwnerID}");
         return null!;
     }
-
+    
     public virtual bool CanStartChaseMusic(NetworkPlayer nightmare, float distance, bool lineOfSight)
     {
         return distance < 50f && lineOfSight;
@@ -95,7 +96,12 @@ public class NightmareInstance
     {
         return (T)Descriptor;
     }
-
+    
+    protected T GetConfig<T>() where T : NightmareConfig
+    {
+        return NightmareManager.GetConfig<T>(Descriptor);
+    }
+    
     public void Update(float delta)
     {
         try
@@ -143,7 +149,7 @@ public class NightmareInstance
         if (!Owner.PlayerID.IsMe) return;
 
         if (Descriptor.Avatar != null)
-            LocalAvatar.AvatarOverride = Descriptor.Avatar;
+            LocalAvatar.AvatarOverride = GetConfig<NightmareConfig>().AvatarOverride ?? Descriptor.Avatar;
 
         PlayerStatManager.SetStats(Descriptor.GetStats());
 
@@ -155,6 +161,7 @@ public class NightmareInstance
         OnRemoved();
 
         if (!Owner.PlayerID.IsMe) return;
+
         PlayerStatManager.ResetStats();
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, null);
     }
