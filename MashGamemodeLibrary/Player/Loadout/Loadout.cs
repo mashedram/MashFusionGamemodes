@@ -42,7 +42,7 @@ public class Loadout
         return this;
     }
 
-    public void Assign(RigRefs rig, Action<NetworkEntity>? onAssign = null)
+    public void Assign(RigManager rig, Action<NetworkEntity>? onAssign = null)
     {
         if (!NetworkInfo.IsHost)
         {
@@ -57,16 +57,16 @@ public class Loadout
         }
     }
 
-    public static void ClearPlayerLoadout(RigRefs rig)
+    public static void ClearPlayerLoadout(RigManager rig)
     {
         foreach (SlotType slotType in Enum.GetValues(typeof(SlotType))) DefaultSlotData.AssignSlot(rig, slotType, null);
 
         ClearHeadSlot(rig);
     }
 
-    public static void ClearHeadSlot(RigRefs rig)
+    public static void ClearHeadSlot(RigManager rig)
     {
-        var headSlot = rig.RigManager.physicsRig.m_head.FindChild("HeadSlotContainer")
+        var headSlot = rig.physicsRig.m_head.FindChild("HeadSlotContainer")
             ?.GetComponentInChildren<InventorySlotReceiver>();
         if (headSlot == null) return;
 

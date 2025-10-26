@@ -211,6 +211,8 @@ public static class SpectatorManager
     private static readonly SyncedSet<byte> SpectatingPlayerIds = new("spectatingPlayerIds", new ByteEncoder());
 
     private static readonly HashSet<byte> HiddenPlayerIds = new();
+    
+    private static PlayerColliderCache? LocalCache;
     private static readonly Dictionary<byte, PlayerColliderCache> PlayerColliders = new();
 
     private static readonly RemoteEvent<IgnorePropPacket> IgnorePropEvent = new(packet =>
@@ -281,24 +283,22 @@ public static class SpectatorManager
         return shouldBeHidden;
     }
 
-    private static void DetachAll(RigManager rig)
-    {
-        foreach (var slot in rig.inventory.bodySlots)
-        {
-            var receiver = slot.inventorySlotReceiver;
-            if (receiver == null) continue;
-            receiver.DespawnContents();
-        }
-    }
-
     private static void GenerateColliderCache(NetworkPlayer player)
     {
         if (!player.HasRig) return;
+        
         var rig = player.RigRefs.RigManager.physicsRig;
         if (PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             cache.SetRig(rig);
         else
-            PlayerColliders[player.PlayerID] = new PlayerColliderCache(rig);
+        {
+            var newCache = new PlayerColliderCache(rig);
+            if (player.PlayerID.IsMe)
+            {
+                LocalCache = newCache;
+            }
+            PlayerColliders[player.PlayerID] = newCache;
+        }
     }
 
     private static void SetColliders(NetworkPlayer player, bool state)
@@ -317,36 +317,6 @@ public static class SpectatorManager
                 hand.DisableCollider();
         }
 
-        Executor.RunIfMe(player.PlayerID, () =>
-        {
-            // 6: Fixtures
-            // 8: Player
-            // 10: Dynamic
-            // 12: EnemyColliders
-            // 15: Interactable
-            // 24: Footbal
-            
-            // TODO: Find another way to not collide with entities    
-            // Maybe hook into collisions and add the item to the ignore colliders
-            
-            // Physics.IgnoreLayerCollision(8, 8, !state);
-            // Physics.IgnoreLayerCollision(24, 8, !state);
-            // Physics.IgnoreLayerCollision(24, 24, !state);
-            //
-            // Physics.IgnoreLayerCollision(8, 10, !state);
-            // Physics.IgnoreLayerCollision(24, 10, !state);
-            // Physics.IgnoreLayerCollision(10, 10, !state);
-            //
-            // Physics.IgnoreLayerCollision(8, 12, !state);
-            // Physics.IgnoreLayerCollision(24, 12, !state);
-            //
-            // Physics.IgnoreLayerCollision(8, 6, !state);
-            // Physics.IgnoreLayerCollision(24, 6, !state);
-            LocalControls.DisableInteraction = !state;
-            LocalControls.DisableInventory = !state;
-            LocalControls.DisableAmmoPouch = !state;
-        });
-
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             return;
 
@@ -362,6 +332,27 @@ public static class SpectatorManager
             else
                 cache.StopColliding(otherCache);
         }
+    }
+
+    /// <summary>
+    /// Set wether the local player can interact or not
+    /// </summary>
+    /// <param name="state">True if the player can interact</param>
+    private static void SetLocalInteractions(bool state)
+    {
+        var rig = BoneLib.Player.RigManager;
+        if (!state && rig)
+        {
+            Loadout.Loadout.ClearPlayerLoadout(rig);
+        }
+        
+        LocalControls.DisableInteraction = !state;
+        LocalControls.DisableInventory = !state;
+        LocalControls.DisableAmmoPouch = !state;
+        
+        ToggleVisualEffect(!state);
+        DevToolsPatches.CanSpawn = state;
+        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, state ? null : _ => false);
     }
 
     private static void Hide(byte smallID)
@@ -386,11 +377,8 @@ public static class SpectatorManager
         SetColliders(player, false);
 
         if (!playerID.IsMe) return;
-        Loadout.Loadout.ClearPlayerLoadout(player.RigRefs);
-        ToggleVisualEffect(true);
-        DetachAll(player.RigRefs.RigManager);
-        DevToolsPatches.CanSpawn = false;
-        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, _ => false);
+
+        SetLocalInteractions(false);
     }
 
     private static void Show(byte smallID)
@@ -409,9 +397,8 @@ public static class SpectatorManager
         SetColliders(player, true);
 
         if (!playerID.IsMe) return;
-        ToggleVisualEffect(false);
-        DevToolsPatches.CanSpawn = true;
-        PlayerGrabManager.SetOverwrite(GrabOverwriteKey, null);
+        
+        SetLocalInteractions(true);
     }
 
     private static void RefreshPlayer(NetworkPlayer player)
@@ -484,6 +471,10 @@ public static class SpectatorManager
     {
         HiddenPlayerIds.Clear();
         PlayerColliders.Clear();
+        
+        SetLocalInteractions(true);
+        LocalCache?.ClearPropColliders();
+        LocalCache = null;
     }
     
     public static void StartIgnoring(NetworkEntity networkEntity)

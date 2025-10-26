@@ -55,7 +55,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         if (spawns.Count > 0)
         {
             GamemodeHelper.SetSpawnPoints(spawns);
-            return;
         }
         
         PlayerStatManager.SetStats(new PlayerStats

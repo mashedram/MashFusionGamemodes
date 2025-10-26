@@ -1,5 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 
@@ -85,9 +86,12 @@ public static class CommonTimeMarkerEvents
     {
         return new TimeMarker(MarkerType.BeforeEnd, time, _ =>
         {
-            TimeRemainingEvent.Call(new TimeRemainingPacket
+            Executor.RunIfHost(() =>
             {
-                TimeRemaining = time
+                TimeRemainingEvent.Call(new TimeRemainingPacket
+                {
+                    TimeRemaining = time
+                });
             });
         });
     }

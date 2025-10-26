@@ -72,12 +72,8 @@ public abstract class GamePhase
         IsActive = true;
         
         _internalDuration = Duration;
-        
-        Executor.RunIfHost(() =>
-        {
-            _timer ??= new MarkableTimer(Duration, Markers);
-            _timer.Reset();
-        });
+        _timer ??= new MarkableTimer(Duration, Markers);
+        _timer.Reset();
       
         OnPhaseEnter();
     }

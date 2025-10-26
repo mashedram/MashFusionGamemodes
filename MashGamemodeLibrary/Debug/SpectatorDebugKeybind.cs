@@ -9,7 +9,7 @@ namespace MashGamemodeLibrary.Debug;
 
 public class SpectatorDebugKeybind : DebugKeybind
 {
-    protected override KeyCode _key => KeyCode.P;
+    protected override KeyCode _key => KeyCode.J;
 
     protected override Action _onPress => () =>
     {

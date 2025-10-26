@@ -167,7 +167,7 @@ public static class NightmareManager
         NightmareInstances[playerId] = instance;
         instance.Apply();
 
-        Executor.RunIfHost(() => { Loadout.ClearPlayerLoadout(player.RigRefs); });
+        Executor.RunIfHost(() => { Loadout.ClearPlayerLoadout(player.RigRefs.RigManager); });
 
         if (player.PlayerID.IsMe)
             Notifier.Send(new Notification

@@ -54,6 +54,16 @@ public class DefusePhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
+        Notifier.Send(new Notification
+        {
+            Title = "Game Start!",
+            Message = TeamManager.IsLocalTeam<TerroristTeam>() ? "Defend the bomb!" : "Defuse the bomb!",
+            ShowPopup = true,
+            SaveToMenu = false,
+            PopupLength = 4f,
+            Type = NotificationType.INFORMATION
+        });
+        
         Executor.RunIfHost(() =>
         {
             BoneStrike.Context.BombAudioPlayer.Start();

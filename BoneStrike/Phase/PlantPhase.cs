@@ -48,7 +48,7 @@ public class PlantPhase : GamePhase
             foreach (var networkPlayer in NetworkPlayer.Players)
             {
                 var loadout = preset.GetLoadout();
-                loadout.Assign(networkPlayer.RigRefs);
+                loadout.Assign(networkPlayer.RigRefs.RigManager);
             }
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;

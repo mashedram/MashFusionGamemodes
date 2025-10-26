@@ -35,10 +35,12 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     
     [ConfigMenuEntry("Hide phase duration")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    public float HuntPhaseDuration = 1200f;
+    [SerializableField]
+    public float HuntPhaseDuration = 600f;
     
     [ConfigMenuEntry("Hide phase duration")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [SerializableField]
     public float EscapePhaseDuration = 240f;
     
     // TODO: Add to config screen once clock overhaul

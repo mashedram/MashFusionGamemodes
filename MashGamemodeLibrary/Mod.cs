@@ -1,4 +1,5 @@
 ﻿using LabFusion.SDK.Modules;
+using LabFusion.Utilities;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -32,6 +33,8 @@ public class Mod : MelonMod
         EntityTagManager.RegisterAll<Mod>();
 
         PlayerHider.Register();
+
+        MultiplayerHooking.OnDisconnected += Cleanup;
     }
 
     public override void OnUpdate()
@@ -43,7 +46,12 @@ public class Mod : MelonMod
 #endif
     }
 
-    public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+    public override void OnSceneWasInitialized(int buildIndex, string sceneName)
+    {
+        Cleanup();
+    }
+
+    private static void Cleanup()
     {
         EntityTagManager.ClearAll();
         PlayerGrabManager.ClearOverwrites();

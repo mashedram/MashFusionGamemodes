@@ -2,6 +2,7 @@
 using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
+using Clockhunt.Game.Player;
 using Clockhunt.Game.Teams;
 using Clockhunt.Joke;
 using Clockhunt.Nightmare;
@@ -168,6 +169,8 @@ public class HuntPhase : GamePhase, ITimedPhase
             ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
 
             context.ClockAudioPlayer.Start();
+
+            PlayerControllerManager.Enable(() => new PlayerHandTimerTag());
         });
     }
 

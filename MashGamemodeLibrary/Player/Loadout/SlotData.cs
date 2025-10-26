@@ -54,10 +54,10 @@ public class SlotData
         return IMarrowEntityExtender.Cache.TryGet(itemInSlot, out var entity) ? entity : null;
     }
 
-    public void AssignSlot(RigRefs rig, SlotType slotType, Action<NetworkEntity>? callback)
+    public void AssignSlot(RigManager rig, SlotType slotType, Action<NetworkEntity>? callback)
     {
         var slotName = GetSlotName(slotType);
-        var slotBase = rig.RigManager.inventory.bodySlots.FirstOrDefault(e => e.name.Equals(slotName));
+        var slotBase = rig.inventory.bodySlots.FirstOrDefault(e => e.name.Equals(slotName));
         var slot = slotBase?.inventorySlotReceiver;
         if (ReferenceEquals(slot, null))
             return;
@@ -84,7 +84,7 @@ public class SlotData
             slot.DespawnContents();
         }
 
-        var transform = rig.Head.transform;
+        var transform = rig.physicsRig.m_head;
         var spawnPosition = transform.position + transform.forward * -0.5f;
         
         var spawnable = LocalAssetSpawner.CreateSpawnable(new SpawnableCrateReference(Barcode));
