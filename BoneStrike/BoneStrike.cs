@@ -62,7 +62,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnEnd()
     {
-        _teams.SendMessage();
+        Executor.RunIfHost(() =>
+        {
+            _teams.SendMessage();
+        });
     }
 
     protected override void OnRoundStart()
@@ -106,7 +109,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         GamemodeHelper.TeleportToSpawnPoint();
-        _teams.AddScore(winnerTeamId, 1);
+        Executor.RunIfHost(() =>
+        {
+            _teams.AddScore(winnerTeamId, 1);
+        });
     }
 
     protected override void OnCleanup()
