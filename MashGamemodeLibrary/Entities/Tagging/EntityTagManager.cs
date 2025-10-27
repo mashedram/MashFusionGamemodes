@@ -164,6 +164,7 @@ public static class EntityTagManager
         Tags.OnValueAdded += OnTagAdded;
         Tags.OnValueChanged += OnTagChanged;
         Tags.OnValueRemoved += OnTagRemoved;
+        Tags.OnValueCleared += OnTagsCleared;
         
         TypedTagCache.Register<UpdateTagCache>();
         DirectUpdateTagCache = TypedTagCache.Get<UpdateTagCache>() ?? throw new InvalidOperationException("Failed to get update tag cache");
@@ -231,6 +232,17 @@ public static class EntityTagManager
         
         if (oldValue is ITagRemoved removed)
             removed.OnRemoval(key.EntityID);
+    }
+
+    private static void OnTagsCleared()
+    {
+        EntityToTagMap.Clear();
+        TagToEntityMap.Clear();
+        foreach (var (_, cache) in TypedTagCache)
+        {
+            cache.Clear();
+        }
+
     }
 
     // Implementations

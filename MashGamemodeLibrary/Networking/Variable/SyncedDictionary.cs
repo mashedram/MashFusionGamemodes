@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
@@ -56,8 +57,9 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     where TValue : notnull
 {
     public delegate void ValueChangedHandler(TKey key, TValue value);
-
     public delegate void ValueRemovedHandler(TKey key, TValue oldValue);
+
+    public delegate void ValueClearHandler();
 
     private readonly IEncoder<TKey> _keyEncoder;
     private readonly IEncoder<TValue> _valueEncoder;
@@ -71,6 +73,13 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         _valueEncoder = valueEncoder;
 
         _refEncoder = valueEncoder as IRefEncoder<TValue>;
+
+        MultiplayerHooking.OnJoinedServer += ClearLocal;
+    }
+
+    ~SyncedDictionary()
+    {
+        MultiplayerHooking.OnJoinedServer -= ClearLocal;
     }
 
     // Setters and Getters
@@ -97,6 +106,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     public event ValueChangedHandler? OnValueAdded;
     public event ValueChangedHandler? OnValueChanged;
     public event ValueRemovedHandler? OnValueRemoved;
+    public event ValueClearHandler? OnValueCleared;
 
     // Private methods
 
@@ -124,8 +134,15 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         var removed = _dictionary.ToImmutableDictionary();
         _dictionary.Clear();
         removed.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
+        OnValueCleared?.Invoke();
+        
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Clear());
+    }
+
+    private void ClearLocal()
+    {
+        Clear(false);
     }
 
     public bool Remove(TKey key)

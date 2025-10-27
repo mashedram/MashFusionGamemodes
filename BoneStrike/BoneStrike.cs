@@ -24,6 +24,7 @@ using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Team;
 using Random = UnityEngine.Random;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -39,8 +40,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
     public override bool DisableManualUnragdoll => Config.DevToolsDisabled;
 
-    private readonly HashSet<PlayerID> _terroristsSet = new();
-    private readonly HashSet<PlayerID> _counterTerroristsSet = new();
+    private readonly PersistentTeams _teams = new();
 
     protected override void OnRegistered()
     {
@@ -51,45 +51,20 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnStart()
     {
-        _terroristsSet.Clear();
-        _counterTerroristsSet.Clear();
-        
         Executor.RunIfHost(() =>
         {
-            var players = NetworkPlayer.Players.Select(p => p.PlayerID).Shuffle().ToList();
-            var team1Size = players.Count / 2;
-
-            var team1 = players.Take(team1Size);
-            var team2 = players.Skip(team1Size);
-        
-            foreach (var playerID in team1)
-            {
-                _terroristsSet.Add(playerID);
-            }
-
-            foreach (var playerID in team2)
-            {
-                _counterTerroristsSet.Add(playerID);
-            }
+            _teams.Clear();
+            _teams.AddTeam<TerroristTeam>();
+            _teams.AddTeam<CounterTerroristTeam>();
+            _teams.AddPlayers(NetworkPlayer.Players.Select(p => p.PlayerID));
         });
     }
 
-    private void Assign(PlayerID playerID, bool terrorist)
+    protected override void OnEnd()
     {
-        if (terrorist)
-            TeamManager.Assign<TerroristTeam>(playerID);
-        else 
-            TeamManager.Assign<CounterTerroristTeam>(playerID);
+        
     }
-    
-    private void Assign(HashSet<PlayerID> players, bool terrorist)
-    {
-        foreach (var playerID in players)
-        {
-            Assign(playerID, terrorist);
-        }
-    }
-    
+
     protected override void OnRoundStart()
     {
         TeamManager.Enable<TerroristTeam>();
@@ -97,11 +72,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
         Executor.RunIfHost(() =>
         {
-            _terroristsSet.RemoveWhere(p => !p.IsValid);
-            _counterTerroristsSet.RemoveWhere(p => !p.IsValid);
-            var swapTeams = RoundIndex % 2 == 1;
-            Assign(_terroristsSet, swapTeams);
-            Assign(_counterTerroristsSet, !swapTeams);
+            _teams.AssignAll();
         });
         
         PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns));
@@ -131,9 +102,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
             }, LocalWeatherManager.ClearLocalWeather));
     }
 
-    protected override void OnRoundEnd()
+    protected override void OnRoundEnd(ulong winnerTeamId)
     {
         GamemodeHelper.TeleportToSpawnPoint();
+        _teams.AddScore(winnerTeamId, 1);
     }
 
     protected override void OnCleanup()
@@ -150,17 +122,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     {
         Executor.RunIfHost(() =>
         {
-            var swapTeams = RoundIndex % 2 == 1;
-            if (_terroristsSet.Count >= _counterTerroristsSet.Count)
-            {
-                _terroristsSet.Add(playerID);
-                Assign(playerID, swapTeams);
-            }
-            else
-            {
-                _counterTerroristsSet.Add(playerID);
-                Assign(playerID, !swapTeams);
-            }
+            _teams.AddLateJoiner(playerID);
         });
     }
 

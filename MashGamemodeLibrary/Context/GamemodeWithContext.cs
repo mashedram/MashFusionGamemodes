@@ -74,6 +74,17 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
     {
         
     }
+
+    /// <summary>
+    /// Called when the gamemode ends fully.
+    /// Does not get called on round ends.
+    ///
+    /// Gets called after cleanup.
+    /// </summary>
+    protected virtual void OnEnd()
+    {
+        
+    }
     
     /// <summary>
     /// Called when the round starts.
@@ -88,7 +99,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
     ///
     /// Gets called after cleanup.
     /// </summary>
-    protected virtual void OnRoundEnd()
+    protected virtual void OnRoundEnd(ulong winnerTeamId)
     {
     }
 
@@ -214,6 +225,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         _isStartedInternal = false;
         
         Reset();
+        OnEnd();
     }
 
     protected override void OnUpdate()
@@ -279,6 +291,6 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         InRound = false;
         Reset();
         
-        OnRoundEnd();
+        OnRoundEnd(winnerTeamId);
     }
 }
