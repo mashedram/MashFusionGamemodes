@@ -7,11 +7,9 @@ internal class RenderSet
     private readonly HashSet<GameObject> _gameObjects = new();
     private readonly HashSet<Renderer> _renderers = new();
     private bool _hidden;
-    private bool _isValid;
 
     public RenderSet(GameObject? root, bool hidden)
     {
-        _isValid = true;
         _hidden = hidden;
 
         Set(root);
@@ -19,32 +17,17 @@ internal class RenderSet
 
     public RenderSet(bool hidden = false)
     {
-        _isValid = false;
         _hidden = hidden;
     }
 
-    public bool IsValid => CheckValidity();
-
-    private bool CheckValidity()
-    {
-        if (!_isValid)
-            return false;
-
-        foreach (var gameObject in _gameObjects)
-            if (gameObject == null)
-                _isValid = false;
-
-        return _isValid;
-    }
-
-    public void Set(GameObject? root, bool? hidden = null)
+    public bool Set(GameObject? root, bool? hidden = null)
     {
         if (hidden.HasValue) _hidden = hidden.Value;
 
         _renderers.Clear();
 
-        if (root == null) return;
-        _isValid = true;
+        if (root == null) return true;
+        
         _gameObjects.Clear();
         _gameObjects.Add(root);
 
@@ -53,23 +36,20 @@ internal class RenderSet
 
         foreach (var renderer in renderers)
         {
-            if (!renderer) continue;
+            if (!renderer) 
+                return false;
+            
             _renderers.Add(renderer);
             renderer.enabled = !_hidden;
         }
+
+        return true;
     }
 
-    public void Add(GameObject? root)
+    public bool Add(GameObject? root)
     {
-        if (!_isValid)
-        {
-            _renderers.Clear();
-            _gameObjects.Clear();
-        }
+        if (root == null) return true;
 
-        if (root == null) return;
-
-        _isValid = true;
         _gameObjects.Add(root);
 
         var renderers = root.GetComponentsInChildren<Renderer>();
@@ -77,31 +57,31 @@ internal class RenderSet
         foreach (var renderer in renderers)
         {
             if (!renderer)
-                continue;
+                return false;
 
             _renderers.Add(renderer);
             renderer.enabled = !_hidden;
         }
+
+        return true;
     }
 
     public void Clear()
     {
         _renderers.Clear();
-        _isValid = false;
     }
 
     public bool SetHidden(bool hidden)
     {
         _hidden = hidden;
 
-        if (!_isValid)
-            return false;
-
+        if (_renderers.Count == 0)
+            return true;
+        
         foreach (var renderer in _renderers)
         {
             if (!renderer)
             {
-                _isValid = false;
                 return false;
             }
 

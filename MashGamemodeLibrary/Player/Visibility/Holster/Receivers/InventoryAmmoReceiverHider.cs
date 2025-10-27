@@ -1,45 +1,42 @@
 using Il2CppSLZ.Marrow;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Vision.Holster.Receivers;
 
 internal class InventoryAmmoReceiverHider : IReceiverHider
 {
     private readonly InventoryAmmoReceiver _receiver;
-    private readonly RenderSet _renderSet;
+    private GameObject? _art;
+    private bool _isHidden;
 
     public InventoryAmmoReceiverHider(InventoryAmmoReceiver receiver, bool hidden)
     {
         _receiver = receiver;
-        _renderSet = new RenderSet(hidden);
+        _isHidden = hidden;
 
         Update();
     }
 
-    public void SetHidden(bool hidden)
+    public bool SetHidden(bool hidden)
     {
-        _renderSet.SetHidden(hidden);
+        _isHidden = hidden;
+        if (_art == null)
+            return false;
+
+        _art.SetActive(!hidden);
+        return true;
     }
 
-    public void Update(bool? hidden = null)
+    public bool Update(bool? hidden = null)
     {
-        if (hidden.HasValue) _renderSet.SetHidden(hidden.Value);
-
-        _renderSet.Clear();
-
-        var magazines = _receiver._magazineArts;
-        if (magazines == null)
-            return;
-        if (magazines.Count == 0)
-            return;
-
-        foreach (var magazine in magazines)
+        if (hidden.HasValue)
         {
-            if (magazine == null)
-                continue;
-            if (magazine.gameObject == null)
-                continue;
-
-            _renderSet.Add(magazine.gameObject);
+            if (!SetHidden(hidden.Value))
+                return false;
         }
+
+        _art = _receiver.transform.FindChild("Holder").gameObject;
+
+        return true;
     }
 }

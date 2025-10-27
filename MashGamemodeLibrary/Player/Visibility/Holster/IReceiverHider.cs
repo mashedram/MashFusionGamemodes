@@ -2,6 +2,6 @@ namespace MashGamemodeLibrary.Vision.Holster;
 
 internal interface IReceiverHider
 {
-    void SetHidden(bool hidden);
-    void Update(bool? hidden = null);
+    bool SetHidden(bool hidden);
+    bool Update(bool? hidden = null);
 }

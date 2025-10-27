@@ -27,7 +27,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt;
 
-internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig>
+internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound, ClockhuntConfig>
 {
     private const string CalibrationAvatar = "c3534c5a-94b2-40a4-912a-24a8506f6c79";
 
@@ -58,7 +58,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         LocalAvatar.OnAvatarChanged -= ListenToAvatarChange;
     }
 
-    protected override void OnStart()
+    protected override void OnRoundStart()
     {
         TeamManager.Enable<NightmareTeam>();
         TeamManager.Enable<SurvivorTeam>();

@@ -56,16 +56,33 @@ internal class HolsterHider
 
     }
 
-    public void Update(bool? hidden = null)
+    public bool Update(bool? hidden = null)
     {
-        if (hidden.HasValue) _holsterSet?.SetHidden(hidden.Value);
+        if (hidden.HasValue)
+        {
+            if (_holsterSet != null && !_holsterSet.SetHidden(hidden.Value))
+                return false;
+        }
 
-        _receiver?.Update(hidden);
+        if (_receiver == null)
+            return true;
+
+        return _receiver.Update(hidden);
     }
 
-    public void SetHidden(bool hidden)
+    public bool UpdateIf<T>(bool? hidden = null) where T : IReceiverHider
     {
-        _holsterSet?.SetHidden(hidden);
-        _receiver?.SetHidden(hidden);
+        if (_receiver == null || _receiver.GetType() != typeof(T))
+            return true;
+
+        return Update(hidden);
+    }
+
+    public bool SetHidden(bool hidden)
+    {
+        if (_holsterSet != null && !_holsterSet.SetHidden(hidden))
+            return false;
+        
+        return _receiver == null || _receiver.SetHidden(hidden);
     }
 }

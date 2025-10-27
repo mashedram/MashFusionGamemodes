@@ -15,24 +15,28 @@ internal class InventorySlotReceiverHider : IReceiverHider
         Update();
     }
 
-    public void SetHidden(bool hidden)
+    public bool SetHidden(bool hidden)
     {
-        _renderSet.SetHidden(hidden);
+        return _renderSet.SetHidden(hidden);
     }
 
-    public void Update(bool? hidden = null)
+    public bool Update(bool? hidden = null)
     {
-        if (hidden.HasValue) _renderSet.SetHidden(hidden.Value);
+        if (hidden.HasValue)
+        {
+            if (!_renderSet.SetHidden(hidden.Value))
+                return false;
+        }
 
         _renderSet.Clear();
 
         if (!_receiver._slottedWeapon)
-            return;
+            return true;
 
         var gameObject = _receiver._weaponHost.GetHostGameObject();
         if (!gameObject)
-            return;
+            return true;
 
-        _renderSet.Set(gameObject);
+        return _renderSet.Set(gameObject);
     }
 }

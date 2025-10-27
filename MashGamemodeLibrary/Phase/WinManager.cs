@@ -1,9 +1,11 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Phase.Rounds;
 using Team = MashGamemodeLibrary.Player.Team.Team;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -38,7 +40,10 @@ public static class WinManager
                 TeamID = id
             });
 
-            GamemodeManager.StopGamemode();
+            if (GamemodeManager.ActiveGamemode is IRoundEndable roundEndable)
+                roundEndable.EndRound(id);
+            else
+                GamemodeManager.StopGamemode();
         }, "Sending win state");
     }
     

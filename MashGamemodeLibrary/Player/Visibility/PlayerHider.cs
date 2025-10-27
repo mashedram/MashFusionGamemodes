@@ -135,7 +135,7 @@ public static class PlayerHider
             return;
 
         var id = (byte)networkEntity.ID;
-        GetOrCreateState(id)?.OnHolster(inventoryAmmoReceiver);
+        GetOrCreateState(id)?.OnAmmoChange();
     }
 
     public static void Update()

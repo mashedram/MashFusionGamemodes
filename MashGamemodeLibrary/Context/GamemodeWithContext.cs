@@ -1,10 +1,7 @@
-﻿using LabFusion.Entities;
-using LabFusion.Marrow.Proxies;
-using LabFusion.Menu.Data;
+﻿using LabFusion.Menu.Data;
 using LabFusion.Player;
-using LabFusion.Scene;
 using LabFusion.SDK.Gamemodes;
-using LabFusion.Utilities;
+using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Context.Helper;
@@ -12,17 +9,20 @@ using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Phase.Rounds;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
+using Team = MashGamemodeLibrary.Player.Team.Team;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLateJoin
+public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode, IOnLateJoin, IRoundEndable
     where TContext : GameModeContext<TContext>, new()
+    where TRound : RoundContext, new()
     where TConfig : class, IConfig, new()
 {
     private static TContext? _internalContext;
@@ -30,6 +30,11 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     public static TContext Context => _internalContext ??
                                       throw new InvalidOperationException(
                                           "Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    private static TRound? _internalRoundContext;
+    public static TRound RoundContext => _internalRoundContext ??
+                                         throw new InvalidOperationException(
+                                             "Gamemode Round context is null. Did you forget to call base.OnGamemodeRegistered()?");
+    
     public static TConfig Config => ConfigManager.Get<TConfig>();
 
     private ConfigMenu _configMenu = null!;
@@ -37,14 +42,22 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     public delegate void ConfigChangedHandler(TConfig config);
     public static event ConfigChangedHandler? OnConfigChanged;
     
+    // Round systems
+
+    private float _timeUntilNextRound = 0f;
+    
+    // Static on purpose
+    public static bool InRound { get; private set; }
+    public static int RoundIndex { get; private set; }
+    
     // Extra Settings
 
     public virtual bool KnockoutAllowed => false;
-    public virtual bool SlowMotionAllowed => false;  
-    
-    // We want it once per context
-    // ReSharper disable once StaticMemberInGenericType
-    public new static bool IsStarted { get; private set; }
+    public virtual bool SlowMotionAllowed => false;
+
+
+    private static bool _isStartedInternal;
+    public new static bool IsStarted => _isStartedInternal && InRound;
 
     /// <summary>
     /// Register data related to your gamemode here.
@@ -52,12 +65,30 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     protected virtual void OnRegistered()
     {
     }
-    
+
     /// <summary>
-    /// Called when the gamemode starts.
+    /// Called when the gamemode first starts.
     /// If a player late-joins, this also gets called once their level has fully loaded.
     /// </summary>
     protected virtual void OnStart()
+    {
+        
+    }
+    
+    /// <summary>
+    /// Called when the round starts.
+    /// If a player late-joins, this also gets called once their level has fully loaded.
+    /// </summary>
+    protected virtual void OnRoundStart()
+    {
+    }
+
+    /// <summary>
+    /// Gets called when the round ends naturally, with a winner.
+    ///
+    /// Gets called after cleanup.
+    /// </summary>
+    protected virtual void OnRoundEnd()
     {
     }
 
@@ -89,18 +120,10 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     {
         return true;
     }
-    
-    private void Start()
-    {
-        LocalHealth.MortalityOverride = !KnockoutAllowed;
-        LocalControls.DisableSlowMo = !SlowMotionAllowed;
-        
-        Context.OnStart();
-        OnStart();
-    }
 
     private void Reset()
     {
+        Context.OnStop();
         OnCleanup();
         
         GamePhaseManager.Disable();
@@ -121,13 +144,34 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
             SpectatorManager.Clear();
         });
     }
+
+    private void StartRound()
+    {
+        if (RoundContext.RoundCount > 1)
+        {
+            Notifier.Send(new Notification
+            {
+                Title = "Round Start!",
+                Message = $"Round: {RoundIndex + 1} / {RoundContext.RoundCount}",
+                PopupLength = 4f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
+        }
+        
+        InRound = true;
+        LocalHealth.MortalityOverride = !KnockoutAllowed;
+        LocalControls.DisableSlowMo = !SlowMotionAllowed;
+        
+        Context.OnStart();
+        OnRoundStart();
+    }
     
     public override void OnGamemodeRegistered()
     {
         _internalContext = Activator.CreateInstance<TContext>();
-        if (_internalContext == null)
-            throw new InvalidOperationException(
-                $"Failed to create instance of {typeof(TContext).Name}. Ensure it has a public parameterless constructor.");
+        _internalRoundContext = Activator.CreateInstance<TRound>();
 
         ConfigManager.Register<TConfig>();
         ConfigManager.OnConfigChanged += config =>
@@ -159,14 +203,15 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     {
         base.OnLevelReady();
 
-        IsStarted = true;
-        Start();
+        _isStartedInternal = true;
+        RoundIndex = 0;
+        OnStart();
+        StartRound();
     }
 
     public override void OnGamemodeStopped()
     {
-        IsStarted = false;
-        Context.OnStop();
+        _isStartedInternal = false;
         
         Reset();
     }
@@ -175,10 +220,20 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     {
         base.OnUpdate();
         
-        if (!IsStarted)
+        if (!_isStartedInternal)
             return;
 
         var delta = Time.deltaTime;
+        
+        if (!InRound)
+        {
+            _timeUntilNextRound -= delta;
+            if (_timeUntilNextRound > 0)
+                return;
+            
+            StartRound();
+            return;
+        }
         
         GamePhaseManager.Update(delta);
         EntityTagManager.Update(delta);
@@ -198,5 +253,32 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IOnLate
     public override GroupElementData CreateSettingsGroup()
     {
         return _configMenu.GetElementData();
+    }
+
+    public void EndRound(ulong winnerTeamId)
+    {
+        RoundIndex++;
+        if (RoundIndex >= RoundContext.RoundCount)
+        {
+            GamemodeManager.StopGamemode();
+            return;
+        }
+        
+        _timeUntilNextRound = RoundContext.RoundCooldown;
+        
+        Notifier.Send(new Notification
+        {
+            Title = "Cooldown",
+            Message = $"The next round will start in {MathF.Round(_timeUntilNextRound):N0} seconds",
+            PopupLength = 4f,
+            SaveToMenu = false,
+            ShowPopup = true,
+            Type = NotificationType.INFORMATION
+        });
+        
+        InRound = false;
+        Reset();
+        
+        OnRoundEnd();
     }
 }

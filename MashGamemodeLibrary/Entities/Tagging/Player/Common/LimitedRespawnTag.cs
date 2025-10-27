@@ -28,7 +28,7 @@ internal struct RespawnCountPacket : INetSerializable
     }
 }
 
-public class LimitedRespawnTag : PlayerTag, INetSerializable, ITagRemoved, IPlayerActionTag
+public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
 {
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);
     
@@ -81,18 +81,13 @@ public class LimitedRespawnTag : PlayerTag, INetSerializable, ITagRemoved, IPlay
         });
     }
     
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref _respawns);
-    }
-    
     private static void OnRespawnsChanged(RespawnCountPacket packet)
     {
         var respawns = packet.Respawns;
         
         switch (respawns)
         {
-            case 0: 
+            case < 0: 
                 Notifier.Send(new Notification
                 {
                     Title = "Game over",
@@ -103,7 +98,7 @@ public class LimitedRespawnTag : PlayerTag, INetSerializable, ITagRemoved, IPlay
                     Type = NotificationType.ERROR
                 });
                 break;
-            case 1:
+            case 0:
                 Notifier.Send(new Notification
                 {
                     Title = "Player Died",
@@ -114,7 +109,7 @@ public class LimitedRespawnTag : PlayerTag, INetSerializable, ITagRemoved, IPlay
                     Type = NotificationType.ERROR
                 });
                 break;
-            case > 1:
+            case > 0:
                 Notifier.Send(new Notification
                 {
                     Title = "Player Died",
