@@ -9,15 +9,15 @@ using MashGamemodeLibrary.Entities.Tagging.Player.Base;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Player.Common;
 
-internal struct RespawnCountPacket : INetSerializable
+internal class RespawnCountPacket : INetSerializable
 {
     public int Respawns;
 
-    public readonly int? GetSize()
+    public int? GetSize()
     {
         return sizeof(int);
     }
@@ -31,15 +31,20 @@ internal struct RespawnCountPacket : INetSerializable
 public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
 {
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);
-    
-    private int _respawns;
-    private Func<NetworkPlayer, bool>? _predicate;
-    
+
+    private Func<NetworkPlayer, int, bool>? _predicate;
+    public int Respawns { get; private set; }
+
     public LimitedRespawnTag() {}
     
-    public LimitedRespawnTag(int respawns, Func<NetworkPlayer, bool>? predicate = null)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="respawns"></param>
+    /// <param name="predicate">Returns wether the life should subtract, params: The player, the new respawn count</param>
+    public LimitedRespawnTag(int respawns, Func<NetworkPlayer, int, bool>? predicate = null)
     {
-        _respawns = respawns;
+        Respawns = respawns;
         _predicate = predicate;
     }
     
@@ -47,13 +52,16 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
     {
         Executor.RunIfHost(() =>
         {
-            _respawns = respawns;
+            Respawns = respawns;
         });
     }
     
     public void OnRemoval(ushort entityID)
     {
-        Owner.PlayerID.SetSpectating(false);
+        Executor.RunIfHost(() =>
+        {
+            Owner.PlayerID.SetSpectating(false);
+        });
     }
     
     public void OnAction(PlayerActionType action, PlayerID otherPlayer)
@@ -65,16 +73,16 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
             if (Owner.PlayerID.IsSpectating())
                 return;
             
-            if (_predicate != null && !_predicate.Invoke(Owner))
+            if (_predicate != null && !_predicate.Invoke(Owner, Respawns - 1))
                 return;
 
-            _respawns--;
+            Respawns--;
             RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
             {
-                Respawns = _respawns
+                Respawns = Respawns
             });
             
-            if (_respawns >= 0)
+            if (Respawns >= 0)
                 return;
             
             Owner.PlayerID.SetSpectating(true);

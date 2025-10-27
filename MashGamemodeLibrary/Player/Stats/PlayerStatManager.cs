@@ -1,5 +1,5 @@
 ﻿using LabFusion.Player;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 
 namespace MashGamemodeLibrary.Player.Stats;
 

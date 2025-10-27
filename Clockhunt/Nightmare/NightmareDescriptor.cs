@@ -24,7 +24,8 @@ public abstract class NightmareDescriptor
      * When null, avatar will be the avatar the player is using
      */
     public abstract string? Avatar { get; }
-    
+
+    public virtual Type ConfigType => typeof(NightmareConfig);
     public virtual Func<NightmareConfig> ConfigFactory => () => new NightmareConfig();
     
     public T GetConfig<T>() where T : NightmareConfig

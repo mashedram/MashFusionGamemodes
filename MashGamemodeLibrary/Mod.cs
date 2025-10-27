@@ -7,7 +7,7 @@ using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Actions;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 #if DEBUG

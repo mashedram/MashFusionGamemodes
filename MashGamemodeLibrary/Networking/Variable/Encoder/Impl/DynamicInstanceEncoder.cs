@@ -24,7 +24,8 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
     public TValue Read(NetReader reader)
     {
         var id = reader.ReadUInt64();
-        var value = _typedRegistry.Get(id);
+        if (!_typedRegistry.TryGet(id, out var value))
+            throw new Exception($"Failed to fetch: {id} from registry of type: {typeof(TValue).Name}");
 
         switch (value)
         {

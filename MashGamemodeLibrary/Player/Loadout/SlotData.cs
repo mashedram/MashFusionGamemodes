@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
@@ -45,16 +46,7 @@ public class SlotData
         };
     }
 
-    private static NetworkEntity? GetSlotNetworkEntity(InventorySlotReceiver slot)
-    {
-        var itemInSlot = slot._weaponHost?.GetGrip()?._marrowEntity;
-        if (itemInSlot == null)
-            return null;
-
-        return IMarrowEntityExtender.Cache.TryGet(itemInSlot, out var entity) ? entity : null;
-    }
-
-    public void AssignSlot(RigManager rig, SlotType slotType, Action<NetworkEntity>? callback)
+    public void AssignSlot(RigManager rig, SlotType slotType, Action<Poolee>? callback)
     {
         var slotName = GetSlotName(slotType);
         var slotBase = rig.inventory.bodySlots.FirstOrDefault(e => e.name.Equals(slotName));
@@ -62,68 +54,17 @@ public class SlotData
         if (ReferenceEquals(slot, null))
             return;
 
-        var networkEntity = GetSlotNetworkEntity(slot);
-
-        if (Barcode == null)
-        {
-            if (ShouldOverride && networkEntity != null)
-                NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
-                {
-                    EntityID = networkEntity.ID,
-                    DespawnEffect = false
-                });
-
-            return;
-        }
-
-        if (networkEntity != null && !ShouldOverride)
-            return;
-        
-        if (networkEntity != null)
-        {
+        if (ShouldOverride)
             slot.DespawnContents();
-        }
-
-        var transform = rig.physicsRig.m_head;
-        var spawnPosition = transform.position + transform.forward * -0.5f;
         
-        var spawnable = LocalAssetSpawner.CreateSpawnable(new SpawnableCrateReference(Barcode));
-        if (spawnable == null)
+        if (Barcode == null)
             return;
 
-        LocalAssetSpawner.Register(spawnable);
+        var task = slot.SpawnInSlotAsync(Barcode);
+        if (callback == null)
+            return;
 
-        NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo
-        {
-            Position = spawnPosition,
-            Rotation = Quaternion.identity,
-            Spawnable = spawnable,
-            SpawnCallback = result =>
-            {
-                callback?.Invoke(result.Entity);
-
-                // TODO: Doesnt sync
-                // var gun = result.Spawned.GetComponent<Gun>();
-                // if (gun)
-                // {
-                //     try
-                //     {
-                //         gun.InstantLoadAsync();
-                //         gun.CompleteSlidePull();
-                //         gun.CompleteSlideReturn();
-                //     }
-                //     catch (Exception err)
-                //     {
-                //         MelonLogger.Error("Failed to reload gun in holster", err);
-                //     }
-                // }
-                
-                if (!result.Spawned.TryGetComponent<InteractableHost>(out var interactableHost))
-                    return;
-
-                slot.InsertInSlot(interactableHost);
-            },
-            SpawnEffect = false
-        });
+        var awaiter = task.GetAwaiter();
+        awaiter.OnCompleted((Il2CppSystem.Action)(() => callback.Invoke(slot._slottedWeapon.GetComponentInParent<Poolee>())));
     }
 }

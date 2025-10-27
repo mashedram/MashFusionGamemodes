@@ -5,8 +5,11 @@ using Clockhunt.Nightmare;
 using Clockhunt.Vision;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Integration;
 using LabFusion.Network.Serialization;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
@@ -16,59 +19,36 @@ using UnityEngine;
 
 namespace Clockhunt.Game;
 
-internal class OnEscapePointActivatedPacket : INetSerializable
-{
-    public Vector3 EscapePoint;
-
-    public int? GetSize()
-    {
-        return sizeof(float) * 3;
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref EscapePoint);
-    }
-}
-
-internal class OnEscapeRequestPacket : INetSerializable
-{
-    public byte PlayerID;
-
-    public int? GetSize()
-    {
-        return 1;
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref PlayerID);
-    }
-}
-
 public static class EscapeManager
 {
-    private static readonly List<Vector3> EscapePoints = new();
+    public static Vector3? EscapePoint { get; private set; } = null;
 
-    public static Vector3 GetRandomEscapePoint()
+    private static IEnumerable<Vector3> GetEscapePoints()
     {
-        return EscapePoints.GetRandom();
+        var markers = EntityTagManager.GetAllWithTag<ClockMarker>();
+
+        if (markers is { Count: > 0 })
+            return markers.Select(networkEntity => networkEntity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position).OfType<Vector3>();
+
+        var spawns = FusionPlayer.SpawnPoints;
+        if (spawns is { Count: > 0 })
+            return spawns.Select(t => t.position);
+
+        var gameSpawns = GamemodeMarker.FilterMarkers();
+        if (gameSpawns is { Count: > 0 })
+            return gameSpawns.Select(spawn => spawn.transform.position);
+
+        return new[]
+        {
+            Clockhunt.Context.LocalPlayer.RigRefs.RigManager.transform.position
+        };
     }
 
     public static void CollectEscapePoints()
     {
         Executor.RunIfHost(() =>
         {
-            EscapePoints.Clear();
-
-            foreach (var networkEntity in EntityTagManager.GetAllWithTag<ClockMarker>())
-            {
-                var position = networkEntity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position;
-                if (position == null)
-                    continue;
-
-                EscapePoints.Add(position.Value);
-            }
+            EscapePoint = GetEscapePoints().GetRandom();
         });
     }
 }

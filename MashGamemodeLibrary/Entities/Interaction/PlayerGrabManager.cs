@@ -8,7 +8,7 @@ using LabFusion.Network;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;

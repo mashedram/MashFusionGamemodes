@@ -2,6 +2,7 @@
 using Clockhunt.Entities;
 using Clockhunt.Game;
 using Clockhunt.Game.Player;
+using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
@@ -29,8 +30,8 @@ public class EscapePhase : GamePhase, ITimedPhase
     {
         Executor.RunIfHost(() =>
         {
-            var escapePoint = EscapeManager.GetRandomEscapePoint();
-            PlayerEscapeTag.EscapePosition = escapePoint;
+            var escapePoint = EscapeManager.EscapePoint ?? Vector3.zero;
+            PlayerEscapeTag.EscapePosition.Value = escapePoint;
             PlayerControllerManager.Enable(() => new PlayerEscapeTag());
             PlayerControllerManager.OnAll<LimitedRespawnTag>(controller =>
             {

@@ -22,7 +22,7 @@ internal class FieldSerializer
     {
         var fieldValue = _field.GetValue(instance)!;
         serializer.SerializeValue(ref fieldValue);
-        if (serializer.IsReader) return;
+        if (!serializer.IsReader) return;
 
         _field.SetValue(instance, fieldValue);
     }

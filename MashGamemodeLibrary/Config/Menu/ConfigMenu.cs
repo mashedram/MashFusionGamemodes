@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using LabFusion.Menu.Data;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Config.Menu;
 
@@ -26,17 +27,26 @@ public class ConfigMenu
     
     public GroupElementData GetElementData()
     {
-        var group = new GroupElementData("Root");
+        var root = new GroupElementData("Root");
+        var groups = new Dictionary<string, GroupElementData>();
         foreach (var field in _fields)
         {
-            group.AddElement(field.GetElementData());
+            var group = field.Category != null ? groups.GetOrCreate(field.Category, () => new GroupElementData(field.Category)) : root;
+            var elementData = field.GetElementData();
+            
+            group.AddElement(elementData);
+        }
+        
+        foreach (var groupElementData in groups.Values)
+        {
+            root.AddElement(groupElementData);
         }
 
         if (_instance is IConfigMenuProvider provider)
         {
-            provider.AddExtraFields(group);
+            provider.AddExtraFields(root);
         }
 
-        return group;
+        return root;
     }
 }

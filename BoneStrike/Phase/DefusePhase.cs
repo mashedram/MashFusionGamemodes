@@ -8,8 +8,8 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Util.Timer;
 

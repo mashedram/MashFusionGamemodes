@@ -6,11 +6,11 @@ using MashGamemodeLibrary.networking.Validation;
 
 namespace MashGamemodeLibrary.Util.Timer;
 
-internal struct TimeRemainingPacket : INetSerializable
+internal class TimeRemainingPacket : INetSerializable
 {
     public float TimeRemaining;
 
-    public readonly int? GetSize()
+    public int? GetSize()
     {
         return sizeof(float);
     }

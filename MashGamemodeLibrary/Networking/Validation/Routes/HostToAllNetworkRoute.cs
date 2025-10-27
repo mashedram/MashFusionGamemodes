@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using LabFusion.Network;
+using LabFusion.Player;
 
 namespace MashGamemodeLibrary.networking.Validation.Routes;
 
@@ -13,6 +14,11 @@ public class HostToAllNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRou
     public bool CallOnSender()
     {
         return true;
+    }
+    
+    public bool ValidFromSender(byte id)
+    {
+        return PlayerIDManager.HostSmallID == id;
     }
 
     public MessageRoute GetMessageRoute()

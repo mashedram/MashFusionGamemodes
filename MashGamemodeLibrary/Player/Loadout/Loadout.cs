@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
 using LabFusion.Network;
@@ -6,6 +7,9 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Loadout;
 
+/// <summary>
+/// May only be run locally
+/// </summary>
 public class Loadout
 {
     private static readonly List<SlotType> AllSlotTypes = Enum.GetValues(typeof(SlotType)).Cast<SlotType>().ToList();
@@ -42,7 +46,7 @@ public class Loadout
         return this;
     }
 
-    public void Assign(RigManager rig, Action<NetworkEntity>? onAssign = null)
+    public void Assign(RigManager rig, Action<Poolee>? onAssign = null)
     {
         if (!NetworkInfo.IsHost)
         {

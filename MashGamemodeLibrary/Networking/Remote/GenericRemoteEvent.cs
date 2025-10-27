@@ -109,6 +109,12 @@ public abstract class GenericRemoteEvent<TData>
 
     internal void OnPacket(byte playerId, byte[] bytes)
     {
+        if (!Route.ValidFromSender(playerId))
+        {
+            MelonLogger.Error($"Received event from: {playerId} {(PlayerIDManager.HostSmallID == playerId ? "(Host)" : "")}. Which is invalid on route: {Route.GetType().Name}");
+            return;
+        }
+        
         using var reader = NetReader.Create(bytes);
         Read(playerId, reader);
     }

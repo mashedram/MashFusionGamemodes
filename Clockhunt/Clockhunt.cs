@@ -3,10 +3,12 @@ using Clockhunt.Audio.Hunt;
 using Clockhunt.Config;
 using Clockhunt.Entities;
 using Clockhunt.Game;
+using Clockhunt.Game.Player;
 using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Clockhunt.Phase;
 using Clockhunt.Vision;
+using LabFusion.Entities;
 using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
@@ -19,8 +21,9 @@ using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Vision;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
@@ -65,19 +68,26 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound,
         
         Executor.RunIfHost(() =>
         {
-            PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns, player =>
+            PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns, (player, respawns) =>
             {
                 if (GamePhaseManager.IsPhase<HidePhase>())
                     return false;
 
-                if (TeamManager.IsTeam<NightmareTeam>(player.PlayerID))
+                if (player.PlayerID.IsTeam<NightmareTeam>())
                     return false;
 
                 if (Config.DebugSkipSpectate)
                     return false;
 
+                if (respawns < 0 && !AnyAliveSurvivors(player))
+                {
+                    WinManager.Win<NightmareTeam>();
+                    return false;
+                }
+
                 return true;
             }));
+            PlayerControllerManager.Enable(() => new PlayerHandTimerTag());
             
             NightmareManager.ClearNightmares();
             SpectatorManager.Clear();
@@ -117,10 +127,8 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound,
         NightmareManager.Update(delta);
     }
 
-    public override void OnGamemodeStopped()
+    protected override void OnCleanup()
     {
-        base.OnGamemodeStopped();
-        
         MarkerManager.ClearMarker();
         VisionManager.DisableNightVision();
 
@@ -131,5 +139,10 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound,
             NightmareManager.ClearNightmares();
             ClockManager.ClearClocks();
         });
+    }
+
+    public static bool AnyAliveSurvivors(NetworkPlayer? skip = null)
+    {
+        return NetworkPlayer.Players.Where(player => player != skip).Any(player => !player.PlayerID.IsSpectating() && player.PlayerID.IsTeam<SurvivorTeam>());
     }
 }

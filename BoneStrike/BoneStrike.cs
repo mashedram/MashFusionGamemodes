@@ -62,13 +62,14 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnEnd()
     {
-        
+        _teams.SendMessage();
     }
 
     protected override void OnRoundStart()
     {
         TeamManager.Enable<TerroristTeam>();
         TeamManager.Enable<CounterTerroristTeam>();
+        PalletLoadoutManager.LoadLocal(Config.PalletBarcode);
 
         Executor.RunIfHost(() =>
         {

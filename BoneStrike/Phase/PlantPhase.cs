@@ -43,14 +43,8 @@ public class PlantPhase : GamePhase
         LocalInventory.SetAmmo(2000);
         Executor.RunIfHost(() =>
         {
-            var preset = new PalletLoadouts(BoneStrike.Config.PalletBarcode);
+            PalletLoadoutManager.AssignAll();
             
-            foreach (var networkPlayer in NetworkPlayer.Players)
-            {
-                var loadout = preset.GetLoadout();
-                loadout.Assign(networkPlayer.RigRefs.RigManager);
-            }
-
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(7f));
         });

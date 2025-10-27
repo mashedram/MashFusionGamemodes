@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
-using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -11,7 +11,6 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.networking.Validation.Routes;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Patches;
@@ -22,9 +21,9 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace MashGamemodeLibrary.Spectating;
+namespace MashGamemodeLibrary.Player.Spectating;
 
-internal struct IgnorePropPacket : INetSerializable, IKnownSenderPacket
+internal class IgnorePropPacket : INetSerializable, IKnownSenderPacket
 {
     public byte SenderPlayerID { get; set; }
     public NetworkEntityReference Reference;
@@ -212,7 +211,7 @@ public static class SpectatorManager
 
     private static readonly HashSet<byte> HiddenPlayerIds = new();
     
-    private static PlayerColliderCache? LocalCache;
+    private static PlayerColliderCache? _localCache;
     private static readonly Dictionary<byte, PlayerColliderCache> PlayerColliders = new();
 
     private static readonly RemoteEvent<IgnorePropPacket> IgnorePropEvent = new(packet =>
@@ -275,6 +274,11 @@ public static class SpectatorManager
         return SpectatingPlayerIds.Contains(playerId);
     }
 
+    public static bool IsPlayerHidden(byte playerId)
+    {
+        return HiddenPlayerIds.Contains(playerId);
+    }
+
     private static bool ShouldBeSpectating(NetworkPlayer player)
     {
         var isSpectating = SpectatingPlayerIds.Contains(player.PlayerID);
@@ -295,7 +299,7 @@ public static class SpectatorManager
             var newCache = new PlayerColliderCache(rig);
             if (player.PlayerID.IsMe)
             {
-                LocalCache = newCache;
+                _localCache = newCache;
             }
             PlayerColliders[player.PlayerID] = newCache;
         }
@@ -431,7 +435,7 @@ public static class SpectatorManager
     {
         if (!NetworkInfo.IsHost)
         {
-            MelonLogger.Error("Only the host can set spectating states!");
+            MelonLogger.Error("Only the host can set spectating states!", new StackTrace());
             return;
         }
 
@@ -457,6 +461,7 @@ public static class SpectatorManager
         if (!grab.IsHoldingItem(out var item)) return;
 
         var player = grab.NetworkPlayer;
+        if (player == null) return;
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache)) return;
 
         cache.RemoveItem(item.GameObject);
@@ -473,8 +478,8 @@ public static class SpectatorManager
         PlayerColliders.Clear();
         
         SetLocalInteractions(true);
-        LocalCache?.ClearPropColliders();
-        LocalCache = null;
+        _localCache?.ClearPropColliders();
+        _localCache = null;
     }
     
     public static void StartIgnoring(NetworkEntity networkEntity)

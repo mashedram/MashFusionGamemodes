@@ -11,6 +11,12 @@ using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
+public enum GameType
+{
+    Clockhunt,
+    HideAndSeek
+}
+
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
     public ElementData GetElementData(string name, object value, Action<object> setter)
@@ -29,76 +35,81 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
 
 public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfigMenuProvider
 {
-    [ConfigMenuEntry("Hide phase duration")]
+    [ConfigMenuEntry("Game Type")]
+    [SerializableField]
+    public GameType GameType = GameType.Clockhunt;
+    
+    [ConfigMenuEntry("Hide phase duration", "Time")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [SerializableField]
     public float HidePhaseDuration = 150f;
     
-    [ConfigMenuEntry("Hide phase duration")]
+    [ConfigMenuEntry("Hunt phase duration", "Time")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [SerializableField]
     public float HuntPhaseDuration = 600f;
     
-    [ConfigMenuEntry("Hide phase duration")]
+    [ConfigMenuEntry("Escape phase duration", "Time")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [SerializableField]
     public float EscapePhaseDuration = 240f;
     
     // TODO: Add to config screen once clock overhaul
     public int ClocksPerPlayer = 1;
-    [ConfigMenuEntry("Hunt phase clock count")]
+    [ConfigMenuEntry("Hunt phase clock count", "Clocks")]
     [ConfigRangeConstraint(1, 10)]
     public int HuntPhaseClockCount = 2;
-
-    [ConfigMenuEntry("Spectating Enabled")]
-    public bool IsSpectatingEnabled = true;
     
-    [ConfigMenuEntry("Escape Enabled")]
+    [ConfigMenuEntry("Escape Enabled", "Difficulty")]
     public bool IsEscapePhaseEnabled = true;
-
-    public float DeliveryDistance = 10.0f;
-
-    [ConfigMenuEntry("Weather Type")]
-    public WeatherType WeatherType = WeatherType.None;
-
-    [ConfigMenuEntry("Teleport to Spawn")]
+    
+    [ConfigMenuEntry("Teleport to Spawn On Start", "Difficulty")]
+    [SerializableField]
     public bool TeleportToSpawn = false;
-    [ConfigMenuEntry("Nightmare Night Vision")]
+
+    [ConfigMenuEntry("Delivery Distance", "Difficulty")]
+    public float DeliveryDistance = 10.0f;
+    
+    [ConfigMenuEntry("Max Respawns", "Difficulty")]
+    [ConfigRangeConstraint(0, 5)]
+    public int MaxRespawns = 2;
+    
+    
+    [ConfigMenuEntry("Weather Type", "Environment")]
+    public WeatherType WeatherType = WeatherType.None;
+    [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     [SerializableField]
     public bool NightVision = true;
-    [ConfigMenuEntry("Night Vision Brightness")]
+    [ConfigMenuEntry("Night Vision Brightness", "Environment")]
     [SerializableField]
     public float NightVisionBrightness = 1.0f;
 
-    [ConfigMenuEntry("Runtime Spawnpoints")]
+    [ConfigMenuEntry("Runtime Spawnpoints", "EXPERIMENTAL")]
     public bool RuntimeSpawnPointsEnabled = false;
-    [ConfigMenuEntry("Runtime Spawnpoint Count")]
+    [ConfigMenuEntry("Runtime Spawnpoint Count", "EXPERIMENTAL")]
     [ConfigRangeConstraint(1, 20)]
     public int RuntimeSpawnCount = 6;
 
-    [ConfigMenuEntry("Dev Tools Enabled")]
+    [ConfigMenuEntry("Dev Tools Enabled", "EXPERIMENTAL")]
     [SerializableField]
     public bool DevToolsDisabled = true;
     
-    [ConfigMenuEntry("Debug - Force Spectate")]
+    [ConfigMenuEntry("Debug - Force Spectate", "EXPERIMENTAL")]
     public bool DebugSkipSpectate = false;
-    [ConfigMenuEntry("Debug - Skip Nightmare")]
+    [ConfigMenuEntry("Debug - Skip Nightmare", "EXPERIMENTAL")]
     public bool DebugSkipNightmare = false;
 
     public PlayerStats DefaultStats = new()
     {
-        Vitality = 1.0f,
-        Speed = 1.0f,
-        LowerStrength = 1.0f,
-        UpperStrength = 1.0f,
-        Agility = 1.0f
+        Vitality = 0.75f,
+        Speed = 1.1f,
+        LowerStrength = 1.2f,
+        UpperStrength = 1.2f,
+        Agility = 1.2f
     };
 
     public float EscapeDistance = 10.0f;
-
-    [ConfigMenuEntry("Max Respawns")]
-    [ConfigRangeConstraint(0, 5)]
-    public int MaxRespawns = 2;
-
+    
     public void AddExtraFields(GroupElementData root)
     {
         foreach (var (_, descriptor) in NightmareManager.Descriptors)

@@ -11,7 +11,7 @@ public interface IParameterPacket<TParameter> : INetSerializable
 }
 
 public class ClientCallableAudioPlayer<TParameter, TPacket>
-    where TPacket : IParameterPacket<TParameter>, new()
+    where TPacket : class, IParameterPacket<TParameter>, new()
 {
     private readonly RemoteEvent<TPacket> _clientRequestEvent;
     private readonly IParameterDriven<TParameter> _player;

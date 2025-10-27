@@ -48,7 +48,10 @@ public static class NightmareManager
 
         NightmareRegistry.OnRegister += (key, descriptor) =>
         {
-            NightmareConfigRegistry.Register(key, descriptor.ConfigFactory);
+            var id = NightmareConfigRegistry.GetID(descriptor.ConfigType);
+            if (!NightmareConfigRegistry.Contains(id))
+                NightmareConfigRegistry.Register(id, descriptor.ConfigFactory);
+            
             LocalConfigs[key] = descriptor.ConfigFactory.Invoke();
         };
     }

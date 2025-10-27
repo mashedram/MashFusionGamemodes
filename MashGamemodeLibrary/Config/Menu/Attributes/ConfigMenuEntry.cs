@@ -4,8 +4,10 @@
 public class ConfigMenuEntry : Attribute
 {
     public string Name { get; }
-    public ConfigMenuEntry(string name)
+    public string? Category { get; }
+    public ConfigMenuEntry(string name, string? category = null)
     {
         Name = name;
+        Category = category;
     }
 }

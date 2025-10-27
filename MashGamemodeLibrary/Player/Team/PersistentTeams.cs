@@ -10,7 +10,7 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Player.Team;
 
-internal struct WinMessagePacket : INetSerializable
+internal class WinMessagePacket : INetSerializable
 {
     public List<int> Scores;
     public List<(int, byte)> PlayerIds;
@@ -127,7 +127,10 @@ public class PersistentTeams
     public void AddScore(ulong teamId, int score)
     {
         var index = _teamIds.IndexOf(teamId);
-        var setIndex = (index - _shift + _teamIds.Count) % _teamIds.Count;
+        var setIndex = (index - _shift) % _teamIds.Count;
+        if (setIndex < 0)
+            setIndex += _teamIds.Count;
+        
         _scores[setIndex] += score;
     }
 

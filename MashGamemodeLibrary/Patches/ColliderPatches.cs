@@ -2,8 +2,9 @@
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Marrow.Extenders;
 using LabFusion.MonoBehaviours;
+using LabFusion.Network;
 using LabFusion.Player;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
@@ -17,6 +18,8 @@ public class ColliderPatches
     [HarmonyPrefix]
     private static bool OnCollisionEnter_Prefix(Collision collision)
     {
+        if (!NetworkInfo.HasServer)
+            return true;
         // If we collide but aren't spectating, we don't care.
         if (!SpectatorManager.IsLocalPlayerSpectating())
             return true;
@@ -36,7 +39,7 @@ public class ColliderPatches
         if (!MarrowBodyExtender.Cache.TryGet(marrowBody, out var networkEntity))
             return true;
 
-        if (networkEntity.ID < byte.MaxValue)
+        if (networkEntity.ID == PlayerIDManager.LocalSmallID)
             return true;
 
         SpectatorManager.StartIgnoring(networkEntity);

@@ -77,7 +77,7 @@ public class MarkableTimer
         if (marker.Hit) return;
             
         marker.Hit = true;
-        if (markerTime > _timeout || markerTime <= 0)
+        if (markerTime >= _timeout || markerTime < 0)
             return;
         
         marker.OnHit.Invoke(markerTime);
@@ -98,14 +98,14 @@ public class MarkableTimer
     {
         if (_hitTimeout) return;
         
+        _timer += delta;
+        
         if (_timer > _timeout)
         {
             OnTimeout?.Invoke(_timeout);
             _hitTimeout = true;
             return;
         }
-        
-        _timer += delta;
         
         CheckMarker(delta);
     }

@@ -10,7 +10,6 @@ using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Spectating;
 using UnityEngine;
 
 namespace Clockhunt;

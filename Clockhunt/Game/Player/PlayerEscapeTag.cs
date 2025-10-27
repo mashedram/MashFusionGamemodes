@@ -7,18 +7,21 @@ using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util.Timer;
 using UnityEngine;
 
 namespace Clockhunt.Game.Player;
 
-internal struct EscapeUpdatePacket : INetSerializable
+internal class EscapeUpdatePacket : INetSerializable
 {
     public bool IsEscaping;
     public float Time;
 
-    public readonly int? GetSize()
+    public int? GetSize()
     {
         return sizeof(bool) + (IsEscaping ? sizeof(float) : 0);
     }
@@ -31,35 +34,21 @@ internal struct EscapeUpdatePacket : INetSerializable
     }
 }
 
-internal struct EscapeAvailablePacket : INetSerializable
-{
-    public bool EscapeAvailable;
-    public Vector3 Position;
-
-    public readonly int? GetSize()
-    {
-        return sizeof(bool) + (EscapeAvailable ? sizeof(float) * 3 : 0);
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref EscapeAvailable);
-        if (EscapeAvailable)
-            serializer.SerializeValue(ref Position);
-    }
-}
-
-public class PlayerEscapeTag : PlayerTag, ITagUpdate
+public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
 {
     // Config
     private const float EscapeTime = 30f;
-    public static Vector3? EscapePosition = null;
+    public static readonly SyncedVariable<Vector3?> EscapePosition = new ("EscapePosition", new NullableValueEncoder<Vector3>(new Vector3Encoder()), null);
     
     // Remotes
     private static readonly RemoteEvent<EscapeUpdatePacket> EscapeUpdateEvent = new(OnEscapeUpdate, CommonNetworkRoutes.HostToAll);
-    private static readonly RemoteEvent<EscapeAvailablePacket> EscapeAvailableEvent = new(OnEscapeAvailable, CommonNetworkRoutes.HostToAll);
 
     private readonly MarkableTimer _timer;
+
+    static PlayerEscapeTag()
+    {
+        EscapePosition.OnValueChanged += OnEscapeAvailable;
+    }
 
     public PlayerEscapeTag()
     {
@@ -81,16 +70,16 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate
     
     private bool IsInEscapeDistance()
     {
-        if (!EscapePosition.HasValue) return false;
+        if (!EscapePosition.Value.HasValue) return false;
 
-        var distance = Vector3.Distance(EscapePosition.Value, Owner.RigRefs.Head.position);
+        var distance = Vector3.Distance(EscapePosition.Value.Value, Owner.RigRefs.Head.position);
 
         return distance <= Clockhunt.Config.EscapeDistance;
     }
         
     public void Update(float delta)
     {
-        if (EscapePosition == null)
+        if (!EscapePosition.Value.HasValue)
             return;
         
         if (!IsInEscapeDistance())
@@ -139,7 +128,7 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate
             return;
         }
 
-        if (packet.Time > 29.5f)
+        if (packet.Time >= EscapeTime)
         {
             Notifier.Send(new Notification
             {
@@ -164,14 +153,19 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate
         });
     }
     
-    private static void OnEscapeAvailable(EscapeAvailablePacket packet)
+    private static void OnEscapeAvailable(Vector3? escape)
     {
         if (!GamePhaseManager.IsPhase<EscapePhase>())
             return;
         
-        if (!packet.EscapeAvailable)
+        if (!escape.HasValue)
             return;
         
-        MarkerManager.SetMarker(packet.Position);
+        MarkerManager.SetMarker(escape.Value);
+    }
+    
+    public void OnRemoval(ushort entityID)
+    {
+        MarkerManager.ClearMarker();
     }
 }

@@ -15,6 +15,11 @@ public class AllToAllNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRout
         return true;
     }
 
+    public bool ValidFromSender(byte id)
+    {
+        return true;
+    }
+
     public MessageRoute GetMessageRoute()
     {
         return CommonMessageRoutes.ReliableToOtherClients;

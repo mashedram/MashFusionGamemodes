@@ -74,6 +74,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
 
         _refEncoder = valueEncoder as IRefEncoder<TValue>;
 
+        // TODO: Add on leave server to clean up tags
         MultiplayerHooking.OnJoinedServer += ClearLocal;
     }
 

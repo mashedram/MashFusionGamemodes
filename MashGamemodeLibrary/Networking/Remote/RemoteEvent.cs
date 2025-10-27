@@ -8,7 +8,7 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Networking.Remote;
 
-public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, new()
+public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSerializable, new()
 {
     public delegate void PacketHandler(T packet);
     private readonly PacketHandler _onEvent;
@@ -30,9 +30,12 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : INetSerializable, 
 
     private void OnEvent(byte sender, T data)
     {
-        if (data is IKnownSenderPacket knownSenderPacket)
-            knownSenderPacket.SenderPlayerID = sender;
-
+        // Even though the autom
+        if (data is IKnownSenderPacket)
+        {
+            ((IKnownSenderPacket)data).SenderPlayerID = sender;
+        }
+        
         _onEvent.Invoke(data);
     }
 

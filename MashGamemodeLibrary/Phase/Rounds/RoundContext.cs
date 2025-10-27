@@ -5,7 +5,6 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
-using MashGamemodeLibrary.Spectating;
 using MashGamemodeLibrary.Vision;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 

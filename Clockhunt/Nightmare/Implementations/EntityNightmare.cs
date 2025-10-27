@@ -16,7 +16,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Player;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 using Object = UnityEngine.Object;

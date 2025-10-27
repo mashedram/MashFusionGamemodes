@@ -129,6 +129,21 @@ public class HuntPhase : GamePhase, ITimedPhase
 
     public override PhaseIdentifier GetNextPhase()
     {
+        // Hide and seek
+        if (Clockhunt.Config.GameType == GameType.HideAndSeek)
+        {
+            if (!HasReachedDuration()) return PhaseIdentifier.Empty();
+            
+            if (Clockhunt.Config.IsEscapePhaseEnabled)
+            {
+                return PhaseIdentifier.Of<EscapePhase>();
+            }
+          
+            WinManager.Win<SurvivorTeam>();
+            return PhaseIdentifier.Empty();
+        }
+        
+        // Clockhunt
         if (HasReachedDuration())
         {
             WinManager.Win<NightmareTeam>();
@@ -162,15 +177,14 @@ public class HuntPhase : GamePhase, ITimedPhase
 #endif
             _teleportToSpawnEvent.Call(new DummySerializable());
 
-            SetDeliveryPosition();
-
             EscapeManager.CollectEscapePoints();
 
-            ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
-
-            context.ClockAudioPlayer.Start();
-
-            PlayerControllerManager.Enable(() => new PlayerHandTimerTag());
+            if (Clockhunt.Config.GameType == GameType.Clockhunt)
+            {
+                SetDeliveryPosition();
+                ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
+                context.ClockAudioPlayer.Start();
+            }
         });
     }
 

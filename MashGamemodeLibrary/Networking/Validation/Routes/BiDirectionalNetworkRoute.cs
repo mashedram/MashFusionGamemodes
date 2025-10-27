@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using LabFusion.Network;
+using LabFusion.Player;
 
 namespace MashGamemodeLibrary.networking.Validation.Routes;
 
@@ -13,6 +14,11 @@ public class BiDirectionalNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwor
     public MessageRoute GetMessageRoute()
     {
         return CommonMessageRoutes.ReliableToOtherClients;
+    }
+    
+    public bool ValidFromSender(byte id)
+    {
+        return PlayerIDManager.HostSmallID == id && !NetworkInfo.IsHost || PlayerIDManager.HostSmallID != id && NetworkInfo.IsHost;
     }
 
     public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)

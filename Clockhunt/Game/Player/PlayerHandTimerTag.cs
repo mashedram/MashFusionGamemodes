@@ -5,6 +5,7 @@ using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace Clockhunt.Game.Player;
@@ -13,11 +14,13 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 {
     private Poolee? _timerObject;
     private TextMeshPro? _text;
+    private bool _isSpawning;
 
     private void SpawnTimer()
     {
-        if (_timerObject) return;
+        if (_timerObject != null || _isSpawning) return;
         
+        _isSpawning = true;
         const string timerBarcode = "Mash.ClockhuntAssets.Spawnable.HandTimer";
         var spawnable = LocalAssetSpawner.CreateSpawnable(timerBarcode);
         LocalAssetSpawner.Register(spawnable);
@@ -25,6 +28,8 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
         {
             _timerObject = poolee;
             _text = poolee.GetComponentInChildren<TextMeshPro>();
+
+            _isSpawning = false;
         });
     }
     
@@ -44,7 +49,7 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!Owner.HasRig || activePhase == null)
+        if (!Owner.HasRig || activePhase == null || Owner.PlayerID.IsSpectatingAndHidden())
         {
             _timerObject.gameObject.SetActive(false);
             return;
@@ -61,8 +66,8 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 
 
         var time = activePhase.Duration - activePhase.ElapsedTime;
-        var minutes = Mathf.FloorToInt(time / 60f);
-        var seconds = Mathf.FloorToInt(time % 60f);
+        var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
+        var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
 
         _text.text = $"{minutes:D2}:{seconds:D2}";
     }

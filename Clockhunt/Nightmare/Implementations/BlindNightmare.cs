@@ -7,7 +7,7 @@ using LabFusion.Extensions;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
 

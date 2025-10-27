@@ -22,7 +22,7 @@ public static class PlayerControllerManager
         NetworkPlayer.OnNetworkRigCreated += NetworkPlayerOnOnNetworkRigCreated;
     }
     
-    public static void Enable(Func<PlayerTag> factory)
+    public static void Enable<T>(Func<T> factory) where T : PlayerTag
     {
         Executor.RunIfHost(() =>
         {
@@ -32,11 +32,11 @@ public static class PlayerControllerManager
             {
                 if (!player.HasRig) 
                     return;
+                
+                if (player.NetworkEntity.HasTag<T>())
+                    continue;
 
-                foreach (var controllerFactory in ControllerFactories)
-                {
-                    player.NetworkEntity.AddTag(controllerFactory.Invoke());
-                }
+                player.NetworkEntity.AddTag(factory.Invoke());
             }
         });
     }

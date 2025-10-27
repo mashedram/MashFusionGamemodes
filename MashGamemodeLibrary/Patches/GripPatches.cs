@@ -5,7 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Grabbables;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Spectating;
+using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
