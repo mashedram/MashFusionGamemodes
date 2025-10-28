@@ -73,10 +73,18 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     [ConfigMenuEntry("Max Respawns", "Difficulty")]
     [ConfigRangeConstraint(0, 5)]
     public int MaxRespawns = 2;
+    [ConfigMenuEntry("Nightmare Health Mult", "Difficulty")]
+    [ConfigRangeConstraint(1f, 5f)]
+    public float NightmareHealthMult = 1f;
     
     
     [ConfigMenuEntry("Weather Type", "Environment")]
     public WeatherType WeatherType = WeatherType.None;
+
+    [ConfigMenuEntry("Music", "Environment")] 
+    [SerializableField]
+    public bool MusicEnabled = true;
+    
     [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     [SerializableField]
     public bool NightVision = true;

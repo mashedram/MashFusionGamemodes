@@ -53,7 +53,6 @@ public class StalkerNightmareDescriptor : NightmareDescriptor
     public override string HunterDescription => "You are hidden when far away from survivors.";
     public override string SurvivorDescription => "Watch your back.";
     public override string Avatar => "Random.OWNTeamAvatars.Avatar.Creature";
-    public override int Weight => 8;
 
     public override PlayerStats Stats => new()
     {

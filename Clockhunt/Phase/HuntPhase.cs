@@ -46,7 +46,7 @@ internal class ClockDeliveredPacket : INetSerializable
 
 public class HuntPhase : GamePhase, ITimedPhase
 {
-    private static WeightedRandomProvider<PlayerID> NightmarePlayerProvider = new(() =>
+    private static readonly WeightedRandomProvider<PlayerID> NightmarePlayerProvider = new(() =>
         {
             return NetworkPlayer.Players.Where(p => p.HasRig).Select(p => p.PlayerID).ToList();
         }

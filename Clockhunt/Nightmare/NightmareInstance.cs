@@ -115,9 +115,11 @@ public class NightmareInstance
 
         if (!Owner.PlayerID.IsMe) return;
         if (AbilityTimer < 0f) return;
+
         AbilityTimer -= delta;
 
         if (!IsAbilityOnCooldown || !(AbilityTimer <= 0f)) return;
+
         IsAbilityOnCooldown = false;
 
         Notifier.Send(new Notification
@@ -133,7 +135,7 @@ public class NightmareInstance
 
     public void ResetAbilityTimer()
     {
-        AbilityTimer = Descriptor.AbilityCooldown;
+        AbilityTimer = Descriptor.GetConfig<NightmareConfig>().AbilityCooldown;
         IsAbilityOnCooldown = true;
     }
 
@@ -151,7 +153,7 @@ public class NightmareInstance
         if (Descriptor.Avatar != null)
             LocalAvatar.AvatarOverride = GetConfig<NightmareConfig>().AvatarOverride ?? Descriptor.Avatar;
 
-        PlayerStatManager.SetStats(Descriptor.GetStats());
+        PlayerStatManager.SetStats(Descriptor.GetStats().MulitplyHealth(Clockhunt.Config.NightmareHealthMult));
 
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }

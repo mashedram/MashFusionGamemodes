@@ -68,25 +68,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound,
         
         Executor.RunIfHost(() =>
         {
-            PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns, (player, respawns) =>
-            {
-                if (GamePhaseManager.IsPhase<HidePhase>())
-                    return false;
-
-                if (player.PlayerID.IsTeam<NightmareTeam>())
-                    return false;
-
-                if (Config.DebugSkipSpectate)
-                    return false;
-
-                if (respawns < 0 && !AnyAliveSurvivors(player))
-                {
-                    WinManager.Win<NightmareTeam>();
-                    return false;
-                }
-
-                return true;
-            }));
             PlayerControllerManager.Enable(() => new PlayerHandTimerTag());
             
             NightmareManager.ClearNightmares();
@@ -119,7 +100,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound,
 
     public override void OnLateJoin(PlayerID playerID)
     {
-        TeamManager.Assign<SurvivorTeam>(playerID);
+        playerID.Assign<SurvivorTeam>();
     }
 
     protected override void OnUpdate(float delta)

@@ -2,6 +2,7 @@
 using Clockhunt.Vision;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Marrow;
 using LabFusion.Marrow.Pool;
 using LabFusion.Network.Serialization;
@@ -94,9 +95,12 @@ public class EntityNightmareInstance : NightmareInstance
 
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
-        foreach (var player in NetworkPlayer.Players
-                     .Where(e => !SpectatorManager.IsPlayerSpectating(e.PlayerID) &&
-                                 !NightmareManager.IsNightmare(e.PlayerID)))
+        var player = NetworkPlayer.Players
+            .Where(e => !SpectatorManager.IsPlayerSpectating(e.PlayerID) && !NightmareManager.IsNightmare(e.PlayerID))
+            .DefaultIfEmpty(null)
+            .GetRandom();
+        
+        if (player != null) 
             SpawnMarkerAt(player);
 
         RoarAudioPlayer.PlayRandom(Owner.RigRefs.Head.position);
@@ -109,7 +113,6 @@ public class EntityNightmareDescriptor : NightmareDescriptor
     public override string HunterDescription => "Tap menu to locate all survivors.";
     public override string SurvivorDescription => "Avoid the entity and escape.";
     public override string Avatar => "fa534c5a83ee4ec6bd641fec424c4142.Avatar.CharTallv4";
-    public override int Weight => 10;
 
     public override PlayerStats Stats => new()
     {

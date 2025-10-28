@@ -12,6 +12,9 @@ using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Util.Timer;
+using UnityEngine;
+using UnityEngine.Rendering;
+using Object = UnityEngine.Object;
 
 namespace BoneStrike.Phase;
 

@@ -133,7 +133,6 @@ public class BlindNightmareDescriptor : NightmareDescriptor
     public override string HunterDescription => "You can only see movement.";
     public override string SurvivorDescription => "Stand Still";
     public override string Avatar => "Random.OWNTeamAvatars.Avatar.Entity";
-    public override int Weight => 5;
 
     public override PlayerStats Stats => new()
     {

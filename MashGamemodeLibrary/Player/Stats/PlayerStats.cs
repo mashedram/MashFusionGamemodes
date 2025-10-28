@@ -18,4 +18,12 @@ public struct PlayerStats : INetSerializable
         serializer.SerializeValue(ref Agility);
         serializer.SerializeValue(ref LowerStrength);
     }
+
+    public PlayerStats MulitplyHealth(float mult)
+    {
+        return this with
+        {
+            Vitality = Vitality * mult
+        };
+    } 
 }

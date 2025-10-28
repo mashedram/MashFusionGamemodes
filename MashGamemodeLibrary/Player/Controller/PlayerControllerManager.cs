@@ -67,6 +67,16 @@ public static class PlayerControllerManager
         return player.NetworkEntity.TryGetTag(out tag);
     }
     
+    public static void AddTag<T>(this NetworkPlayer player, T tag) where T : PlayerTag
+    {
+        player.NetworkEntity.AddTag(tag);
+    }
+    
+    public static bool RemoveTag<T>(this NetworkPlayer player) where T : PlayerTag
+    {
+        return player.NetworkEntity.RemoveTag<T>();
+    }
+    
     // Events
     private static void NetworkPlayerOnOnNetworkRigCreated(NetworkPlayer player, RigManager rig)
     {

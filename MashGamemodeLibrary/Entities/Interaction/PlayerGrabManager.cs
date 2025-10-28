@@ -207,7 +207,7 @@ public static class PlayerGrabManager
         return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(grab));
     }
 
-    private static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
+    public static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
     {
         if (!hand.HasAttachedObject()) return false;
 

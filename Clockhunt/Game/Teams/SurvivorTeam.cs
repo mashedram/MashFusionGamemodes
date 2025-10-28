@@ -1,6 +1,8 @@
 ﻿using Clockhunt.Config;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 
@@ -14,6 +16,7 @@ public class SurvivorTeam : Team
     {
         Executor.RunIfMe(Owner.PlayerID,() =>
         {
+            Owner.AddTag(new LimitedRespawnTag(Clockhunt.Config.MaxRespawns));
             PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
         });
     }

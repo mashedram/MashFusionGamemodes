@@ -19,7 +19,7 @@ public class ClientCallableAudioPlayer<TParameter, TPacket>
     public ClientCallableAudioPlayer(IParameterDriven<TParameter> player)
     {
         _player = player;
-        _clientRequestEvent = new RemoteEvent<TPacket>($"{player.Name}_clientPlayRequest", OnClientPlayRequest, CommonNetworkRoutes.ClientToHost);
+        _clientRequestEvent = new RemoteEvent<TPacket>($"{player.Name}_clientPlayRequest", OnClientPlayRequest, CommonNetworkRoutes.AllToHost);
     }
     
     public void PlayRandom(TParameter parameter)

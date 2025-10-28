@@ -2,7 +2,9 @@
 using Clockhunt.Nightmare;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
 
@@ -28,6 +30,7 @@ public class NightmareTeam : Team, INetSerializable
         Executor.RunIfHost(() =>
         {
             NightmareManager.SetRandomNightmare(Owner.PlayerID);
+            Owner.RemoveTag<LimitedRespawnTag>();
             MelonLogger.Msg("Assigned nightmare to player " + Owner + " with nightmare ID " + NightmareID);
         });
     }

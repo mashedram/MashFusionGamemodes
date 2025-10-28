@@ -15,11 +15,8 @@ public abstract class NightmareDescriptor
     public abstract string SurvivorDescription { get; }
 
     public string Barcode => $"Nightmare.{Name}";
-    public virtual int Weight => 1;
     public virtual bool RegenerateHealth => false;
     public virtual bool KillOnGrab => false;
-
-    public virtual float AbilityCooldown => 30f;
     /**
      * When null, avatar will be the avatar the player is using
      */

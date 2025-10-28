@@ -86,7 +86,6 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
 
     public override string? Avatar => null;
     public override bool RegenerateHealth => true;
-    public override int Weight => 4;
 
     public override Func<NightmareConfig> ConfigFactory => () => new NightmareConfig
     {

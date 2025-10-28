@@ -353,6 +353,12 @@ public static class EntityTagManager
         Tags[key] = tag;
     }
 
+    public static bool RemoveTag<T>(this NetworkEntity entity) where T : IEntityTag
+    {
+        var key = GetTagIndex<T>(entity);
+        return Tags.Remove(key);
+    }
+
     public static bool HasTag<T>(this NetworkEntity entity) where T : IEntityTag
     {
         var key = GetTagIndex<T>(entity);

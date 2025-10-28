@@ -89,7 +89,6 @@ public class RushNightmareDescriptor : NightmareDescriptor
     public override string HunterDescription => "Run into your enemies.";
     public override string SurvivorDescription => "Use cover!";
     public override string Avatar => "nitwit.TF2AvatarPack.Avatar.HeavyAPose";
-    public override int Weight => 10;
 
     public override PlayerStats Stats => new()
     {
