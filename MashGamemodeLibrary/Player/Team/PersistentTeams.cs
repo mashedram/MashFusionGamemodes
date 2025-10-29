@@ -6,9 +6,16 @@ using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Player.Actions;
 using MelonLoader;
+using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Player.Team;
+
+public enum TeamStatisticKeys
+{
+    RoundsWon,
+}
 
 internal class WinMessagePacket : INetSerializable
 {
@@ -59,10 +66,11 @@ public class PersistentTeams
         new("PersistentTeams_WinMessage", OnWinMessage,
             CommonNetworkRoutes.HostToAll);
 
-    private int _shift;
-    private List<ulong> _teamIds = new();
-    private List<HashSet<PlayerID>> _playerSets = new();
-    private List<int> _scores = new();
+    private int _shift = Random.RandomRangeInt(0, 2);
+    private readonly List<ulong> _teamIds = new();
+    private readonly List<HashSet<PlayerID>> _playerSets = new();
+    private readonly List<int> _scores = new();
+    private readonly Queue<PlayerID> _lateJoinerQueue = new();
 
     private ulong GetTeamId(int setIndex)
     {
@@ -79,7 +87,7 @@ public class PersistentTeams
 
     public void AddTeam<T>() where T : Team
     {
-        var id = TeamManager.Registry.GetID<T>();
+        var id = TeamManager.Registry.CreateID<T>();
         AddTeamID(id);
     }
 
@@ -95,7 +103,12 @@ public class PersistentTeams
         }
     }
 
-    public void AddLateJoiner(PlayerID playerID)
+    public void QueueLateJoiner(PlayerID playerID)
+    {
+        _lateJoinerQueue.Enqueue(playerID);
+    } 
+
+    public void AssignAll()
     {
         if (_playerSets.Count == 0)
         {
@@ -103,15 +116,17 @@ public class PersistentTeams
             return;
         }
         
-        var smallest = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count);
-        
-        smallest.set.Add(playerID);
-        playerID.Assign(GetTeamId(smallest.index));
-        
-    } 
+        // Resolve queue
+        var index = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count).index;
+        while (_lateJoinerQueue.TryDequeue(out var playerID))
+        {
+            _playerSets[index].Add(playerID);
+            playerID.Assign(GetTeamId(index));
 
-    public void AssignAll()
-    {
+            index = (index + 1) % _playerSets.Count;
+        }
+        
+        // Assign teams
         _shift += 1;
         
         for (int i = 0; i < _playerSets.Count; i++)

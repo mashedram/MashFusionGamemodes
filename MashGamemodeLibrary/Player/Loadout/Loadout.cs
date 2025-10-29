@@ -46,14 +46,9 @@ public class Loadout
         return this;
     }
 
-    public void Assign(RigManager rig, Action<Poolee>? onAssign = null)
+    public void Assign(Action<Poolee>? onAssign = null)
     {
-        if (!NetworkInfo.IsHost)
-        {
-            MelonLogger.Msg("[Loadout] Cannot assign loadout on client!");
-            return;
-        }
-
+        var rig = BoneLib.Player.RigManager;
         foreach (var slotType in AllSlotTypes)
         {
             var slotData = _slotAssigners.GetValueOrDefault(slotType, DefaultSlotData);

@@ -1,4 +1,5 @@
 ﻿using LabFusion.Menu.Data;
+using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
@@ -7,12 +8,17 @@ using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Phase.Rounds;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
 using Team = MashGamemodeLibrary.Player.Team.Team;
@@ -20,7 +26,24 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode, IOnLateJoin, IRoundEndable
+internal static class RoundStarter
+{
+    private static readonly RemoteEvent StartRoundEvent = new("StartRoundEvent", () =>
+    {
+        if (GamemodeManager.ActiveGamemode is IRoundBasedGamemode roundBasedGamemode)
+            roundBasedGamemode.StartRound();
+    }, CommonNetworkRoutes.HostToAll);
+
+    internal static void StartRound()
+    {
+        Executor.RunIfHost(() =>
+        {
+            StartRoundEvent.Call();
+        });
+    }
+}
+
+public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode, IOnLateJoin, IRoundBasedGamemode
     where TContext : GameModeContext<TContext>, new()
     where TRound : RoundContext, new()
     where TConfig : class, IConfig, new()
@@ -44,7 +67,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
     
     // Round systems
 
-    private float _timeUntilNextRound = 0f;
+    private float _timeUntilNextRound;
     
     // Static on purpose
     public static bool InRound { get; private set; }
@@ -146,17 +169,18 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         LocalControls.DisableSlowMo = false;
         
         GameObjectExtender.DestroyAll();
-
+        LimitedRespawnTag.SetSpectatePredicate(null);
+        
         PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
-            PlayerControllerManager.Disable();
+            PlayerTagManager.ClearPlayerTags();
             EntityTagManager.ClearAll();
             SpectatorManager.Clear();
         });
     }
 
-    private void StartRound()
+    public void StartRound()
     {
         if (RoundContext.RoundCount > 1)
         {
@@ -174,6 +198,10 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         InRound = true;
         LocalHealth.MortalityOverride = !KnockoutAllowed;
         LocalControls.DisableSlowMo = !SlowMotionAllowed;
+        
+        // Reset statistics
+        PlayerStatisticsTracker.Clear();
+        PlayerDamageTracker.Reset();
         
         Context.OnStart();
         OnRoundStart();
@@ -217,7 +245,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         _isStartedInternal = true;
         RoundIndex = 0;
         OnStart();
-        StartRound();
+        RoundStarter.StartRound();
     }
 
     public override void OnGamemodeStopped()
@@ -239,11 +267,14 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         
         if (!InRound)
         {
+            if (!NetworkInfo.IsHost)
+                return;
+            
             _timeUntilNextRound -= delta;
             if (_timeUntilNextRound > 0)
                 return;
             
-            StartRound();
+            RoundStarter.StartRound();
             return;
         }
         
@@ -290,7 +321,6 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         
         InRound = false;
         Reset();
-        
         OnRoundEnd(winnerTeamId);
     }
 }

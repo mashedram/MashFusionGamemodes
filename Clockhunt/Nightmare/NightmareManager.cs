@@ -48,7 +48,7 @@ public static class NightmareManager
 
         NightmareRegistry.OnRegister += (key, descriptor) =>
         {
-            var id = NightmareConfigRegistry.GetID(descriptor.ConfigType);
+            var id = NightmareConfigRegistry.CreateID(descriptor.ConfigType);
             if (!NightmareConfigRegistry.Contains(id))
                 NightmareConfigRegistry.Register(id, descriptor.ConfigFactory);
             
@@ -136,7 +136,7 @@ public static class NightmareManager
 
     public static T GetConfig<T>(NightmareDescriptor descriptor) where T : NightmareConfig
     {
-        var id = NightmareRegistry.GetID(descriptor);
+        var id = NightmareRegistry.CreateID(descriptor);
         if (ActiveConfigs.TryGetValue(id, out var remoteConfig))
         {
             return (T)remoteConfig;

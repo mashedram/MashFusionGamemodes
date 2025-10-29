@@ -34,6 +34,14 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
 
     private Func<NetworkPlayer, int, bool>? _predicate;
     public int Respawns { get; private set; }
+    
+    public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
+    private static PlayerSpectatePredicate? _spectatePredicate;
+
+    public static void SetSpectatePredicate(PlayerSpectatePredicate? predicate)
+    {
+        _spectatePredicate = predicate;
+    }
 
     public LimitedRespawnTag() {}
     
@@ -73,17 +81,28 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
             if (Owner.PlayerID.IsSpectating())
                 return;
             
-            if (_predicate != null && !_predicate.Invoke(Owner, Respawns - 1))
+            if (_predicate != null && !_predicate.Invoke(Owner, Respawns))
                 return;
 
             Respawns--;
+
+            if (Respawns >= 0)
+            {
+                RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
+                {
+                    Respawns = Respawns
+                });
+                return;
+            }
+            
+            if (_spectatePredicate != null && !_spectatePredicate.Invoke(Owner))
+                return;
+            
+            // We don't want the spectator message to overlap with the game lost message
             RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
             {
                 Respawns = Respawns
             });
-            
-            if (Respawns >= 0)
-                return;
             
             Owner.PlayerID.SetSpectating(true);
         });

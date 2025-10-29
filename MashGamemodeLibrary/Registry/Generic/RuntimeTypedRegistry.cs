@@ -13,12 +13,12 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
         RootType = rootType;
     }
 
-    public ulong GetID<T>() where T : notnull
+    public ulong CreateID<T>() where T : notnull
     {
-        return GetID(typeof(T));
+        return CreateID(typeof(T));
     }
     
-    public ulong GetID(object instance)
+    public ulong CreateID(object instance)
     {
         return instance.GetType().Name.GetStableHash();
     }
@@ -33,13 +33,13 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
             return;
         }
         
-        var id = GetID<T>();
+        var id = CreateID<T>();
         Register(id, value);
     }
 
     public object? Get<T>()
     {
-        var id = GetID<T>();
+        var id = CreateID<T>();
         return base.Get(id);
     }
 }

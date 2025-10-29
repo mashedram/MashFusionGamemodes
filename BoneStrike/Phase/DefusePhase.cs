@@ -20,8 +20,6 @@ namespace BoneStrike.Phase;
 
 public class DefusePhase : GamePhase
 {
-    private const string ExplosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionMedBigDamge";
-    
     public override string Name => "Defuse Phase";
     public override float Duration => BoneStrike.Config.DefuseDuration;
 
@@ -30,26 +28,12 @@ public class DefusePhase : GamePhase
         CommonTimeMarkerEvents.TimeRemaining(10f),
         CommonTimeMarkerEvents.TimeRemaining(60f)
     };
-
-    private static bool HasDefusers()
-    {
-        return NetworkPlayer.Players.Any(player => 
-            player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.PlayerID.IsSpectating()
-        );
-    }
     
     public override PhaseIdentifier GetNextPhase()
     {
-        if (!HasReachedDuration() && HasDefusers()) return PhaseIdentifier.Empty();
+        if (!HasReachedDuration()) return PhaseIdentifier.Empty();
         
-        foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
-        {
-            var marrow = networkEntity.GetExtender<IMarrowEntityExtender>();
-            if (marrow == null) continue;
-
-            var position = marrow.MarrowEntity.transform.position;
-            GameAssetSpawner.SpawnNetworkAsset(ExplosionBarcode, position);
-        }
+        BoneStrike.ExplodeAllBombs();
         WinManager.Win<TerroristTeam>();
 
         return PhaseIdentifier.Empty();

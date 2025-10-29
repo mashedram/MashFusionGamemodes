@@ -125,6 +125,7 @@ public class PlantPhase : GamePhase
             if (marrow == null)
                 continue;
             
+            NetworkEntityManager.TakeOwnership(networkEntity);
             marrow.Teleport(position, Quaternion.identity, true);
         }
     }

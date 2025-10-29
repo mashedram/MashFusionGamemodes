@@ -51,7 +51,7 @@ public static class GamePhaseManager
 
     public static void Enable<T>() where T : GamePhase
     {
-        Executor.RunIfHost(() => WantedPhase.Value = Registry.GetID<T>());
+        Executor.RunIfHost(() => WantedPhase.Value = Registry.CreateID<T>());
     }
 
     public static void Disable()

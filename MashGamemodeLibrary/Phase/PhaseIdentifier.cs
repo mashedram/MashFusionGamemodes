@@ -29,7 +29,7 @@ public struct PhaseIdentifier
     
     public static PhaseIdentifier Of<T>() where T : GamePhase
     {
-        var id = GamePhaseManager.Registry.GetID<T>();
+        var id = GamePhaseManager.Registry.CreateID<T>();
         return new PhaseIdentifier(id);
     }
 

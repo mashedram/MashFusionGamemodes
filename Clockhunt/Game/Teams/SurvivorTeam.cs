@@ -1,7 +1,10 @@
 ﻿using Clockhunt.Config;
+using Clockhunt.Game.Player;
+using Clockhunt.Phase;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -14,10 +17,33 @@ public class SurvivorTeam : Team
 
     protected override void OnAssigned()
     {
-        Executor.RunIfMe(Owner.PlayerID,() =>
+        Executor.RunIfHost(() =>
         {
             Owner.AddTag(new LimitedRespawnTag(Clockhunt.Config.MaxRespawns));
+            Owner.AddTag(new PlayerHandTimerTag());
+        });
+        
+        Executor.RunIfMe(Owner.PlayerID,() =>
+        {
             PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
+        });
+    }
+
+    protected override void OnRemoved()
+    {
+        Executor.RunIfHost(() =>
+        {
+            Owner.RemoveTag<LimitedRespawnTag>();
+            Owner.RemoveTag<PlayerHandTimerTag>();
+            Owner.RemoveTag<PlayerEscapeTag>();
+        });
+    }
+
+    public override void OnPhaseChanged(GamePhase phase)
+    {
+        Executor.RunIfHost(() =>
+        {
+            Owner.ToggleTag(phase is EscapePhase, () => new PlayerEscapeTag());
         });
     }
 }

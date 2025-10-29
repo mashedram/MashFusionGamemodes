@@ -15,18 +15,12 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
     private readonly Dictionary<Type, ulong> _stableHashCache = new();
     private readonly Dictionary<ulong, Type> _typeCache = new();
     
-    private ulong GetRegisteredID<T>()
-    {
-        return _stableHashCache[typeof(T)];
-    }
-    
     public ulong GetID(Type type)
     {
-        var fullName = type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
-        return fullName.GetStableHash();
+        return _stableHashCache[type];
     }
     
-    public ulong GetID<T>() where T : TValue
+    public ulong GetID<T>()
     {
         return GetID(typeof(T));
     }
@@ -34,6 +28,22 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
     public ulong GetID(TValue instance)
     {
         return GetID(instance.GetType());
+    }
+    
+    public ulong CreateID(Type type)
+    {
+        var fullName = type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
+        return fullName.GetStableHash();
+    }
+    
+    public ulong CreateID<T>() where T : TValue
+    {
+        return CreateID(typeof(T));
+    }
+    
+    public ulong CreateID(TValue instance)
+    {
+        return CreateID(instance.GetType());
     }
     
     protected abstract TInternal Create<T>() where T : TValue, new();
@@ -51,7 +61,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         }
 #endif
 
-        var id = GetID<T>();
+        var id = CreateID<T>();
         _stableHashCache[type] = id;
         _typeCache[id] = type;
 #if DEBUG
@@ -91,7 +101,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public virtual T? Get<T>() where T : TValue
     {
-        var id = GetRegisteredID<T>();
+        var id = GetID<T>();
         if (Get(id) is not T tag)
             return default!;
 
@@ -112,7 +122,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue
     {
-        var id = GetRegisteredID<T>();
+        var id = GetID<T>();
         if (!TryGet(id, out var value))
         {
             entry = default!;

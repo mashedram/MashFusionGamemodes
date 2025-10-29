@@ -4,6 +4,8 @@ using BoneStrike.Config;
 using BoneStrike.Phase;
 using BoneStrike.Tags;
 using BoneStrike.Teams;
+using Il2CppSLZ.Marrow;
+using Il2CppSLZ.MLAgents;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
@@ -22,9 +24,12 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using UnityEngine;
 using Random = UnityEngine.Random;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -38,7 +43,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     public override bool AutoHolsterOnDeath => true;
     public override bool DisableDevTools => Config.DevToolsDisabled;
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
-    public override bool DisableManualUnragdoll => Config.DevToolsDisabled;
+    public override bool DisableManualUnragdoll => true;
 
     private readonly PersistentTeams _teams = new();
 
@@ -66,20 +71,32 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
         {
             _teams.SendMessage();
         });
+
+        PlayerStatisticsTracker.SendNotificationAndAwardBits(PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
     }
 
     protected override void OnRoundStart()
     {
         TeamManager.Enable<TerroristTeam>();
         TeamManager.Enable<CounterTerroristTeam>();
-        PalletLoadoutManager.LoadLocal(Config.PalletBarcode);
-
+        
         Executor.RunIfHost(() =>
         {
             _teams.AssignAll();
+            
+            PalletLoadoutManager.Load(Config.PalletBarcode);
+            
+            LimitedRespawnTag.SetSpectatePredicate(player =>
+            {
+                if (AnyDefusers(player))
+                    return true;
+
+                ExplodeAllBombs();
+                WinManager.Win<TerroristTeam>();
+                return false;
+            });
         });
         
-        PlayerControllerManager.Enable(() => new LimitedRespawnTag(Config.MaxRespawns));
         GamePhaseManager.Enable<PlantPhase>();
         
         var spawns = GamemodeMarker.FilterMarkers();
@@ -108,6 +125,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
+        GamemodeHelper.ResetSpawnPoints();
         GamemodeHelper.TeleportToSpawnPoint();
         Executor.RunIfHost(() =>
         {
@@ -122,15 +140,17 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
         
         GamemodeHelper.ResetSpawnPoints();
 
-        GameAssetSpawner.DespawnAll<BombMarker>();
+        Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }
 
     public override void OnLateJoin(PlayerID playerID)
     {
         Executor.RunIfHost(() =>
         {
-            _teams.AddLateJoiner(playerID);
+            playerID.SetSpectating(true);
+            _teams.QueueLateJoiner(playerID);
         });
+        
     }
 
     public override bool CanAttackPlayer(PlayerID player)
@@ -139,5 +159,26 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
             return false;
 
         return !TeamManager.IsTeamMember(player);
+    }
+
+    internal static void ExplodeAllBombs()
+    {
+        const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionMedBigDamge";
+        
+        foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
+        {
+            var marrow = networkEntity.GetExtender<IMarrowEntityExtender>();
+            if (marrow == null) continue;
+
+            var position = marrow.MarrowEntity.transform.position;
+            GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
+        }
+    }
+    
+    private static bool AnyDefusers(NetworkPlayer? skip = null)
+    {
+        return NetworkPlayer.Players.Any(player => 
+            player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.PlayerID.IsSpectating() && !player.PlayerID.Equals(skip?.PlayerID)
+        );
     }
 }

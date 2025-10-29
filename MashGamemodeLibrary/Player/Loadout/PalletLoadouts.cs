@@ -146,6 +146,6 @@ public static class PalletLoadoutManager
     private static void OnAssignLoadout(DummySerializable _)
     {
         var loadout = GetLoadout();
-        loadout.Assign(BoneLib.Player.RigManager);
+        loadout.Assign();
     }
 }

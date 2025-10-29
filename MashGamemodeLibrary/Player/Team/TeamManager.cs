@@ -2,6 +2,7 @@
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable;
@@ -29,11 +30,13 @@ public static class TeamManager
     {
         AssignedTeams.OnValueAdded += OnAssigned;
         AssignedTeams.OnValueRemoved += OnRemoved;
+        
+        MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
     }
 
     private static ulong GetTeamID(Type type)
     {
-        return Registry.GetID(type);
+        return Registry.CreateID(type);
     }
 
     
@@ -64,7 +67,7 @@ public static class TeamManager
         var id = PlayerIDManager.LocalSmallID;
         if (!AssignedTeams.TryGetValue(id, out var team)) return null;
 
-        return Registry.GetID(team);
+        return Registry.CreateID(team);
     }
 
     public static Team? GetLocalTeam()
@@ -76,6 +79,11 @@ public static class TeamManager
     public static bool IsTeam<T>(this PlayerID playerID) where T : Team
     {
         return AssignedTeams.TryGetValue(playerID, out var team) && team.GetType() == typeof(T);
+    }
+    
+    public static bool IsTeam(this PlayerID playerID, ulong teamID)
+    {
+        return AssignedTeams.TryGetValue(playerID, out var team) && Registry.CreateID(team) == teamID;
     }
 
     public static bool IsLocalTeam<T>() where T : Team
@@ -244,5 +252,10 @@ public static class TeamManager
                 MelonLogger.Error($"Failed to execute phase change for team: {team.Name}", exception);
             }
         }
+    }
+    
+    private static void OnPlayerLeave(PlayerID playerId)
+    {
+        AssignedTeams.Remove(playerId.SmallID);
     }
 }

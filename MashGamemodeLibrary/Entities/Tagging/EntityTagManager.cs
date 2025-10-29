@@ -247,12 +247,12 @@ public static class EntityTagManager
 
     // Implementations
 
-    private static EntityTagIndex GetTagIndex<T>(NetworkEntity entity) where T : IEntityTag
+    private static EntityTagIndex GetTagIndex<T>(this NetworkEntity entity) where T : IEntityTag
     {
         return new EntityTagIndex(entity.ID, GetTagId<T>());
     }
     
-    private static EntityTagIndex GetTagIndex(NetworkEntity entity, IEntityTag tag)
+    private static EntityTagIndex GetTagIndex(this NetworkEntity entity, IEntityTag tag)
     {
         return new EntityTagIndex(entity.ID, GetTagId(tag.GetType()));
     }
@@ -265,12 +265,12 @@ public static class EntityTagManager
 
     private static ulong GetTagId<T>() where T : IEntityTag
     {
-        return Registry.GetID<T>();
+        return Registry.CreateID<T>();
     }
     
     private static ulong GetTagId(Type type)
     {
-        return Registry.GetID(type);
+        return Registry.CreateID(type);
     }
 
     public static void Remove(ushort id)
@@ -351,6 +351,16 @@ public static class EntityTagManager
         var key = GetTagIndex<T>(entity);
 
         Tags[key] = tag;
+    }
+
+    public static bool TryAddTag<T>(this NetworkEntity entity, Func<T> factory) where T : IEntityTag
+    {
+        var key = GetTagIndex<T>(entity);
+        if (Tags.ContainsKey(key))
+            return false;
+
+        Tags[key] = factory();
+        return true;
     }
 
     public static bool RemoveTag<T>(this NetworkEntity entity) where T : IEntityTag

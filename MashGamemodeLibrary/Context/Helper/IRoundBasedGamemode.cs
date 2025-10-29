@@ -2,7 +2,8 @@
 
 namespace MashGamemodeLibrary.Context.Helper;
 
-public interface IRoundEndable
+public interface IRoundBasedGamemode
 {
+    void StartRound();
     void EndRound(ulong winnerTeamId);
 }

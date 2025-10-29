@@ -43,7 +43,7 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
     
     public void Write(NetWriter writer, TValue value)
     {
-        writer.Write(_typedRegistry.GetID(value));
+        writer.Write(_typedRegistry.CreateID(value));
         
         if (value is not INetSerializable serializable) return;
         
@@ -53,7 +53,7 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
     public void Serialize(INetSerializer serializer, TValue value)
     {
 
-        var id = serializer.IsReader ? 0 : _typedRegistry.GetID(value);
+        var id = serializer.IsReader ? 0 : _typedRegistry.CreateID(value);
         serializer.SerializeValue(ref id);
         
         

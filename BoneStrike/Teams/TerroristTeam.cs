@@ -1,5 +1,9 @@
-﻿using LabFusion.UI.Popups;
+﻿using BoneStrike.Phase;
+using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Teams;
@@ -9,6 +13,14 @@ public class TerroristTeam : Team
     public override string Name => "Terrorists";
     public override uint Capacity => UInt32.MaxValue;
     public override uint Weight => 1;
+
+    public override void OnPhaseChanged(GamePhase phase)
+    {
+        Executor.RunIfHost(() =>
+        {
+            Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnTag(BoneStrike.Config.MaxRespawns));
+        });
+    }
 
     protected override void OnAssigned()
     {

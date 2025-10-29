@@ -13,40 +13,12 @@ using MashGamemodeLibrary.Phase;
 
 namespace MashGamemodeLibrary.Player.Controller;
 
-public static class PlayerControllerManager
+public static class PlayerTagManager
 {
-    private static readonly List<Func<PlayerTag>> ControllerFactories = new();
-
-    static PlayerControllerManager()
-    {
-        NetworkPlayer.OnNetworkRigCreated += NetworkPlayerOnOnNetworkRigCreated;
-    }
-    
-    public static void Enable<T>(Func<T> factory) where T : PlayerTag
+    public static void ClearPlayerTags()
     {
         Executor.RunIfHost(() =>
         {
-            ControllerFactories.Add(factory);
-
-            foreach (var player in NetworkPlayer.Players)
-            {
-                if (!player.HasRig) 
-                    return;
-                
-                if (player.NetworkEntity.HasTag<T>())
-                    continue;
-
-                player.NetworkEntity.AddTag(factory.Invoke());
-            }
-        });
-    }
-
-    public static void Disable()
-    {
-        Executor.RunIfHost(() =>
-        {
-            ControllerFactories.Clear();
-
             foreach (var player in NetworkPlayer.Players)
             {
                 EntityTagManager.Remove(player.NetworkEntity.ID);
@@ -66,23 +38,36 @@ public static class PlayerControllerManager
     {
         return player.NetworkEntity.TryGetTag(out tag);
     }
+
+    public static bool HasTag<T>(this NetworkPlayer player) where T : PlayerTag
+    {
+        return player.NetworkEntity.HasTag<T>();
+    }
     
     public static void AddTag<T>(this NetworkPlayer player, T tag) where T : PlayerTag
     {
         player.NetworkEntity.AddTag(tag);
     }
     
+    public static bool TryAddTag<T>(this NetworkPlayer player, Func<T> factory) where T : PlayerTag
+    {
+        return player.NetworkEntity.TryAddTag(factory);
+    }
+    
     public static bool RemoveTag<T>(this NetworkPlayer player) where T : PlayerTag
     {
         return player.NetworkEntity.RemoveTag<T>();
     }
-    
-    // Events
-    private static void NetworkPlayerOnOnNetworkRigCreated(NetworkPlayer player, RigManager rig)
+
+    public static void ToggleTag<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : PlayerTag
     {
-        foreach (var controllerFactory in ControllerFactories)
+        if (state)
         {
-            player.NetworkEntity.AddTag(controllerFactory.Invoke());
+            player.TryAddTag(factory);
+        }
+        else
+        {
+            player.RemoveTag<T>();
         }
     }
 }

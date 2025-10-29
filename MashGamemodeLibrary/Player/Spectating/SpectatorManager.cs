@@ -37,6 +37,7 @@ internal class IgnorePropPacket : INetSerializable, IKnownSenderPacket
 internal class ColliderSet
 {
     private readonly HashSet<Collider> _colliders;
+    public IEnumerable<Collider> Colliders => _colliders;
 
     public ColliderSet(GameObject root)
     {
@@ -60,6 +61,7 @@ internal class ColliderSet
         {
             // Comes from the same source. One invalid all invalid
             if (collider1 == null || collider2 == null) return;
+
             Physics.IgnoreCollision(collider1, collider2, !colliding);
         }
     }
@@ -67,11 +69,29 @@ internal class ColliderSet
 
 internal class PlayerColliderCache
 {
+    private static readonly HashSet<int> IncludedRemoteLayers = new()
+    {
+        24,
+        8,
+        9,
+        16
+    };
+    private static readonly HashSet<int> IncludedLocalLayers = new()
+    {
+        8,
+        9,
+        16
+    };
+
     private readonly HashSet<ColliderSet> _ignoredColliders = new();
     private readonly HashSet<PlayerColliderCache> _ignoredPlayers = new();
     private readonly Dictionary<GameObject, ColliderSet> _itemColliders = new();
     private readonly HashSet<ColliderSet> _propColliders = new();
+    
+    
     private PhysicsRig? _physicsRig;
+    private int _layer = 8;
+    private Dictionary<GameObject, int> _originalLayer = new();
     private ColliderSet _physicsRigColliders = null!;
 
     public PlayerColliderCache(PhysicsRig physicsRig)
@@ -144,6 +164,42 @@ internal class PlayerColliderCache
     public bool IsCollidingWith(PlayerColliderCache other)
     {
         return _ignoredPlayers.Contains(other);
+    }
+    
+    public void SetIgnoreRaycast(PlayerID target, bool colliding)
+    {
+        if (_originalLayer.Count > 0)
+        {
+            foreach (var (go, layer) in _originalLayer)
+            {
+                go.layer = layer;
+            }
+            _originalLayer.Clear();
+        }
+        
+        if (colliding)
+            return;
+        
+        foreach (var collider in _physicsRigColliders.Colliders)
+        {
+            var go = collider.gameObject;
+            var cLayer = go.layer;
+
+            if (target.IsMe)
+            {
+                if (!IncludedLocalLayers.Contains(cLayer))
+                    continue;
+            }
+            else
+            {
+                if (!IncludedRemoteLayers.Contains(cLayer))
+                    continue;
+            }
+
+            // 2 Is ignore raycasts
+            go.layer = 2;
+            _originalLayer[go] = cLayer;
+        }
     }
 
     public void SetRig(PhysicsRig newRig)
@@ -311,18 +367,20 @@ public static class SpectatorManager
             return;
 
 
-        var hands = new[] { player.RigRefs.LeftHand, player.RigRefs.RightHand };
-        foreach (var hand in hands)
-        {
-            hand.TryDetach();
-            if (state)
-                hand.EnableCollider();
-            else
-                hand.DisableCollider();
-        }
+        // var hands = new[] { player.RigRefs.LeftHand, player.RigRefs.RightHand };
+        // foreach (var hand in hands)
+        // {
+        //     hand.TryDetach();
+        //     if (state)
+        //         hand.EnableCollider();
+        //     else
+        //         hand.DisableCollider();
+        // }
 
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             return;
+        
+        cache.SetIgnoreRaycast(player.PlayerID, state);
 
         if (state)
         {

@@ -4,6 +4,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Encoder;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Networking.Remote;
@@ -93,5 +94,19 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
         var data = Activator.CreateInstance<T>();
         data.Serialize(reader);
         OnEvent(playerId, data);
+    }
+}
+
+public class RemoteEvent : RemoteEvent<DummySerializable>
+{
+    public delegate void EventHandler();
+    
+    public RemoteEvent(string name, EventHandler onEvent, INetworkRoute? route = null) : base(name, _ => onEvent.Invoke(), route)
+    {
+    }
+
+    public void Call()
+    {
+        base.Call(new DummySerializable());
     }
 }

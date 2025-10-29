@@ -10,28 +10,17 @@ using MelonLoader;
 
 namespace Clockhunt.Game.Teams;
 
-public class NightmareTeam : Team, INetSerializable
+public class NightmareTeam : Team
 {
     public override string Name => "Nightmare";
     public override uint Capacity => 1;
-
-    private ulong _nightmareID;
-    public ulong NightmareID => _nightmareID;
-
-    public NightmareTeam() {}
-
-    public NightmareTeam(ulong nightmareID)
-    {
-        _nightmareID = nightmareID;
-    }
 
     protected override void OnAssigned()
     {
         Executor.RunIfHost(() =>
         {
             NightmareManager.SetRandomNightmare(Owner.PlayerID);
-            Owner.RemoveTag<LimitedRespawnTag>();
-            MelonLogger.Msg("Assigned nightmare to player " + Owner + " with nightmare ID " + NightmareID);
+            MelonLogger.Msg("Assigned nightmare to player " + Owner);
         });
     }
 
@@ -46,10 +35,5 @@ public class NightmareTeam : Team, INetSerializable
     public int? GetSize()
     {
         return sizeof(ulong);
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref _nightmareID);
     }
 }

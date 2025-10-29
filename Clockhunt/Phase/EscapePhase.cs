@@ -32,8 +32,7 @@ public class EscapePhase : GamePhase, ITimedPhase
         {
             var escapePoint = EscapeManager.EscapePoint ?? Vector3.zero;
             PlayerEscapeTag.EscapePosition.Value = escapePoint;
-            PlayerControllerManager.Enable(() => new PlayerEscapeTag());
-            PlayerControllerManager.OnAll<LimitedRespawnTag>(controller =>
+            PlayerTagManager.OnAll<LimitedRespawnTag>(controller =>
             {
                 controller.SetRespawns(0);
             });

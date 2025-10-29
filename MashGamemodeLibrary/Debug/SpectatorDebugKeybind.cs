@@ -16,10 +16,12 @@ public class SpectatorDebugKeybind : DebugKeybind
         MelonLogger.Msg("Toggling spectate for all other players");
         Executor.RunIfHost(() =>
         {
-            foreach (var playerID in PlayerIDManager.PlayerIDs)
-            {
-                playerID.SetSpectating(!SpectatorManager.IsPlayerSpectating(playerID.SmallID));
-            }
+            var playerID = PlayerIDManager.LocalID;
+            playerID.SetSpectating(!SpectatorManager.IsPlayerSpectating(playerID.SmallID));
+            // foreach (var playerID in PlayerIDManager.PlayerIDs)
+            // {
+            //     
+            // }
         });
     };
 }
