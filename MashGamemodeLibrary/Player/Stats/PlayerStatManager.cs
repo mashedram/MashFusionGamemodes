@@ -43,5 +43,6 @@ public static class PlayerStatManager
     {
         LocalStatOverride = null;
         SetVitality(null);
+        LocalAvatar.RefreshAvatar();
     }
 }

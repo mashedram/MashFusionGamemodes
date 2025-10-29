@@ -56,7 +56,7 @@ internal class HolsterHider
 
     }
 
-    public bool Update(bool? hidden = null)
+    public bool FetchRenderers(bool? hidden = null)
     {
         if (hidden.HasValue)
         {
@@ -67,7 +67,7 @@ internal class HolsterHider
         if (_receiver == null)
             return true;
 
-        return _receiver.Update(hidden);
+        return _receiver.FetchRenderers(hidden);
     }
 
     public bool UpdateIf<T>(bool? hidden = null) where T : IReceiverHider
@@ -75,7 +75,7 @@ internal class HolsterHider
         if (_receiver == null || _receiver.GetType() != typeof(T))
             return true;
 
-        return Update(hidden);
+        return FetchRenderers(hidden);
     }
 
     public bool SetHidden(bool hidden)

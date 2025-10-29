@@ -12,6 +12,9 @@ using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Phase.Rounds;
 using MashGamemodeLibrary.Player.Actions;
@@ -20,30 +23,14 @@ using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
+using MelonLoader;
 using UnityEngine;
 using Team = MashGamemodeLibrary.Player.Team.Team;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-internal static class RoundStarter
-{
-    private static readonly RemoteEvent StartRoundEvent = new("StartRoundEvent", () =>
-    {
-        if (GamemodeManager.ActiveGamemode is IRoundBasedGamemode roundBasedGamemode)
-            roundBasedGamemode.StartRound();
-    }, CommonNetworkRoutes.HostToAll);
-
-    internal static void StartRound()
-    {
-        Executor.RunIfHost(() =>
-        {
-            StartRoundEvent.Call();
-        });
-    }
-}
-
-public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode, IOnLateJoin, IRoundBasedGamemode
+public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode, IOnLateJoin, IRoundEndable
     where TContext : GameModeContext<TContext>, new()
     where TRound : RoundContext, new()
     where TConfig : class, IConfig, new()
@@ -66,12 +53,13 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
     public static event ConfigChangedHandler? OnConfigChanged;
     
     // Round systems
-
-    private float _timeUntilNextRound;
+    private float _timeUntilNextRound = 0f;
     
     // Static on purpose
-    public static bool InRound { get; private set; }
-    public static int RoundIndex { get; private set; }
+    public static int WantedRoundIndex = 0;
+    public static readonly SyncedVariable<ulong> LastRoundWinnerId = new($"{typeof(TRound).Name}.LastWinner", new ULongEncoder(), 0);
+    public static readonly SyncedVariable<int?> ActiveRoundIndex =
+        new($"{typeof(TRound).Name}.RoundIndex", new NullableValueEncoder<int>(new IntEncoder()), null);
     
     // Extra Settings
 
@@ -80,7 +68,37 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
 
 
     private static bool _isStartedInternal;
-    public new static bool IsStarted => _isStartedInternal && InRound;
+    public new static bool IsStarted => _isStartedInternal && ActiveRoundIndex.Value.HasValue;
+    
+    // Constructor
+    protected GamemodeWithContext()
+    {
+        ActiveRoundIndex.OnValueChanged += value =>
+        {
+            if (value.HasValue)
+            {
+                StartRound(WantedRoundIndex);    
+            }
+            else
+            {
+                if (!_isStartedInternal)
+                    return;
+                
+                Notifier.Send(new Notification
+                {
+                    Title = "Cooldown",
+                    Message = $"The next round will start in {MathF.Round(RoundContext.RoundCooldown):N0} seconds",
+                    PopupLength = 4f,
+                    SaveToMenu = false,
+                    ShowPopup = true,
+                    Type = NotificationType.INFORMATION
+                });
+                
+                Reset();
+                OnRoundEnd(LastRoundWinnerId.Value);
+            }
+        };
+    }
 
     /// <summary>
     /// Register data related to your gamemode here.
@@ -160,13 +178,13 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         Context.OnStop();
         OnCleanup();
         
+        LocalHealth.MortalityOverride = null;
+        LocalControls.DisableSlowMo = false;
+        
         GamePhaseManager.Disable();
         PlayerStatManager.ResetStats();
         GamemodeHelper.ResetSpawnPoints();
         TeamManager.Disable();
-
-        LocalHealth.MortalityOverride = false;
-        LocalControls.DisableSlowMo = false;
         
         GameObjectExtender.DestroyAll();
         LimitedRespawnTag.SetSpectatePredicate(null);
@@ -180,14 +198,21 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         });
     }
 
-    public void StartRound()
+    public void StartRound(int index)
     {
+        if (ActiveRoundIndex.Value != index)
+        {
+            if (NetworkInfo.IsHost)
+                ActiveRoundIndex.Value = index;
+            return;
+        }
+        
         if (RoundContext.RoundCount > 1)
         {
             Notifier.Send(new Notification
             {
                 Title = "Round Start!",
-                Message = $"Round: {RoundIndex + 1} / {RoundContext.RoundCount}",
+                Message = $"Round: {index + 1} / {RoundContext.RoundCount}",
                 PopupLength = 4f,
                 SaveToMenu = false,
                 ShowPopup = true,
@@ -195,7 +220,6 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
             });
         }
         
-        InRound = true;
         LocalHealth.MortalityOverride = !KnockoutAllowed;
         LocalControls.DisableSlowMo = !SlowMotionAllowed;
         
@@ -243,14 +267,16 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         base.OnLevelReady();
 
         _isStartedInternal = true;
-        RoundIndex = 0;
+        WantedRoundIndex = 0;
         OnStart();
-        RoundStarter.StartRound();
+        StartRound(0);
     }
 
     public override void OnGamemodeStopped()
     {
         _isStartedInternal = false;
+
+        ActiveRoundIndex.Value = null;
         
         Reset();
         OnEnd();
@@ -265,7 +291,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
 
         var delta = Time.deltaTime;
         
-        if (!InRound)
+        if (!ActiveRoundIndex.Value.HasValue)
         {
             if (!NetworkInfo.IsHost)
                 return;
@@ -274,7 +300,7 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
             if (_timeUntilNextRound > 0)
                 return;
             
-            RoundStarter.StartRound();
+            StartRound(WantedRoundIndex);
             return;
         }
         
@@ -298,29 +324,19 @@ public abstract class GamemodeWithContext<TContext, TRound, TConfig> : Gamemode,
         return _configMenu.GetElementData();
     }
 
-    public void EndRound(ulong winnerTeamId)
+    public void EndHostRound(ulong winnerTeamId)
     {
-        RoundIndex++;
-        if (RoundIndex >= RoundContext.RoundCount)
+        WantedRoundIndex++;
+
+        LastRoundWinnerId.Value = winnerTeamId;
+        ActiveRoundIndex.Value = null;
+
+        if (WantedRoundIndex >= RoundContext.RoundCount)
         {
             GamemodeManager.StopGamemode();
             return;
         }
-        
+
         _timeUntilNextRound = RoundContext.RoundCooldown;
-        
-        Notifier.Send(new Notification
-        {
-            Title = "Cooldown",
-            Message = $"The next round will start in {MathF.Round(_timeUntilNextRound):N0} seconds",
-            PopupLength = 4f,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.INFORMATION
-        });
-        
-        InRound = false;
-        Reset();
-        OnRoundEnd(winnerTeamId);
     }
 }

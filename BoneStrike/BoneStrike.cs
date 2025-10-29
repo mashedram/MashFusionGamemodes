@@ -12,6 +12,7 @@ using LabFusion.Marrow.Integration;
 using LabFusion.Player;
 using LabFusion.RPC;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities;
@@ -62,6 +63,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
             _teams.AddTeam<TerroristTeam>();
             _teams.AddTeam<CounterTerroristTeam>();
             _teams.AddPlayers(NetworkPlayer.Players.Select(p => p.PlayerID));
+            _teams.RandomizeShift();
         });
     }
 
@@ -125,7 +127,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
-        GamemodeHelper.ResetSpawnPoints();
+        FusionPlayer.ResetSpawnPoints();
         GamemodeHelper.TeleportToSpawnPoint();
         Executor.RunIfHost(() =>
         {
@@ -138,7 +140,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
         
-        GamemodeHelper.ResetSpawnPoints();
+        FusionPlayer.ResetSpawnPoints();
 
         Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }

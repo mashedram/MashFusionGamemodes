@@ -14,7 +14,7 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
         _receiver = receiver;
         _isHidden = hidden;
 
-        Update();
+        FetchRenderers();
     }
 
     public bool SetHidden(bool hidden)
@@ -27,15 +27,15 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
         return true;
     }
 
-    public bool Update(bool? hidden = null)
+    public bool FetchRenderers(bool? hidden = null)
     {
         if (hidden.HasValue)
         {
-            if (!SetHidden(hidden.Value))
-                return false;
+            _isHidden = hidden.Value;
         }
 
         _art = _receiver.transform.FindChild("Holder").gameObject;
+        _art.SetActive(_isHidden);
 
         return true;
     }

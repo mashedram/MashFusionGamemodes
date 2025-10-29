@@ -181,7 +181,7 @@ internal class PlayerVisibilityState
     {
         if (_inventoryRenderers.TryGetValue(slotReceiver, out var item))
         {
-            if (!item.Update(IsHidden))
+            if (!item.FetchRenderers(IsHidden))
             {
                 PopulateRenderers();
             }
@@ -196,7 +196,7 @@ internal class PlayerVisibilityState
         if (!_inventoryRenderers.TryGetValue(slotReceiver, out var hider))
             return;
 
-        hider.Update(IsHidden);
+        hider.FetchRenderers(IsHidden);
     }
 
     public void OnAmmoChange()
@@ -225,6 +225,9 @@ internal class PlayerVisibilityState
             return;
         }
 
+        // TODO: Check holsters here for zoning shenanigans
+        // Maybe check if the physicsrig changed?
+        // Idk
         if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
             return;
 

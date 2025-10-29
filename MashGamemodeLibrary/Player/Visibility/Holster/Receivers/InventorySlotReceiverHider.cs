@@ -12,7 +12,7 @@ internal class InventorySlotReceiverHider : IReceiverHider
         _receiver = receiver;
         _renderSet = new RenderSet(hidden);
 
-        Update();
+        FetchRenderers();
     }
 
     public bool SetHidden(bool hidden)
@@ -20,7 +20,7 @@ internal class InventorySlotReceiverHider : IReceiverHider
         return _renderSet.SetHidden(hidden);
     }
 
-    public bool Update(bool? hidden = null)
+    public bool FetchRenderers(bool? hidden = null)
     {
         if (hidden.HasValue)
         {

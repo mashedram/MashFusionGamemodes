@@ -27,7 +27,7 @@ public class EntityOwner : EntityTag, IEntityGrabPredicate, INetSerializable
     {
         if (!GamePhaseManager.IsPhase<HidePhase>()) return true;
 
-        return grabData.NetworkPlayer.PlayerID == OwnerId;
+        return grabData.NetworkPlayer?.PlayerID == OwnerId;
     }
 
     public void Serialize(INetSerializer serializer)

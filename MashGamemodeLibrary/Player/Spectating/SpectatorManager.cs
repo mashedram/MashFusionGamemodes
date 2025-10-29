@@ -90,8 +90,7 @@ internal class PlayerColliderCache
     
     
     private PhysicsRig? _physicsRig;
-    private int _layer = 8;
-    private Dictionary<GameObject, int> _originalLayer = new();
+    private Dictionary<GameObject, int> _originalLayer = new(new UnityComparer());
     private ColliderSet _physicsRigColliders = null!;
 
     public PlayerColliderCache(PhysicsRig physicsRig)
@@ -179,11 +178,15 @@ internal class PlayerColliderCache
         
         if (colliding)
             return;
+        if (_physicsRig == null)
+            return;
         
-        foreach (var collider in _physicsRigColliders.Colliders)
+        foreach (var collider in _physicsRig._collisionCollectors)
         {
             var go = collider.gameObject;
             var cLayer = go.layer;
+            
+            if (_originalLayer.ContainsKey(go))
 
             if (target.IsMe)
             {
@@ -232,6 +235,7 @@ internal class PlayerColliderCache
         {
             var attached = hand.m_CurrentAttachedGO;
             if (attached == null) return;
+
             AddItem(attached);
         }
     }
@@ -239,6 +243,7 @@ internal class PlayerColliderCache
     public void AddItem(GameObject item)
     {
         if (_itemColliders.ContainsKey(item)) return;
+
         var set = new ColliderSet(item);
         _itemColliders[item] = set;
 

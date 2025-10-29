@@ -40,7 +40,8 @@ public class HidePhase : GamePhase, ITimedPhase
             Message = Clockhunt.Config.GameType switch
             {
                 GameType.Clockhunt => "Hide the clocks well",
-                GameType.HideAndSeek => "Hide and don't get found"
+                GameType.HideAndSeek => "Hide and don't get found",
+                _ => throw new ArgumentOutOfRangeException()
             },
             PopupLength = 4f,
             SaveToMenu = false,

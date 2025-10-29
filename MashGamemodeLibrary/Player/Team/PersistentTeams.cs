@@ -103,6 +103,11 @@ public class PersistentTeams
         }
     }
 
+    public void RandomizeShift()
+    {
+        _shift += Random.RandomRangeInt(0, _teamIds.Count);
+    }
+    
     public void QueueLateJoiner(PlayerID playerID)
     {
         _lateJoinerQueue.Enqueue(playerID);
@@ -121,7 +126,6 @@ public class PersistentTeams
         while (_lateJoinerQueue.TryDequeue(out var playerID))
         {
             _playerSets[index].Add(playerID);
-            playerID.Assign(GetTeamId(index));
 
             index = (index + 1) % _playerSets.Count;
         }

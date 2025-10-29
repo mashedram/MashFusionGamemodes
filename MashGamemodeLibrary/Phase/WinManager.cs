@@ -39,6 +39,11 @@ public static class WinManager
             {
                 TeamID = id
             });
+            
+            if (GamemodeManager.ActiveGamemode is IRoundEndable roundEndable)
+                roundEndable.EndHostRound(id);
+            else
+                GamemodeManager.StopGamemode();
         }, "Sending win state");
     }
     
@@ -67,10 +72,5 @@ public static class WinManager
                 Type = NotificationType.ERROR,
                 PopupLength = 5f
             });
-        
-        if (GamemodeManager.ActiveGamemode is IRoundBasedGamemode roundEndable)
-            roundEndable.EndRound(packet.TeamID);
-        else
-            GamemodeManager.StopGamemode();
     }
 }
