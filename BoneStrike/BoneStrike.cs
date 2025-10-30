@@ -114,8 +114,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
             LowerStrength = 1.2f,
             UpperStrength = 1.2f,
             Speed = 1.5f,
-            Vitality = 1.5f
-        });
+            Vitality = 1f
+        }.MulitplyHealth(Config.HealthMultiplier));
         
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]

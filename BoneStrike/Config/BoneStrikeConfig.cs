@@ -64,6 +64,12 @@ public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
     [SerializableField]
     public float DefuseTime = 7f;
     
+    [ConfigMenuEntry("Health Multiplier")]
+    [ConfigRangeConstraint(0.25f, 4f)]
+    [ConfigStepSize(0.25f)]
+    [SerializableField]
+    public float HealthMultiplier = 1f;
+    
     [ConfigMenuEntry("Dev Tools Disabled")]
     [SerializableField]
     public bool DevToolsDisabled = true;

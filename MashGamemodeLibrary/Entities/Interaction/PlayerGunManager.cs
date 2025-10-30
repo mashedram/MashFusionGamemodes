@@ -9,6 +9,12 @@ public static class PlayerGunManager
 
     public static event OnGunFiredHandler? OnGunFired;
 
+    // TODO: Check if this works and make it configurable
+    public static void NormalizeGunDamage(Gun gun)
+    {
+        gun.defaultCartridge.projectile.damageMultiplier = 1f;
+    }
+
     public static void InvokeGunFired(Gun instance)
     {
         var triggerGrip = instance.triggerGrip;

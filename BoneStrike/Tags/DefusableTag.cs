@@ -26,15 +26,7 @@ public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUp
     private TextMeshPro? _text;
 
     private bool _isGrabbed;
-    private float _timeout;
     private float _timer;
-    
-    public DefusableTag() {}
-    
-    public DefusableTag(float timeout)
-    {
-        _timeout = timeout;
-    }
 
     private void SpawnTimer()
     {
@@ -61,7 +53,6 @@ public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUp
 
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref _timeout);
         serializer.SerializeValue(ref _timer);
     }
     
@@ -118,7 +109,8 @@ public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUp
         
         _timer += delta;
 
-        if (_timer > _timeout)
+        var timeout = BoneStrike.Config.DefuseTime;
+        if (_timer > timeout)
         {
             // Prevent it from triggering again
             _isGrabbed = false;
@@ -133,6 +125,6 @@ public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUp
         
         if (_text == null) return;
 
-        _text.text = (_timeout - _timer).ToString("F1", CultureInfo.InvariantCulture);
+        _text.text = (timeout - _timer).ToString("F1", CultureInfo.InvariantCulture);
     }
 }
