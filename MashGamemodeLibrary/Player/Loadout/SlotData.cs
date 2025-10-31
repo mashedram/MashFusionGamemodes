@@ -1,9 +1,12 @@
 ﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Data;
 using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
+using LabFusion.Player;
 using LabFusion.RPC;
+using LabFusion.Utilities;
 using MelonLoader;
 using UnityEngine;
 
@@ -20,17 +23,17 @@ public enum SlotType
 
 public class SlotData
 {
+    private static HashSet<NetworkEntity> _spawnedGuns = new();
+    
     public Barcode? Barcode;
-    public bool ShouldOverride = true;
 
     public SlotData()
     {
     }
 
-    public SlotData(Barcode? barcode, bool shouldOverride = false)
+    public SlotData(Barcode? barcode)
     {
         Barcode = barcode;
-        ShouldOverride = shouldOverride;
     }
 
     public static string GetSlotName(SlotType type)
@@ -46,7 +49,7 @@ public class SlotData
         };
     }
 
-    public void AssignSlot(RigManager rig, SlotType slotType, Action<Poolee>? callback)
+    public void AssignSlot(RigManager rig, SlotType slotType)
     {
         var slotName = GetSlotName(slotType);
         var slotBase = rig.inventory.bodySlots.FirstOrDefault(e => e.name.Equals(slotName));
@@ -54,17 +57,61 @@ public class SlotData
         if (ReferenceEquals(slot, null))
             return;
 
-        if (ShouldOverride)
-            slot.DespawnContents();
+        if (slot._slottedWeapon != null && WeaponSlotExtender.Cache.TryGet(slot._slottedWeapon, out var entity))
+        {
+            slot.DropWeapon();
+            PooleeUtilities.RequestDespawn(entity.ID, true);
+        }
         
         if (Barcode == null)
             return;
 
-        var task = slot.SpawnInSlotAsync(Barcode);
-        if (callback == null)
-            return;
+        var spawnable = new Spawnable()
+        {
+            crateRef = new SpawnableCrateReference(Barcode),
+            policyData = null,
+        };
 
-        var awaiter = task.GetAwaiter();
-        awaiter.OnCompleted((Il2CppSystem.Action)(() => callback.Invoke(slot._slottedWeapon.GetComponentInParent<Poolee>())));
+        var transform = slot.transform;
+        NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo()
+        {
+            Spawnable = spawnable,
+            Position = transform.position,
+            Rotation = transform.rotation,
+            SpawnEffect = false,
+            SpawnCallback = (info) =>
+            {
+                // Insert into known items
+                _spawnedGuns.Add(info.Entity);
+                
+                var weaponSlotExtender = info.Entity.GetExtender<WeaponSlotExtender>();
+
+                if (weaponSlotExtender == null)
+                {
+                    return;
+                }
+
+                var weaponSlot = weaponSlotExtender.Component;
+
+                if (weaponSlot == null || weaponSlot.interactableHost == null)
+                {
+                    return;
+                }
+
+                slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
+            },
+        });
+    }
+
+    public static void ClearSpawned()
+    {
+        foreach (var entity in _spawnedGuns)
+        {
+            if (entity.IsDestroyed)
+                continue;
+            
+            PooleeUtilities.RequestDespawn(entity.ID, true);
+        }
+        _spawnedGuns.Clear();
     }
 }

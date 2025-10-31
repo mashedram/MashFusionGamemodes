@@ -390,6 +390,23 @@ public static class EntityTagManager
         return false;
     }
 
+    public static bool HasTagExtending<T>(this NetworkEntity entity) where T : IAbstractEntityTag
+    {
+        var extensionHash = GetAbstractTagId<T>();
+        if (!TagExtensionMap.TryGetValue(extensionHash, out var extending))
+        {
+            MelonLogger.Error($"Tag with name: {typeof(T).FullName} is not registered");
+            return false;
+        }
+
+        return extending.Any(tagID =>
+        {
+            var key = new EntityTagIndex(entity.ID, tagID);
+
+            return Tags.ContainsKey(key);
+        });
+    }
+
     public static List<T> GetAllExtendingTag<T>(this NetworkEntity entity) where T : IAbstractEntityTag
     {
         var extensionHash = GetAbstractTagId<T>();

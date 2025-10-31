@@ -16,6 +16,7 @@ using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Loadout;
 using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
 

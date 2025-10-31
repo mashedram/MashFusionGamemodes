@@ -1,7 +1,48 @@
-﻿using Il2CppSLZ.Marrow;
+﻿using System.Collections.Immutable;
+using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using LabFusion.Extensions;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Registry.Keyed;
+using MashGamemodeLibrary.Util;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Interaction;
+
+enum WeaponType
+{
+    Pistol,
+    Smg,
+    Rifle,
+    Shotgun
+}
+
+class DamageRemapper
+{
+    private readonly float _lowValue;
+    private readonly float _highValue;
+
+    private float _lowTarget;
+    private float _highTarget;
+    
+    public DamageRemapper(float lowValue, float highValue, float target, float deviation = 0.0f)
+    {
+        _lowValue = lowValue;
+        _highValue = highValue;
+
+        var halfDeviation = deviation / 2f;
+        _lowTarget = Math.Max(target - halfDeviation, 0f);
+        _highTarget = Math.Max(target + halfDeviation, 0f);
+    }
+
+    public float GetDamage(float damage, float mult = 1f)
+    {
+        var clamped = MathUtil.Clamp(damage, _lowValue, _highValue);
+        var mapped = MathUtil.InverseLerp(_lowValue, _highValue, clamped);
+
+        return MathUtil.Lerp(_lowTarget, _highTarget, mapped) * mult;
+    }
+}
 
 public static class PlayerGunManager
 {
@@ -9,10 +50,118 @@ public static class PlayerGunManager
 
     public static event OnGunFiredHandler? OnGunFired;
 
-    // TODO: Check if this works and make it configurable
-    public static void NormalizeGunDamage(Gun gun)
+    private static readonly ImmutableDictionary<string, WeaponType> WeaponTypeLookup = ImmutableDictionary.CreateRange(new[]
     {
-        gun.defaultCartridge.projectile.damageMultiplier = 1f;
+        KeyValuePair.Create("Pisto;", WeaponType.Pistol),
+        KeyValuePair.Create("SMG", WeaponType.Smg),
+        KeyValuePair.Create("Shotgun", WeaponType.Shotgun),
+        KeyValuePair.Create("Rifle", WeaponType.Rifle)
+    });
+    private static readonly KeyedRegistry<WeaponType, DamageRemapper> DamageRemappers = new();
+    private static readonly Dictionary<Gun, float> DefaultGunDamage = new(new UnityComparer());
+    private static readonly Dictionary<Gun, float> CachedGunDamage = new(new UnityComparer());
+
+    private static bool _normalizePlayerDamage;
+    public static bool NormalizePlayerDamage
+    {
+        get => _normalizePlayerDamage;
+        set
+        {
+            _normalizePlayerDamage = value;
+            if (_normalizePlayerDamage)
+                return;
+            
+            foreach (var gun in CachedGunDamage.Keys.OfType<Gun>())
+            {
+                if (!DefaultGunDamage.TryGetValue(gun, out var damage))
+                    continue;
+
+                gun.defaultCartridge.projectile.damageMultiplier = damage;
+            }
+            CachedGunDamage.Clear();
+        }
+    }
+    
+    private static float _damageMultiplier = 1f;
+    public static float DamageMultiplier
+    {
+        get => _damageMultiplier;
+        set
+        {
+            _damageMultiplier = value;
+            CachedGunDamage.Clear();
+        }
+    }
+
+    static PlayerGunManager()
+    {
+        DamageRemappers.Register(WeaponType.Pistol, new DamageRemapper(
+            0.6f,
+            1f,
+            1f
+        ));
+        DamageRemappers.Register(WeaponType.Smg, new DamageRemapper(
+            0.4f,
+            0.9f,
+            0.8f,
+            0.3f
+        ));
+        DamageRemappers.Register(WeaponType.Shotgun, new DamageRemapper(
+            1f,
+            2f,
+            0.9f,
+            0.2f
+        ));
+        DamageRemappers.Register(WeaponType.Rifle, new DamageRemapper(
+            0.6f,
+            2f,
+            1.1f,
+            0.2f
+        ));
+    }
+
+    private static WeaponType GetWeaponType(Gun gun)
+    {
+        var crate = gun._poolee?.SpawnableCrate;
+        if (crate == null)
+            return WeaponType.Rifle;
+        
+        foreach (var tag in crate._tags)
+        {
+            if (tag == null) continue;
+
+            if (WeaponTypeLookup.TryGetValue(tag, out var type))
+                return type;
+        }
+
+        return WeaponType.Rifle;
+    }
+    
+    private static float GetGunDamageMultiplier(Gun gun)
+    {
+        if (CachedGunDamage.TryGetValue(gun, out var value))
+            return value;
+        
+        var defaultDamage = DefaultGunDamage.GetOrCreate(gun, () => gun.defaultCartridge.projectile.damageMultiplier);
+        var type = GetWeaponType(gun);
+        
+        // We register all types at the start
+        var damage = DamageRemappers.Get(type)!.GetDamage(defaultDamage, _damageMultiplier);
+        CachedGunDamage[gun] = damage;
+
+        return damage;
+    }
+
+    // TODO: Check if this works and make it configurable
+    private static void NormalizeGunDamage(Gun gun)
+    {
+        gun.defaultCartridge.projectile.damageMultiplier = GetGunDamageMultiplier(gun);
+    }
+
+    public static void OnGunGrabbed(Gun gun)
+    {
+        if (_normalizePlayerDamage)
+            NormalizeGunDamage(gun);
     }
 
     public static void InvokeGunFired(Gun instance)
@@ -37,5 +186,13 @@ public static class PlayerGunManager
             return;
 
         OnGunFired?.Invoke(player, instance);
+    }
+    
+    public static void Reset()
+    {
+        DefaultGunDamage.Clear();
+        CachedGunDamage.Clear();
+        _damageMultiplier = 0f;
+        _normalizePlayerDamage = false;
     }
 }

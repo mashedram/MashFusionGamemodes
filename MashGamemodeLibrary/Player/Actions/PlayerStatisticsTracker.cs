@@ -37,9 +37,9 @@ public static class PlayerStatisticsTracker
         }) + extraBits, 0);
     }
     
-    public static void SendNotificationAndAwardBits(params Enum[] keys)
+    public static void SendNotificationAndAwardBits(int extraBits, params Enum[] keys)
     {
-        var bits = GetTotalBits();
+        var bits = GetTotalBits(extraBits);
         
         var message = "";
         foreach (var key in keys)
@@ -59,6 +59,6 @@ public static class PlayerStatisticsTracker
             SaveToMenu = false,
             Type = NotificationType.SUCCESS
         });
-        PointItemManager.RewardBits(Math.Max(bits, 0));
+        PointItemManager.RewardBits(bits);
     }
 }

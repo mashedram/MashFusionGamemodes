@@ -83,6 +83,8 @@ internal class PlayerColliderCache
         16
     };
 
+    private static readonly Dictionary<string, int> DefaultLayer = new();
+
     private readonly HashSet<ColliderSet> _ignoredColliders = new();
     private readonly HashSet<PlayerColliderCache> _ignoredPlayers = new();
     private readonly Dictionary<GameObject, ColliderSet> _itemColliders = new();
@@ -90,7 +92,6 @@ internal class PlayerColliderCache
     
     
     private PhysicsRig? _physicsRig;
-    private Dictionary<GameObject, int> _originalLayer = new(new UnityComparer());
     private ColliderSet _physicsRigColliders = null!;
 
     public PlayerColliderCache(PhysicsRig physicsRig)
@@ -167,27 +168,26 @@ internal class PlayerColliderCache
     
     public void SetIgnoreRaycast(PlayerID target, bool colliding)
     {
-        if (_originalLayer.Count > 0)
-        {
-            foreach (var (go, layer) in _originalLayer)
-            {
-                go.layer = layer;
-            }
-            _originalLayer.Clear();
-        }
-        
-        if (colliding)
-            return;
+
         if (_physicsRig == null)
             return;
+        
+        if (colliding)
+        {
+            foreach (var collider in _physicsRig._collisionCollectors)
+            {
+                if (DefaultLayer.TryGetValue(collider.gameObject.name, out var layer))
+                    collider.gameObject.layer = layer;
+            }
+            
+            return;
+        }
         
         foreach (var collider in _physicsRig._collisionCollectors)
         {
             var go = collider.gameObject;
             var cLayer = go.layer;
             
-            if (_originalLayer.ContainsKey(go))
-
             if (target.IsMe)
             {
                 if (!IncludedLocalLayers.Contains(cLayer))
@@ -198,10 +198,11 @@ internal class PlayerColliderCache
                 if (!IncludedRemoteLayers.Contains(cLayer))
                     continue;
             }
+            
+            DefaultLayer.TryAdd(go.name, cLayer);
 
             // 2 Is ignore raycasts
             go.layer = 2;
-            _originalLayer[go] = cLayer;
         }
     }
 

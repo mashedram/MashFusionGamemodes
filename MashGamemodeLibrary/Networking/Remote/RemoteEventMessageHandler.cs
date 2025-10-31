@@ -7,6 +7,7 @@ using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
@@ -260,12 +261,8 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
                 return;
 
             foreach (var catchup in Catchups) catchup.OnCatchup(id);
-            
-            if (!GamemodeManager.IsGamemodeStarted)
-                return;
-            
-            if (GamemodeManager.ActiveGamemode is IOnLateJoin lateJoin)
-                lateJoin.OnLateJoin(id);
+
+            InternalGamemodeManager.OnLateJoin(id);
         });
     }
 

@@ -72,7 +72,7 @@ public static class PlayerDamageTracker
             case PlayerActionType.DEALT_DAMAGE_TO_OTHER_PLAYER:
                 OnDamage(playerId, otherPlayer);
                 break;
-            case PlayerActionType.DEATH_BY_OTHER_PLAYER:
+            case PlayerActionType.DYING_BY_OTHER_PLAYER:
                 OnDeath(playerId, otherPlayer);
                 break;
         }

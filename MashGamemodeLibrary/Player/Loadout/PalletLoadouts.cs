@@ -109,13 +109,13 @@ public static class PalletLoadoutManager
         return crate.Barcode;
     }
 
-    public static Loadout GetLoadout()
+    public static Player.Loadout.Loadout GetLoadout()
     {
         var primary = Get(WeaponType.Primary);
         var secondary = Get(WeaponType.Secondary);
         var tertiary = Get(WeaponType.Tertiary);
 
-        return new Loadout()
+        return new Player.Loadout.Loadout()
             .SetSlotBarcode(SlotType.RightBack, primary)
             .SetSlotBarcode(SlotType.RightHolster, secondary)
             .SetSlotBarcode(SlotType.Belt, tertiary);

@@ -30,7 +30,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt;
 
-internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntRound, ClockhuntConfig>
+internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig>
 {
     private const string CalibrationAvatar = "c3534c5a-94b2-40a4-912a-24a8506f6c79";
 

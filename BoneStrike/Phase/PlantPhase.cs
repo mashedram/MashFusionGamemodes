@@ -86,6 +86,9 @@ public class PlantPhase : GamePhase
 
         if (PlayerGrabManager.IsHoldingTag<BombMarker>(player.RigRefs.GetHand(handedness)))
         {
+            if (ElapsedTime < 15f)
+                return;
+            
             PhaseShouldQuit.Value = true;
         }
         else

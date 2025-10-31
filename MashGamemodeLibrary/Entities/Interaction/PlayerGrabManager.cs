@@ -5,6 +5,9 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
+using LabFusion.Player;
+using LabFusion.Senders;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
@@ -127,6 +130,11 @@ public static class PlayerGrabManager
     private static readonly Dictionary<ushort, double> LastGrabbedTime = new();
     private static readonly Dictionary<ushort, double> LastDroppedTime = new();
 
+    static PlayerGrabManager()
+    {
+        MultiplayerHooking.OnPlayerAction += OnPlayerAction;
+    }
+
     public static bool IsForceDisabled(GrabData grab)
     {
         return OverwriteMap.Count != 0 && OverwriteMap.Any(predicate => !predicate.Value.Invoke(grab));
@@ -247,5 +255,40 @@ public static class PlayerGrabManager
     {
         LastGrabbedTime.Remove(entityID);
         LastDroppedTime.Remove(entityID);
+    }
+
+    public static void DetachIfTag(Hand hand)
+    {
+        if (!hand.HasAttachedObject()) return;
+
+        var attached = hand.AttachedReceiver;
+        var rb = attached?.Host?.Rb;
+        if (rb == null) return;
+        
+        if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return;
+        if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return;
+
+        if (!entity.HasTagExtending<IEntityDropCallback>())
+            return;
+        
+        hand.TryDetach();
+    }
+    
+    // Events
+    
+    private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
+    {
+        if (type != PlayerActionType.DYING)
+            return;
+        
+        // We need to call drop shenanigans on player held items when the player dies
+        if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
+            return;
+        
+        if (!player.HasRig)
+            return;
+
+        DetachIfTag(player.RigRefs.LeftHand);
+        DetachIfTag(player.RigRefs.RightHand);
     }
 }

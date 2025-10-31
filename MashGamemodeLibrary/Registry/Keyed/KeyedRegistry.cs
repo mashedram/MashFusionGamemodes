@@ -7,7 +7,7 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Registry.Keyed;
 
-public abstract class KeyedRegistry<TKey, TValue> : IKeyedRegistry<TKey, TValue>
+public class KeyedRegistry<TKey, TValue> : IKeyedRegistry<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {

@@ -95,6 +95,11 @@ public static class PlayerHider
         _playerStates.Clear();
     }
 
+    public static void Refresh(PlayerID player)
+    {
+        GetOrCreateState(player)?.RefreshRenderers();
+    }
+
     internal static void OnGrab(GrabData hand)
     {
         if (hand.NetworkPlayer == null)

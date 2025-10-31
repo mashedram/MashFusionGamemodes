@@ -224,15 +224,16 @@ internal class PlayerVisibilityState
             _lastAvatar = null;
             return;
         }
-
-        // TODO: Check holsters here for zoning shenanigans
-        // Maybe check if the physicsrig changed?
-        // Idk
+        
         if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
             return;
 
         _lastAvatar = avatar;
 
+        PopulateRenderers();
+    }
+    public void RefreshRenderers()
+    {
         PopulateRenderers();
     }
 }

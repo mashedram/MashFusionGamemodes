@@ -14,6 +14,7 @@ public class NetworkEntityPatch
     {
         if (__instance == null)
             return;
+        
         EntityTagManager.Remove(__instance.ID);
         PlayerGrabManager.Remove(__instance.ID);
     }

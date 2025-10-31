@@ -57,5 +57,6 @@ public class Mod : MelonMod
         PlayerGrabManager.ClearOverwrites();
         PlayerHider.Reset();
         SpectatorManager.LocalReset();
+        PlayerGunManager.Reset();
     }
 }

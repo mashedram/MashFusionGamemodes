@@ -6,6 +6,7 @@ using BoneStrike.Tags;
 using BoneStrike.Teams;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.MLAgents;
+using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
@@ -16,6 +17,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Environment;
@@ -36,7 +38,7 @@ using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike;
 
-public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound, BoneStrikeConfig>
+public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
 {
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
@@ -46,7 +48,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
     public override bool DisableManualUnragdoll => true;
 
+    public override int RoundCount => 5;
+
     private readonly PersistentTeams _teams = new();
+    private Vector3 _resetPoint = Vector3.zero;
 
     protected override void OnRegistered()
     {
@@ -57,6 +62,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
 
     protected override void OnStart()
     {
+        _resetPoint = RigData.RigSpawn;
+        
         Executor.RunIfHost(() =>
         {
             _teams.Clear();
@@ -73,8 +80,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
         {
             _teams.SendMessage();
         });
-
-        PlayerStatisticsTracker.SendNotificationAndAwardBits(PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
     }
 
     protected override void OnRoundStart()
@@ -98,6 +103,9 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
                 return false;
             });
         });
+
+        PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
+        PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
         
         GamePhaseManager.Enable<PlantPhase>();
         
@@ -128,7 +136,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         FusionPlayer.ResetSpawnPoints();
-        GamemodeHelper.TeleportToSpawnPoint();
+        LocalPlayer.TeleportToPosition(_resetPoint);
+        
         Executor.RunIfHost(() =>
         {
             _teams.AddScore(winnerTeamId, 1);
@@ -141,7 +150,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BonestrikeRound
         LocalControls.LockedMovement = false;
         
         FusionPlayer.ResetSpawnPoints();
-
+        
         Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }
 

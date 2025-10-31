@@ -12,6 +12,19 @@ public static class GunPatches
     // ReSharper disable once InconsistentNaming
     private static void Fire_Postfix(Gun __instance)
     {
+        if (__instance == null)
+            return;
+        
         PlayerGunManager.InvokeGunFired(__instance);
     }
+
+    [HarmonyPatch(nameof(Gun.OnTriggerGripAttached))]
+    [HarmonyPostfix]
+    private static void OnGripAttached_Postfix(Gun __instance)
+    {
+        if (__instance == null)
+            return;
+        
+        PlayerGunManager.OnGunGrabbed(__instance);
+    } 
 }

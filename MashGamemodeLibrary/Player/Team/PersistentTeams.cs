@@ -216,5 +216,10 @@ public class PersistentTeams
             ShowPopup = true,
             Type = localWinner ? NotificationType.SUCCESS : NotificationType.ERROR
         });
+
+        var winCount = teamScores[localTeamID].score;
+        var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
+        
+        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits ,PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
     }
 }

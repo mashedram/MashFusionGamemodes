@@ -69,6 +69,15 @@ public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
     [ConfigStepSize(0.25f)]
     [SerializableField]
     public float HealthMultiplier = 1f;
+
+    [ConfigMenuEntry("Balance Weapon Damage")]
+    public bool BalanceDamage = true;
+    
+    [ConfigMenuEntry("Damage Multiplier")]
+    [ConfigRangeConstraint(0.25f, 4f)]
+    [ConfigStepSize(0.25f)]
+    [SerializableField]
+    public float DamageMultiplier = 1f;
     
     [ConfigMenuEntry("Dev Tools Disabled")]
     [SerializableField]
