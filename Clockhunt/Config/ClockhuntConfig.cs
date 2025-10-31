@@ -19,15 +19,15 @@ public enum GameType
 
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public ElementData GetElementData(string name, object value, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
     {
         return new FloatElementData
         {
-            Title = name,
+            Title = entry.Name,
             Increment = 0.25f,
             MaxValue = 10f,
             MinValue = 0.25f,
-            Value = Convert.ToSingle(value) / 60f,
+            Value = Convert.ToSingle(entry.DefaultValue) / 60f,
             OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
         };
     }

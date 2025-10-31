@@ -68,6 +68,7 @@ public class PersistentTeams
 
     private int _shift = Random.RandomRangeInt(0, 2);
     private readonly List<ulong> _teamIds = new();
+    private readonly HashSet<PlayerID> _playerIds = new();
     private readonly List<HashSet<PlayerID>> _playerSets = new();
     private readonly List<int> _scores = new();
     private readonly Queue<PlayerID> _lateJoinerQueue = new();
@@ -94,10 +95,12 @@ public class PersistentTeams
     public void AddPlayers(IEnumerable<PlayerID> playerIds)
     {
         _playerSets.ForEach(set => set.Clear());
+        _playerIds.Clear();
         
         var index = 0;
         foreach (var playerID in playerIds.Shuffle())
         {
+            _playerIds.Add(playerID);
             _playerSets[index].Add(playerID);
             index = (index + 1) % _playerSets.Count;
         }
@@ -125,6 +128,10 @@ public class PersistentTeams
         var index = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count).index;
         while (_lateJoinerQueue.TryDequeue(out var playerID))
         {
+            // Avoid double adding
+            if (!_playerIds.Add(playerID))
+                continue;
+            
             _playerSets[index].Add(playerID);
 
             index = (index + 1) % _playerSets.Count;

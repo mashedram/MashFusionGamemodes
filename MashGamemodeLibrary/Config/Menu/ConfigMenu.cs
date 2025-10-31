@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.Config.Menu;
 public class ConfigMenu
 {
     private readonly IConfig _instance;
-    private readonly List<ConfigMenuField> _fields = new();
+    private readonly List<ConfigEntryData> _fields = new();
 
     public ConfigMenu(IConfig instance)
     {
@@ -21,7 +21,7 @@ public class ConfigMenu
             var entry = field.GetCustomAttribute<ConfigMenuEntry>();
             if (entry == null) continue;
 
-            _fields.Add(new ConfigMenuField(_instance, field, entry));
+            _fields.Add(ConfigEntryData.Create(instance, field));
         }
     }
     
@@ -32,7 +32,7 @@ public class ConfigMenu
         foreach (var field in _fields)
         {
             var group = field.Category != null ? groups.GetOrCreate(field.Category, () => new GroupElementData(field.Category)) : root;
-            var elementData = field.GetElementData();
+            var elementData = field.GetElementData(_instance);
             
             group.AddElement(elementData);
         }

@@ -11,15 +11,15 @@ namespace BoneStrike.Config;
 
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public ElementData GetElementData(string name, object value, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
     {
         return new FloatElementData
         {
-            Title = name,
+            Title = entry.Name,
             Increment = 0.25f,
             MaxValue = 10f,
             MinValue = 0.25f,
-            Value = Convert.ToSingle(value) / 60f,
+            Value = Convert.ToSingle(entry.DefaultValue) / 60f,
             OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
         };
     }
@@ -27,11 +27,11 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
 
 internal class CrateBarcodeElement : IConfigElementProvider
 {
-    public ElementData GetElementData(string name, object value, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
     {
         return new SpawnableElementData
         {
-            Title = name,
+            Title = entry.Name,
             OnSetSpawnable = barcode =>
             {
                 if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
@@ -86,19 +86,4 @@ public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
     [ConfigMenuEntry("Spawnable")]
     [ConfigElementProvider(typeof(CrateBarcodeElement))]
     public string PalletBarcode = "";
-    
-    // public void AddExtraFields(GroupElementData root)
-    // {
-    //     root.AddElement(new SpawnableElementData
-    //     {
-    //         Title = "Spawnable",
-    //         OnSetSpawnable = barcode =>
-    //         {
-    //             if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
-    //                 return;
-    //
-    //             PalletBarcode = crate._pallet._barcode._id;
-    //         }
-    //     });
-    // }
 }
