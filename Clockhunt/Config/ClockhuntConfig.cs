@@ -77,6 +77,15 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     [ConfigRangeConstraint(1f, 5f)]
     public float NightmareHealthMult = 1f;
     
+    [ConfigMenuEntry("Balance Weapon Damage", "Difficulty")]
+    public bool BalanceDamage = true;
+    
+    [ConfigMenuEntry("Damage Multiplier", "Difficulty")]
+    [ConfigRangeConstraint(0.25f, 4f)]
+    [ConfigStepSize(0.25f)]
+    [SerializableField]
+    public float DamageMultiplier = 1f;
+    
     
     [ConfigMenuEntry("Weather Type", "Environment")]
     public WeatherType WeatherType = WeatherType.None;
@@ -97,6 +106,7 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     [ConfigMenuEntry("Runtime Spawnpoint Count", "EXPERIMENTAL")]
     [ConfigRangeConstraint(1, 20)]
     public int RuntimeSpawnCount = 6;
+    
 
     [ConfigMenuEntry("Dev Tools Enabled", "EXPERIMENTAL")]
     [SerializableField]

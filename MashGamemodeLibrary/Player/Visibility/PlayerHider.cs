@@ -76,7 +76,7 @@ public static class PlayerHider
     public static void SetHidden(this PlayerID playerID, string key, bool hidden)
     {
         var state = GetOrCreateState(playerID);
-
+        
         state?.SetHidden(key, hidden);
     }
 

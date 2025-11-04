@@ -165,7 +165,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
         TeamManager.Disable();
         
         GameObjectExtender.DestroyAll();
-        LimitedRespawnTag.SetSpectatePredicate(null);
         
         PlayerHider.Reset();
         Executor.RunIfHost(() =>

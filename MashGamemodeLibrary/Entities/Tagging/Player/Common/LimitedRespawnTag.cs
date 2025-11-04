@@ -2,6 +2,7 @@
 using LabFusion.Entities;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.Senders;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Base;
@@ -36,13 +37,13 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
     public int Respawns { get; private set; }
     
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
-    private static PlayerSpectatePredicate? _spectatePredicate;
+    private static readonly Dictionary<Type, PlayerSpectatePredicate> SpectatePredicates = new();
 
-    public static void SetSpectatePredicate(PlayerSpectatePredicate? predicate)
+    public static void RegisterSpectatePredicate<T>(PlayerSpectatePredicate predicate) where T : Gamemode
     {
-        _spectatePredicate = predicate;
+        SpectatePredicates[typeof(T)] = predicate;
     }
-
+    
     public LimitedRespawnTag() {}
     
     /// <summary>
@@ -95,7 +96,7 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
                 return;
             }
             
-            if (_spectatePredicate != null && !_spectatePredicate.Invoke(Owner))
+            if (GamemodeManager.IsGamemodeStarted && SpectatePredicates.TryGetValue(GamemodeManager.ActiveGamemode.GetType(), out var predicate) && !predicate.Invoke(Owner))
                 return;
             
             // We don't want the spectator message to overlap with the game lost message

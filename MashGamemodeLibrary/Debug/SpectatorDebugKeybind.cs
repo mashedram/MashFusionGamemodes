@@ -18,10 +18,6 @@ public class SpectatorDebugKeybind : DebugKeybind
         {
             var playerID = PlayerIDManager.LocalID;
             playerID.SetSpectating(!SpectatorManager.IsPlayerSpectating(playerID.SmallID));
-            // foreach (var playerID in PlayerIDManager.PlayerIDs)
-            // {
-            //     
-            // }
         });
     };
 }

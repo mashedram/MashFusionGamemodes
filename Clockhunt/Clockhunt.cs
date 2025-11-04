@@ -13,6 +13,7 @@ using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Context;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Environment;
@@ -50,6 +51,18 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
+        
+        LimitedRespawnTag.RegisterSpectatePredicate<Clockhunt>(player =>
+        {
+            if (Config.DebugSkipSpectate)
+                return false;
+                
+            if (AnyAliveSurvivors(player))
+                return true;
+
+            WinManager.Win<NightmareTeam>();
+            return false;
+        });
     }
 
     private static void ListenToAvatarChange(Avatar avatar, string barcode)
@@ -71,17 +84,11 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
             NightmareManager.ClearNightmares();
             SpectatorManager.Clear();
             
-            LimitedRespawnTag.SetSpectatePredicate(player =>
-            {
-                if (AnyAliveSurvivors(player))
-                    return true;
-
-                WinManager.Win<NightmareTeam>();
-                return false;
-            });
-            
             GamePhaseManager.Enable<HidePhase>();
         });
+        
+        PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
+        PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         ClockhuntMusicContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night",

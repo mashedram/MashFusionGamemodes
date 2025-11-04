@@ -58,6 +58,16 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         EntityTagManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
+        
+        LimitedRespawnTag.RegisterSpectatePredicate<BoneStrike>(player =>
+        {
+            if (AnyDefusers(player))
+                return true;
+
+            ExplodeAllBombs();
+            WinManager.Win<TerroristTeam>();
+            return false;
+        });
     }
 
     protected override void OnStart()
@@ -86,22 +96,12 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         TeamManager.Enable<TerroristTeam>();
         TeamManager.Enable<CounterTerroristTeam>();
-        
+
         Executor.RunIfHost(() =>
         {
             _teams.AssignAll();
-            
-            PalletLoadoutManager.Load(Config.PalletBarcode);
-            
-            LimitedRespawnTag.SetSpectatePredicate(player =>
-            {
-                if (AnyDefusers(player))
-                    return true;
 
-                ExplodeAllBombs();
-                WinManager.Win<TerroristTeam>();
-                return false;
-            });
+            PalletLoadoutManager.Load(Config.PalletBarcode);
         });
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
