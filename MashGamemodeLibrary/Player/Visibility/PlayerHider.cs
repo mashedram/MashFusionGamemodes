@@ -15,7 +15,7 @@ namespace MashGamemodeLibrary.Vision;
 public static class PlayerHider
 {
     private static bool _hideSpecials;
-    private static readonly Dictionary<byte, PlayerVisibilityState> _playerStates = new();
+    private static readonly Dictionary<byte, PlayerVisibilityState> PlayerStates = new();
 
     public static void Register()
     {
@@ -31,7 +31,7 @@ public static class PlayerHider
 
     private static PlayerVisibilityState? GetOrCreateState(byte playerId)
     {
-        if (_playerStates.TryGetValue(playerId, out var state)) return state;
+        if (PlayerStates.TryGetValue(playerId, out var state)) return state;
 
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
         {
@@ -41,7 +41,7 @@ public static class PlayerHider
         }
 
         state = new PlayerVisibilityState(player, _hideSpecials);
-        _playerStates[playerId] = state;
+        PlayerStates[playerId] = state;
 
         return state;
     }
@@ -62,7 +62,7 @@ public static class PlayerHider
 
     private static void OnPlayerLeft(PlayerID playerId)
     {
-        _playerStates.Remove(playerId);
+        PlayerStates.Remove(playerId);
     }
 
     public static bool IsHidden(this PlayerID playerID)
@@ -70,7 +70,7 @@ public static class PlayerHider
         if (!NetworkInfo.HasServer)
             return false;
 
-        return !_playerStates.TryGetValue(playerID, out var state) || state.IsHidden;
+        return !PlayerStates.TryGetValue(playerID, out var state) || state.IsHidden;
     }
 
     public static void SetHidden(this PlayerID playerID, string key, bool hidden)
@@ -91,8 +91,8 @@ public static class PlayerHider
     {
         _hideSpecials = false;
 
-        foreach (var state in _playerStates.Values) state.Reset();
-        _playerStates.Clear();
+        foreach (var state in PlayerStates.Values) state.Reset();
+        PlayerStates.Clear();
     }
 
     public static void Refresh(PlayerID player)
@@ -145,6 +145,6 @@ public static class PlayerHider
 
     public static void Update()
     {
-        _playerStates.Values.ForEach(p => p.Update());
+        PlayerStates.Values.ForEach(p => p.Update());
     }
 }

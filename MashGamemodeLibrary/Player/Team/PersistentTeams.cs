@@ -68,8 +68,6 @@ public class PersistentTeams
     private readonly List<int> _scores = new();
     private readonly Queue<PlayerID> _lateJoinerQueue = new();
     
-    private readonly 
-
     private ulong GetTeamId(int setIndex)
     {
         var index = (setIndex + _shift) % _teamIds.Count;
