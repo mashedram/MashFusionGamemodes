@@ -129,20 +129,6 @@ public class HuntPhase : GamePhase, ITimedPhase
 
     public override PhaseIdentifier GetNextPhase()
     {
-        // Hide and seek
-        if (Clockhunt.Config.GameType == GameType.HideAndSeek)
-        {
-            if (!HasReachedDuration()) return PhaseIdentifier.Empty();
-            
-            if (Clockhunt.Config.IsEscapePhaseEnabled)
-            {
-                return PhaseIdentifier.Of<EscapePhase>();
-            }
-          
-            WinManager.Win<SurvivorTeam>();
-            return PhaseIdentifier.Empty();
-        }
-        
         // Clockhunt
         if (HasReachedDuration())
         {
@@ -179,12 +165,9 @@ public class HuntPhase : GamePhase, ITimedPhase
 
             EscapeManager.CollectEscapePoints();
 
-            if (Clockhunt.Config.GameType == GameType.Clockhunt)
-            {
-                SetDeliveryPosition();
-                ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
-                context.ClockAudioPlayer.Start();
-            }
+            SetDeliveryPosition();
+            ClockManager.RemoveUntilCount(Clockhunt.Config.HuntPhaseClockCount);
+            context.ClockAudioPlayer.Start();
         });
     }
 

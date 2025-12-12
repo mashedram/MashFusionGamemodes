@@ -225,6 +225,7 @@ internal class PlayerVisibilityState
             return;
         }
         
+        // TODO: Check every tick for the wanted state and handle based on that
         if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
             return;
 

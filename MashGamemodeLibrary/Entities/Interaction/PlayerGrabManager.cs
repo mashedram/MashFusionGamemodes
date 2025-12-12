@@ -11,6 +11,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
@@ -148,7 +149,7 @@ public static class PlayerGrabManager
         // Callbacks to internal systems
 
         PlayerHider.OnGrab(grab);
-        SpectatorManager.OnGrab(grab);
+        PlayerColliderManager.OnGrab(grab);
 
         // Callbacks to external systems
 
@@ -176,7 +177,7 @@ public static class PlayerGrabManager
         // Callbacks to internal systems
 
         PlayerHider.OnDrop(grab);
-        SpectatorManager.OnDrop(grab);
+        PlayerColliderManager.OnDrop(grab);
 
         // Callback to external systems
 

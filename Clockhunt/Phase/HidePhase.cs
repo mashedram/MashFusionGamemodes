@@ -31,18 +31,8 @@ public class HidePhase : GamePhase, ITimedPhase
     {
         Notifier.Send(new Notification
         {
-            Title = Clockhunt.Config.GameType switch
-            {
-                GameType.Clockhunt => "Clockhunt",
-                GameType.HideAndSeek => "Hide and Seek",
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            Message = Clockhunt.Config.GameType switch
-            {
-                GameType.Clockhunt => "Hide the clocks well",
-                GameType.HideAndSeek => "Hide and don't get found",
-                _ => throw new ArgumentOutOfRangeException()
-            },
+            Title = "Clockhunt",
+            Message = "Hide the clocks well",
             PopupLength = 4f,
             SaveToMenu = false,
             ShowPopup = true,
@@ -52,18 +42,15 @@ public class HidePhase : GamePhase, ITimedPhase
         Executor.RunIfHost(() =>
         {
             TeamManager.AssignAll<SurvivorTeam>();
-
-            if (Clockhunt.Config.GameType == GameType.Clockhunt)
+            
+            NetworkPlayer.Players.ForEach(player =>
             {
-                NetworkPlayer.Players.ForEach(player =>
-                {
-                    if (!player.HasRig) return;
+                if (!player.HasRig) return;
 
-                    // TODO: Make this spawn a new one once the old one was placed
-                    for (var i = 0; i < Clockhunt.Config.ClocksPerPlayer; i++)
-                        ClockManager.SpawnEntityForPlayer(player);
-                });
-            }
+                // TODO: Make this spawn a new one once the old one was placed
+                for (var i = 0; i < Clockhunt.Config.ClocksPerPlayer; i++)
+                    ClockManager.SpawnEntityForPlayer(player);
+            });
         });
 
         if (Clockhunt.Config.RuntimeSpawnPointsEnabled) SpawnManager.Reset();

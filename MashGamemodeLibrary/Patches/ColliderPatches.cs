@@ -4,6 +4,7 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.MonoBehaviours;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
@@ -42,7 +43,7 @@ public class ColliderPatches
         if (networkEntity.ID == PlayerIDManager.LocalSmallID)
             return true;
 
-        SpectatorManager.StartIgnoring(networkEntity);
+        PlayerColliderManager.StartIgnoring(networkEntity);
         return false;
     }
 }

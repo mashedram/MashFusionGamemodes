@@ -11,12 +11,6 @@ using MashGamemodeLibrary.Util;
 
 namespace Clockhunt.Config;
 
-public enum GameType
-{
-    Clockhunt,
-    HideAndSeek
-}
-
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
     public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
@@ -35,10 +29,6 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
 
 public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfigMenuProvider
 {
-    [ConfigMenuEntry("Game Type")]
-    [SerializableField]
-    public GameType GameType = GameType.Clockhunt;
-    
     [ConfigMenuEntry("Hide phase duration", "Time")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [SerializableField]
