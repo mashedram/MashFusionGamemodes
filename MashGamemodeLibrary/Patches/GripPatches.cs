@@ -34,11 +34,11 @@ public class GripPatches
         
         var grab = new GrabData(hand, __instance);
 
-        var res = PlayerGrabManager.CanGrabEntity(grab);
-        if (!res)
-            __instance.DropWeapon();
-
-        return res;
+        if (PlayerGrabManager.CanGrabEntity(grab))
+            return true;
+           
+        __instance.DropWeapon();
+        return false;
     }
 
     [HarmonyPrefix]
@@ -109,7 +109,7 @@ public class GripPatches
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
     public static void AttachObject_Postfix(Grip __instance, Hand hand)
     {
-        if (!__instance || !hand)
+        if (__instance == null || hand == null)
             return;
 
         var grab = new GrabData(hand, __instance);
@@ -124,7 +124,7 @@ public class GripPatches
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
     public static void DetachObject(Grip __instance)
     {
-        if (!__instance)
+        if (__instance == null)
             return;
         
         var hand = __instance.GetHand();

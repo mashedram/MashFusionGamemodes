@@ -13,7 +13,7 @@ namespace Clockhunt.Game.Teams;
 public class NightmareTeam : Team
 {
     public override string Name => "Nightmare";
-    public override uint Capacity => 1;
+    public virtual uint Capacity => 1;
 
     protected override void OnAssigned()
     {

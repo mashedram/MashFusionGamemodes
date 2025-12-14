@@ -19,11 +19,11 @@ public static class AvatarPatches
         if (!maybeStats.HasValue)
             return;
 
-        if (!__instance || __instance.name == "[RealHeptaRig (Marrow1)]")
+        if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
             return;
 
         var rigManager = __instance.GetComponentInParent<RigManager>();
-        if (!rigManager) return;
+        if (rigManager == null) return;
 
         if (rigManager != BoneLib.Player.RigManager)
             return;

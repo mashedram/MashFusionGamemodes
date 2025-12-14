@@ -89,7 +89,8 @@ public static class InternalGamemodeManager
         if (!GamemodeManager.IsGamemodeStarted)
             return;
 
-        if (_roundIndex >= RoundCount)
+        // Reduce by 1 to see if this is the last round
+        if (_roundIndex >= RoundCount - 1)
         {
             GamemodeManager.StopGamemode();
             return;

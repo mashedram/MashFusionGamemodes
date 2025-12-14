@@ -7,7 +7,9 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Player.Visibility;
 using MelonLoader;
+using Steamworks.Data;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Vision;
@@ -15,6 +17,8 @@ namespace MashGamemodeLibrary.Vision;
 public static class PlayerHider
 {
     private static bool _hideSpecials;
+    private static int _currentIndex = 0;
+    private static readonly List<byte> _updateList = new();
     private static readonly Dictionary<byte, PlayerVisibilityState> _playerStates = new();
 
     public static void Register()
@@ -41,6 +45,7 @@ public static class PlayerHider
         }
 
         state = new PlayerVisibilityState(player, _hideSpecials);
+        _updateList.Add(playerId);
         _playerStates[playerId] = state;
 
         return state;
@@ -62,6 +67,7 @@ public static class PlayerHider
 
     private static void OnPlayerLeft(PlayerID playerId)
     {
+        _updateList.Remove(playerId);
         _playerStates.Remove(playerId);
     }
 
@@ -93,6 +99,7 @@ public static class PlayerHider
 
         foreach (var state in _playerStates.Values) state.Reset();
         _playerStates.Clear();
+        _updateList.Clear();
     }
 
     public static void Refresh(PlayerID player)
@@ -145,6 +152,29 @@ public static class PlayerHider
 
     public static void Update()
     {
-        _playerStates.Values.ForEach(p => p.Update());
+        if (!NetworkInfo.HasServer)
+            return;
+        
+        if (_updateList.Count <= 0) 
+            return;
+
+        const int maxPlayers = byte.MaxValue + 1;
+        const int maxUpdatesPerTick = 4;
+        const int stepSize = maxPlayers / maxUpdatesPerTick;
+        
+        // Add one to offset the division to a 1 based index
+        var updatesPerTick = stepSize / _updateList.Count + 1;
+
+        for (var i = 0; i < updatesPerTick; i++)
+        {
+            // Correct index
+            _currentIndex %= _updateList.Count;
+            
+            var playerId = _updateList[_currentIndex];
+            var state = _playerStates[playerId];
+            
+            state.Update();
+            _currentIndex++;
+        }
     }
 }

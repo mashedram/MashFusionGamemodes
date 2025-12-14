@@ -8,9 +8,6 @@ namespace MashGamemodeLibrary.Player.Team;
 public abstract class Team
 {
     public abstract string Name { get; }
-    public virtual uint Capacity => UInt32.MaxValue;
-    public virtual uint Weight => 1;
-
     public NetworkPlayer Owner { get; private set; } = null!;
 
     protected virtual void OnAssigned()

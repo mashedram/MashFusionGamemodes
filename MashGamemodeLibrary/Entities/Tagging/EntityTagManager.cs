@@ -13,6 +13,7 @@ using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities.Tagging;
 
@@ -144,6 +145,9 @@ class UpdateTagCache : TagCache<ITagUpdate>
 public static class EntityTagManager
 {
     private static readonly FactoryTypedRegistry<IEntityTag> Registry = new();
+
+    private static int _currentIndex;
+    private static readonly List<EntityTagIndex> Indices = new();
     private static readonly SyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager", new NetSerializableEncoder<EntityTagIndex>(), new DynamicInstanceEncoder<IEntityTag>(Registry));
     
     // Helper Extension Map
@@ -192,6 +196,8 @@ public static class EntityTagManager
 
     private static void OnTagAdded(EntityTagIndex key, IEntityTag value)
     {
+        Indices.Add(key);
+        
         var entityToTag = GetEntityToTagSet(key.EntityID);
        
         entityToTag.Add(key);
@@ -219,6 +225,8 @@ public static class EntityTagManager
 
     private static void OnTagRemoved(EntityTagIndex key, IEntityTag oldValue)
     {
+        Indices.Remove(key);
+        
         var entityToTag = GetEntityToTagSet(key.EntityID);
         entityToTag.Remove(key);
 
@@ -236,6 +244,7 @@ public static class EntityTagManager
 
     private static void OnTagsCleared()
     {
+        Indices.Clear();
         EntityToTagMap.Clear();
         TagToEntityMap.Clear();
         foreach (var (_, cache) in TypedTagCache)
@@ -535,6 +544,38 @@ public static class EntityTagManager
 
     public static void Update(float delta)
     {
+        var currentTime = Time.timeSinceLevelLoadAsDouble;
+        // Check for validity of current tags
+        const double LoadingTimeoutSeconds = 10d;
+        const int checksPerTick = 6;
+        var tagCount = Indices.Count;
+        var checksThisTick = Math.Min(Indices.Count, checksPerTick);
+        for (var i = 0; i < checksThisTick; i++)
+        {
+            _currentIndex %= tagCount;
+
+            var key = Indices[_currentIndex];
+            var entityId = key.EntityID;
+            if (!NetworkEntityManager.IDManager.RegisteredEntities.HasEntity(entityId))
+            {
+                var tag = Tags[key];
+                if (!tag.HasLoaded())
+                {
+                    var createdAt = tag.CreatedAt();
+                    if (currentTime - createdAt > LoadingTimeoutSeconds)
+                    {
+                        Remove(entityId);
+                    }
+                }
+                else
+                {
+                    Remove(entityId);
+                }
+            }
+            
+            _currentIndex += 1;
+        }
+        
         DirectUpdateTagCache.Call(delta);
     }
     

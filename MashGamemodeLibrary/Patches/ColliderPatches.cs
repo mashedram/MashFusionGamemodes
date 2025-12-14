@@ -19,6 +19,10 @@ public class ColliderPatches
     [HarmonyPrefix]
     private static bool OnCollisionEnter_Prefix(Collision collision)
     {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (collision == null)
+            return true;
+        
         if (!NetworkInfo.HasServer)
             return true;
         // If we collide but aren't spectating, we don't care.
@@ -44,6 +48,6 @@ public class ColliderPatches
             return true;
 
         PlayerColliderManager.StartIgnoring(networkEntity);
-        return false;
+        return true;
     }
 }

@@ -90,4 +90,9 @@ internal class RenderSet
 
         return true;
     }
+
+    public bool AllValid()
+    {
+        return _renderers.All(r => r != null);
+    }
 }

@@ -2,12 +2,12 @@ using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.VRMK;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Vision;
 using MashGamemodeLibrary.Vision.Holster;
 using MashGamemodeLibrary.Vision.Holster.Receivers;
 
-namespace MashGamemodeLibrary.Vision;
+namespace MashGamemodeLibrary.Player.Visibility;
 
 internal class PlayerVisibilityState
 {
@@ -226,7 +226,7 @@ internal class PlayerVisibilityState
         }
         
         // TODO: Check every tick for the wanted state and handle based on that
-        if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
+        if (_lastAvatar != null && avatar == _lastAvatar && _avatarRenderers.AllValid() && _isHiddenInternal == IsHidden)
             return;
 
         _lastAvatar = avatar;
