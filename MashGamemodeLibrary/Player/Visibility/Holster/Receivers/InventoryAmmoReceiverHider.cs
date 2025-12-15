@@ -39,4 +39,15 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
 
         return true;
     }
+
+    public void Update()
+    {
+        if (!_isHidden)
+            return;
+
+        if (_art != null && !_art.active)
+            return;
+
+        FetchRenderers(_isHidden);
+    }
 }

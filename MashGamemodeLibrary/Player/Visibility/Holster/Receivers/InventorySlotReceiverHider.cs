@@ -39,4 +39,9 @@ internal class InventorySlotReceiverHider : IReceiverHider
 
         return _renderSet.Set(gameObject);
     }
+
+    public void Update()
+    {
+        // Do nothing
+    }
 }

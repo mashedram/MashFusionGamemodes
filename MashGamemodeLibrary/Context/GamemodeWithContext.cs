@@ -1,6 +1,7 @@
 ﻿using LabFusion.Menu.Data;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Preferences;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;

@@ -5,12 +5,6 @@ using LabFusion.Utilities;
 
 namespace MashGamemodeLibrary.Player.Actions;
 
-public enum PlayerDamageStatistics
-{
-    Kills,
-    Assists
-}
-
 public static class PlayerDamageTracker
 {
     private static readonly Dictionary<byte, HashSet<byte>> DamageMarks = new();
@@ -19,8 +13,8 @@ public static class PlayerDamageTracker
     {
         MultiplayerHooking.OnPlayerAction += OnAction;
         
-        PlayerStatisticsTracker.Register(PlayerDamageStatistics.Kills, v => v * 10);
-        PlayerStatisticsTracker.Register(PlayerDamageStatistics.Assists, v => v * 5);
+        PlayerStatisticsTracker.Register(PlayerStatisticsKeys.Kills, v => v * 10);
+        PlayerStatisticsTracker.Register(PlayerStatisticsKeys.Assists, v => v * 5);
     }
 
     public static void Reset()
@@ -58,9 +52,9 @@ public static class PlayerDamageTracker
         var map = GetInner(damaged);
 
         if (damager.IsMe)
-            PlayerStatisticsTracker.Increment(PlayerDamageStatistics.Kills);
+            PlayerStatisticsTracker.Increment(PlayerStatisticsKeys.Kills);
         else if (map.Contains(PlayerIDManager.LocalSmallID)) 
-            PlayerStatisticsTracker.Increment(PlayerDamageStatistics.Assists);
+            PlayerStatisticsTracker.Increment(PlayerStatisticsKeys.Assists);
             
         map.Clear();
     }
@@ -73,7 +67,7 @@ public static class PlayerDamageTracker
                 OnDamage(playerId, otherPlayer);
                 break;
             case PlayerActionType.DYING_BY_OTHER_PLAYER:
-                OnDeath(playerId, otherPlayer);
+                OnDeath(otherPlayer, playerId);
                 break;
         }
     }

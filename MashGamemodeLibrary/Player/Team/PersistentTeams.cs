@@ -227,6 +227,6 @@ public class PersistentTeams
         var winCount = teamScores[localTeamID].score;
         var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
         
-        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits ,PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
+        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits ,PlayerStatisticsKeys.Kills, PlayerStatisticsKeys.Assists);
     }
 }

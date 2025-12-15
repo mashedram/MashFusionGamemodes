@@ -203,7 +203,7 @@ internal class PlayerVisibilityState
     {
         foreach (var inventoryRenderersValue in _inventoryRenderers.Values)
         {
-            inventoryRenderersValue.UpdateIf<InventoryAmmoReceiverHider>(IsHidden);
+            inventoryRenderersValue.FetchRenderersIf<InventoryAmmoReceiverHider>(IsHidden);
         }
     }
     
@@ -213,6 +213,11 @@ internal class PlayerVisibilityState
         {
             _lastAvatar = null;
             return;
+        }
+        
+        foreach (var holsterHider in _inventoryRenderers.Values)
+        {
+            holsterHider.Update();
         }
 
         var rigManager = _player.RigRefs.RigManager;

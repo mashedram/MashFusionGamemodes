@@ -70,12 +70,17 @@ internal class HolsterHider
         return _receiver.FetchRenderers(hidden);
     }
 
-    public bool UpdateIf<T>(bool? hidden = null) where T : IReceiverHider
+    public bool FetchRenderersIf<T>(bool? hidden = null) where T : IReceiverHider
     {
         if (_receiver == null || _receiver.GetType() != typeof(T))
             return true;
 
         return FetchRenderers(hidden);
+    }
+
+    public void Update()
+    {
+        _receiver?.Update();
     }
 
     public bool SetHidden(bool hidden)

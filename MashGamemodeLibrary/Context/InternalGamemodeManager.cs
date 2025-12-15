@@ -29,6 +29,7 @@ public class RoundStartPacket : INetSerializable
 public class RoundEndPacket : INetSerializable
 {
     public ulong WinningTeamID;
+    public bool HasNextRound;
     public float TimeUntilNextRound;
 
     public int? GetSize()
@@ -39,6 +40,7 @@ public class RoundEndPacket : INetSerializable
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref WinningTeamID);
+        serializer.SerializeValue(ref HasNextRound);
         serializer.SerializeValue(ref TimeUntilNextRound);
     }
 }
@@ -90,7 +92,8 @@ public static class InternalGamemodeManager
             return;
 
         // Reduce by 1 to see if this is the last round
-        if (_roundIndex >= RoundCount - 1)
+        var hasNextRound = _roundIndex >= RoundCount - 1;
+        if (hasNextRound)
         {
             GamemodeManager.StopGamemode();
             return;
@@ -99,6 +102,7 @@ public static class InternalGamemodeManager
         RoundEndEvent.Call(new RoundEndPacket
         {
             WinningTeamID = winningTeamId,
+            HasNextRound = hasNextRound,
             TimeUntilNextRound = TimeBetweenRounds
         });
     }
@@ -146,16 +150,19 @@ public static class InternalGamemodeManager
 
         _inRound = false;
         _roundCooldown = packet.TimeUntilNextRound;
-        
-        Notifier.Send(new Notification
+
+        if (packet.HasNextRound)
         {
-            Title = "Cooldown",
-            Message = $"The next round will start in {MathF.Round(_roundCooldown):N0} seconds",
-            PopupLength = 4f,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.INFORMATION
-        });
+            Notifier.Send(new Notification
+            {
+                Title = "Cooldown",
+                Message = $"The next round will start in {MathF.Round(_roundCooldown):N0} seconds",
+                PopupLength = 4f,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
+        }
         
         gamemode.EndRound(packet.WinningTeamID);
     }
