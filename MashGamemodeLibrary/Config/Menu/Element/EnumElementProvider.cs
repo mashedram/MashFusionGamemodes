@@ -5,14 +5,14 @@ namespace MashGamemodeLibrary.Config.Menu.Element;
 
 public class EnumElementProvider : IConfigElementProvider
 {
-    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
         return new EnumElementData
         {
             Title = entry.Name,
             EnumType = entry.Type,
-            Value = (Enum)entry.DefaultValue,
-            OnValueChanged = setter
+            Value = (Enum)entry.Value,
+            OnValueChanged = value => setter(entry, value)
         };
     }
 }

@@ -27,4 +27,11 @@ public static class MathUtil
 
         return value;
     }
+    
+    // Single
+
+    public static float Clamp01(this float value)
+    {
+        return Clamp(value, 0f, 1f);
+    }
 }

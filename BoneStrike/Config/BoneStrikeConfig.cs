@@ -12,7 +12,7 @@ namespace BoneStrike.Config;
 
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
         return new FloatElementData
         {
@@ -20,15 +20,15 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
             Increment = 0.25f,
             MaxValue = 10f,
             MinValue = 0.25f,
-            Value = Convert.ToSingle(entry.DefaultValue) / 60f,
-            OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
+            Value = Convert.ToSingle(entry.Value) / 60f,
+            OnValueChanged = f => setter(entry, Convert.ToSingle(f) * 60f)
         };
     }
 }
 
 internal class CrateBarcodeElement : IConfigElementProvider
 {
-    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
         return new SpawnableElementData
         {
@@ -38,7 +38,7 @@ internal class CrateBarcodeElement : IConfigElementProvider
                 if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
                     return;
 
-                setter.Invoke(crate._pallet._barcode._id);
+                setter.Invoke(entry, crate._pallet._barcode._id);
             }
         };
     }
@@ -84,7 +84,7 @@ public class BoneStrikeConfig : IConfig
     [SerializableField]
     public bool DevToolsDisabled = true;
 
-    [ConfigMenuEntry("Spawnable")]
+    [ConfigMenuEntry("Set Spawnable")]
     [ConfigElementProvider(typeof(CrateBarcodeElement))]
     public string PalletBarcode = "";
 

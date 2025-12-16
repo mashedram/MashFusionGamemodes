@@ -226,7 +226,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
         
         // Reset statistics
         PlayerStatisticsTracker.Clear();
-        PlayerDamageTracker.Reset();
         
         _isStartedInternal = true;
         OnStart();
@@ -264,11 +263,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
             return true;
 
         return CanAttackPlayer(player);
-    }
-
-    public void ClearCache()
-    {
-        _configMenu.ClearCache();
     }
     
     public override GroupElementData CreateSettingsGroup()

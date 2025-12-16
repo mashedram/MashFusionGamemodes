@@ -8,6 +8,7 @@ using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase.Rounds;
+using MashGamemodeLibrary.Player.Actions;
 
 namespace MashGamemodeLibrary.Context;
 
@@ -138,7 +139,9 @@ public static class InternalGamemodeManager
                 Type = NotificationType.INFORMATION
             });
         }
-
+        
+        // Reset the player tracker
+        PlayerDamageTracker.Reset();
         
         gamemode.StartRound(packet.Index);
     }

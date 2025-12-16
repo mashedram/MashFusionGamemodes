@@ -21,7 +21,7 @@ public class ConfigMenu
             var entry = field.GetCustomAttribute<ConfigMenuEntry>();
             if (entry == null) continue;
 
-            _fields.Add(ConfigEntryData.Create(instance, field));
+            _fields.Add(new ConfigEntryData(instance, field));
         }
     }
     
@@ -48,13 +48,5 @@ public class ConfigMenu
         }
 
         return root;
-    }
-    
-    public void ClearCache()
-    {
-        foreach (var configEntryData in _fields)
-        {
-            configEntryData.ClearCache();
-        }
     }
 }

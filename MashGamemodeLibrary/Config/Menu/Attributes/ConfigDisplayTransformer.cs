@@ -4,7 +4,7 @@ namespace MashGamemodeLibrary.Config.Menu.Attributes;
 
 public interface IConfigElementProvider
 {
-    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter);
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter);
 }
 
 [AttributeUsage(AttributeTargets.Field)]

@@ -9,5 +9,4 @@ public interface IGamemode
     void StartRound(int index);
     void EndRound(ulong winnerTeamId);
     void OnLateJoin(PlayerID playerID);
-    void ClearCache();
 }

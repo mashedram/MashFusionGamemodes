@@ -42,7 +42,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 {
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
-    
+
     public override bool AutoHolsterOnDeath => true;
     public override bool DisableDevTools => Config.DevToolsDisabled;
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
@@ -58,7 +58,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         EntityTagManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
-        
+
         LimitedRespawnTag.RegisterSpectatePredicate<BoneStrike>(player =>
         {
             if (AnyDefusers(player))
@@ -73,7 +73,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     protected override void OnStart()
     {
         _resetPoint = RigData.RigSpawn;
-        
+
         Executor.RunIfHost(() =>
         {
             _teams.Clear();
@@ -106,16 +106,16 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-        
+
         GamePhaseManager.Enable<PlantPhase>();
-        
+
         var spawns = GamemodeMarker.FilterMarkers();
 
         if (spawns.Count > 0)
         {
             GamemodeHelper.SetSpawnPoints(spawns);
         }
-        
+
         PlayerStatManager.SetStats(new PlayerStats
         {
             Agility = 1.2f,
@@ -124,7 +124,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             Speed = 1.5f,
             Vitality = 1f
         }.MulitplyHealth(Config.HealthMultiplier));
-        
+
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]
             {
@@ -137,7 +137,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         FusionPlayer.ResetSpawnPoints();
         LocalPlayer.TeleportToPosition(_resetPoint);
-        
+
         Executor.RunIfHost(() =>
         {
             _teams.AddScore(winnerTeamId, 1);
@@ -148,9 +148,9 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
-        
+
         FusionPlayer.ResetSpawnPoints();
-        
+
         Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }
 
@@ -161,7 +161,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             playerID.SetSpectating(true);
             _teams.QueueLateJoiner(playerID);
         });
-        
+
     }
 
     public override bool CanAttackPlayer(PlayerID player)
@@ -175,7 +175,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     internal static void ExplodeAllBombs()
     {
         const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionMedBigDamge";
-        
+
         foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
         {
             var marrow = networkEntity.GetExtender<IMarrowEntityExtender>();
@@ -185,11 +185,13 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
         }
     }
-    
+
     private static bool AnyDefusers(NetworkPlayer? skip = null)
     {
-        return NetworkPlayer.Players.Any(player => 
-            player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated) && !player.PlayerID.Equals(skip?.PlayerID)
-        );
+        return NetworkPlayer.Players
+            .Where(player => !player.PlayerID.Equals(skip?.PlayerID))
+            .Any(player =>
+                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated)
+            );
     }
 }

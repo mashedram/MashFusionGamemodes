@@ -16,7 +16,7 @@ public struct Bounds
     public object Upper;
 }
 
-public struct ConfigEntryData
+public record ConfigEntryData
 {
     public bool Visible;
     public FieldInfo FieldInfo;
@@ -32,8 +32,11 @@ public struct ConfigEntryData
     public Bounds? Bounds;
     public bool Synced;
 
+    public object? Overwrite;
+
+    public object Value => Overwrite ?? DefaultValue;
+
     private static readonly KeyedRegistry<Type, IConfigElementProvider> ElementProviders = new();
-    private ElementData? _cachedElementData;
 
     static ConfigEntryData()
     {
@@ -50,42 +53,54 @@ public struct ConfigEntryData
         
         return type;
     }
-    
-    private Action<object> WriterFactory(IConfig config)
-    {
-        var fieldInfo = FieldInfo;
-        var synced = Synced;
-        return value =>
-        {
-            fieldInfo.SetValue(config, value);
 
-            if (synced)
+    public ConfigEntryData(IConfig instance, FieldInfo fieldInfo)
+    {
+        FieldInfo = fieldInfo;
+        Type = fieldInfo.FieldType;
+
+        var menuEntry = fieldInfo.GetCustomAttribute<ConfigMenuEntry>();
+        if (menuEntry == null)
+        {
+            Visible = false;
+            return;
+        }
+
+        Visible = true;
+        Name = menuEntry.Name;
+        Category = menuEntry.Category;
+
+        ApplyConfigElementProvider(fieldInfo);
+        ApplyIncrement(fieldInfo);
+        ApplyBounds(fieldInfo);
+
+        DefaultValue = fieldInfo.GetValue(instance) ??
+                       throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
+
+        Synced = fieldInfo.GetCustomAttribute<SerializableField>() != null;
+    }
+    
+    private Action<ConfigEntryData, object> WriterFactory(IConfig config)
+    {
+        return (target, value) =>
+        {
+            target.Overwrite = value;
+            target.FieldInfo.SetValue(config, value);
+
+            if (target.Synced)
                 ConfigManager.Sync();
         };
     }
-
-    public void ClearCache()
-    {
-        _cachedElementData = null;
-    }
-
     public ElementData GetElementData(IConfig instance)
     {
-        if (_cachedElementData != null)
-            return _cachedElementData;
-
         if (ElementProvider != null)
         {
-            var elementData = ElementProvider.GetElementData(this, WriterFactory(instance));
-            _cachedElementData = elementData;
-            return elementData;
+            return ElementProvider.GetElementData(this, WriterFactory(instance));
         }
 
         if (ElementProviders.TryGet(GetBaseType(Type), out var provider))
         {
-            var elementData = provider.GetElementData(this, WriterFactory(instance));
-            _cachedElementData = elementData;
-            return elementData;
+            return provider.GetElementData(this, WriterFactory(instance));
         }
 
         return new LabelElementData
@@ -145,35 +160,5 @@ public struct ConfigEntryData
             Lower = boundsAttribute.Lower,
             Upper = boundsAttribute.Upper
         };
-    }
-
-    public static ConfigEntryData Create(IConfig instance, FieldInfo fieldInfo)
-    {
-        var entry = new ConfigEntryData
-        {
-            FieldInfo = fieldInfo,
-            Type = fieldInfo.FieldType
-        };
-
-        var menuEntry = fieldInfo.GetCustomAttribute<ConfigMenuEntry>();
-        if (menuEntry == null)
-        {
-            entry.Visible = false;
-            return entry;
-        }
-
-        entry.Visible = true;
-        entry.Name = menuEntry.Name;
-        entry.Category = menuEntry.Category;
-
-        entry.ApplyConfigElementProvider(fieldInfo);
-        entry.ApplyIncrement(fieldInfo);
-        entry.ApplyBounds(fieldInfo);
-
-        entry.DefaultValue = fieldInfo.GetValue(instance) ??
-                             throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
-
-        entry.Synced = fieldInfo.GetCustomAttribute<SerializableField>() != null;
-        return entry;
     }
 }

@@ -60,13 +60,5 @@ public class Mod : MelonMod
         PlayerHider.Reset();
         SpectatorManager.LocalReset();
         PlayerGunManager.Reset();
-        
-        foreach (var gamemode in GamemodeRegistration.Gamemodes)
-        {
-            if (gamemode is not IGamemode cachedGamemode)
-                continue;
-            
-            cachedGamemode.ClearCache();
-        }
     }
 }

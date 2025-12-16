@@ -3,6 +3,7 @@ using Il2CppTMPro;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
@@ -11,6 +12,12 @@ public class BombVisibleMarker : EntityTag, ITagAdded, ITagUpdate, ITagRemoved
 {
     private const string MarkerBarcode = "Mash.BoneStrike.Spawnable.BombMarker";
     private const float MarkerSeconds = 10;
+
+    private const float MinDistanceSquare = 10f;
+    private const float MaxDistanceSquare = 10000f;
+
+    private const float MinSize = 8f;
+    private const float MaxSize = 25f;
     
     private float _timer;
     private Poolee? _markerObject;
@@ -37,6 +44,14 @@ public class BombVisibleMarker : EntityTag, ITagAdded, ITagUpdate, ITagRemoved
             _markerObject = poolee;
             _isSpawning = false;
             _timer = 0f;
+
+            var localPosition = BoneStrike.Context.LocalPlayer.RigRefs.Head.position;
+            var distanceSquared = (position - localPosition).sqrMagnitude;
+
+            var range = MathUtil.InverseLerp(MinDistanceSquare, MaxDistanceSquare, distanceSquared).Clamp01();
+            var size = MathUtil.Lerp(MinSize, MaxSize, range);
+
+            poolee.transform.GetChild(0).localScale = new Vector3(size, size, size);
         });
     }
     

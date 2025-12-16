@@ -13,7 +13,7 @@ namespace Clockhunt.Config;
 
 internal class SecondsToMinutesElementProvider : IConfigElementProvider
 {
-    public ElementData GetElementData(ConfigEntryData entry, Action<object> setter)
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
         return new FloatElementData
         {
@@ -22,7 +22,7 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
             MaxValue = 10f,
             MinValue = 0.25f,
             Value = Convert.ToSingle(entry.DefaultValue) / 60f,
-            OnValueChanged = f => setter(Convert.ToSingle(f) * 60f)
+            OnValueChanged = f => setter(entry, Convert.ToSingle(f) * 60f)
         };
     }
 }
