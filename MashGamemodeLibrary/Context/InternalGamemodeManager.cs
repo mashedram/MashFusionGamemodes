@@ -51,7 +51,7 @@ public static class InternalGamemodeManager
     private static readonly RemoteEvent<RoundEndPacket> RoundEndEvent = new("OnRoundEnd", OnRoundEnd, CommonNetworkRoutes.HostToAll);
 
     public static int RoundCount { get; set; } = 0;
-    public static float TimeBetweenRounds { get; set; } = 0.0f;
+    public static float TimeBetweenRounds => GamemodeRoundManager.Settings.TimeBetweenRounds;
     
     private static bool _inRound;
     private static int _roundIndex;

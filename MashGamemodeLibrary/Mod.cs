@@ -1,6 +1,8 @@
-﻿using LabFusion.SDK.Modules;
+﻿using LabFusion.SDK.Gamemodes;
+using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary;
+using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
@@ -58,5 +60,13 @@ public class Mod : MelonMod
         PlayerHider.Reset();
         SpectatorManager.LocalReset();
         PlayerGunManager.Reset();
+        
+        foreach (var gamemode in GamemodeRegistration.Gamemodes)
+        {
+            if (gamemode is not IGamemode cachedGamemode)
+                continue;
+            
+            cachedGamemode.ClearCache();
+        }
     }
 }

@@ -189,7 +189,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     private static bool AnyDefusers(NetworkPlayer? skip = null)
     {
         return NetworkPlayer.Players.Any(player => 
-            player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.PlayerID.IsSpectating() && !player.PlayerID.Equals(skip?.PlayerID)
+            player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated) && !player.PlayerID.Equals(skip?.PlayerID)
         );
     }
 }

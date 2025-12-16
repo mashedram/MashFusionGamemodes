@@ -1,4 +1,5 @@
 ﻿using BoneStrike.Phase;
+using BoneStrike.Tags;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
@@ -31,7 +32,12 @@ public class CounterTerroristTeam : Team
     }
 
     protected override void OnAssigned()
-    {
+    {  
+        Executor.RunIfHost(() =>
+        {
+            Owner.AddTag(new PlayerHandTimerTag());
+        });
+
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Notifier.Send(new Notification

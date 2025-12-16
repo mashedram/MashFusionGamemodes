@@ -7,7 +7,7 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Debug;
 
-[HarmonyPatch]
+// [HarmonyPatch]
 public static class Il2CppDetourMethodPatcherPatches
 {
     public static MethodBase TargetMethod()

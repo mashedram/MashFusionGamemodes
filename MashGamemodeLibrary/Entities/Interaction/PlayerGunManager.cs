@@ -27,7 +27,7 @@ class DamageRemapper
 
     private readonly float _ttkMultiplier;
     
-    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.0f)
+    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.5f)
     {
         _ttkMultiplier = ttkMultiplier;
         _lowValue = lowValue;
@@ -38,13 +38,20 @@ class DamageRemapper
         _highTarget = Math.Max(target + halfDeviation, 0f);
     }
 
-    public float GetDamage(float damage, float roundsPerSecond, float mult = 1f)
+    public float GetDamage(float damage, float roundsPerSecond, Gun.FireMode fireMode, float mult = 1f)
     {
         var clamped = MathUtil.Clamp(damage, _lowValue, _highValue);
-        var mapped = MathUtil.InverseLerp(_lowValue, _highValue, clamped);
 
-        var flat = MathUtil.Lerp(_lowTarget, _highTarget, mapped);
-        var normalized = flat / (roundsPerSecond * _ttkMultiplier);
+        const float baseRpm = 12f;
+        var normalizedRoundsPerSecond = roundsPerSecond * fireMode switch
+        {
+            Gun.FireMode.SEMIAUTOMATIC => 0.5f,
+            Gun.FireMode.MANUAL => 0.25f,
+            _ => 1f
+        } / baseRpm;
+
+        var flat = MathUtil.Lerp(_lowTarget, _highTarget, clamped);
+        var normalized = flat / (normalizedRoundsPerSecond * _ttkMultiplier);
         
         return normalized * _ttkMultiplier * mult;
     }
@@ -58,7 +65,7 @@ public static class PlayerGunManager
 
     private static readonly ImmutableDictionary<string, WeaponType> WeaponTypeLookup = ImmutableDictionary.CreateRange(new[]
     {
-        KeyValuePair.Create("Pisto;", WeaponType.Pistol),
+        KeyValuePair.Create("Pistol", WeaponType.Pistol),
         KeyValuePair.Create("SMG", WeaponType.Smg),
         KeyValuePair.Create("Shotgun", WeaponType.Shotgun),
         KeyValuePair.Create("Rifle", WeaponType.Rifle)
@@ -112,21 +119,21 @@ public static class PlayerGunManager
             0.4f,
             0.9f,
             0.8f,
-            0.3f
+            0.8f
         ));
         DamageRemappers.Register(WeaponType.Shotgun, new DamageRemapper(
             1f,
             1f,
             2f,
-            0.9f,
-            0.2f
+            1.1f,
+            0.3f
         ));
         DamageRemappers.Register(WeaponType.Rifle, new DamageRemapper(
             1.1f,
             0.6f,
             2f,
             1.1f,
-            0.2f
+            0.7f
         ));
     }
 
@@ -158,7 +165,7 @@ public static class PlayerGunManager
         var type = GetWeaponType(gun);
         
         // We register all types at the start
-        var damage = DamageRemappers.Get(type)!.GetDamage(defaultDamage, gun.roundsPerSecond, _damageMultiplier);
+        var damage = DamageRemappers.Get(type)!.GetDamage(defaultDamage, gun.roundsPerSecond, gun.fireMode, _damageMultiplier);
         CachedGunDamage[gun] = damage;
 
         return damage;

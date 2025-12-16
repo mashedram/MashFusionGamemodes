@@ -5,21 +5,15 @@ using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.Player.Actions;
 
-public static class PlayerStatisticsKeys
-{
-    public const int Kills = 1;
-    public const int Assists = 2;
-}
-
 public static class PlayerStatisticsTracker
 {
-    private static readonly Dictionary<int, Func<int, int>> Awarders = new();
-    private static readonly Dictionary<int, int> Statistics = new();
+    private static readonly Dictionary<Enum, Func<int, int>> Awarders = new();
+    private static readonly Dictionary<Enum, int> Statistics = new();
 
-    public static void Increment(int index, int value = 1)
+    public static void Increment(Enum key, int value = 1)
     {
-        Statistics.TryAdd(index, 0);
-        Statistics[index] += value;
+        Statistics.TryAdd(key, 0);
+        Statistics[key] += value;
     }
     
     public static void Clear()
@@ -27,7 +21,7 @@ public static class PlayerStatisticsTracker
         Statistics.Clear();
     }
 
-    public static void Register(int key, Func<int, int> mapper)
+    public static void Register(Enum key, Func<int, int> mapper)
     {
         Awarders[key] = mapper;
     }
@@ -43,7 +37,7 @@ public static class PlayerStatisticsTracker
         }) + extraBits, 0);
     }
     
-    public static void SendNotificationAndAwardBits(int extraBits, params int[] keys)
+    public static void SendNotificationAndAwardBits(int extraBits, params Enum[] keys)
     {
         var bits = GetTotalBits(extraBits);
         

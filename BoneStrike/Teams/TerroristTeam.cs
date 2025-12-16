@@ -1,4 +1,5 @@
 ﻿using BoneStrike.Phase;
+using BoneStrike.Tags;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -24,6 +25,11 @@ public class TerroristTeam : Team
 
     protected override void OnAssigned()
     {
+        Executor.RunIfHost(() =>
+        {
+            Owner.AddTag(new PlayerHandTimerTag());
+        });
+        
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Notifier.Send(new Notification

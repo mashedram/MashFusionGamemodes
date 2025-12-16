@@ -11,6 +11,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Player.Spectating;
+using UnityEngine.UIElements;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Player.Common;
 
@@ -32,29 +33,30 @@ internal class RespawnCountPacket : INetSerializable
 public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
 {
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);
-
-    private Func<NetworkPlayer, int, bool>? _predicate;
+    
     public int Respawns { get; private set; }
+    public bool IsEliminated { get; private set; }
+    private bool _canEnterSpectator;
     
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
-    private static readonly Dictionary<Type, PlayerSpectatePredicate> SpectatePredicates = new();
+    private static readonly Dictionary<Type, PlayerSpectatePredicate> GlobalPredicates = new();
 
     public static void RegisterSpectatePredicate<T>(PlayerSpectatePredicate predicate) where T : Gamemode
     {
-        SpectatePredicates[typeof(T)] = predicate;
+        GlobalPredicates[typeof(T)] = predicate;
     }
     
+    // Keep, a default constructor is required for networking to function
+    // ReSharper disable once UnusedMember.Global
     public LimitedRespawnTag() {}
-    
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="respawns"></param>
-    /// <param name="predicate">Returns wether the life should subtract, params: The player, the new respawn count</param>
-    public LimitedRespawnTag(int respawns, Func<NetworkPlayer, int, bool>? predicate = null)
+    public LimitedRespawnTag(int respawns)
     {
         Respawns = respawns;
-        _predicate = predicate;
     }
     
     public void SetRespawns(int respawns)
@@ -72,40 +74,62 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
             Owner.PlayerID.SetSpectating(false);
         });
     }
+
+    private void OnDying()
+    {
+        if (IsEliminated)
+            return;
+
+        Respawns--;
+        _canEnterSpectator = GamemodeManager.IsGamemodeStarted &&
+                             GlobalPredicates.TryGetValue(GamemodeManager.ActiveGamemode.GetType(), out var predicate) && 
+                             predicate.Invoke(Owner);
+    }
+
+    private void OnDeath()
+    {
+        if (IsEliminated)
+            return;
+
+        if (Respawns >= 0)
+        {
+            RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
+            {
+                Respawns = Respawns
+            });
+            return;
+        }
+        
+        if (!_canEnterSpectator)
+            return;
+        
+        // We don't want the spectator message to overlap with the game lost message
+        RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
+        {
+            Respawns = Respawns
+        });
+
+        IsEliminated = true;
+        Owner.PlayerID.SetSpectating(true);
+    }
     
     public void OnAction(PlayerActionType action, PlayerID otherPlayer)
     {
         Executor.RunIfHost(() =>
         {
-            if (action != PlayerActionType.DEATH)
-                return;
-            if (Owner.PlayerID.IsSpectating())
-                return;
-            
-            if (_predicate != null && !_predicate.Invoke(Owner, Respawns))
-                return;
-
-            Respawns--;
-
-            if (Respawns >= 0)
+            switch (action)
             {
-                RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
+                case PlayerActionType.DYING:
                 {
-                    Respawns = Respawns
-                });
-                return;
+                    OnDying();
+                    break;
+                }
+                case PlayerActionType.DEATH:
+                {
+                    OnDeath();
+                    break;
+                }
             }
-            
-            if (GamemodeManager.IsGamemodeStarted && SpectatePredicates.TryGetValue(GamemodeManager.ActiveGamemode.GetType(), out var predicate) && !predicate.Invoke(Owner))
-                return;
-            
-            // We don't want the spectator message to overlap with the game lost message
-            RespawnCountChangedEvent.CallFor(Owner.PlayerID, new RespawnCountPacket
-            {
-                Respawns = Respawns
-            });
-            
-            Owner.PlayerID.SetSpectating(true);
         });
     }
     

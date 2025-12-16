@@ -44,6 +44,11 @@ public static class PlayerTagManager
         return player.NetworkEntity.HasTag<T>();
     }
     
+    public static bool HasTag<T>(this NetworkPlayer player, Func<T, bool> predicate) where T : PlayerTag
+    {
+        return player.NetworkEntity.TryGetTag<T>(out var tag) && predicate(tag);
+    }
+    
     public static void AddTag<T>(this NetworkPlayer player, T tag) where T : PlayerTag
     {
         player.NetworkEntity.AddTag(tag);

@@ -1,5 +1,6 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Menu.Data;
+using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
@@ -45,7 +46,7 @@ internal class CrateBarcodeElement : IConfigElementProvider
 
 
 
-public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
+public class BoneStrikeConfig : IConfig
 {
     [ConfigMenuEntry("Plant Phase Duration")]
     [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
@@ -86,4 +87,17 @@ public class BoneStrikeConfig : AutoSerialized<BoneStrikeConfig>, IConfig
     [ConfigMenuEntry("Spawnable")]
     [ConfigElementProvider(typeof(CrateBarcodeElement))]
     public string PalletBarcode = "";
+
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref PlantDuration);
+        serializer.SerializeValue(ref DefuseDuration);
+        serializer.SerializeValue(ref MaxRespawns);
+        serializer.SerializeValue(ref DefuseDuration);
+        serializer.SerializeValue(ref HealthMultiplier);
+        serializer.SerializeValue(ref BalanceDamage);
+        serializer.SerializeValue(ref DamageMultiplier);
+        serializer.SerializeValue(ref DevToolsDisabled);
+        serializer.SerializeValue(ref PalletBarcode);
+    }
 }

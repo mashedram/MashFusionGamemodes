@@ -50,6 +50,14 @@ public class DefusePhase : GamePhase
             PopupLength = 4f,
             Type = NotificationType.INFORMATION
         });
+
+        if (BoneStrike.Context.LocalPlayer.PlayerID.IsTeam<CounterTerroristTeam>())
+        {
+            foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
+            {
+                networkEntity.AddTag(new BombVisibleMarker());
+            }
+        }
         
         Executor.RunIfHost(() =>
         {

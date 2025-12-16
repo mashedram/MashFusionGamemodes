@@ -49,4 +49,12 @@ public class ConfigMenu
 
         return root;
     }
+    
+    public void ClearCache()
+    {
+        foreach (var configEntryData in _fields)
+        {
+            configEntryData.ClearCache();
+        }
+    }
 }

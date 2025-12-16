@@ -352,13 +352,24 @@ public static class EntityTagManager
     {
         var key = GetTagIndex(entity, tag);
 
-        Tags[key] = tag;
+        AddTag(key, tag);
     }
     
     public static void AddTag<T>(this NetworkEntity entity, T tag) where T : IEntityTag, new()
     {
         var key = GetTagIndex<T>(entity);
 
+        AddTag(key, tag);
+    }
+
+    private static void AddTag<T>(EntityTagIndex key, T tag) where T : IEntityTag
+    {
+        if (Tags.ContainsKey(key))
+        {
+            MelonLogger.Error($"Failed to add tag: {typeof(T).Name}. Tag already exists on entity.");
+            return;
+        }
+        
         Tags[key] = tag;
     }
 

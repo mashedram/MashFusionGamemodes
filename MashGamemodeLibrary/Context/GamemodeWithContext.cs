@@ -64,7 +64,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
     // Round settings
 
     public virtual int RoundCount => 1;
-    public virtual float TimeBetweenRounds => 30f;
 
 
     private static bool _isStartedInternal;
@@ -178,10 +177,6 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
 
     public void StartRound(int index)
     {
-        // Reset statistics
-        PlayerStatisticsTracker.Clear();
-        PlayerDamageTracker.Reset();
-        
         Context.OnStart();
         OnRoundStart();
     }
@@ -228,7 +223,10 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
         Reset();
         
         InternalGamemodeManager.RoundCount = RoundCount;
-        InternalGamemodeManager.TimeBetweenRounds = TimeBetweenRounds;
+        
+        // Reset statistics
+        PlayerStatisticsTracker.Clear();
+        PlayerDamageTracker.Reset();
         
         _isStartedInternal = true;
         OnStart();
@@ -268,6 +266,11 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
         return CanAttackPlayer(player);
     }
 
+    public void ClearCache()
+    {
+        _configMenu.ClearCache();
+    }
+    
     public override GroupElementData CreateSettingsGroup()
     {
         return _configMenu.GetElementData();

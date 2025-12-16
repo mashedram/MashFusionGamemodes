@@ -64,6 +64,11 @@ public struct ConfigEntryData
         };
     }
 
+    public void ClearCache()
+    {
+        _cachedElementData = null;
+    }
+
     public ElementData GetElementData(IConfig instance)
     {
         if (_cachedElementData != null)

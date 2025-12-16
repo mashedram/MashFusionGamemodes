@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Execution;
