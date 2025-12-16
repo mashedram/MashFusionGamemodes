@@ -113,6 +113,11 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
 
     private void SetValue(TKey key, TValue value, bool sendUpdate)
     {
+        if (_dictionary.TryGetValue(key, out var oldValue))
+        {
+            OnValueRemoved?.Invoke(key, oldValue);
+        }
+        
         _dictionary[key] = value;
         OnValueAdded?.Invoke(key, value);   
 
