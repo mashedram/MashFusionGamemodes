@@ -3,6 +3,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.VRMK;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 using MashGamemodeLibrary.Vision;
 using MashGamemodeLibrary.Vision.Holster;
 using MashGamemodeLibrary.Vision.Holster.Receivers;

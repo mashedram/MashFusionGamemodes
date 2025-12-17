@@ -36,6 +36,7 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
     
     public int Respawns { get; private set; }
     public bool IsEliminated { get; private set; }
+    private bool _isEliminationHandled;
     private bool _canEnterSpectator;
     
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
@@ -81,6 +82,11 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
             return;
 
         Respawns--;
+        
+        if (Respawns >= 0)
+            return;
+        
+        IsEliminated = true;
         _canEnterSpectator = GamemodeManager.IsGamemodeStarted &&
                              GlobalPredicates.TryGetValue(GamemodeManager.ActiveGamemode.GetType(), out var predicate) && 
                              predicate.Invoke(Owner);
@@ -88,7 +94,7 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
 
     private void OnDeath()
     {
-        if (IsEliminated)
+        if (_isEliminationHandled)
             return;
 
         if (Respawns >= 0)
@@ -109,8 +115,8 @@ public class LimitedRespawnTag : PlayerTag, ITagRemoved, IPlayerActionTag
             Respawns = Respawns
         });
 
-        IsEliminated = true;
         Owner.PlayerID.SetSpectating(true);
+        _isEliminationHandled = true;
     }
     
     public void OnAction(PlayerActionType action, PlayerID otherPlayer)

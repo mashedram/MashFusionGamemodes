@@ -13,8 +13,8 @@ public class BombVisibleMarker : EntityTag, ITagAdded, ITagUpdate, ITagRemoved
     private const string MarkerBarcode = "Mash.BoneStrike.Spawnable.BombMarker";
     private const float MarkerSeconds = 10;
 
-    private const float MinDistanceSquare = 10f;
-    private const float MaxDistanceSquare = 10000f;
+    private const float MinDistanceSquare = 1000f;
+    private const float MaxDistanceSquare = 10000000f;
 
     private const float MinSize = 8f;
     private const float MaxSize = 25f;

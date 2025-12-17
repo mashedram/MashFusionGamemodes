@@ -151,8 +151,7 @@ public static class EntityTagManager
     private static readonly SyncedDictionary<EntityTagIndex, IEntityTag> Tags = new("sync.GlobalTagManager", new NetSerializableEncoder<EntityTagIndex>(), new DynamicInstanceEncoder<IEntityTag>(Registry));
     
     // Helper Extension Map
-    private static readonly Dictionary<Type, ulong> TypeToHashMap = new();
-    private static readonly Dictionary<ulong, HashSet<ulong>> TagExtensionMap = new();
+    private static readonly Dictionary<Type, HashSet<ulong>> TagExtensionMap = new();
 
     // Local Cache Maps
     private static readonly Dictionary<ushort, HashSet<EntityTagIndex>> EntityToTagMap = new();
@@ -266,12 +265,6 @@ public static class EntityTagManager
         return new EntityTagIndex(entity.ID, GetTagId(tag.GetType()));
     }
 
-    private static ulong GetAbstractTagId<T>() where T : IAbstractEntityTag
-    {
-        return typeof(T).FullName?.GetStableHash() ??
-               throw new Exception("Failed to get hash code for abstract tag type: " + typeof(T).FullName);
-    }
-
     private static ulong GetTagId<T>() where T : IEntityTag
     {
         return Registry.CreateID<T>();
@@ -293,12 +286,12 @@ public static class EntityTagManager
         });
     }
 
-    private static HashSet<ulong> GetExtensionSet(ulong abstractTagID)
+    private static HashSet<ulong> GetExtensionSet(Type type)
     {
-        if (TagExtensionMap.TryGetValue(abstractTagID, out var set)) return set;
+        if (TagExtensionMap.TryGetValue(type, out var set)) return set;
 
         var newSet = new HashSet<ulong>();
-        TagExtensionMap[abstractTagID] = newSet;
+        TagExtensionMap[type] = newSet;
         return newSet;
     }
 
@@ -307,11 +300,11 @@ public static class EntityTagManager
         var tagID = GetTagId<T>();
         // Register its abstract extensions
         var tagType = typeof(T);
-        foreach (var (key, value) in TypeToHashMap)
+        foreach (var (extensionType, set) in TagExtensionMap)
         {
-            if (!tagType.IsAssignableTo(key)) continue;
+            if (!tagType.IsAssignableTo(extensionType)) continue;
 
-            GetExtensionSet(value).Add(tagID);
+            set.Add(tagID);
         }
 
 
@@ -321,9 +314,7 @@ public static class EntityTagManager
 
     public static void RegisterAbstractTag<T>() where T : IAbstractEntityTag
     {
-        var hash = GetAbstractTagId<T>();
-
-        TypeToHashMap[typeof(T)] = hash;
+        TagExtensionMap[typeof(T)] = new HashSet<ulong>();
     }
 
     public static void RegisterAll<T>()
@@ -412,10 +403,9 @@ public static class EntityTagManager
 
     public static bool HasTagExtending<T>(this NetworkEntity entity) where T : IAbstractEntityTag
     {
-        var extensionHash = GetAbstractTagId<T>();
-        if (!TagExtensionMap.TryGetValue(extensionHash, out var extending))
+        if (!TagExtensionMap.TryGetValue(typeof(T), out var extending))
         {
-            MelonLogger.Error($"Tag with name: {typeof(T).FullName} is not registered");
+            MelonLogger.Error($"Tag extension with name: {typeof(T).FullName} is not registered");
             return false;
         }
 
@@ -429,10 +419,9 @@ public static class EntityTagManager
 
     public static List<T> GetAllExtendingTag<T>(this NetworkEntity entity) where T : IAbstractEntityTag
     {
-        var extensionHash = GetAbstractTagId<T>();
-        if (!TagExtensionMap.TryGetValue(extensionHash, out var extending))
+        if (!TagExtensionMap.TryGetValue(typeof(T), out var extending))
         {
-            MelonLogger.Error($"Tag with name: {typeof(T).FullName} is not registered");
+            MelonLogger.Error($"Tag extension with name: {typeof(T).FullName} is not registered");
             return new List<T>();
         }
 
@@ -446,10 +435,9 @@ public static class EntityTagManager
 
     public static List<T> GetAllExtendingTag<T>() where T : IAbstractEntityTag
     {
-        var extensionHash = GetAbstractTagId<T>();
-        if (!TagExtensionMap.TryGetValue(extensionHash, out var extending))
+        if (!TagExtensionMap.TryGetValue(typeof(T), out var extending))
         {
-            MelonLogger.Error($"Tag with name: {typeof(T).FullName} is not registered");
+            MelonLogger.Error($"Tag extension with name: {typeof(T).FullName} is not registered");
             return new List<T>();
         }
 

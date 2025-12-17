@@ -1,4 +1,5 @@
 using Il2CppSLZ.Marrow;
+using MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 using MashGamemodeLibrary.Vision.Holster.Receivers;
 using UnityEngine;
 

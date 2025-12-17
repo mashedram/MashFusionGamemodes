@@ -44,7 +44,74 @@ internal class CrateBarcodeElement : IConfigElementProvider
     }
 }
 
+internal class CrateBarcodeListElement : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        var group = new GroupElementData(entry.Name);
 
+        var add = new SpawnableElementData
+        {
+            Title = "Add Held Item Pallet",
+            OnSetSpawnable = barcode =>
+            {
+                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
+                    return;
+                
+                var list = (List<string>)entry.Value;
+                list.Add(crate._pallet._barcode._id);
+                setter.Invoke(entry, list);
+            }
+        };
+
+        var clear = new FunctionElementData
+        {
+            Title = "Clear",
+            OnPressed = () =>
+            {
+                setter.Invoke(entry, new List<string>());
+            }
+        };
+        
+        group.AddElement(add);
+        group.AddElement(clear);
+        
+        return group;
+    }
+}
+
+internal class BarcodeListElement : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        var group = new GroupElementData(entry.Name);
+
+        var add = new SpawnableElementData
+        {
+            Title = "Add Held Item",
+            OnSetSpawnable = barcode =>
+            {
+                var list = (List<string>)entry.Value;
+                list.Add(barcode._id);
+                setter.Invoke(entry, list);
+            }
+        };
+
+        var clear = new FunctionElementData
+        {
+            Title = "Clear",
+            OnPressed = () =>
+            {
+                setter.Invoke(entry, new List<string>());
+            }
+        };
+        
+        group.AddElement(add);
+        group.AddElement(clear);
+        
+        return group;
+    }
+}
 
 public class BoneStrikeConfig : IConfig
 {
@@ -62,13 +129,11 @@ public class BoneStrikeConfig : IConfig
 
     [ConfigMenuEntry("Defuse timer")] 
     [ConfigRangeConstraint(2f, 20f)]
-    [SerializableField]
     public float DefuseTime = 7f;
     
     [ConfigMenuEntry("Health Multiplier")]
     [ConfigRangeConstraint(0.25f, 4f)]
     [ConfigStepSize(0.25f)]
-    [SerializableField]
     public float HealthMultiplier = 1f;
 
     [ConfigMenuEntry("Balance Weapon Damage")]
@@ -77,16 +142,18 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Damage Multiplier")]
     [ConfigRangeConstraint(0.25f, 4f)]
     [ConfigStepSize(0.25f)]
-    [SerializableField]
     public float DamageMultiplier = 1f;
     
     [ConfigMenuEntry("Dev Tools Disabled")]
-    [SerializableField]
     public bool DevToolsDisabled = true;
 
-    [ConfigMenuEntry("Set Spawnable")]
-    [ConfigElementProvider(typeof(CrateBarcodeElement))]
-    public string PalletBarcode = "";
+    [ConfigMenuEntry("Weapons")]
+    [ConfigElementProvider(typeof(CrateBarcodeListElement))]
+    public List<string> PalletBarcodes = new();
+    
+    [ConfigMenuEntry("Uility Items")]
+    [ConfigElementProvider(typeof(BarcodeListElement))]
+    public List<string> UtilityBarcodes = new();
 
     public void Serialize(INetSerializer serializer)
     {
@@ -98,6 +165,5 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
-        serializer.SerializeValue(ref PalletBarcode);
     }
 }

@@ -1,12 +1,11 @@
 using Il2CppSLZ.Marrow;
-using UnityEngine;
+using MashGamemodeLibrary.Vision.Holster;
 
-namespace MashGamemodeLibrary.Vision.Holster.Receivers;
+namespace MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 
 internal class InventoryAmmoReceiverHider : IReceiverHider
 {
     private readonly InventoryAmmoReceiver _receiver;
-    private GameObject? _art;
     private bool _isHidden;
 
     public InventoryAmmoReceiverHider(InventoryAmmoReceiver receiver, bool hidden)
@@ -20,10 +19,10 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
     public bool SetHidden(bool hidden)
     {
         _isHidden = hidden;
-        if (_art == null)
+        if (_receiver == null)
             return false;
 
-        _art.SetActive(!hidden);
+        _receiver.gameObject.SetActive(!_isHidden);
         return true;
     }
 
@@ -34,8 +33,7 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
             _isHidden = hidden.Value;
         }
 
-        _art = _receiver.transform.FindChild("Holder").gameObject;
-        _art.SetActive(_isHidden);
+        _receiver.gameObject.SetActive(!_isHidden);
 
         return true;
     }
@@ -45,7 +43,7 @@ internal class InventoryAmmoReceiverHider : IReceiverHider
         if (!_isHidden)
             return;
 
-        if (_art != null && !_art.active)
+        if (_receiver != null && !_receiver.isActiveAndEnabled)
             return;
 
         FetchRenderers(_isHidden);

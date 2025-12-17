@@ -45,6 +45,16 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
     {
         return CreateID(instance.GetType());
     }
+
+    public ulong GetOrCreateId(Type type)
+    {
+        return _stableHashCache.GetOrCreate(type, () => CreateID(type));
+    }
+    
+    public ulong GetOrCreateId<T>() where T : TValue
+    {
+        return GetOrCreateId(typeof(T));
+    }
     
     protected abstract TInternal Create<T>() where T : TValue, new();
     protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);

@@ -87,8 +87,7 @@ public record ConfigEntryData
             target.Overwrite = value;
             target.FieldInfo.SetValue(config, value);
 
-            if (target.Synced)
-                ConfigManager.Sync();
+            ConfigManager.OnValueChanged();
         };
     }
     public ElementData GetElementData(IConfig instance)

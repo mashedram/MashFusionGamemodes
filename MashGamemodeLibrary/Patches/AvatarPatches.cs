@@ -5,8 +5,8 @@ using MashGamemodeLibrary.Player.Stats;
 
 namespace MashGamemodeLibrary.Patches;
 
-// Gracious credit to notnotnotswipez and Hahoos for the source code of these patches.
-// Saved my ass so much time.
+// Gracious credit to notnotnotswipez and Hahoos for the source of these patches.
+// Saved my ass so much time searching for the methods myself
 [HarmonyPatch(typeof(Avatar))]
 public static class AvatarPatches
 {

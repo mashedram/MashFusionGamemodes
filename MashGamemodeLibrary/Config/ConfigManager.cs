@@ -1,9 +1,12 @@
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
+using LabFusion.SDK.Gamemodes;
+using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Registry.Typed;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Config;
 
@@ -34,14 +37,20 @@ public static class ConfigManager
 
     internal static void Enable<T>() where T : IConfig
     {
-        RemoteConfigInstance.Value = LocalConfigTypedRegistry.Get<T>();
+        RemoteConfigInstance.SetAndSync(LocalConfigTypedRegistry.Get<T>());
     }
     
     public static T Get<T>() where T : class, IConfig
     {
         // If we are remote, and have a remote config, 
-        if (!NetworkInfo.IsHost && RemoteConfigInstance.Value is T instance)
-            return instance;
+        if (!NetworkInfo.IsHost)
+        {
+            if (RemoteConfigInstance.Value is T instance)
+            {
+                return instance;
+            }
+            MelonLogger.Error("Remote config is of an invalid type.");
+        }
 
         if (!LocalConfigTypedRegistry.TryGet<T>(out var config))
         {
@@ -49,6 +58,16 @@ public static class ConfigManager
         }
 
         return config;
+    }
+
+    internal static void OnValueChanged()
+    {
+        // We only want to sync if the gamemode is running
+        // We don't have to call sync when we set the value, it automatically syncs
+        if (!GamemodeManager.IsGamemodeReady)
+            return;
+        
+        Sync();
     }
 
     internal static void Sync()

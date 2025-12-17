@@ -59,9 +59,9 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
 
-        LimitedRespawnTag.RegisterSpectatePredicate<BoneStrike>(player =>
+        LimitedRespawnTag.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
-            if (AnyDefusers(player))
+            if (AnyDefusers())
                 return true;
 
             ExplodeAllBombs();
@@ -101,7 +101,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         {
             _teams.AssignAll();
 
-            PalletLoadoutManager.Load(Config.PalletBarcode);
+            PalletLoadoutManager.Load(Config.PalletBarcodes);
+            PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
         });
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
@@ -174,7 +175,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     internal static void ExplodeAllBombs()
     {
-        const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionMedBigDamge";
+        const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionSmallMedDamage";
 
         foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
         {
@@ -186,12 +187,11 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         }
     }
 
-    private static bool AnyDefusers(NetworkPlayer? skip = null)
+    private static bool AnyDefusers()
     {
         return NetworkPlayer.Players
-            .Where(player => !player.PlayerID.Equals(skip?.PlayerID))
             .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && !player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated)
             );
     }
 }

@@ -9,20 +9,29 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Loadout;
 
+enum LoadCommandType
+{
+    Weapon,
+    Utility
+}
+
 enum WeaponType
 {
     Primary,
     Secondary,
-    Tertiary
+    Tertiary,
+    Utility
 }
 
 internal class FetchLoadoutPacket : INetSerializable
 {
-    public string Barcode;
+    public LoadCommandType LoadCommandType;
+    public string[] Barcodes;
     
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref Barcode);
+        serializer.SerializeValue(ref LoadCommandType);
+        serializer.SerializeValue(ref Barcodes);
     }
 }
 
@@ -51,6 +60,14 @@ public static class PalletLoadoutManager
     
     private static readonly Dictionary<WeaponType, List<Crate>> Items = new();
 
+    private static void ClearWeapons()
+    {
+        Items.GetValueOrDefault(WeaponType.Primary)?.Clear();
+        Items.GetValueOrDefault(WeaponType.Secondary)?.Clear();
+        Items.GetValueOrDefault(WeaponType.Tertiary)?.Clear();
+        
+    }
+
     private static List<Crate> GetCrateList(WeaponType type)
     {
         if (Items.TryGetValue(type, out var list)) return list;
@@ -77,27 +94,46 @@ public static class PalletLoadoutManager
         return null;
     }
     
-    public static void LoadLocal(string barcode)
+    public static void LoadLocal(IEnumerable<string> barcodes)
     {
-        var barcode1 = new Barcode(barcode);
-        if (!AssetWarehouse.Instance.TryGetPallet(barcode1, out var pallet))
+        ClearWeapons();
+
+        foreach (var barcode in barcodes)
         {
-            MelonLogger.Error($"Failed to load pallet with barcode: {barcode}. Pallet not found");
-            return;
+            var barcode1 = new Barcode(barcode);
+            if (!AssetWarehouse.Instance.TryGetPallet(barcode1, out var pallet))
+            {
+                MelonLogger.Error($"Failed to load pallet with barcode: {barcode}: Pallet not found");
+                continue;
+            }
+            
+            foreach (var crate in pallet.Crates)
+            {
+                if (crate._redacted)
+                    continue;
+            
+                var type = GetCrateType(crate);
+                if (!type.HasValue)
+                    continue;
+            
+                GetCrateList(type.Value).Add(crate);
+            }
         }
-        
-        Items.Clear();
-        
-        foreach (var crate in pallet.Crates)
+    }
+
+    public static void LoadLocalUtility(IEnumerable<string> barcodes)
+    {
+        var list = GetCrateList(WeaponType.Utility);
+        list.Clear();
+
+        foreach (var barcode in barcodes)
         {
-            if (crate._redacted)
+            if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate)) {
+                MelonLogger.Error($"Failed to load crate with barcode: {barcode}: Crate not found");
                 continue;
+            }
             
-            var type = GetCrateType(crate);
-            if (!type.HasValue)
-                continue;
-            
-            GetCrateList(type.Value).Add(crate);
+            list.Add(crate);
         }
     }
 
@@ -114,10 +150,12 @@ public static class PalletLoadoutManager
         var primary = Get(WeaponType.Primary);
         var secondary = Get(WeaponType.Secondary);
         var tertiary = Get(WeaponType.Tertiary);
+        var utility = Get(WeaponType.Utility);
 
         return new Player.Loadout.Loadout()
             .SetSlotBarcode(SlotType.RightBack, primary)
             .SetSlotBarcode(SlotType.RightHolster, secondary)
+            .SetSlotBarcode(SlotType.LeftBack, utility)
             .SetSlotBarcode(SlotType.Belt, tertiary);
     }
     
@@ -125,9 +163,24 @@ public static class PalletLoadoutManager
     
     public static void Load(string barcode)
     {
+        Load(new[] {barcode});
+    }
+    
+    public static void Load(IEnumerable<string> barcodes)
+    {
         FetchLoadoutEvent.Call(new FetchLoadoutPacket
         {
-            Barcode = barcode
+            LoadCommandType = LoadCommandType.Weapon,
+            Barcodes = barcodes.ToArray()
+        });
+    }
+    
+    public static void LoadUtility(IEnumerable<string> barcodes)
+    {
+        FetchLoadoutEvent.Call(new FetchLoadoutPacket
+        {
+            LoadCommandType = LoadCommandType.Utility,
+            Barcodes = barcodes.ToArray()
         });
     }
     
@@ -140,7 +193,17 @@ public static class PalletLoadoutManager
     
     private static void OnFetchLoadout(FetchLoadoutPacket packet)
     {
-        LoadLocal(packet.Barcode);
+        switch (packet.LoadCommandType)
+        {
+            case LoadCommandType.Weapon:
+                LoadLocal(packet.Barcodes);
+                break;
+            case LoadCommandType.Utility:
+                LoadLocalUtility(packet.Barcodes);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
     private static void OnAssignLoadout(DummySerializable _)
