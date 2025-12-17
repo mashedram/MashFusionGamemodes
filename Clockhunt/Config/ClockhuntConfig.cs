@@ -3,7 +3,6 @@ using Clockhunt.Nightmare;
 using Clockhunt.Nightmare.Config;
 using LabFusion.Menu.Data;
 using MashGamemodeLibrary.Config;
-using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Player;

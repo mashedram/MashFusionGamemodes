@@ -236,6 +236,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
     {
         _isStartedInternal = false;
         
+        GlobalStatisticsManager.SaveStatistics(this);
+        
         Reset();
         OnEnd();
     }

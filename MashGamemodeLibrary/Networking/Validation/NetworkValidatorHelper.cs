@@ -4,13 +4,13 @@ namespace MashGamemodeLibrary.networking.Validation;
 
 public static class NetworkValidatorHelper
 {
-    public static bool IsClient(byte playerID)
+    public static bool IsClient(byte smallId)
     {
-        return playerID != PlayerIDManager.HostSmallID;
+        return smallId != PlayerIDManager.HostSmallID;
     }
 
-    public static bool IsHost(byte playerID)
+    public static bool IsHost(byte smallId)
     {
-        return playerID == PlayerIDManager.HostSmallID;
+        return smallId == PlayerIDManager.HostSmallID;
     }
 }

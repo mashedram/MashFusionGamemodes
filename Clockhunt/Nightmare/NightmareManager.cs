@@ -148,9 +148,9 @@ public static class NightmareManager
 
     // Remote
 
-    private static void OnPlayerNightmareChange(byte playerId, ulong nightmareId)
+    private static void OnPlayerNightmareChange(byte smallId, ulong nightmareId)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
+        if (!NetworkPlayerManager.TryGetPlayer(smallId, out var player))
         {
             MelonLogger.Error("Tried to set nightmare for invalid player ID");
             return;
@@ -167,8 +167,8 @@ public static class NightmareManager
             ActiveConfigs[nightmareId] = LocalConfigs[nightmareId];
         });
         
-        var instance = descriptor.CreateInstance(playerId);
-        NightmareInstances[playerId] = instance;
+        var instance = descriptor.CreateInstance(smallId);
+        NightmareInstances[smallId] = instance;
         instance.Apply();
 
         Executor.RunIfHost(() => { Loadout.ClearPlayerLoadout(player.RigRefs.RigManager); });
@@ -195,16 +195,16 @@ public static class NightmareManager
             });
     }
 
-    private static void OnPlayerNightmareRemove(byte playerId, ulong nightmareID)
+    private static void OnPlayerNightmareRemove(byte smallId, ulong nightmareID)
     {
-        if (!NightmareInstances.TryGetValue(playerId, out var instance))
+        if (!NightmareInstances.TryGetValue(smallId, out var instance))
         {
-            MelonLogger.Error($"Failed to remove nightmare for player ID {playerId} - they are not a nightmare");
+            MelonLogger.Error($"Failed to remove nightmare for player ID {smallId} - they are not a nightmare");
             return;
         }
 
         instance.Remove();
-        NightmareInstances.Remove(playerId);
+        NightmareInstances.Remove(smallId);
     }
 
     public static void ClearNightmares()

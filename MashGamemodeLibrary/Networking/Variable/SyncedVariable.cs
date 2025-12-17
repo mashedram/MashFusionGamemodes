@@ -67,7 +67,7 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
         _encoder.Write(writer, data);
     }
 
-    protected override void Read(byte playerId, NetReader reader)
+    protected override void Read(byte smallId, NetReader reader)
     {
         _value = _encoder.Read(reader);
         OnValueChanged?.Invoke(_value);

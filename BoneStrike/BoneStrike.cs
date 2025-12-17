@@ -175,6 +175,9 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     internal static void ExplodeAllBombs()
     {
+        if (!Config.BombExplosion)
+            return;
+        
         const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionSmallMedDamage";
 
         foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())

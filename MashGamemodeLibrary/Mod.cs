@@ -2,6 +2,7 @@
 using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary;
+using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -43,6 +44,7 @@ public class Mod : MelonMod
     {
         PlayerHider.Update();
         PlayerActionManager.Update();
+        ConfigManager.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif

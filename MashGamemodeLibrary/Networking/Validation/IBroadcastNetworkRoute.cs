@@ -5,6 +5,6 @@ namespace MashGamemodeLibrary.networking.Validation;
 
 public interface IBroadcastNetworkRoute : INetworkRoute
 {
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error);
+    public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error);
     public MessageRoute GetMessageRoute();
 }

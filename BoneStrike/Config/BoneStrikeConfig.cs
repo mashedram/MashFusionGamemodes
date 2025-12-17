@@ -2,7 +2,6 @@
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
-using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
@@ -146,6 +145,9 @@ public class BoneStrikeConfig : IConfig
     
     [ConfigMenuEntry("Dev Tools Disabled")]
     public bool DevToolsDisabled = true;
+
+    [ConfigMenuEntry("Bomb Explosion Enabled")]
+    public bool BombExplosion = true;
 
     [ConfigMenuEntry("Weapons")]
     [ConfigElementProvider(typeof(CrateBarcodeListElement))]

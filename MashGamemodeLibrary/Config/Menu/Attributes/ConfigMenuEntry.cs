@@ -1,4 +1,4 @@
-﻿namespace MashGamemodeLibrary.Config.Menu;
+﻿namespace MashGamemodeLibrary.Config.Menu.Attributes;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ConfigMenuEntry : Attribute

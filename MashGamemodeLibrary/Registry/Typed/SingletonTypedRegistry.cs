@@ -4,6 +4,11 @@ namespace MashGamemodeLibrary.Registry.Typed;
 
 public class SingletonTypedRegistry<TValue> : TypedRegistry<TValue, TValue> where TValue : notnull
 {
+    public void Register<T>(T value) where T : TValue
+    {
+        base.Register<TValue>(value);
+    }
+    
     protected override TValue Create<T>()
     {
         return new T();

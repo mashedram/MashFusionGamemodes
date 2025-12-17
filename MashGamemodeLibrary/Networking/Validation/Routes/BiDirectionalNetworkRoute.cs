@@ -21,17 +21,17 @@ public class BiDirectionalNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwor
         return PlayerIDManager.HostSmallID == id && !NetworkInfo.IsHost || PlayerIDManager.HostSmallID != id && NetworkInfo.IsHost;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error)
     {
         error = null;
         return true;
     }
 
-    public bool IsValid(byte playerIDFrom, byte playerIDTo, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, byte smallIDTo, [MaybeNullWhen(true)] out string error)
     {
-        if (NetworkValidatorHelper.IsClient(playerIDFrom) == NetworkValidatorHelper.IsClient(playerIDTo))
+        if (NetworkValidatorHelper.IsClient(smallIdFrom) == NetworkValidatorHelper.IsClient(smallIDTo))
         {
-            error = $"{playerIDFrom} and {playerIDTo} are both clients.";
+            error = $"{smallIdFrom} and {smallIDTo} are both clients.";
             return false;
         }
 

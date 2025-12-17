@@ -17,7 +17,7 @@ public class BombVisibleMarker : EntityTag, ITagAdded, ITagUpdate, ITagRemoved
     private const float MaxDistanceSquare = 10000000f;
 
     private const float MinSize = 8f;
-    private const float MaxSize = 25f;
+    private const float MaxSize = 35f;
     
     private float _timer;
     private Poolee? _markerObject;

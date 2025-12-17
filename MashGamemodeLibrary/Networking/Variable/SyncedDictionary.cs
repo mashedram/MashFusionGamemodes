@@ -20,20 +20,10 @@ public enum DictionaryEditType
     Clear
 }
 
-public class DictionaryEdit<TKey, TValue>
+public record DictionaryEdit<TKey, TValue>(DictionaryEditType Type, TKey Key, TValue Value)
     where TKey : notnull
     where TValue : notnull
 {
-    public TKey Key;
-    public DictionaryEditType Type;
-    public TValue Value;
-
-    private DictionaryEdit(DictionaryEditType type, TKey key, TValue value)
-    {
-        Type = type;
-        Key = key;
-        Value = value;
-    }
 
     public static DictionaryEdit<TKey, TValue> Set(TKey key, TValue value)
     {
@@ -74,7 +64,6 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
 
         _refEncoder = valueEncoder as IRefEncoder<TValue>;
 
-        // TODO: Add on leave server to clean up tags
         MultiplayerHooking.OnJoinedServer += ClearLocal;
     }
 
@@ -235,7 +224,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         SetValue(setKey, readValue, false);
     }
 
-    protected override void Read(byte playerId, NetReader reader)
+    protected override void Read(byte smallId, NetReader reader)
     {
         var type = reader.ReadEnum<DictionaryEditType>();
         switch (type)

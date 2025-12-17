@@ -1,9 +1,11 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
+﻿using System.Collections;
+using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Collision;
 
-internal class ColliderSet
+internal class ColliderSet : IEnumerable<Collider>
 {
     private readonly HashSet<Collider> _colliders;
     public IEnumerable<Collider> Colliders => _colliders;
@@ -23,6 +25,11 @@ internal class ColliderSet
         _colliders = entity._bodies.SelectMany(body => body._colliders).ToHashSet();
     }
 
+    public ColliderSet(PhysicsRig physicsRig, ICollection<string> filter)
+    {
+        _colliders = physicsRig.GetComponentsInChildren<Collider>().Where(v => filter.Contains(v.gameObject.name)).ToHashSet();
+    }
+
     public void SetColliding(ColliderSet other, bool colliding)
     {
         foreach (var collider1 in _colliders)
@@ -33,5 +40,13 @@ internal class ColliderSet
 
             Physics.IgnoreCollision(collider1, collider2, !colliding);
         }
+    }
+    public IEnumerator<Collider> GetEnumerator()
+    {
+        return _colliders.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

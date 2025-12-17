@@ -89,11 +89,11 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
         data.Serialize(writer);
     }
 
-    protected override void Read(byte playerId, NetReader reader)
+    protected override void Read(byte smallId, NetReader reader)
     {
         var data = Activator.CreateInstance<T>();
         data.Serialize(reader);
-        OnEvent(playerId, data);
+        OnEvent(smallId, data);
     }
 }
 

@@ -25,7 +25,7 @@ public class AllToAllNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRout
         return CommonMessageRoutes.ReliableToOtherClients;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error)
     {
         // Any can Send
 
@@ -33,7 +33,7 @@ public class AllToAllNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRout
         return true;
     }
 
-    public bool IsValid(byte playerIDFrom, byte playerIDTo, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, byte smallIDTo, [MaybeNullWhen(true)] out string error)
     {
         // Any can send
 

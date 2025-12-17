@@ -1,4 +1,4 @@
-﻿namespace MashGamemodeLibrary.Config.Constraints;
+﻿namespace MashGamemodeLibrary.Config.Menu.Attributes;
 
 [AttributeUsage(AttributeTargets.Field)]
 public class ConfigRangeConstraint : Attribute

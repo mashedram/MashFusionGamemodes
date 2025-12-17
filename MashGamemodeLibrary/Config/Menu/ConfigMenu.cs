@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using LabFusion.Menu.Data;
+using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Config.Menu;

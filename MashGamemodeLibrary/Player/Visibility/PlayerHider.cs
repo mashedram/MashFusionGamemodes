@@ -33,11 +33,11 @@ public static class PlayerHider
             .OfType<PlayerVisibilityState>();
     }
 
-    private static PlayerVisibilityState? GetOrCreateState(byte playerId)
+    private static PlayerVisibilityState? GetOrCreateState(byte smallId)
     {
-        if (_playerStates.TryGetValue(playerId, out var state)) return state;
+        if (_playerStates.TryGetValue(smallId, out var state)) return state;
 
-        if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
+        if (!NetworkPlayerManager.TryGetPlayer(smallId, out var player))
         {
             MelonLogger.Error(
                 "Failed to update player visibility, could not get or create state. Is the player connected?");
@@ -45,8 +45,8 @@ public static class PlayerHider
         }
 
         state = new PlayerVisibilityState(player, _hideSpecials);
-        _updateList.Add(playerId);
-        _playerStates[playerId] = state;
+        _updateList.Add(smallId);
+        _playerStates[smallId] = state;
 
         return state;
     }

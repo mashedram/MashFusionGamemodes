@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
-using MashGamemodeLibrary.Config.Constraints;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Config.Menu.Element;
 using MashGamemodeLibrary.Registry.Keyed;
@@ -19,22 +18,22 @@ public struct Bounds
 public record ConfigEntryData
 {
     public bool Visible;
-    public FieldInfo FieldInfo;
+    public readonly FieldInfo FieldInfo;
 
-    public string Name;
-    public string? Category;
-    public Type Type;
-    public object DefaultValue;
+    public readonly string Name;
+    public readonly string? Category;
+    public readonly Type Type;
+    public readonly object DefaultValue;
 
-    public IConfigElementProvider? ElementProvider;
+    private IConfigElementProvider? _elementProvider;
+    private ElementData? _cachedElementData;
 
     public object? Increment;
     public Bounds? Bounds;
-    public bool Synced;
 
-    public object? Overwrite;
+    private object? _overwrite;
 
-    public object Value => Overwrite ?? DefaultValue;
+    public object Value => _overwrite ?? DefaultValue;
 
     private static readonly KeyedRegistry<Type, IConfigElementProvider> ElementProviders = new();
 
@@ -76,25 +75,24 @@ public record ConfigEntryData
 
         DefaultValue = fieldInfo.GetValue(instance) ??
                        throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
-
-        Synced = fieldInfo.GetCustomAttribute<SerializableField>() != null;
     }
     
     private Action<ConfigEntryData, object> WriterFactory(IConfig config)
     {
         return (target, value) =>
         {
-            target.Overwrite = value;
+            target._overwrite = value;
             target.FieldInfo.SetValue(config, value);
 
             ConfigManager.OnValueChanged();
         };
     }
-    public ElementData GetElementData(IConfig instance)
+
+    private ElementData CreateElementData(IConfig instance)
     {
-        if (ElementProvider != null)
+        if (_elementProvider != null)
         {
-            return ElementProvider.GetElementData(this, WriterFactory(instance));
+            return _elementProvider.GetElementData(this, WriterFactory(instance));
         }
 
         if (ElementProviders.TryGet(GetBaseType(Type), out var provider))
@@ -107,6 +105,13 @@ public record ConfigEntryData
             Title = $"Field type {Type.Name} has no associated element provider."
         };
     }
+    
+    public ElementData GetElementData(IConfig instance)
+    {
+        _cachedElementData ??= CreateElementData(instance);
+
+        return _cachedElementData;
+    }
 
     private void ApplyConfigElementProvider(FieldInfo fieldInfo)
     {
@@ -114,7 +119,7 @@ public record ConfigEntryData
         if (element == null)
             return;
 
-        ElementProvider = (IConfigElementProvider?)Activator.CreateInstance(element.ProviderType);
+        _elementProvider = (IConfigElementProvider?)Activator.CreateInstance(element.ProviderType);
     }
 
 

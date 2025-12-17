@@ -15,11 +15,7 @@ public enum ChangeType
     Clear
 }
 
-public class ChangePacket<T>
-{
-    public ChangeType Type;
-    public T Value;
-}
+public record ChangePacket<T>(ChangeType Type, T Value);
 
 public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnumerable<TValue>, ICatchup, IResettable
     where TValue : notnull
@@ -66,20 +62,12 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
 
     private void RelayAdd(TValue value)
     {
-        Relay(new ChangePacket<TValue>
-        {
-            Type = ChangeType.Add,
-            Value = value
-        });
+        Relay(new ChangePacket<TValue>(ChangeType.Add, value));
     }
 
     private void RelayRemove(TValue value)
     {
-        Relay(new ChangePacket<TValue>
-        {
-            Type = ChangeType.Remove,
-            Value = value
-        });
+        Relay(new ChangePacket<TValue>(ChangeType.Remove, value));
     }
 
     private void OnServerChanged()
@@ -116,11 +104,7 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
         removedEntries.ForEach(value => OnValueRemoved?.Invoke(value));
 
         if (sendUpdate)
-            Relay(new ChangePacket<TValue>
-            {
-                Type = ChangeType.Clear,
-                Value = default!
-            });
+            Relay(new ChangePacket<TValue>(ChangeType.Clear, default (TValue)!));
     }
 
     // Setters and Getters
@@ -152,7 +136,7 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
         _encoder.Write(writer, data.Value);
     }
 
-    protected override void Read(byte playerId, NetReader reader)
+    protected override void Read(byte smallId, NetReader reader)
     {
         var change = reader.ReadEnum<ChangeType>();
 

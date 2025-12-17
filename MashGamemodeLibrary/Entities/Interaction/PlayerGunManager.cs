@@ -171,7 +171,6 @@ public static class PlayerGunManager
         return damage;
     }
 
-    // TODO: Check if this works and make it configurable
     private static void NormalizeGunDamage(Gun gun)
     {
         gun.defaultCartridge.projectile.damageMultiplier = GetGunDamageMultiplier(gun);

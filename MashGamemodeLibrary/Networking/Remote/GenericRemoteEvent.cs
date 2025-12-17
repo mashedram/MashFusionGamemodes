@@ -44,7 +44,7 @@ public abstract class GenericRemoteEvent<TData>
 
     protected abstract int? GetSize(TData data);
     protected abstract void Write(NetWriter writer, TData data);
-    protected abstract void Read(byte playerId, NetReader reader);
+    protected abstract void Read(byte smallId, NetReader reader);
 
     private void Relay(TData data, MessageRoute route)
     {
@@ -107,15 +107,15 @@ public abstract class GenericRemoteEvent<TData>
         Relay(data, route.GetTargetedMessageRoute(targetId));
     }
 
-    internal void OnPacket(byte playerId, byte[] bytes)
+    internal void OnPacket(byte smallId, byte[] bytes)
     {
-        if (!Route.ValidFromSender(playerId))
+        if (!Route.ValidFromSender(smallId))
         {
-            MelonLogger.Error($"Received event from: {playerId} {(PlayerIDManager.HostSmallID == playerId ? "(Host)" : "")}. Which is invalid on route: {Route.GetType().Name}");
+            MelonLogger.Error($"Received event from: {smallId} {(PlayerIDManager.HostSmallID == smallId ? "(Host)" : "")}. Which is invalid on route: {Route.GetType().Name}");
             return;
         }
         
         using var reader = NetReader.Create(bytes);
-        Read(playerId, reader);
+        Read(smallId, reader);
     }
 }

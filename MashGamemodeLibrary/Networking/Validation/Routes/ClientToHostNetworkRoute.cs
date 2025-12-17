@@ -21,11 +21,11 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
         return PlayerIDManager.HostSmallID != id;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error)
     {
-        if (!NetworkValidatorHelper.IsClient(playerIDFrom))
+        if (!NetworkValidatorHelper.IsClient(smallIdFrom))
         {
-            error = $"{playerIDFrom} is not a client";
+            error = $"{smallIdFrom} is not a client";
             return false;
         }
 
@@ -33,17 +33,17 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
         return true;
     }
 
-    public bool IsValid(byte playerIDFrom, byte playerIDTo, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, byte smallIDTo, [MaybeNullWhen(true)] out string error)
     {
-        if (NetworkValidatorHelper.IsHost(playerIDFrom))
+        if (NetworkValidatorHelper.IsHost(smallIdFrom))
         {
-            error = $"{playerIDFrom} is a sending as a host";
+            error = $"{smallIdFrom} is a sending as a host";
             return false;
         }
 
-        if (NetworkValidatorHelper.IsClient(playerIDTo))
+        if (NetworkValidatorHelper.IsClient(smallIDTo))
         {
-            error = $"{playerIDTo} is receiving as a client";
+            error = $"{smallIDTo} is receiving as a client";
             return false;
         }
 

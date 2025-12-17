@@ -26,7 +26,7 @@ public class AllToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRou
         return CommonMessageRoutes.ReliableToServer;
     }
 
-    public bool IsValid(byte playerIDFrom, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error)
     {
         // Any can Send
 
@@ -34,13 +34,13 @@ public class AllToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRou
         return true;
     }
 
-    public bool IsValid(byte playerIDFrom, byte playerIDTo, [MaybeNullWhen(true)] out string error)
+    public bool IsValid(byte smallIdFrom, byte smallIDTo, [MaybeNullWhen(true)] out string error)
     {
         // Any can send
 
-        if (NetworkValidatorHelper.IsClient(playerIDTo))
+        if (NetworkValidatorHelper.IsClient(smallIDTo))
         {
-            error = $"{playerIDTo} is receiving as a client";
+            error = $"{smallIDTo} is receiving as a client";
             return false;
         }
 

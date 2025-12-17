@@ -78,14 +78,14 @@ public static class SpectatorManager
         return _isLocalSpectating;
     }
 
-    public static bool IsPlayerSpectating(byte playerId)
+    public static bool IsPlayerSpectating(byte smallId)
     {
-        return SpectatingPlayerIds.Contains(playerId);
+        return SpectatingPlayerIds.Contains(smallId);
     }
 
-    public static bool IsPlayerHidden(byte playerId)
+    public static bool IsPlayerHidden(byte smallId)
     {
-        return HiddenPlayerIds.Contains(playerId);
+        return HiddenPlayerIds.Contains(smallId);
     }
 
     private static bool ShouldBeSpectating(NetworkPlayer player)
