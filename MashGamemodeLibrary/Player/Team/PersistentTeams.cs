@@ -137,6 +137,34 @@ public class PersistentTeams
             index = (index + 1) % _playerSets.Count;
         }
         
+        // Autobalance if needed
+        var emptyTeams = _playerSets.Where(set => set.Count == 0).ToList();
+        if (emptyTeams.Count > 0)
+        {
+            var totalPlayers = _playerSets.Select(s => s.Count).Sum();
+            var targetSize = totalPlayers / _playerSets.Count;
+
+            foreach (var emptySet in emptyTeams)
+            {
+                while (emptySet.Count < targetSize)
+                {
+                    var largestSet = _playerSets
+                        .Where(set => set.Count > targetSize && set != emptySet)
+                        .MaxBy(set => set.Count);
+
+                    if (largestSet == null || largestSet.Count == 0)
+                        break;
+
+                    var player = largestSet.GetRandom();
+                    if (player == null)
+                        break;
+
+                    largestSet.Remove(player);
+                    emptySet.Add(player);
+                }
+            }
+        }
+        
         // Assign teams
         _shift += 1;
         

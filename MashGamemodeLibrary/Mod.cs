@@ -1,18 +1,22 @@
-﻿using LabFusion.SDK.Gamemodes;
+﻿using BoneLib;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary;
+using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
+using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
+using MelonLoader.Utils;
 #if DEBUG
 using MashGamemodeLibrary.Debug;
 #endif
@@ -25,6 +29,8 @@ namespace MashGamemodeLibrary;
 
 public class Mod : MelonMod
 {
+    public static readonly string ModDataDirectory = MelonEnvironment.UserDataDirectory + "/mashgamemodelibrary";
+    
     public override void OnInitializeMelon()
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
@@ -38,6 +44,7 @@ public class Mod : MelonMod
         PlayerHider.Register();
 
         MultiplayerHooking.OnDisconnected += Cleanup;
+        Hooking.OnWarehouseReady += OnWarehouseReady;
     }
 
     public override void OnUpdate()
@@ -54,13 +61,19 @@ public class Mod : MelonMod
     {
         Cleanup();
     }
+    
+    private void OnWarehouseReady()
+    {
+        MusicPackManager.LoadPacks();
+    }
 
     private static void Cleanup()
     {
         EntityTagManager.ClearAll();
-        PlayerGrabManager.ClearOverwrites();
+        PlayerGrabManager.Reset();
         PlayerHider.Reset();
         SpectatorManager.LocalReset();
         PlayerGunManager.Reset();
+        GamemodeCompatibilityChecker.ClearRemoteHashes();
     }
 }

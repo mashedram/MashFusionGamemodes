@@ -30,9 +30,9 @@ public static class SpectatorManager
 
     private static bool _isLocalSpectating;
 
-    private static readonly SyncedSet<byte> SpectatingPlayerIds = new("spectatingPlayerIds", new ByteEncoder());
+    private static readonly SyncedSet<ulong> SpectatingPlayerIds = new("spectatingPlayerIds", new ULongEncoder());
 
-    private static readonly HashSet<byte> HiddenPlayerIds = new();
+    private static readonly HashSet<PlayerID> HiddenPlayerIds = new();
 
     static SpectatorManager()
     {
@@ -78,12 +78,12 @@ public static class SpectatorManager
         return _isLocalSpectating;
     }
 
-    public static bool IsPlayerSpectating(byte smallId)
+    public static bool IsSpectating(this PlayerID playerID)
     {
-        return SpectatingPlayerIds.Contains(smallId);
+        return SpectatingPlayerIds.Contains(playerID.PlatformID);
     }
 
-    public static bool IsPlayerHidden(byte smallId)
+    public static bool IsHidden(this PlayerID smallId)
     {
         return HiddenPlayerIds.Contains(smallId);
     }
@@ -103,7 +103,7 @@ public static class SpectatorManager
     private static void SetLocalInteractions(bool state)
     {
         var rig = BoneLib.Player.RigManager;
-        if (!state && rig)
+        if (!state && rig != null)
         {
             Loadout.Loadout.ClearPlayerLoadout(rig);
         }
@@ -117,7 +117,7 @@ public static class SpectatorManager
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, state ? null : _ => false);
     }
 
-    private static void Hide(byte smallID)
+    private static void Hide(PlayerID smallID)
     {
         if (!HiddenPlayerIds.Add(smallID)) return;
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player)) return;
@@ -143,7 +143,7 @@ public static class SpectatorManager
         SetLocalInteractions(false);
     }
 
-    private static void Show(byte smallID)
+    private static void Show(PlayerID smallID)
     {
         if (!HiddenPlayerIds.Remove(smallID)) return;
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player)) return;
@@ -185,7 +185,7 @@ public static class SpectatorManager
 
     private static void Refresh()
     {
-        _isLocalSpectating = IsPlayerSpectating(PlayerIDManager.LocalSmallID);
+        _isLocalSpectating = IsSpectating(PlayerIDManager.LocalID);
         foreach (var player in NetworkPlayer.Players) RefreshPlayer(player);
     }
 
@@ -196,11 +196,14 @@ public static class SpectatorManager
             MelonLogger.Error("Only the host can set spectating states!", new StackTrace());
             return;
         }
+        
+        if (!playerID.IsValid)
+            return;
 
         if (spectating)
-            SpectatingPlayerIds.Add(playerID);
+            SpectatingPlayerIds.Add(playerID.PlatformID);
         else
-            SpectatingPlayerIds.Remove(playerID);
+            SpectatingPlayerIds.Remove(playerID.PlatformID);
     }
 
     public static void Clear()

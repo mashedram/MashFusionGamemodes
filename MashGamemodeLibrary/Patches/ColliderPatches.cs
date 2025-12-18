@@ -48,6 +48,6 @@ public class ColliderPatches
             return true;
 
         PlayerColliderManager.StartIgnoring(networkEntity);
-        return true;
+        return false;
     }
 }

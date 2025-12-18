@@ -17,7 +17,7 @@ public class SpectatorDebugKeybind : DebugKeybind
         Executor.RunIfHost(() =>
         {
             var playerID = PlayerIDManager.LocalID;
-            playerID.SetSpectating(!SpectatorManager.IsPlayerSpectating(playerID.SmallID));
+            playerID.SetSpectating(!SpectatorManager.IsSpectating(playerID));
         });
     };
 }

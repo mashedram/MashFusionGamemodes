@@ -17,7 +17,6 @@ public struct Bounds
 
 public record ConfigEntryData
 {
-    public bool Visible;
     public readonly FieldInfo FieldInfo;
 
     public readonly string Name;
@@ -61,11 +60,9 @@ public record ConfigEntryData
         var menuEntry = fieldInfo.GetCustomAttribute<ConfigMenuEntry>();
         if (menuEntry == null)
         {
-            Visible = false;
             return;
         }
 
-        Visible = true;
         Name = menuEntry.Name;
         Category = menuEntry.Category;
 
@@ -77,14 +74,14 @@ public record ConfigEntryData
                        throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
     }
     
-    private Action<ConfigEntryData, object> WriterFactory(IConfig config)
+    private static Action<ConfigEntryData, object> WriterFactory(IConfig config)
     {
         return (target, value) =>
         {
             target._overwrite = value;
             target.FieldInfo.SetValue(config, value);
 
-            ConfigManager.OnValueChanged();
+            ConfigManager.OnValueChanged(config);
         };
     }
 

@@ -1,6 +1,7 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
@@ -58,7 +59,12 @@ internal class CrateBarcodeListElement : IConfigElementProvider
                     return;
                 
                 var list = (List<string>)entry.Value;
-                list.Add(crate._pallet._barcode._id);
+
+                var id = crate._pallet._barcode._id;
+                if (list.Contains(id))
+                    return;
+                
+                list.Add(id);
                 setter.Invoke(entry, list);
             }
         };
@@ -91,7 +97,12 @@ internal class BarcodeListElement : IConfigElementProvider
             OnSetSpawnable = barcode =>
             {
                 var list = (List<string>)entry.Value;
-                list.Add(barcode._id);
+
+                var id = barcode._id;
+                if (list.Contains(id))
+                    return;
+                
+                list.Add(id);
                 setter.Invoke(entry, list);
             }
         };
@@ -156,9 +167,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Uility Items")]
     [ConfigElementProvider(typeof(BarcodeListElement))]
     public List<string> UtilityBarcodes = new();
-
+    
     public void Serialize(INetSerializer serializer)
-    {
+    {   
         serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref DefuseDuration);
         serializer.SerializeValue(ref MaxRespawns);

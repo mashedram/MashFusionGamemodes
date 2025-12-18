@@ -3,6 +3,7 @@ using MashGamemodeLibrary.Audio.Players.Extensions;
 using MashGamemodeLibrary.Context.Control;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Audio.Players.Background.Timed;
@@ -15,11 +16,11 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
     private readonly float _minTimeBetweenPlays;
     private readonly IRandomAudioPlayer<NetworkEntity> _player;
 
-    public TimedTagPlayer(IRandomAudioPlayer<NetworkEntity> player, float minTimeBetweenPlays, float maxTimeBetweenPlays)
+    public TimedTagPlayer(IRandomAudioPlayer<NetworkEntity> player, float minTimeBetweenPlays, float? maxTimeBetweenPlays = null)
     {
         _player = player;
         _minTimeBetweenPlays = minTimeBetweenPlays;
-        _maxTimeBetweenPlays = maxTimeBetweenPlays;
+        _maxTimeBetweenPlays = maxTimeBetweenPlays ?? minTimeBetweenPlays;
 
         _entityTimers = new Dictionary<ushort, float>();
     }
@@ -84,6 +85,9 @@ public class TimedTagPlayer<T> : IContinuousPlayer where T : IEntityTag
 
     private float GetRandomTimeBetweenPlays()
     {
+        if (Math.Abs(_minTimeBetweenPlays - _maxTimeBetweenPlays) < 1f)
+            return _minTimeBetweenPlays;
+        
         return Random.Range(_minTimeBetweenPlays, _maxTimeBetweenPlays);
     }
 }

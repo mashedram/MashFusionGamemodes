@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Context.Helper;
+using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase.Rounds;
@@ -78,6 +80,15 @@ public static class InternalGamemodeManager
         if (!GamemodeManager.IsGamemodeStarted)
             return;
         
+        // Validate players
+        
+        foreach (var networkPlayer in NetworkPlayer.Players)
+        {
+            GamemodeCompatibilityChecker.ValidatePlayer(networkPlayer.PlayerID.SmallID);
+        }
+        
+        // Start remotely
+        
         RoundStartEvent.Call(new RoundStartPacket
         {
             Index = index
@@ -113,6 +124,7 @@ public static class InternalGamemodeManager
         if (!TryGetGamemode(out var gamemode))
             return;
         
+        GamemodeCompatibilityChecker.ValidatePlayer(id);
         gamemode.OnLateJoin(id);
     }
     

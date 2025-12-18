@@ -1,4 +1,5 @@
-﻿using LabFusion.Menu.Data;
+﻿using Il2CppSLZ.Marrow;
+using LabFusion.Menu.Data;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Preferences;
@@ -14,6 +15,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
+using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
@@ -224,6 +226,10 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
         
         InternalGamemodeManager.RoundCount = RoundCount;
         
+        // Death Shenanigans
+        BoneLib.Player.RigManager.GetComponent<Player_Health>().deathTimeAmount = 1f;
+        // Compatibility checks
+        GamemodeCompatibilityChecker.SetActiveGamemode(this);
         // Reset statistics
         PlayerStatisticsTracker.Clear();
         
@@ -236,6 +242,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
     {
         _isStartedInternal = false;
         
+        GamemodeCompatibilityChecker.SetActiveGamemode(null);
         GlobalStatisticsManager.SaveStatistics(this);
         
         Reset();

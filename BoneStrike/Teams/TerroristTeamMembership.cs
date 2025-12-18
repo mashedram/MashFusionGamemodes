@@ -1,21 +1,17 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Tags;
-using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
-using Team = MashGamemodeLibrary.Player.Team.Team;
+using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Teams;
 
-public class CounterTerroristTeam : Team
+public class TerroristTeam : Team
 {
-    public override string Name => "Counter Terrorists";
-    public virtual uint Capacity => UInt32.MaxValue;
-    public virtual uint Weight => 0;
+    public override string Name => "Terrorists";
 
     public override void OnPhaseChanged(GamePhase phase)
     {
@@ -23,40 +19,26 @@ public class CounterTerroristTeam : Team
         {
             Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnTag(BoneStrike.Config.MaxRespawns));
         });
-        
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            var isLocked = phase is PlantPhase;
-            LocalControls.LockedMovement = isLocked;
-        });
     }
 
     protected override void OnAssigned()
-    {  
+    {
         Executor.RunIfHost(() =>
         {
             Owner.AddTag(new PlayerHandTimerTag());
         });
-
+        
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Notifier.Send(new Notification
             {
-                Title = "Counter Terrorists",
-                Message = $"Once the bomb has been planted, disarm it by holding it. You have {BoneStrike.Config.MaxRespawns} lives.",
+                Title = "Terrorists",
+                Message = $"Hide and defend the bomb. You have {BoneStrike.Config.MaxRespawns} lives and can skip ahead by holding the bomb and tapping the menu key.",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,
                 Type = NotificationType.INFORMATION
             });
-        });
-    }
-
-    protected override void OnRemoved()
-    {
-        Executor.RunIfMe(Owner.PlayerID, () =>
-        {
-            LocalControls.LockedMovement = false;
         });
     }
 }

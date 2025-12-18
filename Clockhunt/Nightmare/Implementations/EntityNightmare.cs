@@ -96,7 +96,7 @@ public class EntityNightmareInstance : NightmareInstance
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
         var player = NetworkPlayer.Players
-            .Where(e => !SpectatorManager.IsPlayerSpectating(e.PlayerID) && !NightmareManager.IsNightmare(e.PlayerID))
+            .Where(e => !SpectatorManager.IsSpectating(e.PlayerID) && !NightmareManager.IsNightmare(e.PlayerID))
             .DefaultIfEmpty(null)
             .GetRandom();
         

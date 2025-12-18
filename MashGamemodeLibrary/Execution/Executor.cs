@@ -62,6 +62,27 @@ public static class Executor
         StepOutHost();
 #endif
     }
+    
+    public static void RunIfNotHost(Runnable runnable, string? error = null)
+    {
+        if (NetworkInfo.IsHost)
+        {
+            if (error == null) return;
+
+            MelonLogger.Error($"This can only be ran from a host: {error}");
+            return;
+        }
+        
+#if DEBUG
+        StepInHost();
+#endif
+
+        Run(runnable);
+        
+#if DEBUG
+        StepOutHost();
+#endif
+    }
 
     public static void RunIfRemote(PlayerID id, Runnable runnable)
     {

@@ -17,9 +17,9 @@ internal class PlayerVisibilityState
     private readonly Dictionary<Handedness, RenderSet> _heldItems = new();
     private readonly Dictionary<string, bool> _hideOverwrites = new();
     private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
-
+    private readonly HashSet<SlotContainer> _slotContainers = new();
+    
     private readonly NetworkPlayer _player;
-    private readonly RenderSet _specialRenderers = new();
 
     private bool _isHiddenInternal;
     private bool _isSpecialHidden;
@@ -52,7 +52,7 @@ internal class PlayerVisibilityState
     {
         _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
-        _specialRenderers.Clear();
+        _slotContainers.Clear();
 
         if (!_player.HasRig)
         {
@@ -94,7 +94,7 @@ internal class PlayerVisibilityState
             if (!slotContainer || !slotContainer.gameObject)
                 continue;
 
-            _specialRenderers.Add(slotContainer.gameObject);
+            _slotContainers.Add(slotContainer);
         }
 
         var hands = new[] { rigManager.physicsRig.leftHand, rigManager.physicsRig.rightHand };
@@ -105,7 +105,10 @@ internal class PlayerVisibilityState
     {
         _isSpecialHidden = hidden;
 
-        _specialRenderers.SetHidden(_isSpecialHidden);
+        foreach (var slotContainer in _slotContainers)
+        {
+            slotContainer.gameObject.SetActive(!_isSpecialHidden);
+        }
     }
 
     private bool Refresh()
@@ -133,9 +136,12 @@ internal class PlayerVisibilityState
             return false;
         }
 
-        if (!_specialRenderers.SetHidden(_isHiddenInternal))
+        foreach (var slotContainer in _slotContainers)
         {
-            return false;
+            if (slotContainer == null)
+                return false;
+            
+            slotContainer.gameObject.SetActive(_isHiddenInternal || _isSpecialHidden);
         }
 
         foreach (var rendererVisibility in _heldItems.Values.Select(heldItem => heldItem))

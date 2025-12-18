@@ -13,6 +13,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
@@ -128,8 +129,7 @@ public class GrabData
 public static class PlayerGrabManager
 {
     private static readonly Dictionary<string, Func<GrabData, bool>> OverwriteMap = new();
-    private static readonly Dictionary<ushort, double> LastGrabbedTime = new();
-    private static readonly Dictionary<ushort, double> LastDroppedTime = new();
+    private static readonly Dictionary<ushort, HashSet<Hand>> ItemHands = new();
 
     static PlayerGrabManager()
     {
@@ -154,19 +154,15 @@ public static class PlayerGrabManager
         // Callbacks to external systems
 
         var id = networkEntity.ID;
-
-        var time = Time.realtimeSinceStartupAsDouble;
-        var lastGrabbed = LastGrabbedTime.GetValueOrDefault(id);
-        LastGrabbedTime[id] = time;
-
-        var timeSinceLastGrab = time - lastGrabbed;
+        var heldBox = ItemHands.GetOrCreate(id, () => new HashSet<Hand>(new UnityComparer()));
+        if (!heldBox.Add(grab.Hand))
+            return;
 
         var callbacks = networkEntity
             .GetAllExtendingTag<IEntityGrabCallback>();
 
         callbacks
-            .Where(e => timeSinceLastGrab > e.GrabCooldown)
-            .ForEach(e => e.OnGrab(grab));
+            .ForEach(e => e.InvokeSafely(innerE => innerE.OnGrab(grab)));
     }
 
     public static void OnDrop(GrabData grab)
@@ -182,17 +178,19 @@ public static class PlayerGrabManager
         // Callback to external systems
 
         var id = networkEntity.ID;
+        if (!ItemHands.TryGetValue(id, out var set))
+            return;
 
-        var time = Time.realtimeSinceStartupAsDouble;
-        var lastDropped = LastDroppedTime.GetValueOrDefault(id);
-        LastDroppedTime[id] = time;
-
-        var timeSinceLastDrop = time - lastDropped;
+        set.Remove(grab.Hand);
+        
+        if (set.Count > 0)
+            return;
 
         var callbacks = networkEntity
             .GetAllExtendingTag<IEntityDropCallback>();
 
-        callbacks.Where(e => timeSinceLastDrop > e.DropCooldown).ForEach(e => e.OnDrop(grab));
+        callbacks
+            .ForEach(e => e.OnDrop(grab));
     }
 
     public static bool CanGrabEntity(GrabData grab)
@@ -207,13 +205,13 @@ public static class PlayerGrabManager
 
         var grabbedRig = item.GameObject.GetComponentInParent<RigManager>();
         if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
-            SpectatorManager.IsPlayerSpectating(networkPlayer.PlayerID))
+            SpectatorManager.IsSpectating(networkPlayer.PlayerID))
             return false;
 
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();
 
-        return predicates.Count == 0 || predicates.Any(predicate => predicate.CanGrab(grab));
+        return predicates.Count == 0 || predicates.Any(predicate => predicate.InvokeSafely(false, p => p.CanGrab(grab)));
     }
 
     public static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
@@ -228,11 +226,11 @@ public static class PlayerGrabManager
 
         return entity.HasTag<T>();
     }
-    
+
     public static bool IsHoldingTag<T>(NetworkPlayer player) where T : IEntityTag
     {
         if (!player.HasRig) return false;
-        
+
         return IsHoldingTag<T>(player.RigRefs.RightHand) || IsHoldingTag<T>(player.RigRefs.LeftHand);
     }
 
@@ -247,15 +245,15 @@ public static class PlayerGrabManager
         OverwriteMap[key] = predicate;
     }
 
-    public static void ClearOverwrites()
+    public static void Reset()
     {
         OverwriteMap.Clear();
+        ItemHands.Clear();
     }
 
     public static void Remove(ushort entityID)
     {
-        LastGrabbedTime.Remove(entityID);
-        LastDroppedTime.Remove(entityID);
+        ItemHands.Remove(entityID);
     }
 
     public static void DetachIfTag(Hand hand)
@@ -265,27 +263,27 @@ public static class PlayerGrabManager
         var attached = hand.AttachedReceiver;
         var rb = attached?.Host?.Rb;
         if (rb == null) return;
-        
+
         if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return;
         if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return;
 
         if (!entity.HasTagExtending<IEntityDropCallback>())
             return;
-        
+
         hand.TryDetach();
     }
-    
+
     // Events
-    
+
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
         if (type != PlayerActionType.DYING)
             return;
-        
+
         // We need to call drop shenanigans on player held items when the player dies
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
             return;
-        
+
         if (!player.HasRig)
             return;
 

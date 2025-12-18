@@ -141,6 +141,8 @@ public static class PalletLoadoutManager
     {
         if (!Items.TryGetValue(type, out var list)) return null;
 
+        if (list.Count == 0) return null;
+        
         var crate = IEnumerableExtensions.GetRandom(list);
         return crate.Barcode;
     }

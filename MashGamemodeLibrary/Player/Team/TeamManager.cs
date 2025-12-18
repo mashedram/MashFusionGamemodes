@@ -223,20 +223,13 @@ public static class TeamManager
             return;
         }
         
-        team.Assign(player);
+        team.InvokeSafely(t => t.Assign(player));
         OnAssignedTeam?.Invoke(player.PlayerID, team);
     }
 
-    private static void OnRemoved(byte smallID, Team team)
+    private static void OnRemoved(byte platformId, Team team)
     {
-        var playerID = PlayerIDManager.GetPlayerID(smallID);
-        if (playerID == null)
-        {
-            MelonLogger.Error($"Failed to remove player of id {smallID} to {team.Name}");
-            return;
-        }
-        
-        team.Remove();
+        team.InvokeSafely(t => t.Remove());
     }
 
     public static void OnPhaseChanged(GamePhase activePhase)

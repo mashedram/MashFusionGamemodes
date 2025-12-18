@@ -19,6 +19,6 @@ public class RigArtPatches
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
 
-        return !player.PlayerID.IsSpectating();
+        return !PlayerIdExtension.IsSpectating(player.PlayerID);
     }
 }

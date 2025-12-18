@@ -14,6 +14,7 @@ using LabFusion.Player;
 using LabFusion.RPC;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities;
@@ -107,7 +108,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-
+        
         GamePhaseManager.Enable<PlantPhase>();
 
         var spawns = GamemodeMarker.FilterMarkers();

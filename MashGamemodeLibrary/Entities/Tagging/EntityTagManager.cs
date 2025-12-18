@@ -137,7 +137,7 @@ class UpdateTagCache : TagCache<ITagUpdate>
     {
         foreach (var entry in this)
         {
-            entry.Update(delta);
+            entry.InvokeSafely(e => e.Update(delta));
         }
     }
 }
@@ -205,7 +205,7 @@ public static class EntityTagManager
         tagToEntity.Add(key);
 
         if (value is ITagAddedInternal entity) 
-            entity.OnAddInternal(key);
+            entity.InvokeSafely(a => a.OnAddInternal(key));
         
         foreach (var (_, cache) in TypedTagCache)
         {
@@ -213,13 +213,13 @@ public static class EntityTagManager
         }
         
         if (value is ITagAdded added)
-            added.OnAdded(key.EntityID);
+            added.InvokeSafely(a => a.OnAdded(key.EntityID));
     }
 
     private static void OnTagChanged(EntityTagIndex index, IEntityTag value)
     {
         if (value is ITagChanged changed)
-            changed.OnChanged();
+            changed.InvokeSafely(c => c.OnChanged());
     }
 
     private static void OnTagRemoved(EntityTagIndex key, IEntityTag oldValue)
@@ -238,7 +238,7 @@ public static class EntityTagManager
         }
         
         if (oldValue is ITagRemoved removed)
-            removed.OnRemoval(key.EntityID);
+            removed.InvokeSafely(r => r.OnRemoval(key.EntityID));
     }
 
     private static void OnTagsCleared()

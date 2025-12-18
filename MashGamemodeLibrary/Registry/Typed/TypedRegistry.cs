@@ -48,7 +48,16 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public ulong GetOrCreateId(Type type)
     {
-        return _stableHashCache.GetOrCreate(type, () => CreateID(type));
+        if (_stableHashCache.TryGetValue(type, out var cachedValue))
+            return cachedValue;
+        
+        var id = CreateID(type);
+        _stableHashCache[type] = id;
+        _typeCache[id] = type;
+#if DEBUG
+        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
+#endif
+        return id;
     }
     
     public ulong GetOrCreateId<T>() where T : TValue
@@ -59,12 +68,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
     protected abstract TInternal Create<T>() where T : TValue, new();
     protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);
 
-    public virtual void Register<T>() where T : TValue, new()
-    {
-        Register<T>(Create<T>());
-    }
-    
-    internal void Register<T>(TInternal value) where T : TValue
+    public void Register<T>() where T : TValue, new()
     {
 #if DEBUG
         // This function is connected to the registerall and needs better runtime logging
@@ -75,13 +79,8 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             return;
         }
 #endif
-
-        var id = CreateID<T>();
-        _stableHashCache[type] = id;
-        _typeCache[id] = type;
-#if DEBUG
-        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
-#endif
+        var id = GetOrCreateId<T>();
+        var value = Create<T>();
         Register(id, value); 
     }
     

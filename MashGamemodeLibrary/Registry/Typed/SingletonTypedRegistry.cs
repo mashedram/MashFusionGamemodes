@@ -6,7 +6,8 @@ public class SingletonTypedRegistry<TValue> : TypedRegistry<TValue, TValue> wher
 {
     public void Register<T>(T value) where T : TValue
     {
-        base.Register<TValue>(value);
+        var id = GetOrCreateId<T>();
+        Register(id, value);
     }
     
     protected override TValue Create<T>()

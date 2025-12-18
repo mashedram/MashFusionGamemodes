@@ -65,7 +65,7 @@ public class BlindNightmareInstance : NightmareInstance
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            foreach (var player in NetworkPlayer.Players.Where(p => !p.PlayerID.IsSpectating()))
+            foreach (var player in NetworkPlayer.Players.Where(p => !PlayerIdExtension.IsSpectating(p.PlayerID)))
             {
                 if (player.PlayerID.Equals(Owner.PlayerID))
                     continue;

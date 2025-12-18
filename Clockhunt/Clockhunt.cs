@@ -138,6 +138,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     private static bool AnyAliveSurvivors(NetworkPlayer? skip = null)
     {
-        return NetworkPlayer.Players.Any(player => !player.PlayerID.IsSpectating() && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
+        return NetworkPlayer.Players.Any(player => !PlayerIdExtension.IsSpectating(player.PlayerID) && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
     }
 }

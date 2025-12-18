@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.Player.Actions;
 
 public static class GlobalStatisticsManager
 {
-    private static readonly string StatisticsFolder = MelonEnvironment.UnityGameDataDirectory + "/statistics/";
+    private static readonly string StatisticsFolder = Mod.ModDataDirectory + "/statistics/";
     private static readonly Dictionary<Gamemode, Dictionary<string, int>> ScopedStatistics = new();
 
     private static Dictionary<string, int> LoadStatistics(Gamemode gamemode)
@@ -20,11 +20,12 @@ public static class GlobalStatisticsManager
         Dictionary<string, int>? data = null;
         try
         {
-            Directory.CreateDirectory(filePath);
+            Directory.CreateDirectory(StatisticsFolder);
 
             if (File.Exists(filePath))
             {
                 using var stream = File.OpenRead(filePath);
+                stream.SetLength(0);
                 data = JsonSerializer.Deserialize<Dictionary<string, int>>(stream);
             }
             

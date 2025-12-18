@@ -1,14 +1,10 @@
 using System.Text.Json;
 using LabFusion.Network;
-using LabFusion.Network.Serialization;
-using LabFusion.SDK.Gamemodes;
-using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
-using MelonLoader.Utils;
 
 namespace MashGamemodeLibrary.Config;
 
@@ -17,7 +13,7 @@ public static class ConfigManager
     public delegate void ConfigChangedHandler(IConfig config);
     public static event ConfigChangedHandler? OnConfigChanged;
     
-    private static readonly string ConfigDirectoryPath = MelonEnvironment.UserDataDirectory + "/configs/";
+    private static readonly string ConfigDirectoryPath = Mod.ModDataDirectory + "/configs/";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -30,8 +26,8 @@ public static class ConfigManager
     
     private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig", new NullableReferenceEncoder<IConfig>(new DynamicInstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
 
-    private static readonly TimeSpan SyncDelay = TimeSpan.FromSeconds(3);
-    private static bool IsDirty;
+    private static readonly TimeSpan SyncDelay = TimeSpan.FromSeconds(5);
+    private static HashSet<IConfig> _dirtyConfigs = new();
     private static DateTime LastChanged = DateTime.MinValue;
     
     static ConfigManager()
@@ -55,8 +51,6 @@ public static class ConfigManager
         T? config = null;
         try
         {
-            Directory.CreateDirectory(filePath);
-
             if (File.Exists(filePath))
             {
                 using var stream = File.OpenRead(filePath);
@@ -80,10 +74,11 @@ public static class ConfigManager
 
         try
         {
-            Directory.CreateDirectory(filePath);
+            Directory.CreateDirectory(ConfigDirectoryPath);
 
-            using var stream = File.Open(filePath, FileMode.Create, FileAccess.Write);
-            JsonSerializer.Serialize(stream, config, JsonOptions);
+            using var stream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+            stream.SetLength(0);
+            JsonSerializer.Serialize(stream, config, configType, JsonOptions);
         }
         catch (Exception exception)
         {
@@ -124,25 +119,33 @@ public static class ConfigManager
 
     public static void Update()
     {
-        if (!IsDirty) return;
+        if (_dirtyConfigs.Count == 0) return;
         if (DateTime.Now - LastChanged < SyncDelay) return;
 
+        Save();
         Sync();
     }
 
-    internal static void OnValueChanged()
+    internal static void OnValueChanged(IConfig config)
     {
-        IsDirty = true;
+        _dirtyConfigs.Add(config);
         LastChanged = DateTime.Now;
+    }
+
+    internal static void Save()
+    {
+        foreach (var dirtyConfig in _dirtyConfigs)
+        {
+            WriteConfig(dirtyConfig);
+        }
+        _dirtyConfigs.Clear();
     }
 
     internal static void Sync()
     {
-        IsDirty = false;
         if (!NetworkInfo.IsHost) return;
         if (RemoteConfigInstance.Value == null) return;
         
-        WriteConfig(RemoteConfigInstance.Value);
         RemoteConfigInstance.Sync();
     }
 }
