@@ -5,11 +5,12 @@ using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Visibility.Tags;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
+public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved, IPlayerHiddenTag
 {
     private Poolee? _timerObject;
     private TextMeshPro? _text;
@@ -69,5 +70,13 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
 
         _text.text = $"{minutes:D2}:{seconds:D2}";
+    }
+    
+    public void SetHiddenState(bool isHidden)
+    {
+        if (_text == null)
+            return;
+        
+        _text.enabled = !isHidden;
     }
 }

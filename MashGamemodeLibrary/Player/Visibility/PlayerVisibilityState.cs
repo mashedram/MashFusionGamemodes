@@ -107,7 +107,7 @@ internal class PlayerVisibilityState
 
         foreach (var slotContainer in _slotContainers)
         {
-            slotContainer.gameObject.SetActive(!_isSpecialHidden);
+            slotContainer.gameObject.SetActive(!(_isHiddenInternal || _isSpecialHidden));
         }
     }
 
@@ -141,7 +141,7 @@ internal class PlayerVisibilityState
             if (slotContainer == null)
                 return false;
             
-            slotContainer.gameObject.SetActive(_isHiddenInternal || _isSpecialHidden);
+            slotContainer.gameObject.SetActive(!(_isHiddenInternal || _isSpecialHidden));
         }
 
         foreach (var rendererVisibility in _heldItems.Values.Select(heldItem => heldItem))

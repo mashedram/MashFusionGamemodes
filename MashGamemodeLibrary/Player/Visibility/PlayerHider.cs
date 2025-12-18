@@ -7,7 +7,10 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Player.Visibility;
+using MashGamemodeLibrary.Player.Visibility.Tags;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using Steamworks.Data;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
@@ -20,6 +23,8 @@ public static class PlayerHider
     private static int _currentIndex = 0;
     private static readonly List<byte> _updateList = new();
     private static readonly Dictionary<byte, PlayerVisibilityState> _playerStates = new();
+
+    private static readonly EntityTagCache<IPlayerHiddenTag> PlayerHiddenTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerHiddenTag>>();
 
     public static void Register()
     {
@@ -84,6 +89,15 @@ public static class PlayerHider
         var state = GetOrCreateState(playerID);
         
         state?.SetHidden(key, hidden);
+        
+        // Set states for remote values
+        if (!PlayerHiddenTags.TryGet(playerID.SmallID, out var set))
+            return;
+        
+        foreach (var playerHiddenTag in set)
+        {
+            playerHiddenTag.InvokeSafely(t => t.SetHiddenState(hidden));
+        }
     }
 
     public static void HideAllSpecials()
