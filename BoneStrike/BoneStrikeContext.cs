@@ -16,7 +16,7 @@ public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
     public readonly TimedTagPlayer<BombMarker> BombAudioPlayer = new(new ObjectAudioPlayer("BombSound",
             new SyncedAudioContainer(new MonoDiscLoader(new [] { "Mash.BoneStrike.MonoDisc.ClockBeep" })), 1,
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
-                settings.SetVolume(1f).SetMaxDistance(1000f))),
+                settings.SetVolume(1f).SetMaxDistance(200f))),
         10);
     
     public readonly EnvironmentManager<BoneStrikeContext, EnvironmentContext> EnvironmentPlayer =

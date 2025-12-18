@@ -51,11 +51,16 @@ public class DefusePhase : GamePhase
             Type = NotificationType.INFORMATION
         });
 
-        if (BoneStrike.Context.LocalPlayer.PlayerID.IsTeam<CounterTerroristTeam>())
+        var bomb = EntityTagManager.GetAllWithTag<BombMarker>().FirstOrDefault();
+        if (bomb != null)
         {
-            foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
+            var marrow = bomb.GetExtender<IMarrowEntityExtender>();
+            if (marrow != null)
             {
-                networkEntity.AddTag(new BombVisibleMarker());
+                foreach (var (_, tag) in EntityTagManager.GetAllTags<PlayerHandTimerTag>())
+                {
+                    tag._target = marrow.MarrowEntity.gameObject;
+                }
             }
         }
         

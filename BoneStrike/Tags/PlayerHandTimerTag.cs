@@ -10,11 +10,14 @@ using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved, IPlayerHiddenTag
+public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 {
     private Poolee? _timerObject;
     private TextMeshPro? _text;
+    private Transform? _compasPointer;
     private bool _isSpawning;
+
+    public GameObject? _target = null;
 
     private void SpawnTimer()
     {
@@ -28,6 +31,7 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved,
         {
             _timerObject = poolee;
             _text = poolee.GetComponentInChildren<TextMeshPro>();
+            _compasPointer = poolee.transform.FindChild("Compas");
 
             _isSpawning = false;
         });
@@ -55,12 +59,34 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved,
             _timerObject.gameObject.SetActive(false);
             return;
         }
+        _timerObject.gameObject.SetActive(true);
         
         var leftHand = Owner.RigRefs.LeftHand.transform;
-        var position = leftHand.position + leftHand.forward * 0.05f + leftHand.right * -0.05f;
+        var leftHandPosition = leftHand.position;
+        var position = leftHandPosition + leftHand.forward * 0.05f + leftHand.right * -0.05f;
         var rotation = leftHand.rotation;
         
         _timerObject.transform.SetPositionAndRotation(position, rotation);
+
+        if (_compasPointer != null)
+        {
+            var hasTarget = _target != null;
+
+            _compasPointer.gameObject.SetActive(hasTarget);
+            if (hasTarget)
+            {
+                var direction = (_target!.transform.position - position).normalized;
+                var projectedDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
+                var directionAngle = Mathf.Atan2(projectedDirection.x, projectedDirection.z) * Mathf.Rad2Deg;
+                
+                var upDirection = Vector3.ProjectOnPlane((-leftHand.right + leftHand.up) * 2.5f, Vector3.up).normalized;
+                var compassOffsetAngle = Mathf.Atan2(upDirection.x, upDirection.z) * Mathf.Rad2Deg;
+
+                const float offset = 180f;
+                var finalAngle = -directionAngle + compassOffsetAngle + offset;
+                _compasPointer.localEulerAngles = new Vector3(finalAngle, 0f, 0f);
+            }
+        }
 
         if (_text == null)
             return;
@@ -70,13 +96,5 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved,
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
 
         _text.text = $"{minutes:D2}:{seconds:D2}";
-    }
-    
-    public void SetHiddenState(bool isHidden)
-    {
-        if (_text == null)
-            return;
-        
-        _text.enabled = !isHidden;
     }
 }
