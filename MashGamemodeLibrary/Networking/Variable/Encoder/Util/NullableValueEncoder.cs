@@ -1,6 +1,5 @@
 ﻿using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.networking.Variable.Encoder;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 
@@ -12,7 +11,7 @@ public class NullableValueEncoder<TValue> : IEncoder<TValue?> where TValue : str
     {
         _childEncoder = childEncoder;
     }
-    
+
     public int GetSize(TValue? value)
     {
         if (!value.HasValue)
@@ -20,7 +19,7 @@ public class NullableValueEncoder<TValue> : IEncoder<TValue?> where TValue : str
 
         return _childEncoder.GetSize(value.Value);
     }
-    
+
     public TValue? Read(NetReader reader)
     {
         if (!reader.ReadBoolean())
@@ -28,7 +27,7 @@ public class NullableValueEncoder<TValue> : IEncoder<TValue?> where TValue : str
 
         return _childEncoder.Read(reader);
     }
-    
+
     public void Write(NetWriter writer, TValue? value)
     {
         if (!value.HasValue)
@@ -36,7 +35,7 @@ public class NullableValueEncoder<TValue> : IEncoder<TValue?> where TValue : str
             writer.Write(false);
             return;
         }
-        
+
         writer.Write(true);
         _childEncoder.Write(writer, value.Value);
     }

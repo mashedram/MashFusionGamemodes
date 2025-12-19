@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using HarmonyLib;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Registry.Keyed;
 using MashGamemodeLibrary.Util;
@@ -14,59 +13,22 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 {
     private readonly Dictionary<Type, ulong> _stableHashCache = new();
     private readonly Dictionary<ulong, Type> _typeCache = new();
-    
-    public ulong GetID(Type type)
-    {
-        return _stableHashCache[type];
-    }
-    
-    public ulong GetID<T>()
-    {
-        return GetID(typeof(T));
-    }
-    
-    public ulong GetID(TValue instance)
-    {
-        return GetID(instance.GetType());
-    }
-    
+
     public ulong CreateID(Type type)
     {
         var fullName = type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
         return fullName.GetStableHash();
     }
-    
+
     public ulong CreateID<T>() where T : TValue
     {
         return CreateID(typeof(T));
     }
-    
+
     public ulong CreateID(TValue instance)
     {
         return CreateID(instance.GetType());
     }
-
-    public ulong GetOrCreateId(Type type)
-    {
-        if (_stableHashCache.TryGetValue(type, out var cachedValue))
-            return cachedValue;
-        
-        var id = CreateID(type);
-        _stableHashCache[type] = id;
-        _typeCache[id] = type;
-#if DEBUG
-        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
-#endif
-        return id;
-    }
-    
-    public ulong GetOrCreateId<T>() where T : TValue
-    {
-        return GetOrCreateId(typeof(T));
-    }
-    
-    protected abstract TInternal Create<T>() where T : TValue, new();
-    protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);
 
     public void Register<T>() where T : TValue, new()
     {
@@ -81,9 +43,9 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 #endif
         var id = GetOrCreateId<T>();
         var value = Create<T>();
-        Register(id, value); 
+        Register(id, value);
     }
-    
+
     public void RegisterAll<T>()
     {
         var assembly = typeof(T).Assembly;
@@ -91,7 +53,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
         if (registerTypeMethod == null)
             throw new Exception("Could not find register method.");
-        
+
         assembly.GetTypes()
             .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false, IsInterface: false })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
@@ -121,7 +83,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
         return tag;
     }
-    
+
     public bool TryGet(ulong key, [MaybeNullWhen(false)] out TValue value)
     {
         if (!base.TryGet(key, out var maybeEntry) || !TryToValue(maybeEntry, out var internalValue))
@@ -146,6 +108,45 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         entry = (T)value;
         return true;
     }
+
+    public ulong GetID(Type type)
+    {
+        return _stableHashCache[type];
+    }
+
+    public ulong GetID<T>()
+    {
+        return GetID(typeof(T));
+    }
+
+    public ulong GetID(TValue instance)
+    {
+        return GetID(instance.GetType());
+    }
+
+    public ulong GetOrCreateId(Type type)
+    {
+        if (_stableHashCache.TryGetValue(type, out var cachedValue))
+            return cachedValue;
+
+        var id = CreateID(type);
+        _stableHashCache[type] = id;
+        _typeCache[id] = type;
+#if DEBUG
+        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
+#endif
+        return id;
+    }
+
+    public ulong GetOrCreateId<T>() where T : TValue
+    {
+        return GetOrCreateId(typeof(T));
+    }
+
+    protected abstract TInternal Create<T>() where T : TValue, new();
+    protected abstract bool TryToValue(TInternal? from, [MaybeNullWhen(false)] out TValue value);
 }
 
-public abstract class TypedRegistry<TValue> : TypedRegistry<TValue, TValue> where TValue : notnull {}
+public abstract class TypedRegistry<TValue> : TypedRegistry<TValue, TValue> where TValue : notnull
+{
+}

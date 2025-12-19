@@ -8,7 +8,7 @@ public class EnumEncoder<T> : IEncoder<T> where T : struct, Enum
     {
         return sizeof(int);
     }
-    
+
     public T Read(NetReader reader)
     {
         return reader.ReadEnum<T>();

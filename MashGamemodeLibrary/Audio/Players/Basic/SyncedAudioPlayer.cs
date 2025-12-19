@@ -27,7 +27,6 @@ public class PlayRequestPacket<T> : INetSerializable where T : INetSerializable,
 
 public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlayer, IStoppable where TPacket : INetSerializable, new()
 {
-    public string Name { get; private set; }
     private readonly ISyncedAudioContainer _container;
     private readonly RemoteEvent<PlayRequestPacket<TPacket>> _playRequestEvent;
 
@@ -35,11 +34,24 @@ public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlay
         container, provider)
     {
         Name = name;
-        
+
         _container = container;
         _playRequestEvent = new RemoteEvent<PlayRequestPacket<TPacket>>($"{name}_PlayRequest", OnPlayRequest,
             CommonNetworkRoutes.HostToAll);
     }
+
+    public new void Stop()
+    {
+        Executor.RunIfHost(() =>
+        {
+            _playRequestEvent.Call(new PlayRequestPacket<TPacket>
+            {
+                AudioHash = 0,
+                ExtraData = new TPacket()
+            });
+        });
+    }
+    public string Name { get; }
 
     protected abstract bool Modifier(TPacket data, ref AudioSource source);
 
@@ -78,18 +90,6 @@ public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlay
         {
             AudioHash = hash.Value,
             ExtraData = data
-        });
-    }
-
-    public new void Stop()
-    {
-        Executor.RunIfHost(() =>
-        {
-            _playRequestEvent.Call(new PlayRequestPacket<TPacket>
-            {
-                AudioHash = 0,
-                ExtraData = new TPacket()
-            });
         });
     }
 }

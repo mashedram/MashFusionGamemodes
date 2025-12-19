@@ -1,5 +1,4 @@
 ﻿using Il2CppSLZ.Marrow;
-using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using MashGamemodeLibrary.Loadout;
 using SlotType = MashGamemodeLibrary.Loadout.SlotType;
@@ -7,7 +6,7 @@ using SlotType = MashGamemodeLibrary.Loadout.SlotType;
 namespace MashGamemodeLibrary.Player.Loadout;
 
 /// <summary>
-/// May only be run locally
+///     May only be run locally
 /// </summary>
 public class Loadout
 {
@@ -19,13 +18,13 @@ public class Loadout
     {
         foreach (SlotType slotType in Enum.GetValues(typeof(SlotType))) _slotAssigners[slotType] = new SlotData();
     }
-    
+
     public Loadout SetSlotBarcode(SlotType slotType, Barcode? barcode)
     {
         _slotAssigners[slotType] = new SlotData(barcode);
         return this;
     }
-    
+
     public void Assign()
     {
         var rig = BoneLib.Player.RigManager;

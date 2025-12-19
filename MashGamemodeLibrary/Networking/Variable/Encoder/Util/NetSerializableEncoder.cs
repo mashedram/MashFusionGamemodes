@@ -17,19 +17,19 @@ public class NetSerializableEncoder<T> : IEncoder<T> where T : INetSerializable,
             return new T();
         }
     }
-    
+
     public int GetSize(T value)
     {
         return value.GetSize() ?? 4096;
     }
-    
+
     public T Read(NetReader reader)
     {
         var value = _builder.Invoke();
         value.Serialize(reader);
         return value;
     }
-    
+
     public void Write(NetWriter writer, T value)
     {
         value.Serialize(writer);

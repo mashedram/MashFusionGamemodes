@@ -15,7 +15,7 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
     {
         return CommonMessageRoutes.ReliableToServer;
     }
-    
+
     public bool ValidFromSender(byte id)
     {
         return PlayerIDManager.HostSmallID != id;

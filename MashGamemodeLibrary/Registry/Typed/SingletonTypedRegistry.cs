@@ -9,12 +9,12 @@ public class SingletonTypedRegistry<TValue> : TypedRegistry<TValue, TValue> wher
         var id = GetOrCreateId<T>();
         Register(id, value);
     }
-    
+
     protected override TValue Create<T>()
     {
         return new T();
     }
-    
+
     protected override bool TryToValue(TValue? from, [MaybeNullWhen(false)] out TValue value)
     {
         if (from is null)

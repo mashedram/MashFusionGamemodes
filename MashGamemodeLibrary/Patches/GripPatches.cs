@@ -3,7 +3,6 @@ using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Grabbables;
-using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
@@ -31,12 +30,12 @@ public class GripPatches
     public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
     {
         if (!__instance || !hand) return true;
-        
+
         var grab = new GrabData(hand, __instance);
 
         if (PlayerGrabManager.CanGrabEntity(grab))
             return true;
-           
+
         __instance.DropWeapon();
         return false;
     }
@@ -69,7 +68,7 @@ public class GripPatches
     {
         if (!__instance || !hand)
             return true;
-        
+
         if (!__instance._grip)
             return true;
 
@@ -98,7 +97,7 @@ public class GripPatches
     {
         if (!__instance || !objectToAttach)
             return true;
-        
+
         if (!objectToAttach)
             return true;
 
@@ -129,11 +128,11 @@ public class GripPatches
     {
         if (__instance == null)
             return;
-        
+
         var hand = __instance.GetHand();
         if (hand == null)
             return;
-        
+
         var grab = new GrabData(hand, __instance);
         PlayerGrabManager.OnDrop(grab);
     }
@@ -145,7 +144,7 @@ public class GripPatches
     {
         if (!hand || !grip)
             return true;
-        
+
         var grab = new GrabData(hand, grip);
         return PlayerGrabManager.CanGrabEntity(grab);
     }

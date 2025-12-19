@@ -9,12 +9,12 @@ public static class MathUtil
 
         return (value - from) / (to - from);
     }
-    
+
     public static float Lerp(float from, float to, float value)
     {
         if (from > to)
             (from, to) = (to, from);
-            
+
         return from + value * (to - from);
     }
 
@@ -27,7 +27,7 @@ public static class MathUtil
 
         return value;
     }
-    
+
     // Single
 
     public static float Clamp01(this float value)

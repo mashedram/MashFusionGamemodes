@@ -9,7 +9,6 @@ using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.Phase.Rounds;
 using MashGamemodeLibrary.Player.Actions;
 
 namespace MashGamemodeLibrary.Context;
@@ -31,9 +30,9 @@ public class RoundStartPacket : INetSerializable
 
 public class RoundEndPacket : INetSerializable
 {
-    public ulong WinningTeamID;
     public bool HasNextRound;
     public float TimeUntilNextRound;
+    public ulong WinningTeamID;
 
     public int? GetSize()
     {
@@ -50,18 +49,17 @@ public class RoundEndPacket : INetSerializable
 
 public static class InternalGamemodeManager
 {
-    private static readonly RemoteEvent<RoundStartPacket> RoundStartEvent = new RemoteEvent<RoundStartPacket>("OnRoundStart", OnRoundStart, CommonNetworkRoutes.HostToAll);
+    private static readonly RemoteEvent<RoundStartPacket> RoundStartEvent = new("OnRoundStart", OnRoundStart, CommonNetworkRoutes.HostToAll);
     private static readonly RemoteEvent<RoundEndPacket> RoundEndEvent = new("OnRoundEnd", OnRoundEnd, CommonNetworkRoutes.HostToAll);
 
-    public static int RoundCount { get; set; } = 0;
-    public static float TimeBetweenRounds => GamemodeRoundManager.Settings.TimeBetweenRounds;
-    
-    private static bool _inRound;
     private static int _roundIndex;
     private static float _roundCooldown;
 
-    public static bool InRound => _inRound;
-    
+    public static int RoundCount { get; set; } = 0;
+    public static float TimeBetweenRounds => GamemodeRoundManager.Settings.TimeBetweenRounds;
+
+    public static bool InRound { get; private set; }
+
     private static bool TryGetGamemode([MaybeNullWhen(false)] out IGamemode gamemode)
     {
         if (!GamemodeManager.IsGamemodeStarted)
@@ -69,7 +67,7 @@ public static class InternalGamemodeManager
             gamemode = null;
             return false;
         }
-        
+
         gamemode = GamemodeManager.ActiveGamemode as IGamemode;
         return gamemode != null;
     }
@@ -78,39 +76,39 @@ public static class InternalGamemodeManager
     {
         if (!NetworkInfo.IsHost)
             return;
-        
+
         if (!GamemodeManager.IsGamemodeStarted)
             return;
-        
+
         // Validate players
-        
+
         foreach (var networkPlayer in NetworkPlayer.Players)
         {
             GamemodeCompatibilityChecker.ValidatePlayer(networkPlayer.PlayerID.SmallID);
         }
-        
+
         // Start remotely
-        
+
         RoundStartEvent.Call(new RoundStartPacket
         {
             Index = index
         });
     }
-    
+
     public static void EndRound(ulong winningTeamId)
     {
         if (!NetworkInfo.IsHost)
             return;
-        
+
         if (!GamemodeManager.IsGamemodeStarted)
             return;
 
         // Set it early to avoid double takes
-        _inRound = false;
-        
+        InRound = false;
+
         // Reduce by 1 to see if this is the last round
         var hasNextRound = _roundIndex >= RoundCount - 1;
-        
+
         // Make sure the round gets ended and scores get count
         RoundEndEvent.Call(new RoundEndPacket
         {
@@ -125,27 +123,27 @@ public static class InternalGamemodeManager
             GamemodeManager.StopGamemode();
         }
     }
-    
+
     public static void OnLateJoin(PlayerID id)
     {
         if (!TryGetGamemode(out var gamemode))
             return;
-        
+
         GamemodeCompatibilityChecker.ValidatePlayer(id);
         gamemode.OnLateJoin(id);
     }
-    
+
     // Events
-    
+
     private static void OnRoundStart(RoundStartPacket packet)
     {
         if (!TryGetGamemode(out var gamemode))
             return;
 
-        _inRound = true;
+        InRound = true;
         _roundCooldown = 0f;
         _roundIndex = packet.Index;
-        
+
         if (RoundCount > 1)
         {
             Notifier.Send(new Notification
@@ -158,10 +156,10 @@ public static class InternalGamemodeManager
                 Type = NotificationType.INFORMATION
             });
         }
-        
+
         // Reset the player tracker
         PlayerDamageTracker.Reset();
-        
+
         gamemode.StartRound(packet.Index);
     }
 
@@ -170,7 +168,7 @@ public static class InternalGamemodeManager
         if (!TryGetGamemode(out var gamemode))
             return;
 
-        _inRound = false;
+        InRound = false;
         _roundCooldown = packet.TimeUntilNextRound;
 
         if (packet.HasNextRound)
@@ -185,7 +183,7 @@ public static class InternalGamemodeManager
                 Type = NotificationType.INFORMATION
             });
         }
-        
+
         gamemode.EndRound(packet.WinningTeamID);
     }
 
@@ -195,17 +193,17 @@ public static class InternalGamemodeManager
             return;
         if (!GamemodeManager.IsGamemodeStarted)
             return;
-        if (_inRound)
+        if (InRound)
             return;
-        
+
         if (_roundCooldown <= 0f)
             return;
 
         _roundCooldown -= delta;
-        
+
         if (_roundCooldown > 0f)
             return;
-        
+
         StartRound(_roundIndex + 1);
     }
 }

@@ -1,8 +1,5 @@
 using System.Reflection;
-using LabFusion.Entities;
-using LabFusion.Network;
 using LabFusion.Network.Serialization;
-using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Senders;
 using LabFusion.Utilities;
@@ -22,9 +19,9 @@ internal readonly record struct GamemodeCompatibilityInfo(string GamemodeId, str
 
 public class GamemodeHashPacket : INetSerializable, IKnownSenderPacket
 {
-    public byte SenderPlayerID { get; set; }
     public List<ulong> Hashes = new();
-    
+    public byte SenderPlayerID { get; set; }
+
     public void Serialize(INetSerializer serializer)
     {
         ulong value = 0;
@@ -60,7 +57,7 @@ public static class GamemodeCompatibilityChecker
 
     private static Gamemode? _activeGamemode;
     private static readonly HashSet<byte> ValidatedPlayers = new();
-    private static readonly Dictionary<Type, GamemodeCompatibilityInfo> LocalGamemodeInfo = new ();
+    private static readonly Dictionary<Type, GamemodeCompatibilityInfo> LocalGamemodeInfo = new();
     private static readonly Dictionary<byte, List<ulong>> RemoteGamemodeHashes = new();
 
     static GamemodeCompatibilityChecker()
@@ -80,17 +77,17 @@ public static class GamemodeCompatibilityChecker
             return;
 
         var info = LocalGamemodeInfo[_activeGamemode.GetType()];
-        
+
         ConnectionSender.SendDisconnect(smallId, $"The server is running a gamemode that you don't have: {info.GamemodeId} - {info.Version}");
-        
+
         RemoteGamemodeHashes.Remove(smallId);
     }
-    
+
     public static void ValidatePlayer(byte smallId)
     {
         if (_activeGamemode == null)
             return;
-        
+
         if (ValidatedPlayers.Contains(smallId))
             return;
 
@@ -99,7 +96,7 @@ public static class GamemodeCompatibilityChecker
             KickPlayer(smallId);
             return;
         }
-        
+
         var requiredHash = LocalGamemodeInfo[_activeGamemode.GetType()];
         if (!remoteHashes.Contains(requiredHash.Hash))
         {
@@ -109,7 +106,7 @@ public static class GamemodeCompatibilityChecker
 
         ValidatedPlayers.Add(smallId);
     }
-    
+
     public static void RegisterGamemodeInfo(Gamemode gamemode)
     {
         var assembly = gamemode.GetType().Assembly;
@@ -135,7 +132,7 @@ public static class GamemodeCompatibilityChecker
     {
         RemoteGamemodeHashes.Clear();
     }
-    
+
     // Static callbacks
     private static void OnGamemodeHashesReceived(GamemodeHashPacket packet)
     {

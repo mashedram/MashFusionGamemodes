@@ -11,25 +11,26 @@ namespace MashGamemodeLibrary.Config;
 public static class ConfigManager
 {
     public delegate void ConfigChangedHandler(IConfig config);
-    public static event ConfigChangedHandler? OnConfigChanged;
-    
+
     private static readonly string ConfigDirectoryPath = Mod.ModDataDirectory + "/configs/";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        IncludeFields = true,
+        IncludeFields = true
     };
-    
+
     // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.
     private static readonly SingletonTypedRegistry<IConfig> LocalConfigTypedRegistry = new();
     private static readonly FactoryTypedRegistry<IConfig> ActiveConfigTypedRegistry = new();
-    
-    private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig", new NullableReferenceEncoder<IConfig>(new DynamicInstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
+
+    private static readonly SyncedVariable<IConfig?> RemoteConfigInstance = new("ActiveConfig",
+        new NullableReferenceEncoder<IConfig>(new DynamicInstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
 
     private static readonly TimeSpan SyncDelay = TimeSpan.FromSeconds(5);
-    private static HashSet<IConfig> _dirtyConfigs = new();
+    private static readonly HashSet<IConfig> _dirtyConfigs = new();
     private static DateTime LastChanged = DateTime.MinValue;
-    
+
     static ConfigManager()
     {
         RemoteConfigInstance.OnValueChanged += config =>
@@ -37,12 +38,13 @@ public static class ConfigManager
             if (config != null) OnConfigChanged?.Invoke(config);
         };
     }
-    
+    public static event ConfigChangedHandler? OnConfigChanged;
+
     private static string GetConfigFilePath(Type configType)
     {
         return ConfigDirectoryPath + configType.Name + ".json";
     }
-    
+
     private static T LoadConfig<T>() where T : class, IConfig, new()
     {
         var configType = typeof(T);
@@ -58,15 +60,16 @@ public static class ConfigManager
                 if (deserializedConfig != null)
                     config = deserializedConfig;
             }
-        } catch (Exception exception)
+        }
+        catch (Exception exception)
         {
             MelonLogger.Error($"Failed to load config for {configType.Name}", exception);
         }
         config ??= new T();
-        
+
         return config;
     }
-    
+
     private static void WriteConfig(IConfig config)
     {
         var configType = config.GetType();
@@ -85,7 +88,7 @@ public static class ConfigManager
             MelonLogger.Error($"Failed to write config for {configType.Name}", exception);
         }
     }
-    
+
     public static void Register<T>() where T : class, IConfig, new()
     {
         LocalConfigTypedRegistry.Register(LoadConfig<T>());
@@ -96,7 +99,7 @@ public static class ConfigManager
     {
         RemoteConfigInstance.SetAndSync(LocalConfigTypedRegistry.Get<T>());
     }
-    
+
     public static T Get<T>() where T : class, IConfig
     {
         // If we are remote, and have a remote config, 
@@ -145,7 +148,7 @@ public static class ConfigManager
     {
         if (!NetworkInfo.IsHost) return;
         if (RemoteConfigInstance.Value == null) return;
-        
+
         RemoteConfigInstance.Sync();
     }
 }

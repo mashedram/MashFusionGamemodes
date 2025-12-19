@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue : class
 {
     private readonly ITypedRegistry<TValue> _typedRegistry;
-    
+
     public DynamicInstanceEncoder(ITypedRegistry<TValue> typedRegistry)
     {
         _typedRegistry = typedRegistry;
@@ -20,7 +20,7 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
             selfSize += serializable.GetSize() ?? 4096;
         return selfSize;
     }
-    
+
     public TValue Read(NetReader reader)
     {
         var id = reader.ReadUInt64();
@@ -32,7 +32,7 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
             case null:
                 MelonLogger.Error($"No value registered by id {id} in {typeof(TValue).Name}'s registry.");
                 return null!;
-            
+
             case INetSerializable serializable:
                 serializable.Serialize(reader);
                 break;
@@ -40,23 +40,23 @@ public class DynamicInstanceEncoder<TValue> : IRefEncoder<TValue> where TValue :
 
         return value;
     }
-    
+
     public void Write(NetWriter writer, TValue value)
     {
         writer.Write(_typedRegistry.CreateID(value));
-        
+
         if (value is not INetSerializable serializable) return;
-        
+
         serializable.Serialize(writer);
     }
-    
+
     public void Serialize(INetSerializer serializer, TValue value)
     {
 
         var id = serializer.IsReader ? 0 : _typedRegistry.CreateID(value);
         serializer.SerializeValue(ref id);
-        
-        
+
+
         if (value is INetSerializable value2)
             value2.Serialize(serializer);
     }

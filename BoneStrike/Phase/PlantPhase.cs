@@ -24,8 +24,8 @@ namespace BoneStrike.Phase;
 
 internal class FetchClockPacket : INetSerializable, IKnownSenderPacket
 {
-    public byte SenderPlayerID { get; set; }
     public Handedness Hand;
+    public byte SenderPlayerID { get; set; }
 
     public void Serialize(INetSerializer serializer)
     {
@@ -36,13 +36,13 @@ internal class FetchClockPacket : INetSerializable, IKnownSenderPacket
 public class PlantPhase : GamePhase
 {
     private static readonly string ClockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
-    
-    public override string Name => "Plant Phase";
-    public override float Duration => BoneStrike.Config.PlantDuration;
 
     public static readonly SyncedVariable<bool> PhaseShouldQuit = new("SkipPlantPhase", new BoolEncoder(), false, CommonNetworkRoutes.AllToAll);
 
     private static readonly RemoteEvent<FetchClockPacket> FetchClockEvent = new("FetchClockEvent", OnFetchClock, CommonNetworkRoutes.AllToHost);
+
+    public override string Name => "Plant Phase";
+    public override float Duration => BoneStrike.Config.PlantDuration;
 
     protected override TimeMarker[] Markers => new[]
     {
@@ -53,7 +53,7 @@ public class PlantPhase : GamePhase
     public override PhaseIdentifier GetNextPhase()
     {
         if (HasReachedDuration() || PhaseShouldQuit.Value) return PhaseIdentifier.Of<DefusePhase>();
-        
+
         return PhaseIdentifier.Empty();
     }
 
@@ -64,7 +64,7 @@ public class PlantPhase : GamePhase
         Executor.RunIfHost(() =>
         {
             PalletLoadoutManager.AssignAll();
-            
+
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag());
         });
@@ -72,15 +72,15 @@ public class PlantPhase : GamePhase
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
-        if (!playerId.IsMe) 
+        if (!playerId.IsMe)
             return;
-        
-        if (action != PlayerGameActions.Ability) 
+
+        if (action != PlayerGameActions.Ability)
             return;
-        
+
         if (!playerId.IsTeam<TerroristTeam>())
             return;
-        
+
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
             return;
 
@@ -88,7 +88,7 @@ public class PlantPhase : GamePhase
         {
             if (ElapsedTime < 15f)
                 return;
-            
+
             PhaseShouldQuit.Value = true;
         }
         else
@@ -99,9 +99,9 @@ public class PlantPhase : GamePhase
             });
         }
     }
-    
+
     // Events
-    
+
     private static void OnFetchClock(FetchClockPacket packet)
     {
         if (!NetworkPlayerManager.TryGetPlayer(packet.SenderPlayerID, out var player))
@@ -109,7 +109,7 @@ public class PlantPhase : GamePhase
 
         if (!player.HasRig)
             return;
-        
+
         var hand = player.RigRefs.GetHand(packet.Hand);
         var position = hand.palmPositionTransform.position;
 
@@ -119,7 +119,7 @@ public class PlantPhase : GamePhase
             var grip = networkEntity.GetExtender<GripExtender>();
             if (grip == null)
                 continue;
-            
+
             if (grip.Components.Any(g => g.HasAttachedHands()))
                 continue;
 
@@ -127,7 +127,7 @@ public class PlantPhase : GamePhase
             var marrow = grip.Components.FirstOrDefault()?._marrowEntity;
             if (marrow == null)
                 continue;
-            
+
             NetworkEntityManager.TakeOwnership(networkEntity);
             marrow.Teleport(position, Quaternion.identity, true);
         }

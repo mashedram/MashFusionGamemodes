@@ -5,5 +5,5 @@ namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
 public interface IMarrowLoaded
 {
-     void OnLoaded(NetworkEntity networkEntity, MarrowEntity marrowEntity);
+    void OnLoaded(NetworkEntity networkEntity, MarrowEntity marrowEntity);
 }

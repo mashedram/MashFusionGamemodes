@@ -5,12 +5,27 @@ namespace MashGamemodeLibrary.Entities.Tagging.Base;
 
 public class EntityTag : IEntityTag, ITagAddedInternal
 {
-    private EntityTagIndex _tagIndex;
+    private readonly double _createdAt = Time.timeSinceLevelLoadAsDouble;
     private NetworkEntity? _entity;
     private NetworkEntityReference _entityID;
-    private double _createdAt = Time.timeSinceLevelLoadAsDouble;
     private bool _hasLoaded;
+    private EntityTagIndex _tagIndex;
     protected NetworkEntity Entity => GetEntity();
+
+    public EntityTagIndex GetIndex()
+    {
+        return _tagIndex;
+    }
+
+    public double CreatedAt()
+    {
+        return _createdAt;
+    }
+
+    public bool HasLoaded()
+    {
+        return _hasLoaded;
+    }
 
     public void OnAddInternal(EntityTagIndex tag)
     {
@@ -25,21 +40,6 @@ public class EntityTag : IEntityTag, ITagAddedInternal
 
         _entity = _entityID.GetEntity();
         return _entity;
-    }
-    
-    public EntityTagIndex GetIndex()
-    {
-        return _tagIndex;
-    }
-    
-    public double CreatedAt()
-    {
-        return _createdAt;
-    }
-    
-    public bool HasLoaded()
-    {
-        return _hasLoaded;
     }
 
     protected void Sync()

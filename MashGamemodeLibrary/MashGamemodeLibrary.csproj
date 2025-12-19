@@ -370,6 +370,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Config\Menu\Attributes\" />
+        <Folder Include="Config\Menu\Attributes\"/>
     </ItemGroup>
 </Project>

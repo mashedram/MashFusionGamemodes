@@ -17,7 +17,7 @@ public class DefuseState : EnvironmentState<EnvironmentContext>
     }
 
     public override int Priority => 5;
-    
+
     public override bool CanPlay(EnvironmentContext context)
     {
         return GamePhaseManager.IsPhase<DefusePhase>();

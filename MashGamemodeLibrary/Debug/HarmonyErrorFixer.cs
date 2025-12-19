@@ -2,7 +2,6 @@
 
 using System.Reflection;
 using HarmonyLib;
-using Il2CppSystem.Diagnostics;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Debug;

@@ -18,7 +18,7 @@ public static class PlayerDamageTracker
     static PlayerDamageTracker()
     {
         MultiplayerHooking.OnPlayerAction += OnAction;
-        
+
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Kills, v => v * 10);
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Assists, v => v * 5);
     }
@@ -27,7 +27,7 @@ public static class PlayerDamageTracker
     {
         DamageMarks.Clear();
     }
-    
+
     private static HashSet<byte> GetInner(byte attackedID)
     {
         ref var innerDict = ref CollectionsMarshal.GetValueRefOrAddDefault(DamageMarks, attackedID, out var exists);
@@ -45,7 +45,7 @@ public static class PlayerDamageTracker
             return;
         if (damaged.Equals(damager))
             return;
-        
+
         var map = GetInner(damaged);
         map.Add(damager);
     }
@@ -54,14 +54,14 @@ public static class PlayerDamageTracker
     {
         if (damaged.Equals(damager))
             return;
-        
+
         var map = GetInner(damaged);
 
         if (damager.IsMe)
             PlayerStatisticsTracker.Increment(PlayerDamageStatistics.Kills);
-        else if (map.Contains(PlayerIDManager.LocalSmallID)) 
+        else if (map.Contains(PlayerIDManager.LocalSmallID))
             PlayerStatisticsTracker.Increment(PlayerDamageStatistics.Assists);
-            
+
         map.Clear();
     }
 

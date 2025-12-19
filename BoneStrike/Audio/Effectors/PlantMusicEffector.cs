@@ -2,7 +2,6 @@
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Audio.Players.Background;
-using MashGamemodeLibrary.Audio.Players.Extensions;
 using MashGamemodeLibrary.Environment.Effector;
 
 namespace BoneStrike.Audio.Effectors;

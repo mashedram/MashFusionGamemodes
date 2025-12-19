@@ -2,5 +2,4 @@
 
 public interface IParameterDriven<in TParameter> : ISyncedAudioPlayer, IRandomAudioPlayer<TParameter>
 {
-    
 }

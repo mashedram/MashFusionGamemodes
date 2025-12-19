@@ -1,12 +1,9 @@
 ﻿using LabFusion.Network.Serialization;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Context;
-using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.Phase.Rounds;
 using Team = MashGamemodeLibrary.Player.Team.Team;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -30,24 +27,24 @@ internal class WinPacket : INetSerializable
 public static class WinManager
 {
     private static readonly RemoteEvent<WinPacket> WinEvent = new(OnWinEvent, CommonNetworkRoutes.HostToAll);
-    
+
     public static void Win<T>() where T : Team
     {
         Executor.RunIfHost(() =>
         {
             if (!InternalGamemodeManager.InRound)
                 return;
-            
+
             var id = TeamManager.Registry.CreateID<T>();
             WinEvent.Call(new WinPacket
             {
                 TeamID = id
             });
-            
+
             InternalGamemodeManager.EndRound(id);
         }, "Sending win state");
     }
-    
+
     // Handelers
 
     private static void OnWinEvent(WinPacket packet)

@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;
@@ -22,7 +21,7 @@ public class RigArtPatches
 
         return !PlayerHider.IsHidden(player.PlayerID);
     }
-    
+
     [HarmonyPatch("ToggleAmmoPouch")]
     [HarmonyPrefix]
     private static bool ToggleAmmoPouch_Prefix(RigArt __instance)

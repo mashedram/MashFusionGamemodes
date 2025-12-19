@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace MashGamemodeLibrary.Registry;
+﻿namespace MashGamemodeLibrary.Registry;
 
 public interface IKeyable<in TKey>
 {

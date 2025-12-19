@@ -10,12 +10,12 @@ public class MonoDiscLoader : IAudioLoader
     {
         AudioNames = monoDiscs.ToList();
     }
-    
+
     public MonoDiscLoader(IEnumerable<MonoDiscReference> monoDiscs)
     {
         AudioNames = monoDiscs.Select(v => v._barcode.ID).ToList();
     }
-    
+
     public List<string> AudioNames { get; }
 
     public void RefreshNames()

@@ -1,10 +1,8 @@
 ﻿using System.Reflection;
-using LabFusion.Marrow.Proxies;
 using LabFusion.Menu.Data;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Config.Menu.Element;
 using MashGamemodeLibrary.Registry.Keyed;
-using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Config.Menu;
@@ -17,24 +15,22 @@ public struct Bounds
 
 public record ConfigEntryData
 {
+
+    private static readonly KeyedRegistry<Type, IConfigElementProvider> ElementProviders = new();
+    public readonly string? Category;
+    public readonly object DefaultValue;
     public readonly FieldInfo FieldInfo;
 
     public readonly string Name;
-    public readonly string? Category;
     public readonly Type Type;
-    public readonly object DefaultValue;
-
-    private IConfigElementProvider? _elementProvider;
     private ElementData? _cachedElementData;
 
-    public object? Increment;
-    public Bounds? Bounds;
+    private IConfigElementProvider? _elementProvider;
 
     private object? _overwrite;
+    public Bounds? Bounds;
 
-    public object Value => _overwrite ?? DefaultValue;
-
-    private static readonly KeyedRegistry<Type, IConfigElementProvider> ElementProviders = new();
+    public object? Increment;
 
     static ConfigEntryData()
     {
@@ -42,14 +38,6 @@ public record ConfigEntryData
         ElementProviders.Register(typeof(int), new IntElementProvider());
         ElementProviders.Register(typeof(bool), new BoolElementProvider());
         ElementProviders.Register(typeof(Enum), new EnumElementProvider());
-    }
-
-    private static Type GetBaseType(Type type)
-    {
-        if (type.IsEnum)
-            return typeof(Enum);
-        
-        return type;
     }
 
     public ConfigEntryData(IConfig instance, ConfigMenuEntry menuEntry, FieldInfo fieldInfo)
@@ -67,7 +55,17 @@ public record ConfigEntryData
         DefaultValue = fieldInfo.GetValue(instance) ??
                        throw new Exception($"Config fields must be initialized ({fieldInfo.Name})");
     }
-    
+
+    public object Value => _overwrite ?? DefaultValue;
+
+    private static Type GetBaseType(Type type)
+    {
+        if (type.IsEnum)
+            return typeof(Enum);
+
+        return type;
+    }
+
     private static Action<ConfigEntryData, object> WriterFactory(IConfig config)
     {
         return (target, value) =>
@@ -96,7 +94,7 @@ public record ConfigEntryData
             Title = $"Field type {Type.Name} has no associated element provider."
         };
     }
-    
+
     public ElementData GetElementData(IConfig instance)
     {
         _cachedElementData ??= CreateElementData(instance);

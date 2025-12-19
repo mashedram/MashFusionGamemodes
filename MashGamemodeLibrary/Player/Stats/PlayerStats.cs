@@ -9,7 +9,7 @@ public struct PlayerStats : INetSerializable
     public float UpperStrength;
     public float Agility;
     public float LowerStrength;
-    
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref Vitality);
@@ -25,5 +25,5 @@ public struct PlayerStats : INetSerializable
         {
             Vitality = Vitality * mult
         };
-    } 
+    }
 }

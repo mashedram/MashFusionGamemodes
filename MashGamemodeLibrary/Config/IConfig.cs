@@ -4,5 +4,4 @@ namespace MashGamemodeLibrary.Config;
 
 public interface IConfig : INetSerializable
 {
-
 }

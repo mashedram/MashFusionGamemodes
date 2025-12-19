@@ -1,12 +1,9 @@
 using System.Diagnostics;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Networking.Remote;
-using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Patches;
@@ -97,7 +94,7 @@ public static class SpectatorManager
     }
 
     /// <summary>
-    /// Set wether the local player can interact or not
+    ///     Set wether the local player can interact or not
     /// </summary>
     /// <param name="state">True if the player can interact</param>
     private static void SetLocalInteractions(bool state)
@@ -107,11 +104,11 @@ public static class SpectatorManager
         {
             Loadout.Loadout.ClearPlayerLoadout(rig);
         }
-        
+
         LocalControls.DisableInteraction = !state;
         LocalControls.DisableInventory = !state;
         LocalControls.DisableAmmoPouch = !state;
-        
+
         ToggleVisualEffect(!state);
         DevToolsPatches.CanSpawn = state;
         PlayerGrabManager.SetOverwrite(GrabOverwriteKey, state ? null : _ => false);
@@ -159,7 +156,7 @@ public static class SpectatorManager
         PlayerColliderManager.SetColliders(player, true);
 
         if (!playerID.IsMe) return;
-        
+
         SetLocalInteractions(true);
     }
 
@@ -196,7 +193,7 @@ public static class SpectatorManager
             MelonLogger.Error("Only the host can set spectating states!", new StackTrace());
             return;
         }
-        
+
         if (!playerID.IsValid)
             return;
 
@@ -215,7 +212,7 @@ public static class SpectatorManager
     {
         HiddenPlayerIds.Clear();
         PlayerColliderManager.Clear();
-        
+
         SetLocalInteractions(true);
     }
 }

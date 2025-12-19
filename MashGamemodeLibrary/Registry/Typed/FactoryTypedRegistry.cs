@@ -8,7 +8,7 @@ public class FactoryTypedRegistry<TValue> : TypedRegistry<Func<TValue>, TValue> 
     {
         return () => new T();
     }
-    
+
     protected override bool TryToValue(Func<TValue>? from, [MaybeNullWhen(false)] out TValue value)
     {
         value = from?.Invoke();

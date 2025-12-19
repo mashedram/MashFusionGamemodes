@@ -33,6 +33,14 @@ public class ObjectAudioPlayer : SyncedAudioPlayer<ObjectAudioPlayRequest>, IRan
     {
     }
 
+    public void PlayRandom(NetworkEntity entity)
+    {
+        var name = GetRandomAudioName();
+        if (string.IsNullOrEmpty(name)) return;
+
+        Play(name, entity);
+    }
+
     protected override bool Modifier(ObjectAudioPlayRequest data, ref AudioSource source)
     {
         if (!new NetworkEntityReference(data.NetworkEntityId).TryGetEntity(out var networkEntity)) return false;
@@ -58,13 +66,5 @@ public class ObjectAudioPlayer : SyncedAudioPlayer<ObjectAudioPlayRequest>, IRan
 
             Play(name, request);
         });
-    }
-    
-    public void PlayRandom(NetworkEntity entity)
-    {
-        var name = GetRandomAudioName();
-        if (string.IsNullOrEmpty(name)) return;
-
-        Play(name, entity);
     }
 }

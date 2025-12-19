@@ -95,7 +95,7 @@ public static class CommonTimeMarkerEvents
             });
         });
     }
-        
+
     // Events
 
     private static void SendWarning(string text)
@@ -109,7 +109,7 @@ public static class CommonTimeMarkerEvents
             Type = NotificationType.WARNING
         });
     }
-    
+
     private static void OnTimeRemainingEvent(TimeRemainingPacket packet)
     {
         if (packet.TimeRemaining >= 60f)
@@ -120,6 +120,6 @@ public static class CommonTimeMarkerEvents
         }
 
         var seconds = (int)MathF.Round(packet.TimeRemaining);
-        SendWarning($"{ToText(seconds)} Seconds Left");  
+        SendWarning($"{ToText(seconds)} Seconds Left");
     }
 }

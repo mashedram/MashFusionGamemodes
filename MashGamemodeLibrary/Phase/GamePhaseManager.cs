@@ -1,21 +1,16 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Phase.Tags;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Registry;
 using MashGamemodeLibrary.Registry.Typed;
-using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Phase;
@@ -23,15 +18,14 @@ namespace MashGamemodeLibrary.Phase;
 public static class GamePhaseManager
 {
     public static readonly SingletonTypedRegistry<GamePhase> Registry = new();
-    private static readonly SyncedVariable<ulong?> WantedPhase = new("GamePhaseManager_WantedPhase", new NullableValueEncoder<ulong>(new ULongEncoder()), null);
 
-    private static GamePhase? _activePhase;
-    public static GamePhase? ActivePhase => _activePhase;
+    private static readonly SyncedVariable<ulong?> WantedPhase = new("GamePhaseManager_WantedPhase", new NullableValueEncoder<ulong>(new ULongEncoder()),
+        null);
 
     // Action Logic
 
     private static readonly Dictionary<Handedness, bool> LastGripStateMap = new();
-    
+
     static GamePhaseManager()
     {
         WantedPhase.OnValidate += PhaseHashOnValidate;
@@ -43,6 +37,7 @@ public static class GamePhaseManager
         MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
     }
+    public static GamePhase? ActivePhase { get; private set; }
 
     private static bool PhaseHashOnValidate(ulong? id)
     {
@@ -61,47 +56,47 @@ public static class GamePhaseManager
 
     private static void PhaseChanged(ulong? id)
     {
-        _activePhase?.Exit();
-        _activePhase = id.HasValue ? Registry.Get(id.Value) : null;
-        
-        if (_activePhase == null) return;
-        
-        _activePhase.Enter();
+        ActivePhase?.Exit();
+        ActivePhase = id.HasValue ? Registry.Get(id.Value) : null;
+
+        if (ActivePhase == null) return;
+
+        ActivePhase.Enter();
 
         EntityTagManager.GetAllExtendingTag<IPhaseChangedTag>().ForEach(tag =>
         {
             try
             {
-                tag.OnPhaseChange(_activePhase);
+                tag.OnPhaseChange(ActivePhase);
             }
             catch (Exception exception)
             {
                 MelonLogger.Error($"Failed to execute tag change for: {tag.GetType().FullName}", exception);
             }
         });
-        
-        TeamManager.OnPhaseChanged(_activePhase);
+
+        TeamManager.OnPhaseChanged(ActivePhase);
     }
 
     public static void Update(float delta)
     {
-        if (_activePhase == null)
+        if (ActivePhase == null)
             return;
 
         CheckHands();
 
-        _activePhase.Update(delta);
+        ActivePhase.Update(delta);
 
         Executor.RunIfHost(() =>
         {
-            var nextPhase = _activePhase.GetNextPhase();
+            var nextPhase = ActivePhase.GetNextPhase();
             if (nextPhase.TryGetValue(out var value)) WantedPhase.Value = value;
         });
     }
 
     public static bool IsPhase<T>() where T : GamePhase
     {
-        return _activePhase is T;
+        return ActivePhase is T;
     }
 
     private static void CheckHand(Hand hand)
@@ -109,7 +104,7 @@ public static class GamePhaseManager
         var controller = hand._controller;
         var handedness = controller.handedness;
 
-        if (controller._menuTap) 
+        if (controller._menuTap)
             OnAction(PlayerIDManager.LocalID, PlayerGameActions.Ability, handedness);
 
         var state = controller.isBelowGripThreshold;
@@ -129,7 +124,7 @@ public static class GamePhaseManager
 
     private static void OnAction(PlayerID player, PlayerGameActions action, Handedness handedness = Handedness.BOTH)
     {
-        _activePhase?.OnPlayerAction(player, action, handedness);
+        ActivePhase?.OnPlayerAction(player, action, handedness);
     }
 
     private static PlayerGameActions? GetPhaseAction(PlayerActionType playerAction)
@@ -146,7 +141,7 @@ public static class GamePhaseManager
 
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
-        if (_activePhase == null)
+        if (ActivePhase == null)
             return;
 
         var action = GetPhaseAction(type);
@@ -158,11 +153,11 @@ public static class GamePhaseManager
 
     private static void OnPlayerJoined(PlayerID playerId)
     {
-        _activePhase?.OnPlayerJoined(playerId);
+        ActivePhase?.OnPlayerJoined(playerId);
     }
 
     private static void OnPlayerLeft(PlayerID playerId)
     {
-        _activePhase?.OnPlayerLeft(playerId);
+        ActivePhase?.OnPlayerLeft(playerId);
     }
 }

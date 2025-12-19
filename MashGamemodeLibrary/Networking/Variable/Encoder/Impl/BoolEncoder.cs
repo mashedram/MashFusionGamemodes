@@ -9,12 +9,12 @@ public class BoolEncoder : IEncoder<bool>
     {
         return sizeof(bool);
     }
-    
+
     public bool Read(NetReader reader)
     {
         return reader.ReadBoolean();
     }
-    
+
     public void Write(NetWriter writer, bool value)
     {
         writer.Write(value);

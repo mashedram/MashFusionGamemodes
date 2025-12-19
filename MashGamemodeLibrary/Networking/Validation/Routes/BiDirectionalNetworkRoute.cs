@@ -15,7 +15,7 @@ public class BiDirectionalNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwor
     {
         return CommonMessageRoutes.ReliableToOtherClients;
     }
-    
+
     public bool ValidFromSender(byte id)
     {
         return PlayerIDManager.HostSmallID == id && !NetworkInfo.IsHost || PlayerIDManager.HostSmallID != id && NetworkInfo.IsHost;

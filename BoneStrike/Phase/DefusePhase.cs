@@ -1,20 +1,12 @@
 ﻿using BoneStrike.Tags;
 using BoneStrike.Teams;
 using LabFusion.Entities;
-using LabFusion.RPC;
 using LabFusion.UI.Popups;
-using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Util.Timer;
-using UnityEngine;
-using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 
 namespace BoneStrike.Phase;
 
@@ -28,11 +20,11 @@ public class DefusePhase : GamePhase
         CommonTimeMarkerEvents.TimeRemaining(10f),
         CommonTimeMarkerEvents.TimeRemaining(60f)
     };
-    
+
     public override PhaseIdentifier GetNextPhase()
     {
         if (!HasReachedDuration()) return PhaseIdentifier.Empty();
-        
+
         BoneStrike.ExplodeAllBombs();
         WinManager.Win<TerroristTeam>();
 
@@ -63,7 +55,7 @@ public class DefusePhase : GamePhase
                 }
             }
         }
-        
+
         Executor.RunIfHost(() =>
         {
             BoneStrike.Context.BombAudioPlayer.Start();

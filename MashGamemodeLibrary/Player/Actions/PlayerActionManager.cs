@@ -21,12 +21,12 @@ public static class PlayerActionManager
 
     private static readonly EntityTagCache<IPlayerActionTag> PlayerActionTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerActionTag>>();
     private static readonly EntityTagCache<IPlayerInputTag> PlayerInputTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerInputTag>>();
-    
+
     static PlayerActionManager()
     {
         MultiplayerHooking.OnPlayerAction += OnPlayerAction;
     }
-    
+
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
         if (!PlayerActionTags.TryGet(playerId, out var set))
@@ -43,7 +43,7 @@ public static class PlayerActionManager
         var controller = hand._controller;
         var handedness = controller.handedness;
 
-        if (controller._menuTap) 
+        if (controller._menuTap)
             InvokeInputEvent(PlayerInputType.Ability, true, handedness);
 
         var state = controller.isBelowGripThreshold;
@@ -60,7 +60,7 @@ public static class PlayerActionManager
             return;
         if (!BoneLib.Player.HandsExist)
             return;
-        
+
         CheckHand(BoneLib.Player.LeftHand);
         CheckHand(BoneLib.Player.RightHand);
     }
@@ -69,7 +69,7 @@ public static class PlayerActionManager
     {
         CheckHands();
     }
-    
+
     private static void InvokeInputEvent(PlayerInputType type, bool state, Handedness handedness = Handedness.BOTH)
     {
         if (!PlayerInputTags.TryGet(PlayerIDManager.LocalSmallID, out var set))

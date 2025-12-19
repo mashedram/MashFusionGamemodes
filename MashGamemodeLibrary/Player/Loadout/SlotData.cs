@@ -1,15 +1,10 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Data;
-using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
-using LabFusion.Marrow.Pool;
-using LabFusion.Player;
 using LabFusion.RPC;
 using LabFusion.Utilities;
-using MashGamemodeLibrary.Util;
-using MelonLoader;
-using UnityEngine;
+using MashGamemodeLibrary.Entities;
 
 namespace MashGamemodeLibrary.Loadout;
 
@@ -25,7 +20,7 @@ public enum SlotType
 public class SlotData
 {
     private static readonly HashSet<NetworkEntity> SpawnedGuns = new();
-    
+
     public Barcode? Barcode;
 
     public SlotData()
@@ -63,29 +58,29 @@ public class SlotData
             slot.DropWeapon();
             PooleeUtilities.RequestDespawn(entity.ID, true);
         }
-        
+
         if (Barcode == null)
             return;
 
-        var spawnable = new Spawnable()
+        var spawnable = new Spawnable
         {
             crateRef = new SpawnableCrateReference(Barcode),
-            policyData = null,
+            policyData = null
         };
 
         var transform = slot.transform;
-        NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo()
+        NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo
         {
             Spawnable = spawnable,
             Position = transform.position,
             Rotation = transform.rotation,
             SpawnEffect = false,
-            SpawnCallback = (info) =>
+            SpawnCallback = info =>
             {
                 // Insert into known items
                 // TODO: Add ownership here to return guns to their owners
                 SpawnedGuns.Add(info.Entity);
-                
+
                 SpawnHelper.WaitOnMarrowEntity(info.Entity, (networkEntity, _) =>
                 {
                     var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
@@ -104,7 +99,7 @@ public class SlotData
 
                     slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
                 });
-            },
+            }
         });
     }
 
@@ -114,7 +109,7 @@ public class SlotData
         {
             if (entity.IsDestroyed)
                 continue;
-            
+
             PooleeUtilities.RequestDespawn(entity.ID, true);
         }
         SpawnedGuns.Clear();

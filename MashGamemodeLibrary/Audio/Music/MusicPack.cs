@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.Audio.Music;
 public class MusicPack : IMusicPack
 {
     private readonly List<string> _barcodes;
-    
+
     public MusicPack(List<string> barcodes)
     {
         _barcodes = barcodes;
@@ -20,7 +20,7 @@ public class MusicPack : IMusicPack
     {
         _barcodes = barcodes.Select(disk => disk._barcode._id).ToList();
     }
-    
+
     public List<string> LoadTracks()
     {
         return _barcodes;

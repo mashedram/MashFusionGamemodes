@@ -9,7 +9,7 @@ public class IntElementProvider : IConfigElementProvider
     {
         var min = (int?)entry.Bounds?.Lower ?? 1;
         var max = (int?)entry.Bounds?.Upper ?? 10;
-            
+
         return new IntElementData
         {
             Title = entry.Name,

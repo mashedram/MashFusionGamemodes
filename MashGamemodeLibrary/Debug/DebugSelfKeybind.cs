@@ -1,4 +1,5 @@
 using Il2CppSLZ.Marrow;
+using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -13,7 +14,7 @@ public class DebugSelfKeybind : DebugKeybind
         var rig = Object.FindObjectOfType<PhysicsRig>();
         foreach (var collider in rig.GetComponentsInChildren<Collider>())
         {
-            MelonLoader.MelonLogger.Msg($"Child: {collider.gameObject.name} with: {collider.gameObject.layer}");
+            MelonLogger.Msg($"Child: {collider.gameObject.name} with: {collider.gameObject.layer}");
         }
     };
 }

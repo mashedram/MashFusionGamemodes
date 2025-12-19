@@ -6,8 +6,8 @@ namespace MashGamemodeLibrary.Registry.Generic;
 
 public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<object>
 {
-    private Type RootType;
-    
+    private readonly Type RootType;
+
     public RuntimeTypedRegistry(Type rootType)
     {
         RootType = rootType;
@@ -17,12 +17,12 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
     {
         return CreateID(typeof(T));
     }
-    
+
     public ulong CreateID(object instance)
     {
         return instance.GetType().Name.GetStableHash();
     }
-    
+
     public void Register<T>(object value) where T : notnull
     {
         var wantedType = RootType.MakeGenericType(typeof(T));
@@ -32,7 +32,7 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
             MelonLogger.Error($"Failed to register: {value.GetType().Name}. Expected a value of: {wantedType.Name}");
             return;
         }
-        
+
         var id = CreateID<T>();
         Register(id, value);
     }

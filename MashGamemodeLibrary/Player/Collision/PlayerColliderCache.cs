@@ -1,10 +1,7 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Player;
-using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace MashGamemodeLibrary.Player.Collision;
 
@@ -26,57 +23,127 @@ internal class PlayerColliderCache
         BonelabLayers.Deciverse,
         BonelabLayers.NoCollide
     };
+
     private static readonly HashSet<int> IncludedLocalLayers = new()
     {
         BonelabLayers.Player,
         BonelabLayers.NoCollide,
         BonelabLayers.Deciverse
     };
-    
+
     private static readonly Dictionary<string, int> OriginalLayers = new()
     {
-        { "Foot (right)", BonelabLayers.NoCollide },
-        { "Foot (left)", BonelabLayers.NoCollide },
-        { "Head", BonelabLayers.Player },
-        { "Neck", BonelabLayers.Player },
-        { "Chest", BonelabLayers.Player },
-        { "ShoulderLf", BonelabLayers.Player },
-        { "ElbowLf", BonelabLayers.Player },
-        { "Hand (left)", BonelabLayers.Player },
-        { "l_fingers_col", BonelabLayers.Player },
-        { "ShoulderRt", BonelabLayers.Player },
-        { "ElbowRt", BonelabLayers.Player },
-        { "Hand (right)", BonelabLayers.Player },
-        { "r_fingers_col", BonelabLayers.Player },
-        { "Spine", BonelabLayers.Player },
-        { "Pelvis", BonelabLayers.Player },
-        { "HipLf", BonelabLayers.NoCollide },
-        { "KneeLf", BonelabLayers.NoCollide },
-        { "HipRt", BonelabLayers.NoCollide },
-        { "KneeRt", BonelabLayers.NoCollide },
-        { "Knee", BonelabLayers.FootBall },
-        { "KneetoPelvis", BonelabLayers.FootBall },
-        { "Feet", BonelabLayers.FootBall },
-        { "BreastLf", BonelabLayers.Deciverse },
-        { "BreastRt", BonelabLayers.Deciverse },
-        { "UpperarmLf", BonelabLayers.Deciverse },
-        { "ForearmLf", BonelabLayers.Deciverse },
-        { "SoftHandLf", BonelabLayers.Deciverse },
-        { "UpperarmRt", BonelabLayers.Deciverse },
-        { "ForearmRt", BonelabLayers.Deciverse },
-        { "SoftHandRt", BonelabLayers.Deciverse },
-        { "ButtLf", BonelabLayers.Deciverse },
-        { "ButtRt", BonelabLayers.Deciverse },
-        { "ThighLf", BonelabLayers.Deciverse },
-        { "ThighRt", BonelabLayers.Deciverse },
+        {
+            "Foot (right)", BonelabLayers.NoCollide
+        },
+        {
+            "Foot (left)", BonelabLayers.NoCollide
+        },
+        {
+            "Head", BonelabLayers.Player
+        },
+        {
+            "Neck", BonelabLayers.Player
+        },
+        {
+            "Chest", BonelabLayers.Player
+        },
+        {
+            "ShoulderLf", BonelabLayers.Player
+        },
+        {
+            "ElbowLf", BonelabLayers.Player
+        },
+        {
+            "Hand (left)", BonelabLayers.Player
+        },
+        {
+            "l_fingers_col", BonelabLayers.Player
+        },
+        {
+            "ShoulderRt", BonelabLayers.Player
+        },
+        {
+            "ElbowRt", BonelabLayers.Player
+        },
+        {
+            "Hand (right)", BonelabLayers.Player
+        },
+        {
+            "r_fingers_col", BonelabLayers.Player
+        },
+        {
+            "Spine", BonelabLayers.Player
+        },
+        {
+            "Pelvis", BonelabLayers.Player
+        },
+        {
+            "HipLf", BonelabLayers.NoCollide
+        },
+        {
+            "KneeLf", BonelabLayers.NoCollide
+        },
+        {
+            "HipRt", BonelabLayers.NoCollide
+        },
+        {
+            "KneeRt", BonelabLayers.NoCollide
+        },
+        {
+            "Knee", BonelabLayers.FootBall
+        },
+        {
+            "KneetoPelvis", BonelabLayers.FootBall
+        },
+        {
+            "Feet", BonelabLayers.FootBall
+        },
+        {
+            "BreastLf", BonelabLayers.Deciverse
+        },
+        {
+            "BreastRt", BonelabLayers.Deciverse
+        },
+        {
+            "UpperarmLf", BonelabLayers.Deciverse
+        },
+        {
+            "ForearmLf", BonelabLayers.Deciverse
+        },
+        {
+            "SoftHandLf", BonelabLayers.Deciverse
+        },
+        {
+            "UpperarmRt", BonelabLayers.Deciverse
+        },
+        {
+            "ForearmRt", BonelabLayers.Deciverse
+        },
+        {
+            "SoftHandRt", BonelabLayers.Deciverse
+        },
+        {
+            "ButtLf", BonelabLayers.Deciverse
+        },
+        {
+            "ButtRt", BonelabLayers.Deciverse
+        },
+        {
+            "ThighLf", BonelabLayers.Deciverse
+        },
+        {
+            "ThighRt", BonelabLayers.Deciverse
+        }
     };
-    
+
+    private readonly HashSet<ColliderSet> _groundPropColliders = new();
+
     private readonly HashSet<ColliderSet> _ignoredColliders = new();
     private readonly HashSet<PlayerColliderCache> _ignoredPlayers = new();
     private readonly Dictionary<GameObject, ColliderSet> _inventoryItemColliders = new();
-    private readonly HashSet<ColliderSet> _groundPropColliders = new();
-    
-    
+
+
     private PhysicsRig? _physicsRig;
     private ColliderSet _physicsRigColliders = null!;
 
@@ -104,7 +171,7 @@ internal class PlayerColliderCache
             return;
 
         var colliderSet = new ColliderSet(marrowEntity.MarrowEntity);
-        
+
         _groundPropColliders.Add(colliderSet);
         _physicsRigColliders.SetColliding(colliderSet, false);
     }
@@ -113,7 +180,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredColliders.Remove(otherColliders)) return;
-        
+
         _physicsRigColliders.SetColliding(otherColliders, true);
         foreach (var ownItemColliders in _inventoryItemColliders.Values) ownItemColliders.SetColliding(otherColliders, true);
     }
@@ -122,7 +189,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredColliders.Add(otherColliders)) return;
-        
+
         _physicsRigColliders.SetColliding(otherColliders, false);
         foreach (var ownItemColliders in _inventoryItemColliders.Values) ownItemColliders.SetColliding(otherColliders, false);
     }
@@ -131,7 +198,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredPlayers.Remove(other)) return;
-        
+
         other._ignoredPlayers.Remove(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, true);
         foreach (var otherColliders in other._inventoryItemColliders.Values) StartItemColliding(otherColliders);
@@ -141,7 +208,7 @@ internal class PlayerColliderCache
     {
         if (_physicsRig == null) return;
         if (!_ignoredPlayers.Add(other)) return;
-        
+
         other._ignoredPlayers.Add(this);
         _physicsRigColliders.SetColliding(other._physicsRigColliders, false);
         foreach (var otherColliders in other._inventoryItemColliders.Values) StopItemColliding(otherColliders);
@@ -151,13 +218,13 @@ internal class PlayerColliderCache
     {
         return _ignoredPlayers.Contains(other);
     }
-    
+
     public void SetIgnoreRaycast(PlayerID target, bool colliding)
     {
 
         if (_physicsRig == null)
             return;
-        
+
         if (colliding)
         {
             foreach (var collider in _physicsRigColliders)
@@ -165,15 +232,15 @@ internal class PlayerColliderCache
                 if (OriginalLayers.TryGetValue(collider.gameObject.name, out var layer))
                     collider.gameObject.layer = layer;
             }
-            
+
             return;
         }
-        
+
         foreach (var collider in _physicsRigColliders)
         {
             var go = collider.gameObject;
             var cLayer = go.layer;
-            
+
             if (target.IsMe)
             {
                 if (!IncludedLocalLayers.Contains(cLayer))
@@ -184,7 +251,7 @@ internal class PlayerColliderCache
                 if (!IncludedRemoteLayers.Contains(cLayer))
                     continue;
             }
-            
+
             // We don't check if the collider is in the OriginalLayers, because we filter this earlier when we set the rig
 
             // 2 Is ignore raycasts
@@ -217,7 +284,11 @@ internal class PlayerColliderCache
             AddItem(gameObject);
         }
 
-        var hands = new[] { _physicsRig.leftHand, _physicsRig.rightHand };
+        var hands = new[]
+        {
+            _physicsRig.leftHand,
+            _physicsRig.rightHand
+        };
         foreach (var hand in hands)
         {
             var attached = hand.m_CurrentAttachedGO;

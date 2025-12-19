@@ -47,14 +47,14 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     where TValue : notnull
 {
     public delegate void ValueChangedHandler(TKey key, TValue value);
-    public delegate void ValueRemovedHandler(TKey key, TValue oldValue);
 
     public delegate void ValueClearHandler();
+    public delegate void ValueRemovedHandler(TKey key, TValue oldValue);
+    private readonly Dictionary<TKey, TValue> _dictionary = new();
 
     private readonly IEncoder<TKey> _keyEncoder;
-    private readonly IEncoder<TValue> _valueEncoder;
     private readonly IRefEncoder<TValue>? _refEncoder;
-    private readonly Dictionary<TKey, TValue> _dictionary = new();
+    private readonly IEncoder<TValue> _valueEncoder;
 
 
     public SyncedDictionary(string name, IEncoder<TKey> keyEncoder, IEncoder<TValue> valueEncoder) : base(name, CommonNetworkRoutes.HostToAll)
@@ -67,11 +67,6 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         MultiplayerHooking.OnJoinedServer += ClearLocal;
     }
 
-    ~SyncedDictionary()
-    {
-        MultiplayerHooking.OnJoinedServer -= ClearLocal;
-    }
-
     // Setters and Getters
 
     public TValue this[TKey key]
@@ -79,6 +74,9 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         get => _dictionary[key];
         set => SetValue(key, value, true);
     }
+
+    public Dictionary<TKey, TValue>.KeyCollection Keys => _dictionary.Keys;
+    public Dictionary<TKey, TValue>.ValueCollection Values => _dictionary.Values;
 
     public void OnCatchup(PlayerID playerId)
     {
@@ -88,9 +86,24 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         });
     }
 
+    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+    {
+        return _dictionary.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
     public void Reset()
     {
         _dictionary.Clear();
+    }
+
+    ~SyncedDictionary()
+    {
+        MultiplayerHooking.OnJoinedServer -= ClearLocal;
     }
 
     public event ValueChangedHandler? OnValueAdded;
@@ -106,9 +119,9 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         {
             OnValueRemoved?.Invoke(key, oldValue);
         }
-        
+
         _dictionary[key] = value;
-        OnValueAdded?.Invoke(key, value);   
+        OnValueAdded?.Invoke(key, value);
 
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
@@ -130,7 +143,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         _dictionary.Clear();
         removed.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
         OnValueCleared?.Invoke();
-        
+
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Clear());
     }
@@ -149,7 +162,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     {
         return _dictionary.TryGetValue(key, out value);
     }
-    
+
     public TValue? GetValueOrDefault(TKey key, TValue d = default!)
     {
         return _dictionary.GetValueOrDefault(key, d);
@@ -160,31 +173,18 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         return _dictionary.ContainsKey(key);
     }
 
-    public Dictionary<TKey, TValue>.KeyCollection Keys => _dictionary.Keys;
-    public Dictionary<TKey, TValue>.ValueCollection Values => _dictionary.Values;
-
-    public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-    {
-        return _dictionary.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
     public void Sync(TKey key)
     {
         if (!TryGetValue(key, out var value))
             return;
-        
+
         OnValueChanged?.Invoke(key, value);
         Relay(DictionaryEdit<TKey, TValue>.Set(key, value));
     }
-    
+
 
     // Abstract methods for serialization
-    
+
     protected override int? GetSize(DictionaryEdit<TKey, TValue> data)
     {
         var size = sizeof(DictionaryEditType);
@@ -192,12 +192,12 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         if (data.Type is DictionaryEditType.Set) size += _valueEncoder.GetSize(data.Value);
         return size;
     }
-    
+
     protected override void Write(NetWriter writer, DictionaryEdit<TKey, TValue> data)
     {
         writer.Write(data.Type);
         if (data.Type is DictionaryEditType.Set or DictionaryEditType.Remove) _keyEncoder.Write(writer, data.Key);
-        
+
         if (data.Type is not DictionaryEditType.Set)
             return;
 
@@ -206,7 +206,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
             _valueEncoder.Write(writer, data.Value);
             return;
         }
-        
+
         _refEncoder.Write(writer, data.Value);
     }
 

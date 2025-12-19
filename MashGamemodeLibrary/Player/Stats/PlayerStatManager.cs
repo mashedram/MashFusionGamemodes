@@ -13,13 +13,13 @@ public static class PlayerStatManager
         {
             value = 100f;
         }
-        
+
         if (LocalHealth.VitalityOverride.Equals(value))
             return;
 
         LocalHealth.VitalityOverride = value;
     }
-    
+
     public static void RefreshVitality()
     {
         SetVitality(LocalStatOverride?.Vitality);

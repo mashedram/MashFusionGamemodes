@@ -26,7 +26,7 @@ public struct PhaseIdentifier
     {
         _id = id;
     }
-    
+
     public static PhaseIdentifier Of<T>() where T : GamePhase
     {
         var id = GamePhaseManager.Registry.CreateID<T>();

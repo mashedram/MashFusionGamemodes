@@ -15,17 +15,17 @@ public static class PlayerColliderManager
     {
         if (!IgnoredCollisionPlayers.Contains(packet.SenderPlayerID))
             return;
-        
+
         if (!PlayerColliders.TryGetValue(packet.SenderPlayerID, out var cache))
             return;
 
         cache.StopPropColliding(packet.Reference);
     }, CommonNetworkRoutes.AllToAll);
-    
+
     public static void GenerateColliderCache(NetworkPlayer player)
     {
         if (!player.HasRig) return;
-        
+
         var rig = player.RigRefs.RigManager.physicsRig;
         if (PlayerColliders.TryGetValue(player.PlayerID, out var cache))
         {
@@ -45,13 +45,13 @@ public static class PlayerColliderManager
     public static void SetColliders(NetworkPlayer player, bool state)
     {
         IgnoredCollisionPlayers.Add(player.PlayerID);
-        
+
         if (!player.HasRig)
             return;
 
         if (!PlayerColliders.TryGetValue(player.PlayerID, out var cache))
             return;
-        
+
         cache.SetIgnoreRaycast(player.PlayerID, state);
 
         if (state)
@@ -86,7 +86,7 @@ public static class PlayerColliderManager
 
         cache.AddItem(item.GameObject);
     }
-    
+
     public static void OnDrop(GrabData grab)
     {
         if (!grab.IsHoldingItem(out var item)) return;
@@ -98,16 +98,16 @@ public static class PlayerColliderManager
 
         cache.RemoveItem(item.GameObject);
     }
-    
+
     public static void Clear()
     {
         IgnoredCollisionPlayers.Clear();
         PlayerColliders.Clear();
-        
+
         _localCache?.ClearPropColliders();
         _localCache = null;
     }
-    
+
     public static void StartIgnoring(NetworkEntity networkEntity)
     {
         IgnorePropEvent.Call(new IgnorePropPacket

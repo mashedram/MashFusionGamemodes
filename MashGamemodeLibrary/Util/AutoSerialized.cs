@@ -6,13 +6,12 @@ namespace MashGamemodeLibrary.Util;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Class | AttributeTargets.Struct)]
 public class SerializableField : Attribute
 {
-    
 }
 
 internal class FieldSerializer
 {
     private readonly FieldInfo _field;
-    
+
     public FieldSerializer(FieldInfo field)
     {
         _field = field;
@@ -28,17 +27,17 @@ internal class FieldSerializer
     }
 }
 
-public abstract class AutoSerialized<TValue> : INetSerializable where TValue: AutoSerialized<TValue>
+public abstract class AutoSerialized<TValue> : INetSerializable where TValue : AutoSerialized<TValue>
 {
     // This is the exact behaviour we want
     // ReSharper disable once StaticMemberInGenericType
     private static readonly List<FieldSerializer> Serializables = new();
-    
+
     static AutoSerialized()
     {
         var type = typeof(TValue);
         var serializeAll = type.GetCustomAttribute<SerializableField>() != null;
-        
+
         var fields = type.GetFields();
         foreach (var fieldInfo in fields)
         {
@@ -49,16 +48,16 @@ public abstract class AutoSerialized<TValue> : INetSerializable where TValue: Au
         }
     }
 
+    public void Serialize(INetSerializer serializer)
+    {
+        Serialize(serializer, (TValue)this);
+    }
+
     public static void Serialize(INetSerializer serializer, TValue value)
     {
         foreach (var fieldSerializer in Serializables)
         {
             fieldSerializer.SerializeField(serializer, value);
         }
-    }
-
-    public void Serialize(INetSerializer serializer)
-    {
-        Serialize(serializer, (TValue) this);
     }
 }

@@ -4,7 +4,6 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Encoder;
-using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable;
@@ -14,9 +13,9 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
     public delegate void OnChangedHandler(TValue newValue);
 
     public delegate bool ValidatorHandler(TValue newValue);
+    private readonly TValue _default;
 
     private readonly IEncoder<TValue> _encoder;
-    private readonly TValue _default;
 
     private readonly string _name;
     private TValue _value;
@@ -24,7 +23,7 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
     public SyncedVariable(string name, IEncoder<TValue> encoder, TValue defaultValue) : this(name, encoder, defaultValue, CommonNetworkRoutes.HostToAll)
     {
     }
-    
+
     public SyncedVariable(string name, IEncoder<TValue> encoder, TValue defaultValue, INetworkRoute route) : base($"sync.{name}", route)
     {
         _name = name;
@@ -61,7 +60,7 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
     {
         return _encoder.GetSize(data);
     }
-    
+
     protected override void Write(NetWriter writer, TValue data)
     {
         _encoder.Write(writer, data);

@@ -17,7 +17,7 @@ public class PlantState : EnvironmentState<EnvironmentContext>
     }
 
     public override int Priority => 10;
-    
+
     public override bool CanPlay(EnvironmentContext context)
     {
         return GamePhaseManager.IsPhase<PlantPhase>();

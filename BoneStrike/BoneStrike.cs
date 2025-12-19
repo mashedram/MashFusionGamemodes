@@ -1,22 +1,15 @@
-﻿using System.Collections.Immutable;
-using BoneStrike.Audio;
+﻿using BoneStrike.Audio;
 using BoneStrike.Config;
 using BoneStrike.Phase;
 using BoneStrike.Tags;
 using BoneStrike.Teams;
-using Il2CppSLZ.Marrow;
-using Il2CppSLZ.MLAgents;
 using LabFusion.Data;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Marrow.Integration;
 using LabFusion.Player;
-using LabFusion.RPC;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
-using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Context;
-using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -28,19 +21,20 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
-using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
-using Random = UnityEngine.Random;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike;
 
 public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
 {
+
+    private readonly PersistentTeams _teams = new();
+    private Vector3 _resetPoint = Vector3.zero;
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
 
@@ -50,9 +44,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     public override bool DisableManualUnragdoll => true;
 
     public override int RoundCount => 5;
-
-    private readonly PersistentTeams _teams = new();
-    private Vector3 _resetPoint = Vector3.zero;
 
     protected override void OnRegistered()
     {
@@ -108,7 +99,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-        
+
         GamePhaseManager.Enable<PlantPhase>();
 
         var spawns = GamemodeMarker.FilterMarkers();
@@ -178,7 +169,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         if (!Config.BombExplosion)
             return;
-        
+
         const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionSmallMedDamage";
 
         foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())

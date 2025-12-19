@@ -22,7 +22,7 @@ public class ColliderPatches
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (collision == null)
             return true;
-        
+
         if (!NetworkInfo.HasServer)
             return true;
         // If we collide but aren't spectating, we don't care.

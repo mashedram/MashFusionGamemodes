@@ -16,6 +16,15 @@ public abstract class GenericRemoteEvent<TData>
     private readonly string _name;
     protected readonly INetworkRoute Route;
 
+    protected GenericRemoteEvent(string name, INetworkRoute route)
+    {
+        _name = name;
+        Route = route;
+
+        var path = $"{GetModName(GetType())}.{name}";
+        _assignedId = RemoteEventMessageHandler.RegisterEvent(path, this);
+    }
+
     private static string GetModName(Type type)
     {
         var assembly = type.Assembly;
@@ -26,15 +35,6 @@ public abstract class GenericRemoteEvent<TData>
         }
 
         throw new Exception("Ensure the mod is Network Identifiable before registering it.");
-    }
-    
-    protected GenericRemoteEvent(string name, INetworkRoute route)
-    {
-        _name = name;
-        Route = route;
-
-        var path = $"{GetModName(GetType())}.{name}";
-        _assignedId = RemoteEventMessageHandler.RegisterEvent(path, this);
     }
 
     ~GenericRemoteEvent()
@@ -111,10 +111,11 @@ public abstract class GenericRemoteEvent<TData>
     {
         if (!Route.ValidFromSender(smallId))
         {
-            MelonLogger.Error($"Received event from: {smallId} {(PlayerIDManager.HostSmallID == smallId ? "(Host)" : "")}. Which is invalid on route: {Route.GetType().Name}");
+            MelonLogger.Error(
+                $"Received event from: {smallId} {(PlayerIDManager.HostSmallID == smallId ? "(Host)" : "")}. Which is invalid on route: {Route.GetType().Name}");
             return;
         }
-        
+
         using var reader = NetReader.Create(bytes);
         Read(smallId, reader);
     }

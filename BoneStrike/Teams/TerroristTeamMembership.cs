@@ -27,13 +27,14 @@ public class TerroristTeam : Team
         {
             Owner.AddTag(new PlayerHandTimerTag());
         });
-        
+
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Notifier.Send(new Notification
             {
                 Title = "Terrorists",
-                Message = $"Hide and defend the bomb. You have {BoneStrike.Config.MaxRespawns} lives and can skip ahead by holding the bomb and tapping the menu key.",
+                Message =
+                    $"Hide and defend the bomb. You have {BoneStrike.Config.MaxRespawns} lives and can skip ahead by holding the bomb and tapping the menu key.",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,

@@ -58,20 +58,32 @@ public class DebugRenderer
         var edgePoints = new[]
         {
             // Bottom face
-            corners[0], corners[1],
-            corners[1], corners[2],
-            corners[2], corners[3],
-            corners[3], corners[0],
+            corners[0],
+            corners[1],
+            corners[1],
+            corners[2],
+            corners[2],
+            corners[3],
+            corners[3],
+            corners[0],
             // Top face
-            corners[4], corners[5],
-            corners[5], corners[6],
-            corners[6], corners[7],
-            corners[7], corners[4],
+            corners[4],
+            corners[5],
+            corners[5],
+            corners[6],
+            corners[6],
+            corners[7],
+            corners[7],
+            corners[4],
             // Vertical edges
-            corners[0], corners[4],
-            corners[1], corners[5],
-            corners[2], corners[6],
-            corners[3], corners[7]
+            corners[0],
+            corners[4],
+            corners[1],
+            corners[5],
+            corners[2],
+            corners[6],
+            corners[3],
+            corners[7]
         };
 
         RenderLine(edgePoints, color ?? Color.green);

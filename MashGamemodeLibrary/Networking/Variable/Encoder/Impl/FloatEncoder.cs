@@ -9,12 +9,12 @@ public class FloatEncoder : IEncoder<float>
     {
         return sizeof(float);
     }
-    
+
     public float Read(NetReader reader)
     {
         return reader.ReadSingle();
     }
-    
+
     public void Write(NetWriter writer, float value)
     {
         writer.Write(value);

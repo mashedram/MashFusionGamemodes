@@ -88,7 +88,7 @@ internal class HolsterHider
     {
         if (_holsterSet != null && !_holsterSet.SetHidden(hidden))
             return false;
-        
+
         return _receiver == null || _receiver.SetHidden(hidden);
     }
 }

@@ -1,7 +1,5 @@
 ﻿using LabFusion.Entities;
-using LabFusion.Player;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Team;
 
@@ -16,7 +14,7 @@ public abstract class Team
 
     public virtual void OnPhaseChanged(GamePhase phase)
     {
-        
+
     }
 
     protected virtual void OnRemoved()
@@ -28,7 +26,7 @@ public abstract class Team
         Owner = player;
         OnAssigned();
     }
-    
+
     internal void Remove()
     {
         OnRemoved();

@@ -29,8 +29,8 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
     public SyncedSet(string name, IEncoder<TValue> encoder) : this(name, encoder, CommonNetworkRoutes.HostToAll)
     {
     }
-    
-    public SyncedSet(string name, IEncoder<TValue> encoder, INetworkRoute route) : base(name , route)
+
+    public SyncedSet(string name, IEncoder<TValue> encoder, INetworkRoute route) : base(name, route)
     {
         _encoder = encoder;
     }
@@ -104,7 +104,7 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
         removedEntries.ForEach(value => OnValueRemoved?.Invoke(value));
 
         if (sendUpdate)
-            Relay(new ChangePacket<TValue>(ChangeType.Clear, default (TValue)!));
+            Relay(new ChangePacket<TValue>(ChangeType.Clear, default!));
     }
 
     // Setters and Getters
@@ -118,7 +118,7 @@ public class SyncedSet<TValue> : GenericRemoteEvent<ChangePacket<TValue>>, IEnum
     {
         RemoveValue(value, true);
     }
-    
+
     protected override int? GetSize(ChangePacket<TValue> data)
     {
         if (data.Type == ChangeType.Clear)

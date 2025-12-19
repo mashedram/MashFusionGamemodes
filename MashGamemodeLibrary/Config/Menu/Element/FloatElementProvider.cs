@@ -9,7 +9,7 @@ public class FloatElementProvider : IConfigElementProvider
     {
         var min = (float?)entry.Bounds?.Lower ?? 1f;
         var max = (float?)entry.Bounds?.Upper ?? 10f;
-            
+
         return new FloatElementData
         {
             Title = entry.Name,

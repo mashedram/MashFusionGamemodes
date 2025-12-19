@@ -6,5 +6,4 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch(typeof(PullCordDevice))]
 public class BodylogPatches
 {
-    
 }

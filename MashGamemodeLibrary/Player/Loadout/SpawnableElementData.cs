@@ -15,7 +15,7 @@ public class SpawnableElementData : FunctionElementData
     {
         OnPressed = OnPressedInternal;
     }
-    
+
     private static Barcode? GetHeldSpawnableBarcode(Hand hand)
     {
         if (!hand.HasAttachedObject()) return null;
@@ -40,7 +40,7 @@ public class SpawnableElementData : FunctionElementData
     {
         var held = GetHeldSpawnableBarcode();
         if (held == null) return;
-        
+
         _spawnable = new SpawnableCrateReference(held);
         OnSetSpawnable.Invoke(_spawnable._barcode);
     }

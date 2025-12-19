@@ -15,7 +15,7 @@ public class HostToAllNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRou
     {
         return true;
     }
-    
+
     public bool ValidFromSender(byte id)
     {
         return PlayerIDManager.HostSmallID == id;

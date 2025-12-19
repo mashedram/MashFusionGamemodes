@@ -3,7 +3,6 @@ using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Context.Control;
-using MashGamemodeLibrary.Environment.State;
 
 namespace MashGamemodeLibrary.Environment;
 
@@ -62,29 +61,9 @@ public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IContex
         _contextBuilder = contextBuilder;
     }
 
-    // Local
-
-    private Track<TInternalContext> GetOrCreateTrack(Enum id)
-    {
-        if (_tracks.TryGetValue(id, out var value))
-            return value;
-
-        var track = new Track<TInternalContext>(id);
-        _tracks[id] = track;
-        return track;
-    }
-
     public void SetContext(TContext context)
     {
         _context = _contextBuilder(context);
-    }
-
-    public void StartPlaying(EnvironmentProfile<TInternalContext> profile)
-    {
-        _profile = profile;
-        _knownLayers = profile.GetAllStates()
-            .Select(e => e.Layer)
-            .ToImmutableSortedSet(Comparer<int>.Create((a, b) => b.CompareTo(a)));
     }
 
     public void Stop()
@@ -131,5 +110,25 @@ public class EnvironmentManager<TContext, TInternalContext> : IUpdating, IContex
                 assignedTracks.Add(trackId);
             }
         }
+    }
+
+    // Local
+
+    private Track<TInternalContext> GetOrCreateTrack(Enum id)
+    {
+        if (_tracks.TryGetValue(id, out var value))
+            return value;
+
+        var track = new Track<TInternalContext>(id);
+        _tracks[id] = track;
+        return track;
+    }
+
+    public void StartPlaying(EnvironmentProfile<TInternalContext> profile)
+    {
+        _profile = profile;
+        _knownLayers = profile.GetAllStates()
+            .Select(e => e.Layer)
+            .ToImmutableSortedSet(Comparer<int>.Create((a, b) => b.CompareTo(a)));
     }
 }

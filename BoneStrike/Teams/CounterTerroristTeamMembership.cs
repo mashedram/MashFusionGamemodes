@@ -1,7 +1,6 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Tags;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -21,7 +20,7 @@ public class CounterTerroristTeam : Team
         {
             Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnTag(BoneStrike.Config.MaxRespawns));
         });
-        
+
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             var isLocked = phase is PlantPhase;
@@ -30,7 +29,7 @@ public class CounterTerroristTeam : Team
     }
 
     protected override void OnAssigned()
-    {  
+    {
         Executor.RunIfHost(() =>
         {
             Owner.AddTag(new PlayerHandTimerTag());

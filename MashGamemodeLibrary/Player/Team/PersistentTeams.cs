@@ -14,14 +14,14 @@ namespace MashGamemodeLibrary.Player.Team;
 
 public enum TeamStatisticKeys
 {
-    RoundsWon,
+    RoundsWon
 }
 
 internal class WinMessagePacket : INetSerializable
 {
-    public List<int> Scores = new();
     public List<(int, byte)> PlayerIds = new();
-    
+    public List<int> Scores = new();
+
     public void Serialize(INetSerializer serializer)
     {
         if (serializer.IsReader)
@@ -29,14 +29,14 @@ internal class WinMessagePacket : INetSerializable
             var reader = (NetReader)serializer;
             var size = reader.ReadInt32();
             Scores = new List<int>(size);
-            for (int i = 0; i < size; i++)
+            for (var i = 0; i < size; i++)
             {
                 Scores.Add(reader.ReadInt32());
             }
-            
+
             size = reader.ReadInt32();
             PlayerIds = new List<(int, byte)>(size);
-            for (int i = 0; i < size; i++)
+            for (var i = 0; i < size; i++)
             {
                 var score = reader.ReadInt32();
                 var playerID = reader.ReadByte();
@@ -44,7 +44,7 @@ internal class WinMessagePacket : INetSerializable
             }
             return;
         }
-        
+
         var writer = (NetWriter)serializer;
         writer.Write(Scores.Count);
         foreach (var score in Scores)
@@ -66,12 +66,13 @@ public class PersistentTeams
         new("PersistentTeams_WinMessage", OnWinMessage,
             CommonNetworkRoutes.HostToAll);
 
-    private int _shift = Random.RandomRangeInt(0, 2);
-    private readonly List<ulong> _teamIds = new();
+    private readonly Queue<PlayerID> _lateJoinerQueue = new();
     private readonly HashSet<PlayerID> _playerIds = new();
     private readonly List<HashSet<PlayerID>> _playerSets = new();
     private readonly List<int> _scores = new();
-    private readonly Queue<PlayerID> _lateJoinerQueue = new();
+    private readonly List<ulong> _teamIds = new();
+
+    private int _shift = Random.RandomRangeInt(0, 2);
 
     private ulong GetTeamId(int setIndex)
     {
@@ -85,10 +86,10 @@ public class PersistentTeams
         if (emptyTeams.Count > 0)
         {
             var totalPlayers = _playerSets.Select(s => s.Count).Sum();
-            
+
             if (totalPlayers < _playerSets.Count)
                 return;
-            
+
             var targetSize = totalPlayers / _playerSets.Count;
 
             foreach (var emptySet in emptyTeams)
@@ -112,7 +113,7 @@ public class PersistentTeams
             }
         }
     }
-    
+
     public void AddTeamID(ulong id)
     {
         _teamIds.Add(id);
@@ -130,7 +131,7 @@ public class PersistentTeams
     {
         _playerSets.ForEach(set => set.Clear());
         _playerIds.Clear();
-        
+
         var index = 0;
         foreach (var playerID in playerIds.Shuffle())
         {
@@ -144,11 +145,11 @@ public class PersistentTeams
     {
         _shift += Random.RandomRangeInt(0, _teamIds.Count);
     }
-    
+
     public void QueueLateJoiner(PlayerID playerID)
     {
         _lateJoinerQueue.Enqueue(playerID);
-    } 
+    }
 
     public void AssignAll()
     {
@@ -157,7 +158,7 @@ public class PersistentTeams
             MelonLogger.Error("No valid set found.");
             return;
         }
-        
+
         // Resolve queue
         var index = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count).index;
         while (_lateJoinerQueue.TryDequeue(out var playerID))
@@ -165,19 +166,19 @@ public class PersistentTeams
             // Avoid double adding
             if (!_playerIds.Add(playerID))
                 continue;
-            
+
             _playerSets[index].Add(playerID);
 
             index = (index + 1) % _playerSets.Count;
         }
-        
+
         // Autobalance if needed
         AutoBalance();
-       
+
         // Assign teams
         _shift += 1;
-        
-        for (int i = 0; i < _playerSets.Count; i++)
+
+        for (var i = 0; i < _playerSets.Count; i++)
         {
             var teamID = GetTeamId(i);
             foreach (var playerID in _playerSets[i])
@@ -186,14 +187,14 @@ public class PersistentTeams
             }
         }
     }
-    
+
     public void AddScore(ulong teamId, int score)
     {
         var index = _teamIds.IndexOf(teamId);
         var setIndex = (index - _shift) % _teamIds.Count;
         if (setIndex < 0)
             setIndex += _teamIds.Count;
-        
+
         _scores[setIndex] += score;
     }
 
@@ -201,16 +202,16 @@ public class PersistentTeams
     {
         var playerIds = _playerSets
             .SelectMany((set, index) => set.Where(id => id.IsValid).Select(id => (index, id.SmallID))).ToList();
-        
+
         if (playerIds.Count == 0)
             return;
-        
+
         var packet = new WinMessagePacket
         {
             Scores = _scores,
             PlayerIds = playerIds
         };
-        
+
         WinMessageEvent.Call(packet);
     }
 
@@ -221,7 +222,7 @@ public class PersistentTeams
         _playerSets.Clear();
         _scores.Clear();
     }
-    
+
     // events 
     private static void OnWinMessage(WinMessagePacket packet)
     {
@@ -231,26 +232,26 @@ public class PersistentTeams
             .OrderByDescending(p => p.score)
             .Take(2)
             .ToList();
-        
+
         if (teamScores.Count == 0)
             return;
-        
+
         foreach (var (teamID, score) in teamScores)
         {
             var playerID = packet.PlayerIds.FirstOrDefault(p => p.Item1 == teamID).Item2;
             var name = NetworkPlayerManager.TryGetPlayer(playerID, out var player)
                 ? player.Username
                 : "Unknown";
-            
+
             finals.Add((name, score));
         }
 
         var localTeamID = packet.PlayerIds.Where(p => p.Item2 == PlayerIDManager.LocalSmallID).Select(p => p.Item1).FirstOrDefault(-1);
         var localWinner = teamScores.First().teamID == localTeamID;
-        
+
         var message = localWinner ? "Victory!" : "Defeat!";
         var detail = string.Join("\n", finals.Select(f => $"{f.Item1}'s Team: {f.Item2} points"));
-        
+
         Notifier.Send(new Notification
         {
             Title = message,
@@ -263,7 +264,7 @@ public class PersistentTeams
 
         var winCount = teamScores[localTeamID].score;
         var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
-        
-        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits ,PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
+
+        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists);
     }
 }

@@ -8,7 +8,6 @@ namespace MashGamemodeLibrary.Player.Collision;
 internal class ColliderSet : IEnumerable<Collider>
 {
     private readonly HashSet<Collider> _colliders;
-    public IEnumerable<Collider> Colliders => _colliders;
 
     public ColliderSet(GameObject root)
     {
@@ -29,6 +28,15 @@ internal class ColliderSet : IEnumerable<Collider>
     {
         _colliders = physicsRig.GetComponentsInChildren<Collider>().Where(v => filter.Contains(v.gameObject.name)).ToHashSet();
     }
+    public IEnumerable<Collider> Colliders => _colliders;
+    public IEnumerator<Collider> GetEnumerator()
+    {
+        return _colliders.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
 
     public void SetColliding(ColliderSet other, bool colliding)
     {
@@ -40,13 +48,5 @@ internal class ColliderSet : IEnumerable<Collider>
 
             Physics.IgnoreCollision(collider1, collider2, !colliding);
         }
-    }
-    public IEnumerator<Collider> GetEnumerator()
-    {
-        return _colliders.GetEnumerator();
-    }
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
     }
 }

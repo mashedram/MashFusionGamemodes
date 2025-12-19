@@ -10,11 +10,11 @@ public enum MarkerType
 public class TimeMarker
 {
     public bool Hit;
+    public Action<float> OnHit;
+    public float Time;
 
     public MarkerType Type;
-    public float Time;
-    public Action<float> OnHit;
-    
+
     public TimeMarker(MarkerType type, float time, Action<float> onHit)
     {
         Type = type;
@@ -25,21 +25,21 @@ public class TimeMarker
 
 public class MarkableTimer
 {
+
+    private bool _hitTimeout;
     private TimeMarker[] _markers;
 
     private float _timeout;
-
-    private bool _hitTimeout;
     private float _timer;
-    
-    public event Action? OnReset;
-    public event Action<float>? OnTimeout;
-    
+
     public MarkableTimer(float timeout, params TimeMarker[] markers)
     {
         _timeout = timeout;
         _markers = markers;
     }
+
+    public event Action? OnReset;
+    public event Action<float>? OnTimeout;
 
     private float GetActualTime(TimeMarker marker)
     {
@@ -62,7 +62,7 @@ public class MarkableTimer
 
         var difference = MathF.Abs(currentFloored - previousFloored);
         if (difference == 0) return;
-        
+
         marker.OnHit.Invoke(MathF.Floor(_timer));
     }
 
@@ -75,11 +75,11 @@ public class MarkableTimer
             return;
         }
         if (marker.Hit) return;
-            
+
         marker.Hit = true;
         if (markerTime >= _timeout || markerTime < 0)
             return;
-        
+
         marker.OnHit.Invoke(markerTime);
     }
 
@@ -97,16 +97,16 @@ public class MarkableTimer
     public void Update(float delta)
     {
         if (_hitTimeout) return;
-        
+
         _timer += delta;
-        
+
         if (_timer > _timeout)
         {
             OnTimeout?.Invoke(_timeout);
             _hitTimeout = true;
             return;
         }
-        
+
         CheckMarker(delta);
     }
 
@@ -116,7 +116,7 @@ public class MarkableTimer
 
         var didHitTimeout = _hitTimeout;
         _hitTimeout = _timer >= _timeout;
-        
+
         if (!didHitTimeout && _hitTimeout)
             OnTimeout?.Invoke(_timeout);
     }
@@ -141,13 +141,13 @@ public class MarkableTimer
         if (_timer != 0f)
         {
             OnReset?.Invoke();
-            
+
             foreach (var marker in _markers)
             {
                 marker.Hit = false;
             }
         }
-        
+
         _timer = 0f;
         _hitTimeout = false;
     }

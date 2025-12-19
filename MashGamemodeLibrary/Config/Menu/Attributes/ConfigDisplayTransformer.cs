@@ -10,9 +10,9 @@ public interface IConfigElementProvider
 [AttributeUsage(AttributeTargets.Field)]
 public class ConfigElementProvider : Attribute
 {
-    public Type ProviderType { get; }
     public ConfigElementProvider(Type providerTypeType)
     {
         ProviderType = providerTypeType;
     }
+    public Type ProviderType { get; }
 }

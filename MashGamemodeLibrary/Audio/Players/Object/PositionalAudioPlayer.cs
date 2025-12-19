@@ -30,6 +30,13 @@ public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayReques
     {
     }
 
+    public void PlayRandom(Vector3 position)
+    {
+        var name = GetRandomAudioName();
+        if (string.IsNullOrEmpty(name)) return;
+        Play(name, position);
+    }
+
     protected override bool Modifier(PositionalAudioPlayRequest data, ref AudioSource source)
     {
         source.gameObject.transform.position = data.Position;
@@ -45,12 +52,5 @@ public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayReques
         };
 
         Play(name, request);
-    }
-
-    public void PlayRandom(Vector3 position)
-    {
-        var name = GetRandomAudioName();
-        if (string.IsNullOrEmpty(name)) return;
-        Play(name, position);
     }
 }

@@ -15,7 +15,7 @@ public static class SafeEvents
             MelonLogger.Error($"Failed to execute {typeof(T).FullName}", exception);
         }
     }
-    
+
     public static TReturn InvokeSafely<TInstance, TReturn>(this TInstance value, TReturn defaultValue, Func<TInstance, TReturn> action)
     {
         try

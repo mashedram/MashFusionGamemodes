@@ -1,12 +1,10 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
-using MashGamemodeLibrary.Util;
 
 namespace BoneStrike.Config;
 
@@ -57,13 +55,13 @@ internal class CrateBarcodeListElement : IConfigElementProvider
             {
                 if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
                     return;
-                
+
                 var list = (List<string>)entry.Value;
 
                 var id = crate._pallet._barcode._id;
                 if (list.Contains(id))
                     return;
-                
+
                 list.Add(id);
                 setter.Invoke(entry, list);
             }
@@ -77,10 +75,10 @@ internal class CrateBarcodeListElement : IConfigElementProvider
                 setter.Invoke(entry, new List<string>());
             }
         };
-        
+
         group.AddElement(add);
         group.AddElement(clear);
-        
+
         return group;
     }
 }
@@ -101,7 +99,7 @@ internal class BarcodeListElement : IConfigElementProvider
                 var id = barcode._id;
                 if (list.Contains(id))
                     return;
-                
+
                 list.Add(id);
                 setter.Invoke(entry, list);
             }
@@ -115,61 +113,52 @@ internal class BarcodeListElement : IConfigElementProvider
                 setter.Invoke(entry, new List<string>());
             }
         };
-        
+
         group.AddElement(add);
         group.AddElement(clear);
-        
+
         return group;
     }
 }
 
 public class BoneStrikeConfig : IConfig
 {
-    [ConfigMenuEntry("Plant Phase Duration")]
-    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    public float PlantDuration = 60f;
-    
-    [ConfigMenuEntry("Defuse Phase Duration")]
-    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    public float DefuseDuration = 60f;
-
-    [ConfigMenuEntry("Max Respawns")]
-    [ConfigRangeConstraint(0, 3)]
-    public int MaxRespawns = 0;
-
-    [ConfigMenuEntry("Defuse timer")] 
-    [ConfigRangeConstraint(2f, 20f)]
-    public float DefuseTime = 7f;
-    
-    [ConfigMenuEntry("Health Multiplier")]
-    [ConfigRangeConstraint(0.25f, 4f)]
-    [ConfigStepSize(0.25f)]
-    public float HealthMultiplier = 1f;
 
     [ConfigMenuEntry("Balance Weapon Damage")]
     public bool BalanceDamage = true;
-    
-    [ConfigMenuEntry("Damage Multiplier")]
-    [ConfigRangeConstraint(0.25f, 4f)]
-    [ConfigStepSize(0.25f)]
-    public float DamageMultiplier = 1f;
-    
-    [ConfigMenuEntry("Dev Tools Disabled")]
-    public bool DevToolsDisabled = true;
 
     [ConfigMenuEntry("Bomb Explosion Enabled")]
     public bool BombExplosion = true;
 
-    [ConfigMenuEntry("Weapons")]
-    [ConfigElementProvider(typeof(CrateBarcodeListElement))]
+    [ConfigMenuEntry("Damage Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    public float DamageMultiplier = 1f;
+
+    [ConfigMenuEntry("Defuse Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float DefuseDuration = 60f;
+
+    [ConfigMenuEntry("Defuse timer")] [ConfigRangeConstraint(2f, 20f)]
+    public float DefuseTime = 7f;
+
+    [ConfigMenuEntry("Dev Tools Disabled")]
+    public bool DevToolsDisabled = true;
+
+    [ConfigMenuEntry("Health Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    public float HealthMultiplier = 1f;
+
+    [ConfigMenuEntry("Max Respawns")] [ConfigRangeConstraint(0, 3)]
+    public int MaxRespawns;
+
+    [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))]
     public List<string> PalletBarcodes = new();
-    
-    [ConfigMenuEntry("Uility Items")]
-    [ConfigElementProvider(typeof(BarcodeListElement))]
+
+    [ConfigMenuEntry("Plant Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float PlantDuration = 60f;
+
+    [ConfigMenuEntry("Uility Items")] [ConfigElementProvider(typeof(BarcodeListElement))]
     public List<string> UtilityBarcodes = new();
-    
+
     public void Serialize(INetSerializer serializer)
-    {   
+    {
         serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref DefuseDuration);
         serializer.SerializeValue(ref MaxRespawns);

@@ -1,9 +1,5 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using LabFusion.Extensions;
-using MashGamemodeLibrary.Util;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Registry.Keyed;
 
@@ -17,10 +13,10 @@ public class KeyedRegistry<TKey, TValue> : IKeyedRegistry<TKey, TValue>
     public void Register<T>(TKey id, T value) where T : TValue
     {
         _dictionary.Add(id, value);
-        
+
         OnRegister?.Invoke(id, value);
     }
-    
+
     public TValue? Get(TKey id)
     {
         return _dictionary.GetValueOrDefault(id);
@@ -35,12 +31,12 @@ public class KeyedRegistry<TKey, TValue> : IKeyedRegistry<TKey, TValue>
     {
         return _dictionary.ContainsKey(id);
     }
-    
+
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
         return _dictionary.GetEnumerator();
     }
-    
+
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();

@@ -1,6 +1,5 @@
 ﻿using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Util;
-using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -8,11 +7,11 @@ namespace MashGamemodeLibrary.Audio.Containers;
 
 public class SyncedAudioContainer : ISyncedAudioContainer
 {
+    private readonly Dictionary<ulong, AudioClip?> _clipCache = new();
+    private readonly Dictionary<ulong, string> _hashToName = new();
     private readonly IAudioLoader _loader;
     private readonly Dictionary<string, ulong> _nameToHash = new();
-    private readonly Dictionary<ulong, string> _hashToName = new();
-    private readonly Dictionary<ulong, AudioClip?> _clipCache = new();
-    
+
     public SyncedAudioContainer(IAudioLoader loader)
     {
         _loader = loader;
@@ -24,7 +23,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
     public List<ulong> AudioHashes => _clipCache.Keys.ToList();
 
     public bool IsLoading { get; private set; }
-    
+
     public ulong? GetAudioHash(string name)
     {
         return _nameToHash.GetValueOrDefault(name);
@@ -59,7 +58,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         {
             if (oldClip == null)
                 continue;
-            
+
             oldClip.UnloadAudioData();
             Object.Destroy(oldClip);
         }

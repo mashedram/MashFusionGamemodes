@@ -38,7 +38,7 @@ public static class MusicPackManager
         var packList = TagToDiscs.GetOrCreate(tag, () => new List<string>());
         packList.AddRange(pack.LoadTracks());
     }
-    
+
     public static void LoadPacks()
     {
         TagToDiscs.Clear();

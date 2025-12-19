@@ -11,6 +11,6 @@ public static class PlayerIdExtension
 
     public static bool IsSpectatingAndHidden(this PlayerID playerID)
     {
-        return SpectatorManager.IsHidden(playerID);
+        return playerID.IsHidden();
     }
 }

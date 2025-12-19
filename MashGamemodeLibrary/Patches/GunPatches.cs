@@ -14,7 +14,7 @@ public static class GunPatches
     {
         if (__instance == null)
             return;
-        
+
         PlayerGunManager.InvokeGunFired(__instance);
     }
 
@@ -24,7 +24,7 @@ public static class GunPatches
     {
         if (__instance == null)
             return;
-        
+
         PlayerGunManager.OnGunGrabbed(__instance);
-    } 
+    }
 }

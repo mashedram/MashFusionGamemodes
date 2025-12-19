@@ -11,7 +11,7 @@ public class NullableReferenceEncoder<TValue> : IEncoder<TValue?> where TValue :
     {
         _childEncoder = childEncoder;
     }
-    
+
     public int GetSize(TValue? value)
     {
         if (value == null)
@@ -19,7 +19,7 @@ public class NullableReferenceEncoder<TValue> : IEncoder<TValue?> where TValue :
 
         return _childEncoder.GetSize(value);
     }
-    
+
     public TValue? Read(NetReader reader)
     {
         if (!reader.ReadBoolean())
@@ -27,7 +27,7 @@ public class NullableReferenceEncoder<TValue> : IEncoder<TValue?> where TValue :
 
         return _childEncoder.Read(reader);
     }
-    
+
     public void Write(NetWriter writer, TValue? value)
     {
         if (value == null)
@@ -35,7 +35,7 @@ public class NullableReferenceEncoder<TValue> : IEncoder<TValue?> where TValue :
             writer.Write(false);
             return;
         }
-        
+
         writer.Write(true);
         _childEncoder.Write(writer, value);
     }

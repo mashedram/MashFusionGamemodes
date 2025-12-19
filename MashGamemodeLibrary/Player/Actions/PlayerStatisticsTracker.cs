@@ -1,7 +1,5 @@
 ﻿using LabFusion.SDK.Points;
 using LabFusion.UI.Popups;
-using LabFusion.Utilities;
-using MashGamemodeLibrary.Registry.Typed;
 
 namespace MashGamemodeLibrary.Player.Actions;
 
@@ -15,7 +13,7 @@ public static class PlayerStatisticsTracker
         Statistics.TryAdd(key, 0);
         Statistics[key] += value;
     }
-    
+
     public static void Clear()
     {
         Statistics.Clear();
@@ -36,16 +34,16 @@ public static class PlayerStatisticsTracker
             return awarder(kvp.Value);
         }) + extraBits, 0);
     }
-    
+
     public static Dictionary<string, int> GetStatisticsSnapshot()
     {
         return Statistics.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
     }
-    
+
     public static void SendNotificationAndAwardBits(int extraBits, params Enum[] keys)
     {
         var bits = GetTotalBits(extraBits);
-        
+
         var message = "";
         foreach (var key in keys)
         {
@@ -54,7 +52,7 @@ public static class PlayerStatisticsTracker
 
             message += $"{name}: {value}\n";
         }
-        
+
         Notifier.Send(new Notification
         {
             Title = $"You've been awarded {bits} bits",

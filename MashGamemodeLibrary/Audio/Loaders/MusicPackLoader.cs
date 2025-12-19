@@ -5,13 +5,13 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Loaders;
 
-public class MusicPackLoader: IAudioLoader
+public class MusicPackLoader : IAudioLoader
 {
     public MusicPackLoader(MusicPackTags tag)
     {
         AudioNames = MusicPackManager.GetTracks(tag);
     }
-    
+
     public List<string> AudioNames { get; }
 
     public void RefreshNames()

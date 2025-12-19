@@ -2,7 +2,7 @@
 using LabFusion.Entities;
 using LabFusion.RPC;
 
-namespace MashGamemodeLibrary.Util;
+namespace MashGamemodeLibrary.Entities;
 
 public delegate void OnMarrowEntitySpawned(NetworkEntity networkEntity, MarrowEntity entity);
 
@@ -17,7 +17,7 @@ public static class SpawnHelper
 {
     private static LinkedListNode<CallbackHolder>? _currentNode;
     private static readonly LinkedList<CallbackHolder> TrackedEntities = new();
-    
+
     public static void WaitOnMarrowEntity(this NetworkAssetSpawner.SpawnCallbackInfo callbackInfo, OnMarrowEntitySpawned callback)
     {
         WaitOnMarrowEntity(callbackInfo.Entity, callback);
@@ -27,7 +27,7 @@ public static class SpawnHelper
     {
         WaitOnMarrowEntity(networkEntity.ID, networkEntity, callback);
     }
-    
+
     public static void WaitOnMarrowEntity(ushort entityId, OnMarrowEntitySpawned callback)
     {
         var networkEntity = NetworkEntityManager.IDManager.RegisteredEntities.GetEntity(entityId);
@@ -54,13 +54,13 @@ public static class SpawnHelper
                 networkEntity = null;
             }
         }
-        
+
         TrackedEntities.AddLast(new CallbackHolder(entityId, callback)
         {
             NetworkEntity = networkEntity
         });
     }
-    
+
     private static void CheckEntity(LinkedListNode<CallbackHolder> node)
     {
         var networkEntity = node.Value.NetworkEntity;
@@ -76,11 +76,11 @@ public static class SpawnHelper
             TrackedEntities.Remove(node);
             return;
         }
-        
+
         var extender = networkEntity.GetExtender<IMarrowEntityExtender>();
         if (extender == null)
             return;
-        
+
 
         TrackedEntities.Remove(node);
         node.Value.Callback(extender.NetworkEntity, extender.MarrowEntity);
@@ -90,19 +90,19 @@ public static class SpawnHelper
     {
         if (TrackedEntities.Count == 0)
             return;
-        
+
         const int entriesPerIndex = 2;
         const int maxRetries = 50;
 
         for (var i = 0; i < entriesPerIndex; i++)
         {
             _currentNode ??= TrackedEntities.First;
-            
+
             if (_currentNode == null)
                 return;
 
             var nextNode = _currentNode.Next;
-            
+
             _currentNode.Value.Tries += 1;
             CheckEntity(_currentNode);
 
@@ -110,7 +110,7 @@ public static class SpawnHelper
             {
                 TrackedEntities.Remove(_currentNode);
             }
-            
+
             _currentNode = nextNode ?? TrackedEntities.First;
         }
     }

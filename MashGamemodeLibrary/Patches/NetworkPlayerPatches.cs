@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;
@@ -14,7 +13,7 @@ public class NetworkPlayerPatches
     {
         if (isInactive)
             return;
-        
+
         PlayerHider.Refresh(__instance.PlayerID);
     }
 }

@@ -2,8 +2,6 @@
 using LabFusion.Player;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.networking.Variable.Encoder;
-using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
@@ -36,7 +34,7 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
         {
             ((IKnownSenderPacket)data).SenderPlayerID = sender;
         }
-        
+
         _onEvent.Invoke(data);
     }
 
@@ -100,7 +98,7 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
 public class RemoteEvent : RemoteEvent<DummySerializable>
 {
     public delegate void EventHandler();
-    
+
     public RemoteEvent(string name, EventHandler onEvent, INetworkRoute? route = null) : base(name, _ => onEvent.Invoke(), route)
     {
     }

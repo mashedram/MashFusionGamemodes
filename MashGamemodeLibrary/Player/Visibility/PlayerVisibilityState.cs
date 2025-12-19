@@ -6,7 +6,6 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 using MashGamemodeLibrary.Vision;
 using MashGamemodeLibrary.Vision.Holster;
-using MashGamemodeLibrary.Vision.Holster.Receivers;
 
 namespace MashGamemodeLibrary.Player.Visibility;
 
@@ -15,9 +14,9 @@ internal class PlayerVisibilityState
     private readonly Dictionary<Handedness, RenderSet> _heldItems = new();
     private readonly Dictionary<string, bool> _hideOverwrites = new();
     private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
-    private readonly HashSet<SlotContainer> _slotContainers = new();
-    
+
     private readonly NetworkPlayer _player;
+    private readonly HashSet<SlotContainer> _slotContainers = new();
 
     private bool _isHiddenInternal;
     private bool _isSpecialHidden;
@@ -94,7 +93,11 @@ internal class PlayerVisibilityState
             _slotContainers.Add(slotContainer);
         }
 
-        var hands = new[] { rigManager.physicsRig.leftHand, rigManager.physicsRig.rightHand };
+        var hands = new[]
+        {
+            rigManager.physicsRig.leftHand,
+            rigManager.physicsRig.rightHand
+        };
         foreach (var hand in hands) PopulateHand(new GrabData(hand));
     }
 
@@ -126,7 +129,7 @@ internal class PlayerVisibilityState
         {
             if (inventoryRenderersValue.SetHidden(hidden))
                 continue;
-            
+
             return false;
         }
 
@@ -134,7 +137,7 @@ internal class PlayerVisibilityState
         {
             if (slotContainer == null)
                 return false;
-            
+
             slotContainer.gameObject.SetActive(!(_isHiddenInternal || _isSpecialHidden));
         }
 
@@ -144,7 +147,7 @@ internal class PlayerVisibilityState
         SetHeadUI(hidden);
         return true;
     }
-    
+
     private void RefreshAndPopulate()
     {
         if (!Refresh())
@@ -174,7 +177,7 @@ internal class PlayerVisibilityState
     public void OnDrop(GrabData hand)
     {
         if (!_heldItems.Remove(hand.Hand.handedness, out var renderers)) return;
-        
+
         renderers.SetHidden(false);
     }
 
@@ -207,7 +210,7 @@ internal class PlayerVisibilityState
             inventoryRenderersValue.FetchRenderersIf<InventoryAmmoReceiverHider>(IsHidden);
         }
     }
-    
+
     public void Update()
     {
         if (!_player.HasRig)
@@ -215,7 +218,7 @@ internal class PlayerVisibilityState
             _lastAvatar = null;
             return;
         }
-        
+
         foreach (var holsterHider in _inventoryRenderers.Values)
         {
             holsterHider.Update();
@@ -230,7 +233,7 @@ internal class PlayerVisibilityState
             _lastAvatar = null;
             return;
         }
-        
+
         if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
             return;
 
