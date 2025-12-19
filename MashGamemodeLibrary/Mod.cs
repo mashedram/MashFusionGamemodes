@@ -14,6 +14,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -52,6 +53,7 @@ public class Mod : MelonMod
         PlayerHider.Update();
         PlayerActionManager.Update();
         ConfigManager.Update();
+        SpawnHelper.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif

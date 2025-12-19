@@ -6,6 +6,7 @@ using LabFusion.RPC;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities;
@@ -31,10 +32,13 @@ public static class GameAssetSpawner
             SpawnEffect = false,
             SpawnCallback = result =>
             {
-                foreach (var entityTag in tags)
+                result.WaitOnMarrowEntity((entity, _) =>
                 {
-                    result.Entity.AddTag(entityTag);
-                }
+                    foreach (var entityTag in tags)
+                    {
+                        entity.AddTag(entityTag);
+                    }
+                });
             }
         });
     }

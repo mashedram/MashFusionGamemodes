@@ -12,8 +12,6 @@ namespace MashGamemodeLibrary.Player.Visibility;
 
 internal class PlayerVisibilityState
 {
-    private readonly RenderSet _avatarRenderers = new();
-
     private readonly Dictionary<Handedness, RenderSet> _heldItems = new();
     private readonly Dictionary<string, bool> _hideOverwrites = new();
     private readonly Dictionary<InventoryHandReceiver, HolsterHider> _inventoryRenderers = new();
@@ -50,7 +48,6 @@ internal class PlayerVisibilityState
 
     public void PopulateRenderers()
     {
-        _avatarRenderers.Clear();
         _inventoryRenderers.Clear();
         _slotContainers.Clear();
 
@@ -65,7 +62,7 @@ internal class PlayerVisibilityState
 
         _isHiddenInternal = IsHidden;
 
-        _avatarRenderers.Set(rigManager.avatar.gameObject, _isHiddenInternal);
+        rigManager._avatar.gameObject.SetActive(!_isHiddenInternal);
 
         foreach (var slotContainer in rigManager.inventory.bodySlots)
         {
@@ -123,10 +120,7 @@ internal class PlayerVisibilityState
 
         _isHiddenInternal = hidden;
 
-        if (!_avatarRenderers.SetHidden(_isHiddenInternal))
-        {
-            return false;
-        }
+        _player.RigRefs.RigManager._avatar.gameObject.SetActive(!hidden);
 
         foreach (var inventoryRenderersValue in _inventoryRenderers.Values)
         {
@@ -237,7 +231,7 @@ internal class PlayerVisibilityState
             return;
         }
         
-        if (_lastAvatar != null && avatar == _lastAvatar && _avatarRenderers.AllValid() && _isHiddenInternal == IsHidden)
+        if (_lastAvatar != null && avatar == _lastAvatar && _isHiddenInternal == IsHidden)
             return;
 
         _lastAvatar = avatar;

@@ -120,6 +120,8 @@ public class GripPatches
         PlayerGrabManager.OnGrab(grab);
     }
 
+    // We need a prefix here,
+    // because otherwise the grip will not contain the held item anymore and we can't check what it was
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
     public static void DetachObject(Grip __instance)
@@ -130,7 +132,7 @@ public class GripPatches
         var hand = __instance.GetHand();
         if (hand == null)
             return;
-
+        
         var grab = new GrabData(hand, __instance);
         PlayerGrabManager.OnDrop(grab);
     }

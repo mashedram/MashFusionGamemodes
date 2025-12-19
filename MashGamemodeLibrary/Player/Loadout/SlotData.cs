@@ -7,6 +7,7 @@ using LabFusion.Marrow.Pool;
 using LabFusion.Player;
 using LabFusion.RPC;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ public enum SlotType
 
 public class SlotData
 {
-    private static HashSet<NetworkEntity> _spawnedGuns = new();
+    private static readonly HashSet<NetworkEntity> SpawnedGuns = new();
     
     public Barcode? Barcode;
 
@@ -82,36 +83,40 @@ public class SlotData
             SpawnCallback = (info) =>
             {
                 // Insert into known items
-                _spawnedGuns.Add(info.Entity);
+                // TODO: Add ownership here to return guns to their owners
+                SpawnedGuns.Add(info.Entity);
                 
-                var weaponSlotExtender = info.Entity.GetExtender<WeaponSlotExtender>();
-
-                if (weaponSlotExtender == null)
+                SpawnHelper.WaitOnMarrowEntity(info.Entity, (networkEntity, _) =>
                 {
-                    return;
-                }
+                    var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
 
-                var weaponSlot = weaponSlotExtender.Component;
+                    if (weaponSlotExtender == null)
+                    {
+                        return;
+                    }
 
-                if (weaponSlot == null || weaponSlot.interactableHost == null)
-                {
-                    return;
-                }
+                    var weaponSlot = weaponSlotExtender.Component;
 
-                slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
+                    if (weaponSlot == null || weaponSlot.interactableHost == null)
+                    {
+                        return;
+                    }
+
+                    slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
+                });
             },
         });
     }
 
     public static void ClearSpawned()
     {
-        foreach (var entity in _spawnedGuns)
+        foreach (var entity in SpawnedGuns)
         {
             if (entity.IsDestroyed)
                 continue;
             
             PooleeUtilities.RequestDespawn(entity.ID, true);
         }
-        _spawnedGuns.Clear();
+        SpawnedGuns.Clear();
     }
 }

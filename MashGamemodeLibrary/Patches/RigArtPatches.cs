@@ -2,12 +2,27 @@
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;
 
 [HarmonyPatch(typeof(RigArt))]
 public class RigArtPatches
 {
+    [HarmonyPatch("ToggleAvatar")]
+    [HarmonyPrefix]
+    private static bool ToggleAvatar_Prefix(RigArt __instance)
+    {
+        var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
+        if (rig == null)
+            return true;
+
+        if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
+            return true;
+
+        return !PlayerHider.IsHidden(player.PlayerID);
+    }
+    
     [HarmonyPatch("ToggleAmmoPouch")]
     [HarmonyPrefix]
     private static bool ToggleAmmoPouch_Prefix(RigArt __instance)
@@ -19,6 +34,6 @@ public class RigArtPatches
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
 
-        return !PlayerIdExtension.IsSpectating(player.PlayerID);
+        return !PlayerHider.IsHidden(player.PlayerID);
     }
 }

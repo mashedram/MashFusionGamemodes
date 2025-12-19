@@ -13,8 +13,7 @@ internal static class BonelabLayers
 {
     public const int Player = 8;
     public const int NoCollide = 9;
-    public const int Deciball = 16;
-    public const int Decaball = 17;
+    public const int Deciverse = 17;
     public const int FootBall = 24;
 }
 
@@ -24,13 +23,14 @@ internal class PlayerColliderCache
     {
         BonelabLayers.FootBall,
         BonelabLayers.Player,
+        BonelabLayers.Deciverse,
         BonelabLayers.NoCollide
     };
     private static readonly HashSet<int> IncludedLocalLayers = new()
     {
         BonelabLayers.Player,
         BonelabLayers.NoCollide,
-        BonelabLayers.Deciball
+        BonelabLayers.Deciverse
     };
     
     private static readonly Dictionary<string, int> OriginalLayers = new()
@@ -57,18 +57,18 @@ internal class PlayerColliderCache
         { "Knee", BonelabLayers.FootBall },
         { "KneetoPelvis", BonelabLayers.FootBall },
         { "Feet", BonelabLayers.FootBall },
-        { "BreastLf", BonelabLayers.Decaball },
-        { "BreastRt", BonelabLayers.Decaball },
-        { "UpperarmLf", BonelabLayers.Decaball },
-        { "ForearmLf", BonelabLayers.Decaball },
-        { "SoftHandLf", BonelabLayers.Decaball },
-        { "UpperarmRt", BonelabLayers.Decaball },
-        { "ForearmRt", BonelabLayers.Decaball },
-        { "SoftHandRt", BonelabLayers.Decaball },
-        { "ButtLf", BonelabLayers.Decaball },
-        { "ButtRt", BonelabLayers.Decaball },
-        { "ThighLf", BonelabLayers.Decaball },
-        { "ThighRt", BonelabLayers.Decaball },
+        { "BreastLf", BonelabLayers.Deciverse },
+        { "BreastRt", BonelabLayers.Deciverse },
+        { "UpperarmLf", BonelabLayers.Deciverse },
+        { "ForearmLf", BonelabLayers.Deciverse },
+        { "SoftHandLf", BonelabLayers.Deciverse },
+        { "UpperarmRt", BonelabLayers.Deciverse },
+        { "ForearmRt", BonelabLayers.Deciverse },
+        { "SoftHandRt", BonelabLayers.Deciverse },
+        { "ButtLf", BonelabLayers.Deciverse },
+        { "ButtRt", BonelabLayers.Deciverse },
+        { "ThighLf", BonelabLayers.Deciverse },
+        { "ThighRt", BonelabLayers.Deciverse },
     };
     
     private readonly HashSet<ColliderSet> _ignoredColliders = new();

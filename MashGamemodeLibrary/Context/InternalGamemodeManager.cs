@@ -59,6 +59,8 @@ public static class InternalGamemodeManager
     private static bool _inRound;
     private static int _roundIndex;
     private static float _roundCooldown;
+
+    public static bool InRound => _inRound;
     
     private static bool TryGetGamemode([MaybeNullWhen(false)] out IGamemode gamemode)
     {
@@ -103,20 +105,25 @@ public static class InternalGamemodeManager
         if (!GamemodeManager.IsGamemodeStarted)
             return;
 
+        // Set it early to avoid double takes
+        _inRound = false;
+        
         // Reduce by 1 to see if this is the last round
         var hasNextRound = _roundIndex >= RoundCount - 1;
-        if (hasNextRound)
-        {
-            GamemodeManager.StopGamemode();
-            return;
-        }
-       
+        
+        // Make sure the round gets ended and scores get count
         RoundEndEvent.Call(new RoundEndPacket
         {
             WinningTeamID = winningTeamId,
             HasNextRound = hasNextRound,
             TimeUntilNextRound = TimeBetweenRounds
         });
+
+        // End it if we need too
+        if (hasNextRound)
+        {
+            GamemodeManager.StopGamemode();
+        }
     }
     
     public static void OnLateJoin(PlayerID id)

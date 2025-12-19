@@ -35,6 +35,9 @@ public static class WinManager
     {
         Executor.RunIfHost(() =>
         {
+            if (!InternalGamemodeManager.InRound)
+                return;
+            
             var id = TeamManager.Registry.CreateID<T>();
             WinEvent.Call(new WinPacket
             {

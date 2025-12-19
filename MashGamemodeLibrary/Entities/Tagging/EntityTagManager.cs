@@ -214,6 +214,12 @@ public static class EntityTagManager
         
         if (value is ITagAdded added)
             added.InvokeSafely(a => a.OnAdded(key.EntityID));
+        
+        if (value is IMarrowLoaded marrowLoaded)
+            SpawnHelper.WaitOnMarrowEntity(key.EntityID, (networkEntity, marrowEntity) =>
+            {
+                marrowLoaded.InvokeSafely(m => m.OnLoaded(networkEntity, marrowEntity));
+            });
     }
 
     private static void OnTagChanged(EntityTagIndex index, IEntityTag value)

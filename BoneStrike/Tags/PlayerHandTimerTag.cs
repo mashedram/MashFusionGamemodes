@@ -1,6 +1,7 @@
 ﻿using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
 using LabFusion.Marrow.Pool;
+using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Phase;
@@ -12,6 +13,7 @@ namespace BoneStrike.Tags;
 
 public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 {
+    private bool _isOwnedByLocalPlayer;
     private Poolee? _timerObject;
     private TextMeshPro? _text;
     private Transform? _compasPointer;
@@ -21,6 +23,8 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 
     private void SpawnTimer()
     {
+        if (!_isOwnedByLocalPlayer)
+            return;
         if (_timerObject != null || _isSpawning) return;
         
         _isSpawning = true;
@@ -39,6 +43,7 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
     
     public void OnAdded(ushort entityID)
     {
+        _isOwnedByLocalPlayer = entityID == PlayerIDManager.LocalSmallID;
         SpawnTimer();
     }
     
@@ -50,11 +55,14 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
     
     public void Update(float delta)
     {
+        if (!_isOwnedByLocalPlayer)
+            return;
+        
         if (_timerObject == null)
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!Owner.HasRig || activePhase == null || Owner.PlayerID.IsSpectatingAndHidden())
+        if (!Owner.HasRig || activePhase == null || Owner.PlayerID.IsHidden())
         {
             _timerObject.gameObject.SetActive(false);
             return;
@@ -78,11 +86,14 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
                 var direction = (_target!.transform.position - position).normalized;
                 var projectedDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
                 var directionAngle = Mathf.Atan2(projectedDirection.x, projectedDirection.z) * Mathf.Rad2Deg;
-                
-                var upDirection = Vector3.ProjectOnPlane((-leftHand.right + leftHand.up) * 2.5f, Vector3.up).normalized;
+
+                var right = leftHand.right;
+                var upDirection = Vector3.ProjectOnPlane((-right + leftHand.up) * 2.5f, Vector3.up).normalized;
                 var compassOffsetAngle = Mathf.Atan2(upDirection.x, upDirection.z) * Mathf.Rad2Deg;
 
-                const float offset = 180f;
+                bool isFlipped = (-right).y > 0f;
+
+                var offset = isFlipped ? 180f : 0f;
                 var finalAngle = -directionAngle + compassOffsetAngle + offset;
                 _compasPointer.localEulerAngles = new Vector3(finalAngle, 0f, 0f);
             }

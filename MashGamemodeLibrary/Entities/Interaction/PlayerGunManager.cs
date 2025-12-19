@@ -45,8 +45,8 @@ class DamageRemapper
         const float baseRpm = 12f;
         var normalizedRoundsPerSecond = roundsPerSecond * fireMode switch
         {
-            Gun.FireMode.SEMIAUTOMATIC => 0.5f,
-            Gun.FireMode.MANUAL => 0.25f,
+            Gun.FireMode.SEMIAUTOMATIC => 0.8f,
+            Gun.FireMode.MANUAL => 0.65f,
             _ => 1f
         } / baseRpm;
 

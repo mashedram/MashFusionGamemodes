@@ -1,12 +1,21 @@
+using LabFusion.Extensions;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Vision;
 
 internal class RenderSet
 {
-    private readonly HashSet<GameObject> _gameObjects = new();
-    private readonly HashSet<Renderer> _renderers = new();
+    private HashSet<Renderer> _renderers = new(new UnityComparer());
+    private readonly Dictionary<Renderer, bool> _originalRendererStates = new(new UnityComparer());
     private bool _hidden;
+
+    private bool ShouldBeEnabled(Renderer renderer, bool force)
+    {
+        if (force)
+            return false;
+
+        return _originalRendererStates.GetValueOrDefault(renderer, true);
+    }
 
     public RenderSet(GameObject? root, bool hidden)
     {
@@ -23,46 +32,35 @@ internal class RenderSet
     public bool Set(GameObject? root, bool? hidden = null)
     {
         if (hidden.HasValue) _hidden = hidden.Value;
-
-        _renderers.Clear();
-
-        if (root == null) return true;
         
-        _gameObjects.Clear();
-        _gameObjects.Add(root);
-
+        if (root == null)
+        {
+            _renderers.Clear();
+            return true;
+        }
+        
         var renderers = root.GetComponentsInChildren<Renderer>();
-        _renderers.EnsureCapacity(renderers.Count);
+        var newRenderers = new HashSet<Renderer>(renderers.Count, new UnityComparer());
+        _originalRendererStates.EnsureCapacity(renderers.Count);
 
         foreach (var renderer in renderers)
         {
             if (!renderer) 
                 return false;
             
-            _renderers.Add(renderer);
-            renderer.enabled = !_hidden;
+            newRenderers.Add(renderer);
+            _originalRendererStates[renderer] = renderer.enabled;
+            _renderers.Remove(renderer);
+            if (_hidden)
+                renderer.enabled = false;
         }
 
-        return true;
-    }
-
-    public bool Add(GameObject? root)
-    {
-        if (root == null) return true;
-
-        _gameObjects.Add(root);
-
-        var renderers = root.GetComponentsInChildren<Renderer>();
-        _renderers.EnsureCapacity(_renderers.Count + renderers.Count);
-        foreach (var renderer in renderers)
+        foreach (var renderer in _renderers)
         {
-            if (!renderer)
-                return false;
-
-            _renderers.Add(renderer);
-            renderer.enabled = !_hidden;
+            _originalRendererStates.Remove(renderer);
         }
-
+        _renderers = newRenderers;
+        
         return true;
     }
 
@@ -85,7 +83,7 @@ internal class RenderSet
                 return false;
             }
 
-            renderer.enabled = !_hidden;
+            renderer.enabled = ShouldBeEnabled(renderer, _hidden);
         }
 
         return true;

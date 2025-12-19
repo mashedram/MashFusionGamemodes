@@ -20,7 +20,7 @@ public class Loadout
         foreach (SlotType slotType in Enum.GetValues(typeof(SlotType))) _slotAssigners[slotType] = new SlotData();
     }
     
-    public Loadout SetSlotBarcode(SlotType slotType, Barcode? barcode, bool shouldOverwrite = true)
+    public Loadout SetSlotBarcode(SlotType slotType, Barcode? barcode)
     {
         _slotAssigners[slotType] = new SlotData(barcode);
         return this;

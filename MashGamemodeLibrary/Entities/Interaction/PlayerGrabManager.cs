@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Il2CppInterop.Runtime;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSystem;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Marrow.Extenders;
@@ -22,18 +24,31 @@ namespace MashGamemodeLibrary.Entities.Interaction;
 
 public class HeldItem
 {
-    public readonly GameObject GameObject;
-    public readonly Grip Grip;
+    private static readonly Il2CppSystem.Type InteractableHostType = Il2CppType.Of<InteractableHost>();
+    
+    public readonly GameObject? GameObject;
+    public readonly Grip? Grip;
     public readonly MarrowEntity? MarrowEntity;
     public readonly NetworkEntity? NetworkEntity;
+    public readonly InteractableHost? InteractableHost;
 
     public HeldItem(IGrippable host)
     {
         Grip = host.GetGrip();
-        GameObject = host.GetHostGameObject() ?? Grip.gameObject;
+        GameObject = host.GetHostGameObject() ?? Grip?.gameObject;
         MarrowEntity = Grip?._marrowEntity;
+
         if (Grip == null) return;
         GripExtender.Cache.TryGet(Grip, out NetworkEntity);
+        
+        if (MarrowEntity == null) return;
+        var behaviors = MarrowEntity._behaviours.ToArray();
+        foreach (var behavior in behaviors)
+        {
+            InteractableHost = behavior.TryCast<InteractableHost>();
+            if (InteractableHost != null)
+                break;
+        }
     }
 
     public HeldItem(Grip grip)
@@ -128,8 +143,7 @@ public class GrabData
 
 public static class PlayerGrabManager
 {
-    private static readonly Dictionary<string, Func<GrabData, bool>> OverwriteMap = new();
-    private static readonly Dictionary<ushort, HashSet<Hand>> ItemHands = new();
+    private static readonly Dictionary<string, System.Func<GrabData, bool>> OverwriteMap = new();
 
     static PlayerGrabManager()
     {
@@ -153,9 +167,10 @@ public static class PlayerGrabManager
 
         // Callbacks to external systems
 
-        var id = networkEntity.ID;
-        var heldBox = ItemHands.GetOrCreate(id, () => new HashSet<Hand>(new UnityComparer()));
-        if (!heldBox.Add(grab.Hand))
+        var interactableHost = heldItem.InteractableHost;
+        if (interactableHost == null)
+            return;
+        if (interactableHost.HandCount() > 1) 
             return;
 
         var callbacks = networkEntity
@@ -167,8 +182,8 @@ public static class PlayerGrabManager
 
     public static void OnDrop(GrabData grab)
     {
-        if (!grab.IsHoldingItem(out var item)) return;
-        if (!item.IsNetworked(out var networkEntity)) return;
+        if (!grab.IsHoldingItem(out var heldItem)) return;
+        if (!heldItem.IsNetworked(out var networkEntity)) return;
 
         // Callbacks to internal systems
 
@@ -177,13 +192,12 @@ public static class PlayerGrabManager
 
         // Callback to external systems
 
-        var id = networkEntity.ID;
-        if (!ItemHands.TryGetValue(id, out var set))
+        var interactableHost = heldItem.InteractableHost;
+        if (interactableHost == null)
             return;
-
-        set.Remove(grab.Hand);
-        
-        if (set.Count > 0)
+        // We will still find a hand. Due to the prefix in GrabPatches
+        // the hand count will be 1
+        if (interactableHost.HandCount() > 1)
             return;
 
         var callbacks = networkEntity
@@ -199,10 +213,11 @@ public static class PlayerGrabManager
         if (grab.NetworkPlayer == null) return true;
         if (!grab.NetworkPlayer.PlayerID.IsMe) return true;
         if (!grab.IsHoldingItem(out var item)) return true;
+        if (item.GameObject == null) return true;
         if (!item.IsNetworked(out var networkEntity)) return true;
-
+        
         if (IsForceDisabled(grab)) return false;
-
+        
         var grabbedRig = item.GameObject.GetComponentInParent<RigManager>();
         if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
             SpectatorManager.IsSpectating(networkPlayer.PlayerID))
@@ -234,7 +249,7 @@ public static class PlayerGrabManager
         return IsHoldingTag<T>(player.RigRefs.RightHand) || IsHoldingTag<T>(player.RigRefs.LeftHand);
     }
 
-    public static void SetOverwrite(string key, Func<GrabData, bool>? predicate)
+    public static void SetOverwrite(string key, System.Func<GrabData, bool>? predicate)
     {
         if (predicate == null)
         {
@@ -248,12 +263,6 @@ public static class PlayerGrabManager
     public static void Reset()
     {
         OverwriteMap.Clear();
-        ItemHands.Clear();
-    }
-
-    public static void Remove(ushort entityID)
-    {
-        ItemHands.Remove(entityID);
     }
 
     public static void DetachIfTag(Hand hand)
