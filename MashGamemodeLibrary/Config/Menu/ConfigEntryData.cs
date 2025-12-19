@@ -52,16 +52,10 @@ public record ConfigEntryData
         return type;
     }
 
-    public ConfigEntryData(IConfig instance, FieldInfo fieldInfo)
+    public ConfigEntryData(IConfig instance, ConfigMenuEntry menuEntry, FieldInfo fieldInfo)
     {
         FieldInfo = fieldInfo;
         Type = fieldInfo.FieldType;
-
-        var menuEntry = fieldInfo.GetCustomAttribute<ConfigMenuEntry>();
-        if (menuEntry == null)
-        {
-            return;
-        }
 
         Name = menuEntry.Name;
         Category = menuEntry.Category;

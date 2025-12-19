@@ -26,7 +26,7 @@ enum WeaponType
 internal class FetchLoadoutPacket : INetSerializable
 {
     public LoadCommandType LoadCommandType;
-    public string[] Barcodes;
+    public string[] Barcodes = null!;
     
     public void Serialize(INetSerializer serializer)
     {

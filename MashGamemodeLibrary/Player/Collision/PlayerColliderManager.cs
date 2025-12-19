@@ -76,6 +76,7 @@ public static class PlayerColliderManager
     public static void OnGrab(GrabData grab)
     {
         if (!grab.IsHoldingItem(out var item)) return;
+        if (item.GameObject == null) return;
 
         var player = grab.NetworkPlayer;
         if (player == null)
@@ -89,6 +90,7 @@ public static class PlayerColliderManager
     public static void OnDrop(GrabData grab)
     {
         if (!grab.IsHoldingItem(out var item)) return;
+        if (item.GameObject == null) return;
 
         var player = grab.NetworkPlayer;
         if (player == null) return;

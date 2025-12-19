@@ -19,8 +19,8 @@ public enum TeamStatisticKeys
 
 internal class WinMessagePacket : INetSerializable
 {
-    public List<int> Scores;
-    public List<(int, byte)> PlayerIds;
+    public List<int> Scores = new();
+    public List<(int, byte)> PlayerIds = new();
     
     public void Serialize(INetSerializer serializer)
     {

@@ -81,6 +81,7 @@ public class GripPatches
     private static bool DropIfNeeded(GrabData grab)
     {
         if (!grab.IsHoldingItem(out var item)) return false;
+        if (item.Grip == null) return false;
 
         if (PlayerGrabManager.CanGrabEntity(grab)) return false;
 

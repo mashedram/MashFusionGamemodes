@@ -37,7 +37,7 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
         Register(id, value);
     }
 
-    public object? Get<T>()
+    public object? Get<T>() where T : notnull
     {
         var id = CreateID<T>();
         return base.Get(id);
