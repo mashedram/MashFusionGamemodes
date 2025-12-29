@@ -1,7 +1,9 @@
 ﻿using LabFusion.Entities;
+using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Collision;
 
@@ -13,10 +15,10 @@ public static class PlayerColliderManager
 
     private static readonly RemoteEvent<IgnorePropPacket> IgnorePropEvent = new(packet =>
     {
-        if (!IgnoredCollisionPlayers.Contains(packet.SenderPlayerID))
+        if (!IgnoredCollisionPlayers.Contains(packet.SenderSmallId))
             return;
 
-        if (!PlayerColliders.TryGetValue(packet.SenderPlayerID, out var cache))
+        if (!PlayerColliders.TryGetValue(packet.SenderSmallId, out var cache))
             return;
 
         cache.StopPropColliding(packet.Reference);
@@ -114,5 +116,17 @@ public static class PlayerColliderManager
         {
             Reference = new NetworkEntityReference(networkEntity.ID)
         });
+    }
+    
+    // Debug
+    
+    // Debug
+
+    public static bool IsLocalDisabled(Collider collider)
+    {
+        if (_localCache == null)
+            return false;
+
+        return PlayerColliderCache.IsLocalDisabled(collider);
     }
 }

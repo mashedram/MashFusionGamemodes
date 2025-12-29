@@ -1,5 +1,6 @@
 ﻿using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Util;
@@ -16,26 +17,26 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
    * An event that, when called, will run on all specified clients.
    */
     public RemoteEvent(PacketHandler onEvent, INetworkRoute? route = null) : base(
-        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), route ?? CommonNetworkRoutes.HostToClient)
+        typeof(T).FullName ?? throw new Exception("Type has no full name, cannot create RemoteEvent for it."), route ?? CommonNetworkRoutes.HostToRemote)
     {
         _onEvent = onEvent;
     }
 
     public RemoteEvent(string name, PacketHandler onEvent, INetworkRoute? route = null) : base(name,
-        route ?? CommonNetworkRoutes.HostToClient)
+        route ?? CommonNetworkRoutes.HostToRemote)
     {
         _onEvent = onEvent;
     }
 
     private void OnEvent(byte sender, T data)
     {
-        // Even though the autom
-        if (data is IKnownSenderPacket)
+        // TODO: Ensure this works
+        if (data is IKnownSenderPacket knownSenderPacket)
         {
-            ((IKnownSenderPacket)data).SenderPlayerID = sender;
+            knownSenderPacket.SenderSmallId = sender;
         }
 
-        _onEvent.Invoke(data);
+        Executor.RunChecked(_onEvent, data);
     }
 
     /**
@@ -89,7 +90,7 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
 
     protected override void Read(byte smallId, NetReader reader)
     {
-        var data = Activator.CreateInstance<T>();
+        var data = new T();
         data.Serialize(reader);
         OnEvent(smallId, data);
     }

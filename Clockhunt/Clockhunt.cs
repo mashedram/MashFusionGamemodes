@@ -25,6 +25,7 @@ using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;

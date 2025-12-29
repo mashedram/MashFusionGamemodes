@@ -1,6 +1,7 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.RPC;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities;
 
@@ -20,6 +21,12 @@ public static class SpawnHelper
 
     public static void WaitOnMarrowEntity(this NetworkAssetSpawner.SpawnCallbackInfo callbackInfo, OnMarrowEntitySpawned callback)
     {
+        if (callbackInfo.Entity == null)
+        {
+            InternalLogger.Debug($"Spawned entity with name: {callbackInfo.Spawned.name} is not synced");
+            return;
+        }
+        
         WaitOnMarrowEntity(callbackInfo.Entity, callback);
     }
 
@@ -30,6 +37,7 @@ public static class SpawnHelper
 
     public static void WaitOnMarrowEntity(ushort entityId, OnMarrowEntitySpawned callback)
     {
+        // May be null
         var networkEntity = NetworkEntityManager.IDManager.RegisteredEntities.GetEntity(entityId);
         WaitOnMarrowEntity(entityId, networkEntity, callback);
     }
@@ -43,7 +51,7 @@ public static class SpawnHelper
             {
                 // Check early
                 var extension = networkEntity.GetExtender<IMarrowEntityExtender>();
-                if (extension != null)
+                if (extension != null && extension.MarrowEntity != null)
                 {
                     callback(extension.NetworkEntity, extension.MarrowEntity);
                     return;
@@ -81,6 +89,8 @@ public static class SpawnHelper
         if (extender == null)
             return;
 
+        if (extender.MarrowEntity == null)
+            return;
 
         TrackedEntities.Remove(node);
         node.Value.Callback(extender.NetworkEntity, extender.MarrowEntity);

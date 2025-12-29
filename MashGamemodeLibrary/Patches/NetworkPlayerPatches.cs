@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;

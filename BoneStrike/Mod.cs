@@ -17,8 +17,8 @@ public class Mod : MelonMod
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
-
         ModuleManager.RegisterModule<FusionModule>();
+
         RemoteEventMessageHandler.RegisterMod<Mod>();
     }
 }

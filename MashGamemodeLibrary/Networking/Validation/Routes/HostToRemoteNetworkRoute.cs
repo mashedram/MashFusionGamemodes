@@ -4,28 +4,28 @@ using LabFusion.Player;
 
 namespace MashGamemodeLibrary.networking.Validation.Routes;
 
-public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRoute
+public class HostToRemoteNetworkRoute : IBroadcastNetworkRoute, ITargetedNetworkRoute
 {
     public string GetName()
     {
-        return "Client To Host Route";
+        return "Host To Client Route";
     }
 
     public MessageRoute GetMessageRoute()
     {
-        return CommonMessageRoutes.ReliableToServer;
+        return CommonMessageRoutes.ReliableToOtherClients;
     }
 
     public bool ValidFromSender(byte id)
     {
-        return PlayerIDManager.HostSmallID != id;
+        return PlayerIDManager.HostSmallID == id;
     }
 
     public bool IsValid(byte smallIdFrom, [MaybeNullWhen(true)] out string error)
     {
-        if (!NetworkValidatorHelper.IsClient(smallIdFrom))
+        if (!NetworkValidatorHelper.IsHost(smallIdFrom))
         {
-            error = $"{smallIdFrom} is not a client";
+            error = $"{smallIdFrom} is not a host.";
             return false;
         }
 
@@ -35,15 +35,15 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
 
     public bool IsValid(byte smallIdFrom, byte smallIDTo, [MaybeNullWhen(true)] out string error)
     {
-        if (NetworkValidatorHelper.IsHost(smallIdFrom))
+        if (NetworkValidatorHelper.IsClient(smallIdFrom))
         {
-            error = $"{smallIdFrom} is a sending as a host";
+            error = $"{smallIdFrom} is a sending as a client";
             return false;
         }
 
-        if (NetworkValidatorHelper.IsClient(smallIDTo))
+        if (NetworkValidatorHelper.IsHost(smallIDTo))
         {
-            error = $"{smallIDTo} is receiving as a client";
+            error = $"{smallIDTo} is receiving as a host";
             return false;
         }
 
@@ -53,6 +53,6 @@ public class ClientToHostNetworkRoute : IBroadcastNetworkRoute, ITargetedNetwork
 
     public MessageRoute GetTargetedMessageRoute(byte targetID)
     {
-        return CommonMessageRoutes.ReliableToServer;
+        return new MessageRoute(targetID, NetworkChannel.Reliable);
     }
 }

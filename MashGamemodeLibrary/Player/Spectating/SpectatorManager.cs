@@ -9,6 +9,7 @@ using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
@@ -127,7 +128,7 @@ public static class SpectatorManager
             player.RigRefs.RightHand.DetachObject();
         }
 
-        Executor.RunIfRemote(playerID, () =>
+        Executor.RunIfNotMe(playerID, () =>
         {
             player.PlayerID.SetHidden(SpectatorHideKey, true);
             SetMute(player, true);
@@ -147,7 +148,7 @@ public static class SpectatorManager
 
         var playerID = player.PlayerID;
 
-        Executor.RunIfRemote(playerID, () =>
+        Executor.RunIfNotMe(playerID, () =>
         {
             player.PlayerID.SetHidden(SpectatorHideKey, false);
             SetMute(player, false);

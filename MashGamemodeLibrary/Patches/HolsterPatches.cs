@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;

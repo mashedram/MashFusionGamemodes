@@ -1,5 +1,8 @@
 ﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Util;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Player.Team;
 
@@ -23,12 +26,16 @@ public abstract class Team
 
     internal void Assign(NetworkPlayer player)
     {
+        InternalLogger.Debug($"Player: {player.Username} joined team: {Name}");
+        
         Owner = player;
-        OnAssigned();
+        Executor.RunChecked(OnAssigned);
     }
 
     internal void Remove()
     {
-        OnRemoved();
+        InternalLogger.Debug($"Player: {Owner.Username} left team: {Name}");
+        
+        Executor.RunChecked(OnRemoved);
     }
 }

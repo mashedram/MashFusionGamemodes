@@ -7,7 +7,6 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry.Typed;
-using MashGamemodeLibrary.Util;
 using MelonLoader;
 using Random = UnityEngine.Random;
 
@@ -30,8 +29,6 @@ public static class TeamManager
 
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeave;
     }
-
-    public static event OnAssignedTeamHandler? OnAssignedTeam;
 
     private static ulong GetTeamID(Type type)
     {
@@ -83,6 +80,15 @@ public static class TeamManager
     public static bool IsTeam(this PlayerID playerID, ulong teamID)
     {
         return AssignedTeams.TryGetValue(playerID, out var team) && Registry.CreateID(team) == teamID;
+    }
+    
+    public static bool IsEnemy(this PlayerID enemyPlayerID)
+    {
+        var localTeam = GetLocalTeam();
+        if (localTeam == null)
+            return false;
+        
+        return AssignedTeams.TryGetValue(enemyPlayerID, out var otherTeam) && Registry.GetID(localTeam) != Registry.GetID(otherTeam);
     }
 
     public static bool IsLocalTeam<T>() where T : Team
@@ -222,27 +228,19 @@ public static class TeamManager
             return;
         }
 
-        team.InvokeSafely(t => t.Assign(player));
-        OnAssignedTeam?.Invoke(player.PlayerID, team);
+        team.Assign(player);
     }
 
     private static void OnRemoved(byte platformId, Team team)
     {
-        team.InvokeSafely(t => t.Remove());
+        team.Remove();
     }
 
     public static void OnPhaseChanged(GamePhase activePhase)
     {
         foreach (var team in AssignedTeams.Values)
         {
-            try
-            {
-                team.OnPhaseChanged(activePhase);
-            }
-            catch (Exception exception)
-            {
-                MelonLogger.Error($"Failed to execute phase change for team: {team.Name}", exception);
-            }
+            team.Try(t => t.OnPhaseChanged(activePhase));
         }
     }
 

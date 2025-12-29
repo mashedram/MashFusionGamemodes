@@ -1,4 +1,6 @@
 using Il2CppSLZ.Marrow;
+using MashGamemodeLibrary.Player.Collision;
+using MashGamemodeLibrary.Player.Visibility;
 using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -12,9 +14,10 @@ public class DebugSelfKeybind : DebugKeybind
     protected override Action _onPress { get; } = () =>
     {
         var rig = Object.FindObjectOfType<PhysicsRig>();
-        foreach (var collider in rig.GetComponentsInChildren<Collider>())
+        foreach (var collider in rig.GetComponentsInChildren<Collider>().Where(c => !PlayerColliderManager.IsLocalDisabled(c) && c.gameObject.active))
         {
-            MelonLogger.Msg($"Child: {collider.gameObject.name} with: {collider.gameObject.layer}");
+            var gameObject = collider.gameObject;
+            MelonLogger.Msg($"Child: {gameObject.name} with: {gameObject.layer}");
         }
     };
 }

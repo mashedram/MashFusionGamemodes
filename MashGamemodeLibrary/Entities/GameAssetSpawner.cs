@@ -4,6 +4,7 @@ using LabFusion.RPC;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Execution;
+using MelonLoader;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Entities;
@@ -29,12 +30,29 @@ public static class GameAssetSpawner
             SpawnEffect = false,
             SpawnCallback = result =>
             {
-                result.WaitOnMarrowEntity((entity, _) =>
+                // Entity is not synced, skip attaching values
+                if (result.Entity == null)
                 {
-                    foreach (var entityTag in tags)
+                    if (tags.Length > 0)
                     {
-                        entity.AddTag(entityTag);
+                        MelonLogger.Error($"Failed to add tags to: {barcode}. Spawned crate is not synced.");
                     }
+                    return;
+                }
+                
+                // We're done, no extra behavior
+                if (tags.Length == 0)
+                    return;
+                
+                Executor.RunIfHost(() =>
+                {
+                    result.WaitOnMarrowEntity((entity, _) =>
+                    {
+                        foreach (var entityTag in tags)
+                        {
+                            entity.AddTag(entityTag);
+                        }
+                    });
                 });
             }
         });

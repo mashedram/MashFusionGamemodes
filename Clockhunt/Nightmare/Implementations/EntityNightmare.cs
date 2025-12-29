@@ -57,7 +57,7 @@ public class EntityNightmareInstance : NightmareInstance
     {
         Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
 
-        Executor.RunIfRemote(Owner.PlayerID, () =>
+        Executor.RunIfNotMe(Owner.PlayerID, () =>
         {
             _light = Owner.RigRefs.Head.CreateSafeObject("EntityLight");
             var light = _light.AddComponent<Light>();

@@ -11,26 +11,11 @@ internal static class BonelabLayers
     public const int Player = 8;
     public const int NoCollide = 9;
     public const int Deciverse = 17;
-    public const int FootBall = 24;
+    public const int Socket = 18;
 }
 
 internal class PlayerColliderCache
 {
-    private static readonly HashSet<int> IncludedRemoteLayers = new()
-    {
-        BonelabLayers.FootBall,
-        BonelabLayers.Player,
-        BonelabLayers.Deciverse,
-        BonelabLayers.NoCollide
-    };
-
-    private static readonly HashSet<int> IncludedLocalLayers = new()
-    {
-        BonelabLayers.Player,
-        BonelabLayers.NoCollide,
-        BonelabLayers.Deciverse
-    };
-
     private static readonly Dictionary<string, int> OriginalLayers = new()
     {
         {
@@ -91,15 +76,6 @@ internal class PlayerColliderCache
             "KneeRt", BonelabLayers.NoCollide
         },
         {
-            "Knee", BonelabLayers.FootBall
-        },
-        {
-            "KneetoPelvis", BonelabLayers.FootBall
-        },
-        {
-            "Feet", BonelabLayers.FootBall
-        },
-        {
             "BreastLf", BonelabLayers.Deciverse
         },
         {
@@ -134,6 +110,12 @@ internal class PlayerColliderCache
         },
         {
             "ThighRt", BonelabLayers.Deciverse
+        },
+        {
+            "ItemReciever", BonelabLayers.Socket
+        },
+        {
+            "InventoryAmmoReceiver", BonelabLayers.Socket
         }
     };
 
@@ -239,19 +221,6 @@ internal class PlayerColliderCache
         foreach (var collider in _physicsRigColliders)
         {
             var go = collider.gameObject;
-            var cLayer = go.layer;
-
-            if (target.IsMe)
-            {
-                if (!IncludedLocalLayers.Contains(cLayer))
-                    continue;
-            }
-            else
-            {
-                if (!IncludedRemoteLayers.Contains(cLayer))
-                    continue;
-            }
-
             // We don't check if the collider is in the OriginalLayers, because we filter this earlier when we set the rig
 
             // 2 Is ignore raycasts
@@ -313,5 +282,15 @@ internal class PlayerColliderCache
         if (!_inventoryItemColliders.Remove(item, out var colliderSet)) return;
 
         foreach (var other in _ignoredPlayers) other.StartItemColliding(colliderSet);
+    }
+    
+    // Debug
+    
+    public static bool IsLocalDisabled(Collider collider)
+    {
+        if (!OriginalLayers.ContainsKey(collider.name))
+            return false;
+
+        return true;
     }
 }

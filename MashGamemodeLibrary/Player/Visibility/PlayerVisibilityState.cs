@@ -1,11 +1,12 @@
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.VRMK;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 using MashGamemodeLibrary.Vision;
 using MashGamemodeLibrary.Vision.Holster;
+using UnityEngine;
+using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Visibility;
 
@@ -36,6 +37,21 @@ internal class PlayerVisibilityState
         _player.HeadUI.Visible = !hidden;
     }
 
+    private void SetAvatarHidden(bool hidden)
+    {
+        if (!_player.HasRig)
+        {
+            _lastAvatar = null;
+            return;
+        }
+
+        var rigManager = _player.RigRefs.RigManager;
+        if (rigManager.avatar != null)
+            rigManager._avatar.gameObject.SetActive(!hidden);
+
+        _lastAvatar = rigManager._avatar;
+    }
+
     private void PopulateHand(GrabData grabData)
     {
         if (!grabData.IsHoldingItem(out var item)) return;
@@ -61,7 +77,7 @@ internal class PlayerVisibilityState
 
         _isHiddenInternal = IsHidden;
 
-        rigManager._avatar.gameObject.SetActive(!_isHiddenInternal);
+        SetAvatarHidden(_isHiddenInternal);
 
         foreach (var slotContainer in rigManager.inventory.bodySlots)
         {
@@ -123,7 +139,7 @@ internal class PlayerVisibilityState
 
         _isHiddenInternal = hidden;
 
-        _player.RigRefs.RigManager._avatar.gameObject.SetActive(!hidden);
+        SetAvatarHidden(_isHiddenInternal);
 
         foreach (var inventoryRenderersValue in _inventoryRenderers.Values)
         {

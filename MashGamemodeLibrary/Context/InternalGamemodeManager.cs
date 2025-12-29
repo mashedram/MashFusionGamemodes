@@ -6,6 +6,7 @@ using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Context.Helper;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -130,7 +131,7 @@ public static class InternalGamemodeManager
             return;
 
         GamemodeCompatibilityChecker.ValidatePlayer(id);
-        gamemode.OnLateJoin(id);
+        gamemode.Try(g => g.OnLateJoin(id));
     }
 
     // Events

@@ -1,5 +1,6 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Util.Timer;
 
 namespace MashGamemodeLibrary.Phase;
@@ -63,7 +64,7 @@ public abstract class GamePhase
         }
 
         _timer?.Update(delta);
-        OnUpdate();
+        Executor.RunUnchecked(OnUpdate);
     }
 
     public void Enter()
@@ -74,12 +75,12 @@ public abstract class GamePhase
         _timer ??= new MarkableTimer(Duration, Markers);
         _timer.Reset();
 
-        OnPhaseEnter();
+        Executor.RunUnchecked(OnPhaseEnter);
     }
 
     public void Exit()
     {
         IsActive = false;
-        OnPhaseExit();
+        Executor.RunUnchecked(OnPhaseExit);
     }
 }

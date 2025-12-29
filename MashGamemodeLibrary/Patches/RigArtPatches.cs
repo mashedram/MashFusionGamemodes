@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;
@@ -19,7 +20,7 @@ public class RigArtPatches
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
 
-        return !PlayerHider.IsHidden(player.PlayerID);
+        return !player.PlayerID.IsHidden();
     }
 
     [HarmonyPatch("ToggleAmmoPouch")]
@@ -33,6 +34,6 @@ public class RigArtPatches
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
 
-        return !PlayerHider.IsHidden(player.PlayerID);
+        return !player.PlayerID.IsHidden();
     }
 }

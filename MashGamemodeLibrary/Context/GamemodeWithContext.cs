@@ -1,7 +1,6 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Menu.Data;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
@@ -17,13 +16,14 @@ using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemode
+public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gamemodes.Gamemode, IGamemode
     where TContext : GameModeContext<TContext>, new()
     where TConfig : class, IConfig, new()
 {
@@ -49,26 +49,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
 
     public virtual int RoundCount => 1;
     public new static bool IsStarted { get; private set; }
-
-    /// <summary>
-    ///     Called on the host when a player joins after the gamemode has started.
-    /// </summary>
-    /// <param name="playerID">The ID of the player that joined.</param>
-    public virtual void OnLateJoin(PlayerID playerID)
-    {
-    }
-
-    public void StartRound(int index)
-    {
-        Context.OnStart();
-        OnRoundStart();
-    }
-
-    public void EndRound(ulong winnerTeamId)
-    {
-        Reset();
-        OnRoundEnd(winnerTeamId);
-    }
+    
     public static event ConfigChangedHandler? OnConfigChanged;
 
     // Constructor
@@ -130,10 +111,30 @@ public abstract class GamemodeWithContext<TContext, TConfig> : Gamemode, IGamemo
     protected virtual void OnCleanup()
     {
     }
+    
+    /// <summary>
+    ///     Called on the host when a player joins after the gamemode has started.
+    /// </summary>
+    /// <param name="playerID">The ID of the player that joined.</param>
+    public virtual void OnLateJoin(PlayerID playerID)
+    {
+    }
 
     public virtual bool CanAttackPlayer(PlayerID player)
     {
         return true;
+    }
+
+    public void StartRound(int index)
+    {
+        Context.OnStart();
+        Executor.RunChecked(OnRoundStart);
+    }
+
+    public void EndRound(ulong winnerTeamId)
+    {
+        Reset();
+        Executor.RunChecked(OnRoundEnd, winnerTeamId);
     }
 
     private void Reset()

@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Grabbables;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player.Spectating;
+using MelonLoader;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Patches;
@@ -133,8 +134,15 @@ public class GripPatches
         if (hand == null)
             return;
 
-        var grab = new GrabData(hand, __instance);
-        PlayerGrabManager.OnDrop(grab);
+        try
+        {
+            var grab = new GrabData(hand, __instance);
+            PlayerGrabManager.OnDrop(grab);
+        }
+        catch (Exception e)
+        {
+            MelonLogger.Error("Failed to prefix drop", e);
+        }
     }
 
     // Other

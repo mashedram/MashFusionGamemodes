@@ -1,4 +1,5 @@
 ﻿using LabFusion.Player;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;

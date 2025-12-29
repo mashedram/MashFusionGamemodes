@@ -25,7 +25,7 @@ namespace BoneStrike.Phase;
 internal class FetchClockPacket : INetSerializable, IKnownSenderPacket
 {
     public Handedness Hand;
-    public byte SenderPlayerID { get; set; }
+    public byte SenderSmallId { get; set; }
 
     public void Serialize(INetSerializer serializer)
     {
@@ -104,13 +104,17 @@ public class PlantPhase : GamePhase
 
     private static void OnFetchClock(FetchClockPacket packet)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(packet.SenderPlayerID, out var player))
+        if (!NetworkPlayerManager.TryGetPlayer(packet.SenderSmallId, out var player))
             return;
 
         if (!player.HasRig)
             return;
 
         var hand = player.RigRefs.GetHand(packet.Hand);
+
+        if (hand.HasAttachedObject())
+            return;
+        
         var position = hand.palmPositionTransform.position;
 
         var bombs = EntityTagManager.GetAllWithTag<BombMarker>();

@@ -7,7 +7,7 @@ namespace MashGamemodeLibrary.Player.Collision;
 internal class IgnorePropPacket : INetSerializable, IKnownSenderPacket
 {
     public NetworkEntityReference Reference;
-    public byte SenderPlayerID { get; set; }
+    public byte SenderSmallId { get; set; }
 
     public void Serialize(INetSerializer serializer)
     {

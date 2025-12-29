@@ -3,6 +3,7 @@
 public enum PlayerGameActions
 {
     Death,
+    Dying,
     Jump,
     HandClose,
     HandOpen,

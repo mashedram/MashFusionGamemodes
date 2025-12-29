@@ -16,7 +16,8 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
     private bool _isOwnedByLocalPlayer;
     private bool _isSpawning;
 
-    public GameObject? _target = null;
+    // TODO: Make tags a target and get the closest one
+    public GameObject? Target = null;
     private TextMeshPro? _text;
     private Poolee? _timerObject;
 
@@ -57,12 +58,12 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 
         if (_compasPointer != null)
         {
-            var hasTarget = _target != null;
+            var hasTarget = Target != null;
 
             _compasPointer.gameObject.SetActive(hasTarget);
             if (hasTarget)
             {
-                var direction = (_target!.transform.position - position).normalized;
+                var direction = (Target!.transform.position - position).normalized;
                 var projectedDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
                 var directionAngle = Mathf.Atan2(projectedDirection.x, projectedDirection.z) * Mathf.Rad2Deg;
 

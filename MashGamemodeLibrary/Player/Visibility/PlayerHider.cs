@@ -7,20 +7,20 @@ using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Player.Visibility;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Visibility.Tags;
-using MashGamemodeLibrary.Util;
 using MelonLoader;
+using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
-namespace MashGamemodeLibrary.Vision;
+namespace MashGamemodeLibrary.Player.Visibility;
 
 public static class PlayerHider
 {
     private static bool _hideSpecials;
     private static int _currentIndex;
-    private static readonly List<byte> _updateList = new();
-    private static readonly Dictionary<byte, PlayerVisibilityState> _playerStates = new();
+    private static readonly List<byte> UpdateList = new();
+    private static readonly Dictionary<byte, PlayerVisibilityState> PlayerStates = new();
 
     private static readonly EntityTagCache<IPlayerHiddenTag> PlayerHiddenTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerHiddenTag>>();
 
@@ -38,7 +38,7 @@ public static class PlayerHider
 
     private static PlayerVisibilityState? GetOrCreateState(byte smallId)
     {
-        if (_playerStates.TryGetValue(smallId, out var state)) return state;
+        if (PlayerStates.TryGetValue(smallId, out var state)) return state;
 
         if (!NetworkPlayerManager.TryGetPlayer(smallId, out var player))
         {
@@ -48,8 +48,8 @@ public static class PlayerHider
         }
 
         state = new PlayerVisibilityState(player, _hideSpecials);
-        _updateList.Add(smallId);
-        _playerStates[smallId] = state;
+        UpdateList.Add(smallId);
+        PlayerStates[smallId] = state;
 
         return state;
     }
@@ -70,8 +70,8 @@ public static class PlayerHider
 
     private static void OnPlayerLeft(PlayerID playerId)
     {
-        _updateList.Remove(playerId);
-        _playerStates.Remove(playerId);
+        UpdateList.Remove(playerId);
+        PlayerStates.Remove(playerId);
     }
 
     public static bool IsHidden(this PlayerID playerID)
@@ -79,7 +79,7 @@ public static class PlayerHider
         if (!NetworkInfo.HasServer)
             return false;
 
-        return !_playerStates.TryGetValue(playerID, out var state) || state.IsHidden;
+        return !PlayerStates.TryGetValue(playerID, out var state) || state.IsHidden;
     }
 
     public static void SetHidden(this PlayerID playerID, string key, bool hidden)
@@ -94,7 +94,7 @@ public static class PlayerHider
 
         foreach (var playerHiddenTag in set)
         {
-            playerHiddenTag.InvokeSafely(t => t.SetHiddenState(hidden));
+            playerHiddenTag.Try(t => t.SetHiddenState(hidden));
         }
     }
 
@@ -109,9 +109,9 @@ public static class PlayerHider
     {
         _hideSpecials = false;
 
-        foreach (var state in _playerStates.Values) state.Reset();
-        _playerStates.Clear();
-        _updateList.Clear();
+        foreach (var state in PlayerStates.Values) state.Reset();
+        PlayerStates.Clear();
+        UpdateList.Clear();
     }
 
     public static void Refresh(PlayerID player)
@@ -167,7 +167,7 @@ public static class PlayerHider
         if (!NetworkInfo.HasServer)
             return;
 
-        if (_updateList.Count <= 0)
+        if (UpdateList.Count <= 0)
             return;
 
         const int maxPlayers = byte.MaxValue + 1;
@@ -175,15 +175,15 @@ public static class PlayerHider
         const int stepSize = maxPlayers / maxUpdatesPerTick;
 
         // Add one to offset the division to a 1 based index
-        var updatesPerTick = stepSize / _updateList.Count + 1;
+        var updatesPerTick = stepSize / UpdateList.Count + 1;
 
         for (var i = 0; i < updatesPerTick; i++)
         {
             // Correct index
-            _currentIndex %= _updateList.Count;
+            _currentIndex %= UpdateList.Count;
 
-            var playerId = _updateList[_currentIndex];
-            var state = _playerStates[playerId];
+            var playerId = UpdateList[_currentIndex];
+            var state = PlayerStates[playerId];
 
             state.Update();
             _currentIndex++;

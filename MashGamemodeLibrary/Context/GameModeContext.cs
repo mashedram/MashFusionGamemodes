@@ -2,6 +2,7 @@
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Context.Control;
+using MashGamemodeLibrary.Execution;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Context;
@@ -14,33 +15,28 @@ public abstract class GameModeContext<TContext> where TContext : GameModeContext
     private NetworkPlayer? _hostPlayer;
     private NetworkPlayer? _localPlayer;
 
+    private void AddToCache<T>(ISet<T> set, FieldInfo field)
+    {
+        if (!typeof(T).IsAssignableFrom(field.FieldType)) 
+            return;
+        
+#if DEBUG
+        if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
+#endif
+        
+        if (field.GetValue(this) is not T value)
+            return;
+        
+        set.Add(value);
+    }
+
     protected GameModeContext()
     {
         var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         foreach (var field in fields)
         {
-            if (!typeof(IUpdating).IsAssignableFrom(field.FieldType)) continue;
-
-#if DEBUG
-            if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
-#endif
-            if (field.GetValue(this) is not IUpdating value)
-                continue;
-
-            UpdateCache.Add(value);
-        }
-
-        foreach (var field in fields)
-        {
-            if (!typeof(IContextfull<TContext>).IsAssignableFrom(field.FieldType)) continue;
-
-#if DEBUG
-            if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
-#endif
-            if (field.GetValue(this) is not IContextfull<TContext> value)
-                continue;
-
-            ContextCache.Add(value);
+            AddToCache(UpdateCache, field);
+            AddToCache(ContextCache, field);
         }
     }
     public NetworkPlayer LocalPlayer =>
@@ -58,11 +54,11 @@ public abstract class GameModeContext<TContext> where TContext : GameModeContext
 
         ContextCache.ForEach(entry =>
         {
-            entry.SetContext((TContext)this);
+            entry.Try(e => e.SetContext((TContext)this));
         });
         UpdateCache.ForEach(entry =>
         {
-            entry.Update(delta);
+            entry.Try(e => e.Update(delta));
         });
     }
 
@@ -91,7 +87,7 @@ public abstract class GameModeContext<TContext> where TContext : GameModeContext
         {
             if (value is not IStoppable stoppable) continue;
 
-            stoppable.Stop();
+            stoppable.Try(s => stoppable.Stop());
         }
     }
 

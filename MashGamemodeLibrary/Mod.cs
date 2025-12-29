@@ -1,4 +1,6 @@
-﻿using BoneLib;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using BoneLib;
 using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary;
@@ -12,6 +14,7 @@ using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -29,12 +32,12 @@ namespace MashGamemodeLibrary;
 public class Mod : MelonMod
 {
     public static readonly string ModDataDirectory = MelonEnvironment.UserDataDirectory + "/mashgamemodelibrary";
-
+    
     public override void OnInitializeMelon()
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
-
+	    
         ModuleManager.RegisterModule<FusionModule>();
 
         RemoteEventMessageHandler.RegisterMod<Mod>();

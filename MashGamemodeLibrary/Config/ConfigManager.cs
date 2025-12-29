@@ -4,6 +4,7 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Registry.Typed;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Config;
@@ -28,8 +29,8 @@ public static class ConfigManager
         new NullableReferenceEncoder<IConfig>(new DynamicInstanceEncoder<IConfig>(ActiveConfigTypedRegistry)), null);
 
     private static readonly TimeSpan SyncDelay = TimeSpan.FromSeconds(5);
-    private static readonly HashSet<IConfig> _dirtyConfigs = new();
-    private static DateTime LastChanged = DateTime.MinValue;
+    private static readonly HashSet<IConfig> DirtyConfigs = new();
+    private static DateTime _lastChanged = DateTime.MinValue;
 
     static ConfigManager()
     {
@@ -122,8 +123,8 @@ public static class ConfigManager
 
     public static void Update()
     {
-        if (_dirtyConfigs.Count == 0) return;
-        if (DateTime.Now - LastChanged < SyncDelay) return;
+        if (DirtyConfigs.Count == 0) return;
+        if (DateTime.Now - _lastChanged < SyncDelay) return;
 
         Save();
         Sync();
@@ -131,17 +132,20 @@ public static class ConfigManager
 
     internal static void OnValueChanged(IConfig config)
     {
-        _dirtyConfigs.Add(config);
-        LastChanged = DateTime.Now;
+        InternalLogger.Debug($"Config: {config.GetType().FullName} became dirty");
+        
+        DirtyConfigs.Add(config);
+        _lastChanged = DateTime.Now;
     }
 
     internal static void Save()
     {
-        foreach (var dirtyConfig in _dirtyConfigs)
+        foreach (var dirtyConfig in DirtyConfigs)
         {
             WriteConfig(dirtyConfig);
+            InternalLogger.Debug($"Saved config: {dirtyConfig.GetType().FullName}");
         }
-        _dirtyConfigs.Clear();
+        DirtyConfigs.Clear();
     }
 
     internal static void Sync()
@@ -150,5 +154,6 @@ public static class ConfigManager
         if (RemoteConfigInstance.Value == null) return;
 
         RemoteConfigInstance.Sync();
+        InternalLogger.Debug($"Synced config: {RemoteConfigInstance.Value.GetType().FullName}");
     }
 }

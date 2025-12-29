@@ -135,7 +135,7 @@ internal class UpdateTagCache : TagCache<ITagUpdate>
     {
         foreach (var entry in this)
         {
-            entry.InvokeSafely(e => e.Update(delta));
+            entry.Try(e => e.Update(delta));
         }
     }
 }
@@ -196,6 +196,8 @@ public static class EntityTagManager
 
     private static void OnTagAdded(EntityTagIndex key, IEntityTag value)
     {
+        InternalLogger.Debug($"Adding tag: {value.GetType().FullName} to entity: {key.EntityID}");
+        
         Indices.Add(key);
 
         var entityToTag = GetEntityToTagSet(key.EntityID);
@@ -206,7 +208,7 @@ public static class EntityTagManager
         tagToEntity.Add(key);
 
         if (value is ITagAddedInternal entity)
-            entity.InvokeSafely(a => a.OnAddInternal(key));
+            entity.Try(a => a.OnAddInternal(key));
 
         foreach (var (_, cache) in TypedTagCache)
         {
@@ -214,23 +216,25 @@ public static class EntityTagManager
         }
 
         if (value is ITagAdded added)
-            added.InvokeSafely(a => a.OnAdded(key.EntityID));
+            added.Try(a => a.OnAdded(key.EntityID));
 
         if (value is IMarrowLoaded marrowLoaded)
             SpawnHelper.WaitOnMarrowEntity(key.EntityID, (networkEntity, marrowEntity) =>
             {
-                marrowLoaded.InvokeSafely(m => m.OnLoaded(networkEntity, marrowEntity));
+                marrowLoaded.Try(m => m.OnLoaded(networkEntity, marrowEntity));
             });
     }
 
     private static void OnTagChanged(EntityTagIndex index, IEntityTag value)
     {
         if (value is ITagChanged changed)
-            changed.InvokeSafely(c => c.OnChanged());
+            changed.Try(c => c.OnChanged());
     }
 
     private static void OnTagRemoved(EntityTagIndex key, IEntityTag oldValue)
     {
+        InternalLogger.Debug($"Removing tag: {oldValue.GetType().FullName} from entity: {key.EntityID}");
+        
         Indices.Remove(key);
 
         var entityToTag = GetEntityToTagSet(key.EntityID);
@@ -245,7 +249,7 @@ public static class EntityTagManager
         }
 
         if (oldValue is ITagRemoved removed)
-            removed.InvokeSafely(r => r.OnRemoval(key.EntityID));
+            removed.Try(r => r.OnRemoval(key.EntityID));
     }
 
     private static void OnTagsCleared()
@@ -552,13 +556,16 @@ public static class EntityTagManager
     {
         var currentTime = Time.timeSinceLevelLoadAsDouble;
         // Check for validity of current tags
-        const double LoadingTimeoutSeconds = 10d;
+        const double loadingTimeoutSeconds = 10d;
         const int checksPerTick = 6;
-        var tagCount = Indices.Count;
         var checksThisTick = Math.Min(Indices.Count, checksPerTick);
         for (var i = 0; i < checksThisTick; i++)
         {
-            _currentIndex %= tagCount;
+            _currentIndex %= Indices.Count;
+            
+            // Ensure we aren't looking in a list we removed something from earlier
+            if (_currentIndex >= Indices.Count)
+                break;
 
             var key = Indices[_currentIndex];
             var entityId = key.EntityID;
@@ -568,7 +575,7 @@ public static class EntityTagManager
                 if (!tag.HasLoaded())
                 {
                     var createdAt = tag.CreatedAt();
-                    if (currentTime - createdAt > LoadingTimeoutSeconds)
+                    if (currentTime - createdAt > loadingTimeoutSeconds)
                     {
                         Remove(entityId);
                     }

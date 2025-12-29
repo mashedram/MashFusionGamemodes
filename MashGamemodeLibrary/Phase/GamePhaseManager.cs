@@ -89,7 +89,7 @@ public static class GamePhaseManager
 
         Executor.RunIfHost(() =>
         {
-            var nextPhase = ActivePhase.GetNextPhase();
+            var nextPhase = ActivePhase.Try(a => a.GetNextPhase(), PhaseIdentifier.Empty);
             if (nextPhase.TryGetValue(out var value)) WantedPhase.Value = value;
         });
     }
@@ -133,6 +133,7 @@ public static class GamePhaseManager
         {
             PlayerActionType.DEATH => PlayerGameActions.Death,
             PlayerActionType.JUMP => PlayerGameActions.Jump,
+            PlayerActionType.DYING => PlayerGameActions.Dying,
             _ => null
         };
     }

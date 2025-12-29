@@ -8,6 +8,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using UnityEngine;
 

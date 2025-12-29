@@ -19,7 +19,6 @@ namespace BoneStrike.Tags;
 
 public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUpdate, IEntityGrabCallback, IEntityDropCallback, INetSerializable
 {
-
     private bool _isGrabbed;
     private Transform? _offset;
     private TextMeshPro? _text;
@@ -89,6 +88,7 @@ public class DefusableTag : EntityTag, IEntityGrabPredicate, ITagRemoved, ITagUp
         {
             // Prevent it from triggering again
             _isGrabbed = false;
+            // TODO: Investage a bug related to tag grabbing not registering on objects in distant chunks
             WinManager.Win<CounterTerroristTeam>();
             return;
         }

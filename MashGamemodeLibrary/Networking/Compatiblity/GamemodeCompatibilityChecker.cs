@@ -20,7 +20,7 @@ internal readonly record struct GamemodeCompatibilityInfo(string GamemodeId, str
 public class GamemodeHashPacket : INetSerializable, IKnownSenderPacket
 {
     public List<ulong> Hashes = new();
-    public byte SenderPlayerID { get; set; }
+    public byte SenderSmallId { get; set; }
 
     public void Serialize(INetSerializer serializer)
     {
@@ -53,7 +53,7 @@ public class GamemodeHashPacket : INetSerializable, IKnownSenderPacket
 public static class GamemodeCompatibilityChecker
 {
     private static readonly RemoteEvent<GamemodeHashPacket> GamemodeHashRemoteEvent =
-        new("GlobalGamemodeHashEvent", OnGamemodeHashesReceived, new ClientToHostNetworkRoute());
+        new("GlobalGamemodeHashEvent", OnGamemodeHashesReceived, new RemoteToHostNetworkRoute());
 
     private static Gamemode? _activeGamemode;
     private static readonly HashSet<byte> ValidatedPlayers = new();
@@ -119,7 +119,7 @@ public static class GamemodeCompatibilityChecker
 
     public static void SendGamemodeHashes()
     {
-        Executor.RunIfNotHost(() =>
+        Executor.RunIfRemote(() =>
         {
             GamemodeHashRemoteEvent.Call(new GamemodeHashPacket
             {
@@ -136,6 +136,6 @@ public static class GamemodeCompatibilityChecker
     // Static callbacks
     private static void OnGamemodeHashesReceived(GamemodeHashPacket packet)
     {
-        RemoteGamemodeHashes[packet.SenderPlayerID] = packet.Hashes;
+        RemoteGamemodeHashes[packet.SenderSmallId] = packet.Hashes;
     }
 }

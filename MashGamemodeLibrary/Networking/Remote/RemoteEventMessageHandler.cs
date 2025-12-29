@@ -61,7 +61,7 @@ internal class InvalidRemoteEventPacket : INetSerializable
 
 internal class RemoteSceneLoadedPacket : DummySerializable, IKnownSenderPacket
 {
-    public byte SenderPlayerID { get; set; }
+    public byte SenderSmallId { get; set; }
 }
 
 internal class EventMessage : INetSerializable
@@ -107,7 +107,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, CommonNetworkRoutes.AllToHost);
 
     private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
-        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, new ClientToHostNetworkRoute());
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, new RemoteToHostNetworkRoute());
 
     static RemoteEventMessageHandler()
     {
@@ -142,15 +142,12 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
         return eventId;
     }
-
+    
     /// <summary>
     ///     This registers all *STATIC* RemoteEvents in the assembly of type T.
     /// </summary>
-    /// <typeparam name="T">The mod class type</typeparam>
-    public static void RegisterMod<T>()
+    public static void RegisterAssembly(Assembly assembly)
     {
-        var assembly = typeof(T).Assembly;
-
         foreach (var type in assembly.GetTypes())
         {
             if (type.IsGenericType)
@@ -186,6 +183,16 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
             RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }
+    }
+
+    /// <summary>
+    ///     This registers all *STATIC* RemoteEvents in the mod of type T.
+    /// </summary>
+    /// <typeparam name="T">The mod class type</typeparam>
+    public static void RegisterMod<T>()
+    {
+        var assembly = typeof(T).Assembly;
+        RegisterAssembly(assembly);
     }
 
     public static void UnregisterEvent(ulong id)
@@ -253,7 +260,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     {
         Executor.RunIfHost(() =>
         {
-            var id = PlayerIDManager.GetPlayerID(packet.SenderPlayerID);
+            var id = PlayerIDManager.GetPlayerID(packet.SenderSmallId);
 
             if (id == null)
                 return;

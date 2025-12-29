@@ -123,39 +123,51 @@ internal class BarcodeListElement : IConfigElementProvider
 
 public class BoneStrikeConfig : IConfig
 {
-
-    [ConfigMenuEntry("Balance Weapon Damage")]
-    public bool BalanceDamage = true;
-
-    [ConfigMenuEntry("Bomb Explosion Enabled")]
-    public bool BombExplosion = true;
-
-    [ConfigMenuEntry("Damage Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
-    public float DamageMultiplier = 1f;
-
+    [ConfigMenuEntry("Plant Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    public float PlantDuration = 60f;
+    
     [ConfigMenuEntry("Defuse Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     public float DefuseDuration = 60f;
 
     [ConfigMenuEntry("Defuse timer")] [ConfigRangeConstraint(2f, 20f)]
     public float DefuseTime = 7f;
 
-    [ConfigMenuEntry("Dev Tools Disabled")]
-    public bool DevToolsDisabled = true;
-
-    [ConfigMenuEntry("Health Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
-    public float HealthMultiplier = 1f;
-
     [ConfigMenuEntry("Max Respawns")] [ConfigRangeConstraint(0, 3)]
     public int MaxRespawns;
 
+    [ConfigMenuEntry("Use Dynamic Spawns")]
+    public bool UseDynamicSpawns = true;
+    [ConfigMenuEntry("Minimum distance from opponents")]
+    [ConfigRangeConstraint(0f, 20f)]
+    [ConfigStepSize(5f)]
+    public float DynamicSpawnDistanceFromEnemy = 10f;
+    [ConfigMenuEntry("Minimum distance from objective")]
+    [ConfigRangeConstraint(0f, 40f)]
+    [ConfigStepSize(5f)]
+    public float DynamicSpawnDistanceFromObjective = 25f;
+    [ConfigMenuEntry("Dynamic spawn range from objective")]
+    [ConfigRangeConstraint(10f, 100f)]
+    [ConfigStepSize(10f)]
+    public float DynamicSpawnRange = 40f;
+    
+    [ConfigMenuEntry("Balance Weapon Damage")]
+    public bool BalanceDamage = true;
+    [ConfigMenuEntry("Damage Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    public float DamageMultiplier = 1f;
+    [ConfigMenuEntry("Health Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    public float HealthMultiplier = 1f;
+    
     [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))]
     public List<string> PalletBarcodes = new();
 
-    [ConfigMenuEntry("Plant Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    public float PlantDuration = 60f;
-
     [ConfigMenuEntry("Uility Items")] [ConfigElementProvider(typeof(BarcodeListElement))]
     public List<string> UtilityBarcodes = new();
+    
+    [ConfigMenuEntry("Bomb Explosion Enabled")]
+    public bool BombExplosion = true;
+    
+    [ConfigMenuEntry("Dev Tools Disabled")]
+    public bool DevToolsDisabled = true;
 
     public void Serialize(INetSerializer serializer)
     {

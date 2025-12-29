@@ -3,6 +3,7 @@ using Clockhunt.Vision;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 
 namespace Clockhunt.Nightmare.Implementations;

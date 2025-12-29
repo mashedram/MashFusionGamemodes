@@ -12,15 +12,18 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction.Components;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
-using MashGamemodeLibrary.Util;
+using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
 using Type = Il2CppSystem.Type;
 
 namespace MashGamemodeLibrary.Entities.Interaction;
+
+public record GripWithHand(NetworkEntity NetworkEntity, Grip Grip, Hand Hand);
 
 public class HeldItem
 {
@@ -119,6 +122,7 @@ public class GrabData
     {
         player = null;
         if (!NetworkInfo.HasServer) return;
+        if (Hand.manager == null) return;
         if (NetworkPlayerManager.TryGetPlayer(Hand.manager, out player)) return;
         MelonLogger.Error("Failed to get player from hand manager");
     }
@@ -177,7 +181,7 @@ public static class PlayerGrabManager
             .GetAllExtendingTag<IEntityGrabCallback>();
 
         callbacks
-            .ForEach(e => e.InvokeSafely(innerE => innerE.OnGrab(grab)));
+            .ForEach(e => e.Try(innerE => innerE.OnGrab(grab)));
     }
 
     public static void OnDrop(GrabData grab)
@@ -226,7 +230,7 @@ public static class PlayerGrabManager
         var predicates = networkEntity
             .GetAllExtendingTag<IEntityGrabPredicate>();
 
-        return predicates.Count == 0 || predicates.Any(predicate => predicate.InvokeSafely(false, p => p.CanGrab(grab)));
+        return predicates.Count == 0 || predicates.Any(predicate => predicate.Try(p=> p.CanGrab(grab), false));
     }
 
     public static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
@@ -280,6 +284,83 @@ public static class PlayerGrabManager
             return;
 
         hand.TryDetach();
+    }
+
+    public static IEnumerable<GripWithHand> GetLocalHandsHoldingTag<T>() where T : IEntityTag
+    {
+        var localPlayer = LocalPlayer.GetNetworkPlayer();
+        if (localPlayer is not { HasRig: true })
+            return Array.Empty<GripWithHand>();
+        
+        var hands = new[]
+        {
+            localPlayer.RigRefs.LeftHand,
+            localPlayer.RigRefs.RightHand
+        };
+        
+        return hands
+            .Select(hand =>
+            {
+                if (!hand.HasAttachedObject())
+                    return null;
+
+                var attachedGrip = hand.AttachedReceiver?.Host?.GetGrip();
+                if (attachedGrip == null)
+                    return null;
+
+                if (!GripExtender.Cache.TryGet(attachedGrip, out var gripEntity))
+                    return null;
+
+                return new GripWithHand(gripEntity, attachedGrip, hand);
+            })
+            .OfType<GripWithHand>()
+            .Where(hand => hand.NetworkEntity.HasTag<T>());
+    }
+
+    public static IEnumerable<Hand> GetLocalHandsHoldingItem(NetworkEntity networkEntity)
+    {
+        var localPlayer = LocalPlayer.GetNetworkPlayer();
+        if (localPlayer is not { HasRig: true })
+            return Array.Empty<Hand>();
+
+        var hands = new[]
+        {
+            localPlayer.RigRefs.LeftHand,
+            localPlayer.RigRefs.RightHand
+        };
+
+        return hands.Where(hand =>
+        {
+            if (!hand.HasAttachedObject())
+                return false;
+
+            var attachedGrip = hand.AttachedReceiver?.Host?.GetGrip();
+            if (attachedGrip == null)
+                return false;
+
+            if (!GripExtender.Cache.TryGet(attachedGrip, out var gripEntity))
+                return false;
+
+            return gripEntity.ID == networkEntity.ID;
+        });
+    }
+
+    public static IEnumerable<Hand> GetHandsHoldingItem(NetworkEntity networkEntity)
+    {
+        var gripExtension = networkEntity.GetExtender<GripExtender>();
+        if (gripExtension == null)
+            return Array.Empty<Hand>();
+
+        return gripExtension.Components
+            .SelectMany(grip => grip.attachedHands._items);
+    }
+
+    public static IEnumerable<NetworkPlayer> GetPlayersHoldingItem(NetworkEntity networkEntity)
+    {
+        return GetHandsHoldingItem(networkEntity)
+            .Select(hand => NetworkPlayer.RigCache.Get(hand.manager))
+            .Where(player => player != null)
+            .DistinctBy(player => player.PlayerID);
     }
 
     // Events

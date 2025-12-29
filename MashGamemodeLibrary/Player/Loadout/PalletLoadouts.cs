@@ -146,7 +146,7 @@ public static class PalletLoadoutManager
 
         if (list.Count == 0) return null;
 
-        var crate = IEnumerableExtensions.GetRandom(list);
+        var crate = list.GetRandom();
         return crate.Barcode;
     }
 
