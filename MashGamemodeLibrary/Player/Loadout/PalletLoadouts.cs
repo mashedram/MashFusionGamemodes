@@ -196,6 +196,14 @@ public static class PalletLoadoutManager
     {
         AssignLoadoutEvent.Call(new DummySerializable());
     }
+    
+    public static void ReassignOwnLoadout()
+    {
+        SlotData.ClearSpawned();
+        
+        var loadout = GetLoadout();
+        loadout.Assign();
+    }
 
     // Events
 
@@ -216,7 +224,6 @@ public static class PalletLoadoutManager
 
     private static void OnAssignLoadout(DummySerializable _)
     {
-        var loadout = GetLoadout();
-        loadout.Assign();
+        ReassignOwnLoadout();
     }
 }

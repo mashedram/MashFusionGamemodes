@@ -9,14 +9,14 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
-using MashGamemodeLibrary.Entities.Interaction.Components;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Caches;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Visibility;
-using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using UnityEngine;
 using Type = Il2CppSystem.Type;
@@ -148,6 +148,13 @@ public class GrabData
 public static class PlayerGrabManager
 {
     private static readonly Dictionary<string, Func<GrabData, bool>> OverwriteMap = new();
+    
+    // Caches
+
+    private static readonly EcsBehaviourCache<IGrabCallback> GrabCallbackCache = EcsManager.CreateBehaviorCache<IGrabCallback>();
+    private static readonly EcsBehaviourCache<IDropCallback> DropCallbackCache = EcsManager.CreateBehaviorCache<IDropCallback>();
+    private static readonly EcsBehaviourCache<IGrabPredicate> GrabPredicateCache = EcsManager.CreateBehaviorCache<IGrabPredicate>();
+    //
 
     static PlayerGrabManager()
     {
@@ -177,11 +184,7 @@ public static class PlayerGrabManager
         if (interactableHost.HandCount() > 1)
             return;
 
-        var callbacks = networkEntity
-            .GetAllExtendingTag<IEntityGrabCallback>();
-
-        callbacks
-            .ForEach(e => e.Try(innerE => innerE.OnGrab(grab)));
+        GrabCallbackCache.ForEach(networkEntity.ID, callback => callback.OnGrabbed(grab));
     }
 
     public static void OnDrop(GrabData grab)
@@ -204,11 +207,7 @@ public static class PlayerGrabManager
         if (interactableHost.HandCount() > 1)
             return;
 
-        var callbacks = networkEntity
-            .GetAllExtendingTag<IEntityDropCallback>();
-
-        callbacks
-            .ForEach(e => e.OnDrop(grab));
+        DropCallbackCache.ForEach(networkEntity.ID, callback => callback.OnDropped(grab));
     }
 
     public static bool CanGrabEntity(GrabData grab)
@@ -227,13 +226,13 @@ public static class PlayerGrabManager
             SpectatorManager.IsSpectating(networkPlayer.PlayerID))
             return false;
 
-        var predicates = networkEntity
-            .GetAllExtendingTag<IEntityGrabPredicate>();
+        var predicates = GrabPredicateCache
+            .GetAll(networkEntity.ID);
 
-        return predicates.Count == 0 || predicates.Any(predicate => predicate.Try(p=> p.CanGrab(grab), false));
+        return predicates.All(predicate => predicate.Try(p=> p.CanGrab(grab), false));
     }
 
-    public static bool IsHoldingTag<T>(Hand hand) where T : IEntityTag
+    public static bool IsHolding<T>(Hand hand) where T : class, IComponent
     {
         if (!hand.HasAttachedObject()) return false;
 
@@ -243,14 +242,14 @@ public static class PlayerGrabManager
         if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return false;
         if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return false;
 
-        return entity.HasTag<T>();
+        return entity.GetComponent<T>() != null;
     }
 
-    public static bool IsHoldingTag<T>(NetworkPlayer player) where T : IEntityTag
+    public static bool IsHolding<T>(NetworkPlayer player) where T : class, IComponent
     {
         if (!player.HasRig) return false;
 
-        return IsHoldingTag<T>(player.RigRefs.RightHand) || IsHoldingTag<T>(player.RigRefs.LeftHand);
+        return IsHolding<T>(player.RigRefs.RightHand) || IsHolding<T>(player.RigRefs.LeftHand);
     }
 
     public static void SetOverwrite(string key, Func<GrabData, bool>? predicate)
@@ -280,13 +279,13 @@ public static class PlayerGrabManager
         if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return;
         if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return;
 
-        if (!entity.HasTagExtending<IEntityDropCallback>())
+        if (!DropCallbackCache.Contains(entity.ID))
             return;
 
         hand.TryDetach();
     }
 
-    public static IEnumerable<GripWithHand> GetLocalHandsHoldingTag<T>() where T : IEntityTag
+    public static IEnumerable<GripWithHand> GetLocalHandsHoldingTag<T>() where T : class, IComponent
     {
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer is not { HasRig: true })
@@ -314,7 +313,7 @@ public static class PlayerGrabManager
                 return new GripWithHand(gripEntity, attachedGrip, hand);
             })
             .OfType<GripWithHand>()
-            .Where(hand => hand.NetworkEntity.HasTag<T>());
+            .Where(hand => hand.NetworkEntity.GetComponent<T>() != null);
     }
 
     public static IEnumerable<Hand> GetLocalHandsHoldingItem(NetworkEntity networkEntity)

@@ -5,6 +5,8 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Context.Helper;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
@@ -159,7 +161,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         Executor.RunIfHost(() =>
         {
             PlayerTagManager.ClearPlayerTags();
-            EntityTagManager.ClearAll();
+            LocalEcsCache.Clear();
             SpectatorManager.Clear();
         });
     }
@@ -235,7 +237,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
         InternalGamemodeManager.Update(delta);
         GamePhaseManager.Update(delta);
-        EntityTagManager.Update(delta);
+        EcsManager.Update(delta);
 
         Context.Update(delta);
         OnUpdate(delta);

@@ -13,6 +13,7 @@ using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Context;
+using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -48,12 +49,12 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     {
         base.OnGamemodeRegistered();
 
-        EntityTagManager.RegisterAll<Mod>();
+        EcsManager.RegisterAll<Mod>();
         NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
         
-        LimitedRespawnTag.RegisterSpectatePredicate<Clockhunt>(player =>
+        LimitedRespawnComponent.RegisterSpectatePredicate<Clockhunt>(player =>
         {
             if (Config.DebugSkipSpectate)
                 return false;

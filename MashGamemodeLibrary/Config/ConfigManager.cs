@@ -36,6 +36,7 @@ public static class ConfigManager
     {
         RemoteConfigInstance.OnValueChanged += config =>
         {
+            InternalLogger.Debug("Received remote config");
             if (config != null) OnConfigChanged?.Invoke(config);
         };
     }
@@ -99,6 +100,8 @@ public static class ConfigManager
     internal static void Enable<T>() where T : IConfig
     {
         RemoteConfigInstance.SetAndSync(LocalConfigTypedRegistry.Get<T>());
+        
+        InternalLogger.Debug("Set and synced config to remotes.");
     }
 
     public static T Get<T>() where T : class, IConfig

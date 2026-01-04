@@ -1,8 +1,8 @@
 ﻿using Il2CppSLZ.Marrow.Data;
 using LabFusion.Marrow.Pool;
 using LabFusion.RPC;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
 using MelonLoader;
 using UnityEngine;
@@ -19,7 +19,7 @@ public static class GameAssetSpawner
     }
 
 
-    public static void SpawnNetworkAsset(string barcode, Vector3 position, params IEntityTag[] tags)
+    public static void SpawnNetworkAsset(string barcode, Vector3 position, params IComponent[] components)
     {
         var spawnable = GetSpawnable(barcode);
         NetworkAssetSpawner.Spawn(new NetworkAssetSpawner.SpawnRequestInfo
@@ -33,7 +33,7 @@ public static class GameAssetSpawner
                 // Entity is not synced, skip attaching values
                 if (result.Entity == null)
                 {
-                    if (tags.Length > 0)
+                    if (components.Length > 0)
                     {
                         MelonLogger.Error($"Failed to add tags to: {barcode}. Spawned crate is not synced.");
                     }
@@ -41,16 +41,16 @@ public static class GameAssetSpawner
                 }
                 
                 // We're done, no extra behavior
-                if (tags.Length == 0)
+                if (components.Length == 0)
                     return;
                 
                 Executor.RunIfHost(() =>
                 {
                     result.WaitOnMarrowEntity((entity, _) =>
                     {
-                        foreach (var entityTag in tags)
+                        foreach (var component in components)
                         {
-                            entity.AddTag(entityTag);
+                            entity.AddComponent(component);
                         }
                     });
                 });
@@ -58,11 +58,11 @@ public static class GameAssetSpawner
         });
     }
 
-    public static void DespawnAll<T>() where T : IEntityTag
+    public static void DespawnAll<T>() where T : IComponent
     {
         Executor.RunIfHost(() =>
         {
-            foreach (var id in EntityTagManager.GetAllIdsWithTag<T>())
+            foreach (var id in EcsManager.GetEntityIdsWithComponent<T>())
             {
                 NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
                 {

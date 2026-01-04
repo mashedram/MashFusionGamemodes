@@ -1,17 +1,19 @@
-﻿using Il2CppSLZ.Marrow.Pool;
+﻿using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
-using MashGamemodeLibrary.Entities.Tagging.Base;
-using MashGamemodeLibrary.Entities.Tagging.Player;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace Clockhunt.Game.Player;
 
-public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
+public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
 {
+    private NetworkPlayer _owner = null!;
     private Poolee? _timerObject;
     private TextMeshPro? _text;
     private bool _isSpawning;
@@ -32,13 +34,15 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
             _isSpawning = false;
         });
     }
-    
-    public void OnAdded(ushort entityID)
+
+    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
     {
+        _owner = networkPlayer;
         SpawnTimer();
+        
     }
     
-    public void OnRemoval(ushort entityID)
+    public void OnRemoved(NetworkEntity networkEntity)
     {
         _timerObject?.Despawn();
     }
@@ -49,13 +53,13 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!Owner.HasRig || activePhase == null || Owner.PlayerID.IsSpectatingAndHidden())
+        if (!_owner.HasRig || activePhase == null || _owner.PlayerID.IsSpectatingAndHidden())
         {
             _timerObject.gameObject.SetActive(false);
             return;
         }
         
-        var leftHand = Owner.RigRefs.LeftHand.transform;
+        var leftHand = _owner.RigRefs.LeftHand.transform;
         var position = leftHand.position + leftHand.forward * 0.05f + leftHand.right * -0.05f;
         var rotation = leftHand.rotation;
         

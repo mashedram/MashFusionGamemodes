@@ -5,10 +5,8 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Player.Visibility.Tags;
 using MelonLoader;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
@@ -21,8 +19,6 @@ public static class PlayerHider
     private static int _currentIndex;
     private static readonly List<byte> UpdateList = new();
     private static readonly Dictionary<byte, PlayerVisibilityState> PlayerStates = new();
-
-    private static readonly EntityTagCache<IPlayerHiddenTag> PlayerHiddenTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerHiddenTag>>();
 
     public static void Register()
     {
@@ -87,15 +83,6 @@ public static class PlayerHider
         var state = GetOrCreateState(playerID);
 
         state?.SetHidden(key, hidden);
-
-        // Set states for remote values
-        if (!PlayerHiddenTags.TryGet(playerID.SmallID, out var set))
-            return;
-
-        foreach (var playerHiddenTag in set)
-        {
-            playerHiddenTag.Try(t => t.SetHiddenState(hidden));
-        }
     }
 
     public static void HideAllSpecials()
@@ -155,10 +142,13 @@ public static class PlayerHider
 
     public static void UpdateAmmoHolster(InventoryAmmoReceiver inventoryAmmoReceiver)
     {
-        if (!InventoryAmmoReceiverExtender.Cache.TryGet(inventoryAmmoReceiver, out var networkEntity))
+        if (inventoryAmmoReceiver._parentRigManager == null)
+            return;
+        
+        if (!NetworkPlayerManager.TryGetPlayer(inventoryAmmoReceiver._parentRigManager, out var player))
             return;
 
-        var id = (byte)networkEntity.ID;
+        var id = player.PlayerID.SmallID;
         GetOrCreateState(id)?.OnAmmoChange();
     }
 

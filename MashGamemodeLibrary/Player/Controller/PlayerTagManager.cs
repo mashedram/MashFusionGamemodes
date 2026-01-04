@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Execution;
@@ -14,71 +16,61 @@ public static class PlayerTagManager
         {
             foreach (var player in NetworkPlayer.Players)
             {
-                EntityTagManager.Remove(player.NetworkEntity.ID);
+                player.NetworkEntity.ClearComponents();
             }
         });
     }
 
-    public static void OnAll<T>(Action<T> action) where T : PlayerTag
-    {
-        foreach (var (_, tag) in EntityTagManager.GetAllTags<T>())
-        {
-            action.Invoke(tag);
-        }
-    }
-
-    public static bool TryGetTag<T>(this NetworkPlayer player, [MaybeNullWhen(false)] out T tag) where T : PlayerTag
+    public static bool TryGetComponent<T>(this NetworkPlayer player, [MaybeNullWhen(false)] out T component) where T : class, IComponent
     {
         if (player.NetworkEntity == null)
         {
-            tag = null;
+            component = null;
             return false;
         }
 
-        return player.NetworkEntity.TryGetTag(out tag);
+        component = player.NetworkEntity.GetComponent<T>();
+        return component != null;
     }
 
-    public static bool HasTag<T>(this NetworkPlayer player) where T : PlayerTag
+    public static bool HasTag<T>(this NetworkPlayer player) where T : class, IComponent
+    {
+
+        return player.NetworkEntity?.GetComponent<T>() != null;
+    }
+
+    public static bool HasTag<T>(this NetworkPlayer player, Func<T, bool> predicate) where T : class, IComponent
     {
         if (player.NetworkEntity == null)
             return false;
 
-        return player.NetworkEntity.HasTag<T>();
+        var component = player.NetworkEntity.GetComponent<T>();
+        return component != null && predicate(component);
     }
 
-    public static bool HasTag<T>(this NetworkPlayer player, Func<T, bool> predicate) where T : PlayerTag
+    public static void AddTag(this NetworkPlayer player, IComponent component)
     {
-        if (player.NetworkEntity == null)
+        player.NetworkEntity?.AddComponent(component);
+    }
+
+    public static bool TryAddTag<T>(this NetworkPlayer player, Func<T> factory) where T : class, IComponent
+    {
+        if (player.NetworkEntity.GetComponent<T>() != null)
             return false;
-
-        return player.NetworkEntity.TryGetTag<T>(out var tag) && predicate(tag);
+        
+        player.NetworkEntity.AddComponent(factory());
+        return true;
     }
 
-    public static void AddTag<T>(this NetworkPlayer player, T tag) where T : PlayerTag
+    public static void RemoveTag<T>(this NetworkPlayer player) where T : IComponent
     {
         if (player.NetworkEntity == null)
-            return;
+            return ;
 
-        player.NetworkEntity.AddTag(tag);
+        player.NetworkEntity.RemoveComponent<T>();
     }
 
-    public static bool TryAddTag<T>(this NetworkPlayer player, Func<T> factory) where T : PlayerTag
-    {
-        if (player.NetworkEntity == null)
-            return false;
-
-        return player.NetworkEntity.TryAddTag(factory);
-    }
-
-    public static bool RemoveTag<T>(this NetworkPlayer player) where T : PlayerTag
-    {
-        if (player.NetworkEntity == null)
-            return false;
-
-        return player.NetworkEntity.RemoveTag<T>();
-    }
-
-    public static void ToggleTag<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : PlayerTag
+    public static void ToggleTag<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : class, IComponent
     {
         if (player.NetworkEntity == null)
             return;

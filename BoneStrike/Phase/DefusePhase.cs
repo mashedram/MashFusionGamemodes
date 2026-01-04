@@ -8,9 +8,13 @@ using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Query;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
+using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Spawning;
@@ -53,23 +57,22 @@ public class DefusePhase : GamePhase
             PopupLength = 4f,
             Type = NotificationType.INFORMATION
         });
-        
+
         Executor.RunCheckedInFuture(DropClock, TimeSpan.FromSeconds(5));
 
-        var bomb = EntityTagManager.GetAllWithTag<BombMarker>().FirstOrDefault();
+        var bomb = BombMarker.Query.FirstOrDefault();
         if (bomb != null)
         {
-            var marrow = bomb.GetExtender<IMarrowEntityExtender>();
-            if (marrow != null)
+            bomb.Instance.HookOnReady((_, marrowEntity) =>
             {
-                foreach (var (_, tag) in EntityTagManager.GetAllTags<PlayerHandTimerTag>())
+                foreach (var entry in PlayerHandTimerTag.Query)
                 {
-                    tag.Target = marrow.MarrowEntity.gameObject;
+                    entry.Component.Target = marrowEntity.gameObject;
                 }
                 
                 if (BoneStrike.Config.UseDynamicSpawns)
-                    DynamicSpawnCollector.CollectAt(marrow.MarrowEntity.transform.position, BoneStrike.Config.DynamicSpawnRange);
-            }
+                    DynamicSpawnCollector.CollectAt(marrowEntity.transform.position, BoneStrike.Config.DynamicSpawnRange);
+            });
         }
         else
         {
@@ -84,27 +87,52 @@ public class DefusePhase : GamePhase
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
     {
+        if (action == PlayerGameActions.Respawned && playerId.IsMe)
+        {
+            PalletLoadoutManager.ReassignOwnLoadout();
+            return;
+        }
+        
         if (!BoneStrike.Config.UseDynamicSpawns)
             return;
-        
+
         if (!playerId.IsMe)
             return;
-        
+
         if (action != PlayerGameActions.Dying)
             return;
+
+        var lives = EcsManager.GetComponent<LimitedRespawnComponent>(playerId.SmallID);
+        if (lives is { Respawns: <= 1 })
+        {
+            FusionPlayer.ResetSpawnPoints();
+            return;
+        }
 
         var enemyPositions = NetworkPlayer.Players
             .Where(p => p.HasRig && p.PlayerID.IsEnemy())
             .Select(p => new AvoidSpawningNear(p.RigRefs.Head.position, BoneStrike.Config.DynamicSpawnDistanceFromEnemy));
 
-        var clockPositions = EntityTagManager
-            .GetAllWithTag<BombMarker>()
-            .Select(n => n.GetExtender<IMarrowEntityExtender>()?.MarrowEntity)
-            .OfType<MarrowEntity>()
-            .Select(m => new AvoidSpawningNear(m.transform.position, BoneStrike.Config.DynamicSpawnDistanceFromObjective));
+        var clockPositions = BombMarker
+            .Query
+            .Where(q => q.Instance.IsReady)
+            .Select(n => n.Instance.MarrowEntity)
+            .Select(m => m.transform.position)
+            .ToList();
+
+        var canReach = clockPositions.FirstOrDefault();
 
         const int spawnSearchTries = 5;
-        DynamicSpawnCollector.SetRandomSpawn(spawnSearchTries, enemyPositions.Union(clockPositions).ToArray());
+        DynamicSpawnCollector.SetRandomSpawn(
+            spawnSearchTries,
+            canReach,
+            enemyPositions
+                .Union(
+                    clockPositions
+                        .Select(p => new AvoidSpawningNear(p, BoneStrike.Config.DynamicSpawnDistanceFromObjective))
+                )
+                .ToArray()
+        );
     }
 
     private static void DropClock()

@@ -7,6 +7,9 @@ using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Music;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Caches;
+using MashGamemodeLibrary.Entities.ECS.Networking;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
@@ -41,9 +44,10 @@ public class Mod : MelonMod
         ModuleManager.RegisterModule<FusionModule>();
 
         RemoteEventMessageHandler.RegisterMod<Mod>();
-        EntityTagManager.RegisterAll<Mod>();
+        EcsManager.RegisterAll<Mod>();
 
         PlayerHider.Register();
+        NetworkEventsExtender.Register();
 
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
@@ -54,7 +58,6 @@ public class Mod : MelonMod
         PlayerHider.Update();
         PlayerActionManager.Update();
         ConfigManager.Update();
-        SpawnHelper.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif
@@ -72,7 +75,7 @@ public class Mod : MelonMod
 
     private static void Cleanup()
     {
-        EntityTagManager.ClearAll();
+        LocalEcsCache.Clear();
         PlayerGrabManager.Reset();
         PlayerHider.Reset();
         SpectatorManager.LocalReset();

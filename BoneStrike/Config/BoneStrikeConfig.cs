@@ -146,9 +146,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigStepSize(5f)]
     public float DynamicSpawnDistanceFromObjective = 25f;
     [ConfigMenuEntry("Dynamic spawn range from objective")]
-    [ConfigRangeConstraint(10f, 100f)]
+    [ConfigRangeConstraint(10f, 200f)]
     [ConfigStepSize(10f)]
-    public float DynamicSpawnRange = 40f;
+    public float DynamicSpawnRange = 100f;
     
     [ConfigMenuEntry("Balance Weapon Damage")]
     public bool BalanceDamage = true;

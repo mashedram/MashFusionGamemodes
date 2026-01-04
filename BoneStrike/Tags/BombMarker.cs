@@ -2,22 +2,26 @@
 using BoneStrike.Teams;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Entities.Tagging.Base;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Entities.ECS.Query;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Phase.Tags;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class BombMarker : EntityTag, IMarrowLoaded, ITagRemoved, ITagUpdate, IPhaseChangedTag
+public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged
 {
+    public static readonly CachedQuery<BombMarker> Query = EcsManager.CacheQuery<BombMarker>();
+    
     private const float MaxVelocitySquared = 1000f;
 
     private MarrowEntity? _marrowEntity;
     private Vector3? _returnPosition;
     private List<Rigidbody>? _rigidbodies;
 
-    public void OnLoaded(NetworkEntity networkEntity, MarrowEntity marrowEntity)
+    public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;
         _rigidbodies = _marrowEntity._bodies.Select(b => b._rigidbody).ToList();
@@ -34,11 +38,11 @@ public class BombMarker : EntityTag, IMarrowLoaded, ITagRemoved, ITagUpdate, IPh
         }
     }
 
-    public void OnRemoval(ushort entityID)
+    public void OnRemoved(NetworkEntity networkEntity)
     {
         WinManager.Win<CounterTerroristTeam>();
     }
-
+    
     public void Update(float delta)
     {
         if (_rigidbodies == null)

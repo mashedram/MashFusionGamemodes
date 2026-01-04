@@ -18,7 +18,7 @@ public class CounterTerroristTeam : Team
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnTag(BoneStrike.Config.MaxRespawns));
+            Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(BoneStrike.Config.MaxRespawns));
         });
 
         Executor.RunIfMe(Owner.PlayerID, () =>
@@ -30,13 +30,10 @@ public class CounterTerroristTeam : Team
 
     protected override void OnAssigned()
     {
-        Executor.RunIfHost(() =>
-        {
-            Owner.AddTag(new PlayerHandTimerTag());
-        });
-
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
+            Owner.AddTag(new PlayerHandTimerTag());
+            
             Notifier.Send(new Notification
             {
                 Title = "Counter Terrorists",

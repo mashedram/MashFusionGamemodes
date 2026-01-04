@@ -1,10 +1,11 @@
 ﻿using Clockhunt.Game.Teams;
 using Clockhunt.Phase;
 using Clockhunt.Vision;
+using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Entities;
 using LabFusion.Network.Serialization;
 using LabFusion.UI.Popups;
-using MashGamemodeLibrary.Entities.Tagging.Base;
-using MashGamemodeLibrary.Entities.Tagging.Player;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
@@ -34,7 +35,7 @@ internal class EscapeUpdatePacket : INetSerializable
     }
 }
 
-public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
+public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
 {
     // Config
     private const float EscapeTime = 30f;
@@ -43,6 +44,7 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
     // Remotes
     private static readonly RemoteEvent<EscapeUpdatePacket> EscapeUpdateEvent = new(OnEscapeUpdate, CommonNetworkRoutes.HostToAll);
 
+    private NetworkPlayer _owner = null!;
     private readonly MarkableTimer _timer;
 
     static PlayerEscapeTag()
@@ -72,7 +74,7 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
     {
         if (!EscapePosition.Value.HasValue) return false;
 
-        var distance = Vector3.Distance(EscapePosition.Value.Value, Owner.RigRefs.Head.position);
+        var distance = Vector3.Distance(EscapePosition.Value.Value, _owner.RigRefs.Head.position);
 
         return distance <= Clockhunt.Config.EscapeDistance;
     }
@@ -95,7 +97,7 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
     {
         if (!time.HasValue)
         {
-            EscapeUpdateEvent.CallFor(Owner.PlayerID, new EscapeUpdatePacket
+            EscapeUpdateEvent.CallFor(_owner.PlayerID, new EscapeUpdatePacket
             {
                 IsEscaping = false,
                 Time = 0f
@@ -103,7 +105,7 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
             return;
         }
         
-        EscapeUpdateEvent.CallFor(Owner.PlayerID, new EscapeUpdatePacket
+        EscapeUpdateEvent.CallFor(_owner.PlayerID, new EscapeUpdatePacket
         {
             IsEscaping = true,
             Time = time.Value
@@ -164,7 +166,12 @@ public class PlayerEscapeTag : PlayerTag, ITagUpdate, ITagRemoved
         MarkerManager.SetMarker(escape.Value);
     }
     
-    public void OnRemoval(ushort entityID)
+    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    {
+        _owner = networkPlayer;
+    }
+
+    public void OnRemoved(NetworkEntity networkEntity)
     {
         MarkerManager.ClearMarker();
     }

@@ -19,7 +19,7 @@ public class SurvivorTeam : Team
     {
         Executor.RunIfHost(() =>
         {
-            Owner.AddTag(new LimitedRespawnTag(Clockhunt.Config.MaxRespawns));
+            Owner.AddTag(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
             Owner.AddTag(new PlayerHandTimerTag());
         });
         
@@ -33,7 +33,7 @@ public class SurvivorTeam : Team
     {
         Executor.RunIfHost(() =>
         {
-            Owner.RemoveTag<LimitedRespawnTag>();
+            Owner.RemoveTag<LimitedRespawnComponent>();
             Owner.RemoveTag<PlayerHandTimerTag>();
             Owner.RemoveTag<PlayerEscapeTag>();
         });

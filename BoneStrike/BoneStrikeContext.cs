@@ -12,7 +12,7 @@ namespace BoneStrike;
 
 public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
 {
-    public readonly TimedTagPlayer<BombMarker> BombAudioPlayer = new(new ObjectAudioPlayer("BombSound",
+    public readonly TimedComponentPlayer<BombMarker> BombAudioPlayer = new(new ObjectAudioPlayer("BombSound",
             new SyncedAudioContainer(new MonoDiscLoader(new[]
             {
                 "Mash.BoneStrike.MonoDisc.ClockBeep"

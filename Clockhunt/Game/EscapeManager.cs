@@ -25,7 +25,10 @@ public static class EscapeManager
 
     private static IEnumerable<Vector3> GetEscapePoints()
     {
-        var markers = EntityTagManager.GetAllWithTag<ClockMarker>();
+        var markers = ClockMarker.Query
+            .Where(entry => entry.Instance.IsReady)
+            .Select(entry => entry.Instance.NetworkEntity!).
+            ToList();
 
         if (markers is { Count: > 0 })
             return markers.Select(networkEntity => networkEntity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position).OfType<Vector3>();

@@ -1,33 +1,41 @@
-﻿using Il2CppSLZ.Marrow.Pool;
+﻿using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
+using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
 using LabFusion.Player;
-using MashGamemodeLibrary.Entities.Tagging.Base;
-using MashGamemodeLibrary.Entities.Tagging.Player;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Attributes;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Query;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
+[LocalOnly]
+public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
 {
+    public static readonly CachedQuery<PlayerHandTimerTag> Query = EcsManager.CacheQuery<PlayerHandTimerTag>();
+    
     private Transform? _compasPointer;
-    private bool _isOwnedByLocalPlayer;
     private bool _isSpawning;
+
+    private NetworkPlayer _owner = null!;
 
     // TODO: Make tags a target and get the closest one
     public GameObject? Target = null;
     private TextMeshPro? _text;
     private Poolee? _timerObject;
 
-    public void OnAdded(ushort entityID)
+    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
     {
-        _isOwnedByLocalPlayer = entityID == PlayerIDManager.LocalSmallID;
+        _owner = networkPlayer;
         SpawnTimer();
     }
 
-    public void OnRemoval(ushort entityID)
+    public void OnRemoved(NetworkEntity networkEntity)
     {
         _timerObject?.Despawn();
         _timerObject = null;
@@ -35,21 +43,18 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 
     public void Update(float delta)
     {
-        if (!_isOwnedByLocalPlayer)
-            return;
-
         if (_timerObject == null)
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!Owner.HasRig || activePhase == null || Owner.PlayerID.IsHidden())
+        if (!_owner.HasRig || activePhase == null || _owner.PlayerID.IsHidden())
         {
             _timerObject.gameObject.SetActive(false);
             return;
         }
         _timerObject.gameObject.SetActive(true);
 
-        var leftHand = Owner.RigRefs.LeftHand.transform;
+        var leftHand = _owner.RigRefs.LeftHand.transform;
         var leftHandPosition = leftHand.position;
         var position = leftHandPosition + leftHand.forward * 0.05f + leftHand.right * -0.05f;
         var rotation = leftHand.rotation;
@@ -91,8 +96,6 @@ public class PlayerHandTimerTag : PlayerTag, ITagAdded, ITagUpdate, ITagRemoved
 
     private void SpawnTimer()
     {
-        if (!_isOwnedByLocalPlayer)
-            return;
         if (_timerObject != null || _isSpawning) return;
 
         _isSpawning = true;

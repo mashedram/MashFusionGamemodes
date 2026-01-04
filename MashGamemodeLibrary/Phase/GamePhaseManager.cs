@@ -1,14 +1,17 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
-using MashGamemodeLibrary.Phase.Tags;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Registry.Typed;
 using MelonLoader;
@@ -21,6 +24,10 @@ public static class GamePhaseManager
 
     private static readonly SyncedVariable<ulong?> WantedPhase = new("GamePhaseManager_WantedPhase", new NullableValueEncoder<ulong>(new ULongEncoder()),
         null);
+    
+    // Behavior Helpers
+
+    private static readonly EcsBehaviourCache<IPhaseChanged> PhaseChangedBehaviours = EcsManager.CreateBehaviorCache<IPhaseChanged>();
 
     // Action Logic
 
@@ -63,17 +70,7 @@ public static class GamePhaseManager
 
         ActivePhase.Enter();
 
-        EntityTagManager.GetAllExtendingTag<IPhaseChangedTag>().ForEach(tag =>
-        {
-            try
-            {
-                tag.OnPhaseChange(ActivePhase);
-            }
-            catch (Exception exception)
-            {
-                MelonLogger.Error($"Failed to execute tag change for: {tag.GetType().FullName}", exception);
-            }
-        });
+        PhaseChangedBehaviours.ForEach(behaviour => behaviour.OnPhaseChange(ActivePhase));
 
         TeamManager.OnPhaseChanged(ActivePhase);
     }
@@ -133,6 +130,7 @@ public static class GamePhaseManager
         {
             PlayerActionType.DEATH => PlayerGameActions.Death,
             PlayerActionType.JUMP => PlayerGameActions.Jump,
+            PlayerActionType.RESPAWN => PlayerGameActions.Respawned,
             PlayerActionType.DYING => PlayerGameActions.Dying,
             _ => null
         };

@@ -1,16 +1,15 @@
 ﻿using LabFusion.Player;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Interaction.Components;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ClockGrabNotifier : IEntityGrabCallback, IEntityDropCallback
+public class ClockGrabNotifier : IComponent, IGrabCallback, IDropCallback
 {
     public static readonly HashSet<PlayerID> Holders = new();
 
-    public double DropCooldown => 0.05f;
-
-    public void OnDrop(GrabData grab)
+    public void OnDropped(GrabData grab)
     {
         if (grab.NetworkPlayer == null)
             return;
@@ -18,9 +17,7 @@ public class ClockGrabNotifier : IEntityGrabCallback, IEntityDropCallback
         Holders.Remove(grab.NetworkPlayer.PlayerID);
     }
 
-    public double GrabCooldown => 0.05f;
-
-    public void OnGrab(GrabData grab)
+    public void OnGrabbed(GrabData grab)
     {
         if (grab.NetworkPlayer == null)
             return;

@@ -17,7 +17,7 @@ namespace Clockhunt;
 public class ClockhuntContext : GameModeContext<ClockhuntContext>
 {
     // Audio
-    public readonly TimedTagPlayer<ClockMarker> ClockAudioPlayer = new(new ObjectAudioPlayer("ClockSound",
+    public readonly TimedComponentPlayer<ClockMarker> ClockAudioPlayer = new(new ObjectAudioPlayer("ClockSound",
             new SyncedAudioContainer(new AudioFileLoader("Pings")), 10,
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
                     settings.SetVolume(1f).SetMaxDistance(120f))

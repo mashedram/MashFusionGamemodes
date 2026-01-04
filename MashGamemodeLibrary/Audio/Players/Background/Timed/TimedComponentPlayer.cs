@@ -1,0 +1,93 @@
+﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
+using Random = UnityEngine.Random;
+
+namespace MashGamemodeLibrary.Audio.Players.Background.Timed;
+
+public class TimedComponentPlayer<T> : IContinuousPlayer where T : IComponent
+{
+    private readonly Dictionary<ushort, float> _entityTimers;
+
+    private readonly float _maxTimeBetweenPlays;
+    private readonly float _minTimeBetweenPlays;
+    private readonly IRandomAudioPlayer<NetworkEntity> _player;
+
+    public TimedComponentPlayer(IRandomAudioPlayer<NetworkEntity> player, float minTimeBetweenPlays, float? maxTimeBetweenPlays = null)
+    {
+        _player = player;
+        _minTimeBetweenPlays = minTimeBetweenPlays;
+        _maxTimeBetweenPlays = maxTimeBetweenPlays ?? minTimeBetweenPlays;
+
+        _entityTimers = new Dictionary<ushort, float>();
+    }
+
+    public bool IsActive { get; private set; }
+
+    public void Start()
+    {
+        if (IsActive) return;
+
+        IsActive = true;
+        _entityTimers.Clear();
+    }
+
+    public void Stop()
+    {
+        if (!IsActive) return;
+
+        IsActive = false;
+
+        _player.Stop();
+    }
+
+    public void Update(float delta)
+    {
+        if (!IsActive)
+            return;
+
+        _player.Update(delta);
+
+        var entities = EcsManager
+            .GetEntityIdsWithComponent<T>()
+            .ToList();
+
+        foreach (var (id, _) in _entityTimers)
+        {
+            if (entities.Contains(id)) continue;
+
+            _entityTimers.Remove(id);
+        }
+
+        foreach (var id in entities)
+        {
+            if (!_entityTimers.ContainsKey(id))
+            {
+                _entityTimers.Add(id, GetRandomTimeBetweenPlays());
+                return;
+            }
+
+            _entityTimers[id] = Math.Max(0, _entityTimers[id] - delta);
+            if (_entityTimers[id] > 0) continue;
+
+            _entityTimers[id] = GetRandomTimeBetweenPlays();
+
+            if (!new NetworkEntityReference(id).TryGetEntity(out var entity))
+            {
+                _entityTimers.Remove(id);
+                return;
+            }
+
+            _player.PlayRandom(entity);
+        }
+    }
+
+    private float GetRandomTimeBetweenPlays()
+    {
+        if (Math.Abs(_minTimeBetweenPlays - _maxTimeBetweenPlays) < 1f)
+            return _minTimeBetweenPlays;
+
+        return Random.Range(_minTimeBetweenPlays, _maxTimeBetweenPlays);
+    }
+}

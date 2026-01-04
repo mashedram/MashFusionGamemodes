@@ -55,7 +55,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
         {
             foreach (var networkPlayer in NetworkPlayer.Players)
             {
-                if (networkPlayer.TryGetTag<LimitedRespawnTag>(out var tag))
+                if (networkPlayer.TryGetComponent<LimitedRespawnComponent>(out var tag))
                 {
                     tag.SetRespawns(0);
                 }

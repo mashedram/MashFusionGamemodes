@@ -111,10 +111,10 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public ulong GetID(Type type)
     {
-        return _stableHashCache[type];
+        return _stableHashCache.TryGetValue(type, out var id) ? id : throw new Exception($"Failed to get ID for unregistered type: {type.FullName}");
     }
 
-    public ulong GetID<T>()
+    public ulong GetID<T>() where T : TValue
     {
         return GetID(typeof(T));
     }

@@ -161,7 +161,7 @@ public static class PlayerGunManager
             return value;
 
 
-        var defaultDamage = DefaultGunDamage.GetOrCreate(gun, () => gun.defaultCartridge.projectile.damageMultiplier);
+        var defaultDamage = DefaultGunDamage.GetValueOrCreate(gun, () => gun.defaultCartridge.projectile.damageMultiplier);
         var type = GetWeaponType(gun);
 
         // We register all types at the start

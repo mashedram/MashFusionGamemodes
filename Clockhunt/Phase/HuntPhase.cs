@@ -178,27 +178,29 @@ public class HuntPhase : GamePhase, ITimedPhase
 
         Executor.RunIfHost(() =>
         {
-            var clocks = EntityTagManager.GetAllWithTag<ObjectiveCollectable>(tag => tag.IsGrabbed);
+            var clockCount = ObjectiveCollectable.Query.Count();
+            var clocks = ObjectiveCollectable.Query
+                .Where(entry => entry.Instance.IsReady && entry.Component.IsGrabbed);
 
-            foreach (var networkEntity in from networkEntity in clocks
-                     let marrowEntity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity
+            foreach (var networkEntity in from entry in clocks
+                     let marrowEntity = entry.Instance.MarrowEntity
                      let distance = Vector3.Distance(marrowEntity.transform.position, DeliveryPosition)
                      where distance <= Clockhunt.Config.DeliveryDistance
-                     select networkEntity)
+                     select entry.Instance.NetworkEntity)
             {
-                var count = EntityTagManager.CountEntitiesWithTag<ClockMarker>();
-
                 NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
                 {
                     DespawnEffect = true,
                     EntityID = networkEntity.ID
                 });
 
+                clockCount -= 1;
+
                 // When the phase ends, there is a different message
-                if (count > 1)
+                if (clockCount > 1)
                     OnClockDeliveredEvent.Call(new ClockDeliveredPacket
                     {
-                        ClockCount = count - 1
+                        ClockCount = clockCount - 1
                     });
             }
         });

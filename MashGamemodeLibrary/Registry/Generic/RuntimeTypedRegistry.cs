@@ -12,6 +12,11 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
     {
         RootType = rootType;
     }
+    
+    public ulong CreateID(Type type)
+    {
+        return type.Name.GetStableHash();
+    }
 
     public ulong CreateID<T>() where T : notnull
     {

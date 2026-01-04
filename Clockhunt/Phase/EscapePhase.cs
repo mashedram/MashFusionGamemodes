@@ -5,6 +5,7 @@ using Clockhunt.Game.Player;
 using Clockhunt.Game.Teams;
 using Clockhunt.Nightmare;
 using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -32,9 +33,9 @@ public class EscapePhase : GamePhase, ITimedPhase
         {
             var escapePoint = EscapeManager.EscapePoint ?? Vector3.zero;
             PlayerEscapeTag.EscapePosition.Value = escapePoint;
-            PlayerTagManager.OnAll<LimitedRespawnTag>(controller =>
+            LimitedRespawnComponent.Query.ForEach(entry =>
             {
-                controller.SetRespawns(0);
+                entry.Component.SetRespawns(0);
             });
             
             var context = Clockhunt.Context;

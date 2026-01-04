@@ -1,7 +1,9 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Data;
+using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Entities;
+using LabFusion.Marrow.Extenders;
 using LabFusion.RPC;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities;
@@ -19,7 +21,7 @@ public enum SlotType
 
 public class SlotData
 {
-    private static readonly HashSet<NetworkEntity> SpawnedGuns = new();
+    private static readonly HashSet<Poolee> SpawnedGuns = new();
 
     public Barcode? Barcode;
 
@@ -53,10 +55,10 @@ public class SlotData
         if (ReferenceEquals(slot, null))
             return;
 
-        if (slot._slottedWeapon != null && WeaponSlotExtender.Cache.TryGet(slot._slottedWeapon, out var entity))
+        var slottedItem = slot._slottedWeapon?.grip?._marrowEntity?._poolee;
+        if (slottedItem != null)
         {
-            slot.DropWeapon();
-            PooleeUtilities.RequestDespawn(entity.ID, true);
+            slottedItem.Despawn();
         }
 
         if (Barcode == null)
@@ -79,10 +81,10 @@ public class SlotData
             {
                 // Insert into known items
                 // TODO: Add ownership here to return guns to their owners
-                SpawnedGuns.Add(info.Entity);
-
-                SpawnHelper.WaitOnMarrowEntity(info.Entity, (networkEntity, _) =>
+                info.WaitOnMarrowEntity((networkEntity, marrowEntity) =>
                 {
+                    SpawnedGuns.Add(marrowEntity._poolee);
+                    
                     var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
 
                     if (weaponSlotExtender == null)
@@ -107,10 +109,11 @@ public class SlotData
     {
         foreach (var entity in SpawnedGuns)
         {
-            if (entity.IsDestroyed)
+            if (entity == null)
                 continue;
-
-            PooleeUtilities.RequestDespawn(entity.ID, true);
+            if (!entity.isActiveAndEnabled)
+                continue;
+            entity.Despawn();
         }
         SpawnedGuns.Clear();
     }

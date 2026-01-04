@@ -84,7 +84,7 @@ public class PlantPhase : GamePhase
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
             return;
 
-        if (PlayerGrabManager.IsHoldingTag<BombMarker>(player.RigRefs.GetHand(handedness)))
+        if (PlayerGrabManager.IsHolding<BombMarker>(player.RigRefs.GetHand(handedness)))
         {
             if (ElapsedTime < 15f)
                 return;
@@ -117,9 +117,10 @@ public class PlantPhase : GamePhase
         
         var position = hand.palmPositionTransform.position;
 
-        var bombs = EntityTagManager.GetAllWithTag<BombMarker>();
-        foreach (var networkEntity in bombs)
+        var bombs = BombMarker.Query;
+        foreach (var entry in bombs)
         {
+            var networkEntity = entry.Instance.NetworkEntity;
             var grip = networkEntity.GetExtender<GripExtender>();
             if (grip == null)
                 continue;

@@ -4,8 +4,9 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Player.Base;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.ECS;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 namespace MashGamemodeLibrary.Player.Actions;
 
@@ -19,8 +20,8 @@ public static class PlayerActionManager
 {
     private static readonly Dictionary<Handedness, bool> LastGripStateMap = new();
 
-    private static readonly EntityTagCache<IPlayerActionTag> PlayerActionTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerActionTag>>();
-    private static readonly EntityTagCache<IPlayerInputTag> PlayerInputTags = EntityTagManager.RegisterCache<EntityTagCache<IPlayerInputTag>>();
+    private static readonly IBehaviourCache<IPlayerActionCallback> PlayerActionTags = EcsManager.CreateBehaviorCache<IPlayerActionCallback>();
+    private static readonly IBehaviourCache<IPlayerInputCallback> PlayerInputTags = EcsManager.CreateBehaviorCache<IPlayerInputCallback>();
 
     static PlayerActionManager()
     {
@@ -29,10 +30,7 @@ public static class PlayerActionManager
 
     private static void OnPlayerAction(PlayerID playerId, PlayerActionType type, PlayerID otherPlayer)
     {
-        if (!PlayerActionTags.TryGet(playerId, out var set))
-            return;
-
-        foreach (var tag in set)
+        foreach (var tag in PlayerActionTags.GetAll(playerId))
         {
             tag.OnAction(type, otherPlayer);
         }
@@ -72,10 +70,10 @@ public static class PlayerActionManager
 
     private static void InvokeInputEvent(PlayerInputType type, bool state, Handedness handedness = Handedness.BOTH)
     {
-        if (!PlayerInputTags.TryGet(PlayerIDManager.LocalSmallID, out var set))
+        if (!NetworkInfo.HasServer)
             return;
-
-        foreach (var tag in set)
+        
+        foreach (var tag in PlayerInputTags.GetAll(PlayerIDManager.LocalSmallID))
         {
             tag.OnInput(type, state, handedness);
         }

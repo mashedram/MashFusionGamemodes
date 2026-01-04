@@ -55,7 +55,16 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     private readonly IEncoder<TKey> _keyEncoder;
     private readonly IRefEncoder<TValue>? _refEncoder;
     private readonly IEncoder<TValue> _valueEncoder;
+    
+    public SyncedDictionary(string name, IEncoder<TKey> keyEncoder, IEncoder<TValue> valueEncoder, INetworkRoute route) : base(name, route)
+    {
+        _keyEncoder = keyEncoder;
+        _valueEncoder = valueEncoder;
 
+        _refEncoder = valueEncoder as IRefEncoder<TValue>;
+
+        MultiplayerHooking.OnJoinedServer += ClearLocal;
+    }
 
     public SyncedDictionary(string name, IEncoder<TKey> keyEncoder, IEncoder<TValue> valueEncoder) : base(name, CommonNetworkRoutes.HostToAll)
     {
@@ -109,7 +118,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     public event ValueChangedHandler? OnValueAdded;
     public event ValueChangedHandler? OnValueChanged;
     public event ValueRemovedHandler? OnValueRemoved;
-    public event ValueClearHandler? OnValueCleared;
+    public event ValueClearHandler? OnValuesCleared;
 
     // Private methods
 
@@ -142,7 +151,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
         var removed = _dictionary.ToImmutableDictionary();
         _dictionary.Clear();
         removed.ForEach(pair => OnValueRemoved?.Invoke(pair.Key, pair.Value));
-        OnValueCleared?.Invoke();
+        OnValuesCleared?.Invoke();
 
         if (sendUpdate)
             Relay(DictionaryEdit<TKey, TValue>.Clear());

@@ -11,6 +11,7 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -47,11 +48,11 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnRegistered()
     {
-        EntityTagManager.RegisterAll<Mod>();
+        EcsManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
 
-        LimitedRespawnTag.RegisterSpectatePredicate<BoneStrike>(_ =>
+        LimitedRespawnComponent.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
             if (AnyDefusers())
                 return true;
@@ -172,12 +173,12 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         const string explosionBarcode = "BaBaCorp.MiscExplosiveDevices.Spawnable.ExplosionSmallMedDamage";
 
-        foreach (var networkEntity in EntityTagManager.GetAllWithTag<BombMarker>())
+        foreach (var entry in BombMarker.Query)
         {
-            var marrow = networkEntity.GetExtender<IMarrowEntityExtender>();
-            if (marrow == null) continue;
-
-            var position = marrow.MarrowEntity.transform.position;
+            if (!entry.Instance.IsReady)
+                return;
+            
+            var position = entry.Instance.MarrowEntity.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
         }
     }
@@ -186,7 +187,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         return NetworkPlayer.Players
             .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasTag<LimitedRespawnTag>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasTag<LimitedRespawnComponent>(tag => !tag.IsEliminated)
             );
     }
 }

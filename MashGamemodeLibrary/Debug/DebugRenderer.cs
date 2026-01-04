@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 #if DEBUG
@@ -16,7 +17,7 @@ public class DebugRenderer
         tex.Apply();
         return tex;
     }
-
+    
     private static void RenderLine(Vector3[] positions, Color color)
     {
         var go = new GameObject("DebugRay");
@@ -39,6 +40,13 @@ public class DebugRenderer
         LineRenderers.Add(go);
     }
 
+    [Conditional("DEBUG")]
+    public static void RenderLine(Vector3 start, Vector3 end, Color? color = null)
+    {
+        RenderLine(new []{ start, end }, color ?? Color.green);
+    }
+
+    [Conditional("DEBUG")]
     public static void RenderCube(Vector3 center, Vector3 size, Color? color = null)
     {
         var half = size / 2f;
@@ -89,6 +97,7 @@ public class DebugRenderer
         RenderLine(edgePoints, color ?? Color.green);
     }
 
+    [Conditional("DEBUG")]
     public static void Clear()
     {
         LineRenderers.ForEach(Object.Destroy);

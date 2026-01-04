@@ -32,7 +32,7 @@ public class ConfigMenu
         var groups = new Dictionary<string, GroupElementData>();
         foreach (var field in _fields)
         {
-            var group = field.Category != null ? groups.GetOrCreate(field.Category, () => new GroupElementData(field.Category)) : root;
+            var group = field.Category != null ? groups.GetValueOrCreate(field.Category, () => new GroupElementData(field.Category)) : root;
             var elementData = field.GetElementData(_instance);
 
             group.AddElement(elementData);

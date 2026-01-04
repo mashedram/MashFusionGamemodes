@@ -1,16 +1,18 @@
 ﻿using Clockhunt.Phase;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Extenders;
-using MashGamemodeLibrary.Entities.Tagging.Base;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Phase.Tags;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ClockLight : EntityTag, IPhaseChangedTag
+public class ClockLight : IComponent, IComponentReady, IPhaseChanged
 {
+    private MarrowEntity? _marrowEntity;
     private GameObject? _lightGo;
 
     public void OnPhaseChange(GamePhase gamePhase)
@@ -26,14 +28,18 @@ public class ClockLight : EntityTag, IPhaseChangedTag
         
         if (_lightGo != null) return;
 
-        var marrow = Entity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity;
-        if (marrow == null) return;
+        if (_marrowEntity == null) return;
 
-        _lightGo = marrow.gameObject.CreateSafeObject("ClockLight");
+        _lightGo = _marrowEntity.gameObject.CreateSafeObject("ClockLight");
         
         var light = _lightGo.AddComponent<Light>();
         light.type = LightType.Point;
         light.color = Color.red;
         light.intensity = 1f;
+    }
+    
+    public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
+    {
+        _marrowEntity = marrowEntity;
     }
 }

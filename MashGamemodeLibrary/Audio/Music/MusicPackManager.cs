@@ -35,7 +35,7 @@ public static class MusicPackManager
 
     private static void RegisterPack(MusicPackTags tag, IMusicPack pack)
     {
-        var packList = TagToDiscs.GetOrCreate(tag, () => new List<string>());
+        var packList = TagToDiscs.GetValueOrCreate(tag, () => new List<string>());
         packList.AddRange(pack.LoadTracks());
     }
 
@@ -60,6 +60,6 @@ public static class MusicPackManager
 
     public static List<string> GetTracks(MusicPackTags tag)
     {
-        return TagToDiscs.GetOrCreate(tag, () => new List<string>());
+        return TagToDiscs.GetValueOrCreate(tag, () => new List<string>());
     }
 }
