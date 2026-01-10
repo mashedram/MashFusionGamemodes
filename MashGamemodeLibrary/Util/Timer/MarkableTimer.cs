@@ -32,6 +32,8 @@ public class MarkableTimer
     private float _timeout;
     private float _timer;
 
+    public float Duration => _timeout;
+
     public MarkableTimer(float timeout, params TimeMarker[] markers)
     {
         _timeout = timeout;

@@ -1,54 +1,56 @@
 ﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Behaviour.Helpers;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.Behaviour;
 
-public delegate void OnAddedDelegate<in THolder, in TBehaviour>(THolder holder, TBehaviour behaviour);
-public delegate void OnRemovedDelegate<in THolder, in TBehaviour>(THolder holder, TBehaviour behaviour);
+public delegate void OnAddedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
+public delegate void OnRemovedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
 
-public interface IBehaviourCache<out TBehaviour>
+public interface IBehaviourCache
+{
+    Type Target { get; }
+    BehaviourMember? TryAdd(IBehaviourHolder holder, IBehaviour behaviour);
+    void TryRemove(BehaviourMember member);
+}
+
+public interface IBehaviourCache<TBehaviour> : IBehaviourCache
     where TBehaviour : IBehaviour
 {
     public bool Contains(ushort entityId);
     public void ForEach(ushort entityId, Action<TBehaviour> onEach);
     public IEnumerable<TBehaviour> GetAll(ushort entityId);
     void ForEach(Action<TBehaviour> onEach);
+    public IBehaviourHolder? GetHolder(TBehaviour behaviour);
+    
+    event OnAddedDelegate<TBehaviour>? OnAdded;
+    event OnRemovedDelegate<TBehaviour>? OnRemoved;
+
+    void ForEach(Action<IBehaviourHolder, TBehaviour> onEach);
 }
 
-public interface IBehaviourCache<out THolder, out TBehaviour> : IBehaviourCache<TBehaviour>
-    where THolder : class, IBehaviourHolder
-    where TBehaviour : IBehaviour 
-{
-    event OnAddedDelegate<THolder, TBehaviour>? OnAdded;
-    event OnRemovedDelegate<THolder, TBehaviour>? OnRemoved;
-
-    void ForEach(Action<THolder, TBehaviour> onEach);
-}
-
-public record HeldBehaviour<THolder, TValue>(THolder Holder, TValue Behaviour)
-    where THolder : class, IBehaviourHolder
+public record HeldBehaviour<TValue>(IBehaviourHolder Holder, TValue Behaviour)
     where TValue : IBehaviour;
 
-public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder, TBehaviour>
-    where TKey : notnull
-    where THolder : class, IBehaviourHolder
+public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
     where TBehaviour : IBehaviour 
 {
-    public event OnAddedDelegate<THolder, TBehaviour>? OnAdded;
-    public event OnRemovedDelegate<THolder, TBehaviour>? OnRemoved;
+    public event OnAddedDelegate<TBehaviour>? OnAdded;
+    public event OnRemovedDelegate<TBehaviour>? OnRemoved;
 
     public Type Target { get; } = typeof(TBehaviour);
+    
+    private readonly Dictionary<ushort, Dictionary<Type, HeldBehaviour<TBehaviour>>> _entityToBehaviourMap = new();
+    private readonly Dictionary<TBehaviour, IBehaviourHolder> _holderLookup = new();
+    private readonly Dictionary<Guid, HeldBehaviour<TBehaviour>> _behaviours = new();
 
-    private readonly Dictionary<ushort, Dictionary<Type, HeldBehaviour<THolder, TBehaviour>>> _entityToBehaviourMap = new();
-    private readonly Dictionary<TBehaviour, THolder> _holderLookup = new();
-    private readonly Dictionary<TKey, HeldBehaviour<THolder, TBehaviour>> _behaviours = new();
-
-    public void Add(TKey key, THolder holder, TBehaviour value)
+    public Guid Add(IBehaviourHolder holder, TBehaviour value)
     {
-        var entry = new HeldBehaviour<THolder, TBehaviour>(holder, value);
-        
+        var entry = new HeldBehaviour<TBehaviour>(holder, value);
+
+        var key = Guid.NewGuid();
         _behaviours.Add(key, entry);
         _entityToBehaviourMap
             .GetValueOrCreate(holder.EntityId)
@@ -56,12 +58,14 @@ public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder
         _holderLookup.Add(value, holder);
         
         OnAdded?.Try(v => v.Invoke(holder, value));
+
+        return key;
     }
 
-    public void Remove(TKey key)
+    public bool Remove(Guid id)
     {
-        if (!_behaviours.Remove(key, out var entry))
-            return;
+        if (!_behaviours.Remove(id, out var entry))
+            return false;
 
         if (_entityToBehaviourMap.TryGetValue(entry.Holder.EntityId, out var behaviours))
         {
@@ -72,6 +76,8 @@ public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder
         _holderLookup.Remove(entry.Behaviour);
         
         OnRemoved?.Try(v => v.Invoke(entry.Holder, entry.Behaviour));
+        
+        return true;
     }
 
     public void Clear()
@@ -87,7 +93,7 @@ public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder
         _holderLookup.Clear();
     }
 
-    private IEnumerable<HeldBehaviour<THolder, TBehaviour>> GetReadyEntries()
+    private IEnumerable<HeldBehaviour<TBehaviour>> GetReadyEntries()
     {
         return _behaviours.Values.Where(kvp => kvp.Holder.IsReady);
     }
@@ -122,7 +128,7 @@ public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder
         }
     }
 
-    public void ForEach(Action<THolder, TBehaviour> onEach)
+    public void ForEach(Action<IBehaviourHolder, TBehaviour> onEach)
     {
         foreach (var componentsValue in GetReadyEntries())
         {
@@ -130,8 +136,26 @@ public class BehaviourCache<TKey, THolder, TBehaviour> : IBehaviourCache<THolder
         }
     }
 
-    public THolder? GetHolder(TBehaviour behaviour)
+    public IBehaviourHolder? GetHolder(TBehaviour behaviour)
     {
         return _holderLookup.GetValueOrDefault(behaviour);
+    }
+    
+    public BehaviourMember? TryAdd(IBehaviourHolder holder, IBehaviour behaviour)
+    {
+        if (behaviour is not TBehaviour typedBehaviour)
+            return null;
+
+        var key = Add(holder, typedBehaviour);
+        return new BehaviourMember(key, typedBehaviour, this);
+    }
+    
+    public void TryRemove(BehaviourMember member)
+    {
+        if (member.Cache.Target != Target)
+            return;
+        
+        member.InCache = false;
+        Remove(member.ID);
     }
 }

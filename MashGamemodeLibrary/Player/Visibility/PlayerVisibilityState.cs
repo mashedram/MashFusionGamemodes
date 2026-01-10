@@ -56,6 +56,7 @@ internal class PlayerVisibilityState
     {
         if (!grabData.IsHoldingItem(out var item)) return;
 
+        // TODO: Hide magazines in guns
         var set = new RenderSet(item.GameObject, IsHidden);
 
         _heldItems[grabData.Hand.handedness] = set;

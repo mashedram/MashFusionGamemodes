@@ -9,6 +9,7 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;
@@ -151,9 +152,9 @@ public static class PlayerGrabManager
     
     // Caches
 
-    private static readonly EcsBehaviourCache<IGrabCallback> GrabCallbackCache = EcsManager.CreateBehaviorCache<IGrabCallback>();
-    private static readonly EcsBehaviourCache<IDropCallback> DropCallbackCache = EcsManager.CreateBehaviorCache<IDropCallback>();
-    private static readonly EcsBehaviourCache<IGrabPredicate> GrabPredicateCache = EcsManager.CreateBehaviorCache<IGrabPredicate>();
+    private static readonly IBehaviourCache<IGrabCallback> GrabCallbackCache = BehaviourManager.CreateCache<IGrabCallback>();
+    private static readonly IBehaviourCache<IDropCallback> DropCallbackCache = BehaviourManager.CreateCache<IDropCallback>();
+    private static readonly IBehaviourCache<IGrabPredicate> GrabPredicateCache = BehaviourManager.CreateCache<IGrabPredicate>();
     //
 
     static PlayerGrabManager()

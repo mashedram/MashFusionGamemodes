@@ -2,10 +2,13 @@
 using System.Reflection;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Helpers;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 
 namespace MashGamemodeLibrary.Entities.ECS.Caches;
@@ -17,6 +20,8 @@ public class ComponentInstance : IBehaviourHolder
     public readonly EcsIndex Index;
     public readonly Type ComponentType;
     public readonly IComponent Component;
+
+    public Guid Guid { get; } = Guid.NewGuid();
     
     public readonly bool IsNetworked;
     public readonly bool PlayerOnly;
@@ -34,6 +39,9 @@ public class ComponentInstance : IBehaviourHolder
         throw new InvalidOperationException("ComponentInstance is not ready");
 
     private List<Action<NetworkEntity, MarrowEntity>> _readyCallbacks = new();
+
+    private CacheKey? _cacheKey;
+    private List<BehaviourMember>? _behaviourMembers = null;
     
     public ComponentInstance(EcsIndex index, IComponent component)
     {
@@ -48,6 +56,11 @@ public class ComponentInstance : IBehaviourHolder
         {
             _componentTarget = new ComponentTarget(entity, marrowEntity);
             
+            // Unregister hooks
+            entity.OnEntityUnregistered += OnUnregistered;
+            _cacheKey = CachedQueryManager.Add(Component);
+            _behaviourMembers = BehaviourManager.Add(this, component);
+            
             // Invoke callbacks
             foreach (var readyCallback in _readyCallbacks)
             {
@@ -55,6 +68,11 @@ public class ComponentInstance : IBehaviourHolder
             }
             _readyCallbacks.Clear();
         });
+    }
+
+    ~ComponentInstance()
+    {
+        Remove();
     }
 
     public void HookOnReady(Action<NetworkEntity, MarrowEntity> callback)
@@ -83,5 +101,24 @@ public class ComponentInstance : IBehaviourHolder
 
         component = default;
         return false;
+    }
+
+    private void OnUnregistered(NetworkEntity networkEntity)
+    {
+        if (_behaviourMembers != null) 
+            BehaviourManager.RemoveAll(_behaviourMembers);
+        
+        _cacheKey?.Remove();
+        LocalEcsCache.Remove(Index);
+        NetworkEntity.OnEntityUnregistered -= OnUnregistered;
+        _componentTarget = null;
+    }
+
+    public void Remove()
+    {
+        if (_componentTarget == null)
+            return;
+        
+        OnUnregistered(NetworkEntity);
     }
 }

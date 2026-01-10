@@ -20,8 +20,8 @@ public static class PlayerActionManager
 {
     private static readonly Dictionary<Handedness, bool> LastGripStateMap = new();
 
-    private static readonly IBehaviourCache<IPlayerActionCallback> PlayerActionTags = EcsManager.CreateBehaviorCache<IPlayerActionCallback>();
-    private static readonly IBehaviourCache<IPlayerInputCallback> PlayerInputTags = EcsManager.CreateBehaviorCache<IPlayerInputCallback>();
+    private static readonly IBehaviourCache<IPlayerActionCallback> PlayerActionTags = BehaviourManager.CreateCache<IPlayerActionCallback>();
+    private static readonly IBehaviourCache<IPlayerInputCallback> PlayerInputTags = BehaviourManager.CreateCache<IPlayerInputCallback>();
 
     static PlayerActionManager()
     {
@@ -73,9 +73,6 @@ public static class PlayerActionManager
         if (!NetworkInfo.HasServer)
             return;
         
-        foreach (var tag in PlayerInputTags.GetAll(PlayerIDManager.LocalSmallID))
-        {
-            tag.OnInput(type, state, handedness);
-        }
+        PlayerInputTags.ForEach(tag => tag.OnInput(type, state, handedness));
     }
 }

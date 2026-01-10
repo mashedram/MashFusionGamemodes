@@ -180,13 +180,13 @@ public class HuntPhase : GamePhase, ITimedPhase
         {
             var clockCount = ObjectiveCollectable.Query.Count();
             var clocks = ObjectiveCollectable.Query
-                .Where(entry => entry.Instance.IsReady && entry.Component.IsGrabbed);
+                .Where(entry => entry.IsGrabbed);
 
             foreach (var networkEntity in from entry in clocks
-                     let marrowEntity = entry.Instance.MarrowEntity
+                     let marrowEntity = entry.MarrowEntity
                      let distance = Vector3.Distance(marrowEntity.transform.position, DeliveryPosition)
                      where distance <= Clockhunt.Config.DeliveryDistance
-                     select entry.Instance.NetworkEntity)
+                     select entry.NetworkEntity)
             {
                 NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
                 {

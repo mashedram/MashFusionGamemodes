@@ -7,7 +7,7 @@ using LabFusion.Senders;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
-using MashGamemodeLibrary.Entities.ECS.Query;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -32,7 +32,7 @@ internal class RespawnCountPacket : INetSerializable
 
 public class LimitedRespawnComponent : IComponentRemoved, IComponentPlayerReady, IPlayerActionCallback
 {
-    public static readonly CachedQuery<LimitedRespawnComponent> Query = EcsManager.CacheQuery<LimitedRespawnComponent>();
+    public static readonly CachedQuery<LimitedRespawnComponent> Query = CachedQueryManager.Create<LimitedRespawnComponent>();
     
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);

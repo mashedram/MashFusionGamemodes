@@ -9,7 +9,6 @@ using LabFusion.Player;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.ECS;
-using MashGamemodeLibrary.Entities.ECS.Query;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -63,16 +62,13 @@ public class DefusePhase : GamePhase
         var bomb = BombMarker.Query.FirstOrDefault();
         if (bomb != null)
         {
-            bomb.Instance.HookOnReady((_, marrowEntity) =>
+            foreach (var entry in PlayerHandTimerTag.Query)
             {
-                foreach (var entry in PlayerHandTimerTag.Query)
-                {
-                    entry.Component.Target = marrowEntity.gameObject;
-                }
+                entry.Target = bomb.MarrowEntity.gameObject;
+            }
                 
-                if (BoneStrike.Config.UseDynamicSpawns)
-                    DynamicSpawnCollector.CollectAt(marrowEntity.transform.position, BoneStrike.Config.DynamicSpawnRange);
-            });
+            if (BoneStrike.Config.UseDynamicSpawns)
+                DynamicSpawnCollector.CollectAt(bomb.MarrowEntity.transform.position, BoneStrike.Config.DynamicSpawnRange);
         }
         else
         {
@@ -115,8 +111,7 @@ public class DefusePhase : GamePhase
 
         var clockPositions = BombMarker
             .Query
-            .Where(q => q.Instance.IsReady)
-            .Select(n => n.Instance.MarrowEntity)
+            .Select(n => n.MarrowEntity)
             .Select(m => m.transform.position)
             .ToList();
 
@@ -137,6 +132,9 @@ public class DefusePhase : GamePhase
 
     private static void DropClock()
     {
+        if (!TeamManager.IsLocalTeam<TerroristTeam>())
+            return;
+        
         foreach (var gripWithHand in PlayerGrabManager.GetLocalHandsHoldingTag<BombMarker>())
         {
             gripWithHand.Hand.TryDetach();

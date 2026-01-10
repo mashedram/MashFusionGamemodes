@@ -1,12 +1,10 @@
 ﻿using LabFusion.Entities;
 using LabFusion.Extensions;
+using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Entities.ECS.Integration;
-using MashGamemodeLibrary.Entities.ECS.Query;
-using UnityEngine.SocialPlatforms;
 
 namespace MashGamemodeLibrary.Entities.ECS;
 
@@ -14,33 +12,32 @@ public static class EcsManager
 {
     // Internal caches
 
-    private static readonly EcsBehaviourCache<IComponentReady> ComponentReadyCache = CreateBehaviorCache<IComponentReady>();
-    private static readonly EcsBehaviourCache<IComponentPlayerReady> ComponentPlayerReadyCache = CreateBehaviorCache<IComponentPlayerReady>();
+    private static readonly IBehaviourCache<IComponentReady> ComponentReadyCache = BehaviourManager.CreateCache<IComponentReady>();
+    private static readonly IBehaviourCache<IComponentPlayerReady> ComponentPlayerReadyCache = BehaviourManager.CreateCache<IComponentPlayerReady>();
     
-    private static readonly EcsBehaviourCache<IComponentUpdate> ComponentUpdateCache = CreateBehaviorCache<IComponentUpdate>();
-    private static readonly EcsBehaviourCache<IComponentRemoved> ComponentRemovedCache = CreateBehaviorCache<IComponentRemoved>();
+    private static readonly IBehaviourCache<IComponentUpdate> ComponentUpdateCache = BehaviourManager.CreateCache<IComponentUpdate>();
+    private static readonly IBehaviourCache<IComponentRemoved> ComponentRemovedCache = BehaviourManager.CreateCache<IComponentRemoved>();
 
     static EcsManager()
     {
         ComponentReadyCache.OnAdded += (instance, component) =>
         {
-            instance.HookOnReady(component.OnReady);
+            component.NetworkEntity = instance.NetworkEntity;
+            component.MarrowEntity = instance.MarrowEntity;
+            component.OnReady(instance.NetworkEntity, instance.MarrowEntity);
         };
 
         ComponentPlayerReadyCache.OnAdded += (instance, component) =>
         {
-            instance.HookOnReady((networkEntity, marrowEntity) =>
-            {
-                if (!NetworkPlayerManager.TryGetPlayer((byte)networkEntity.ID, out var networkPlayer))
-                    return;
+            if (!NetworkPlayerManager.TryGetPlayer((byte)instance.NetworkEntity.ID, out var networkPlayer))
+                return;
 
-                component.OnReady(networkPlayer, marrowEntity);
-            });
+            component.OnReady(networkPlayer, instance.MarrowEntity);
         };
 
         ComponentRemovedCache.OnRemoved += (instance, component) =>
         {
-            component.OnRemoved(instance.Index.EntityID.GetEntity());
+            component.OnRemoved(instance.NetworkEntity);
         };
     }
 
@@ -54,16 +51,6 @@ public static class EcsManager
     public static void RegisterAll<T>()
     {
         LocalEcsCache.Registry.RegisterAll<T>();
-    }
-    
-    public static EcsBehaviourCache<T> CreateBehaviorCache<T>() where T : IBehaviour
-    {
-        return LocalEcsCache.CreateBehaviorCache<T>();
-    }
-    
-    public static CachedQuery<T> CacheQuery<T>() where T : IComponent
-    {
-        return LocalEcsCache.CacheQuery<T>();
     }
 
     public static void AddComponent(this NetworkEntity entity, IComponent component)

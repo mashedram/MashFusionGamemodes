@@ -6,7 +6,7 @@ namespace MashGamemodeLibrary.Entities.ECS.Declerations;
 public interface IBehaviourHolder
 {
     ushort EntityId { get; }
-    NetworkEntity? NetworkEntity { get; }
-    MarrowEntity? MarrowEntity { get; }
+    NetworkEntity NetworkEntity { get; }
+    MarrowEntity MarrowEntity { get; }
     bool IsReady { get; }
 }

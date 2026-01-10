@@ -7,7 +7,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
-using MashGamemodeLibrary.Entities.ECS.Query;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace BoneStrike.Tags;
 [LocalOnly]
 public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
 {
-    public static readonly CachedQuery<PlayerHandTimerTag> Query = EcsManager.CacheQuery<PlayerHandTimerTag>();
+    public static readonly CachedQuery<PlayerHandTimerTag> Query = CachedQueryManager.Create<PlayerHandTimerTag>();
     
     private Transform? _compasPointer;
     private bool _isSpawning;

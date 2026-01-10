@@ -37,7 +37,9 @@ public class ClockLight : IComponent, IComponentReady, IPhaseChanged
         light.color = Color.red;
         light.intensity = 1f;
     }
-    
+
+    public NetworkEntity NetworkEntity { get; set; } = null!;
+    public MarrowEntity MarrowEntity { get; set; }
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;

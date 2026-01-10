@@ -35,7 +35,7 @@ public class EscapePhase : GamePhase, ITimedPhase
             PlayerEscapeTag.EscapePosition.Value = escapePoint;
             LimitedRespawnComponent.Query.ForEach(entry =>
             {
-                entry.Component.SetRespawns(0);
+                entry.SetRespawns(0);
             });
             
             var context = Clockhunt.Context;

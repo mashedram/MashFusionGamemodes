@@ -175,10 +175,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         foreach (var entry in BombMarker.Query)
         {
-            if (!entry.Instance.IsReady)
-                return;
-            
-            var position = entry.Instance.MarrowEntity.transform.position;
+            var position = entry.MarrowEntity.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
         }
     }

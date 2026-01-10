@@ -4,10 +4,10 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Helpers;
 using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Entities.ECS.Integration;
-using MashGamemodeLibrary.Entities.ECS.Query;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
@@ -20,38 +20,6 @@ using UnityEngine.SocialPlatforms;
 
 namespace MashGamemodeLibrary.Entities.ECS.Caches;
 
-internal class InheritanceCache
-{
-    private HashSet<Type> _baseTypes = new();
-    private Dictionary<Type, HashSet<Type>> _dictionary = new();
-
-    public void AddComponent(ComponentInstance componentInstance)
-    {
-        var t = componentInstance.ComponentType;
-        
-        if (_dictionary.ContainsKey(t))
-            return;
-
-        var baseComponents = t.GetInterfaces();
-        foreach (var baseComponent in baseComponents)
-        {
-            if (!baseComponent.IsAssignableTo(typeof(IBehaviour)))
-                continue;
-
-            _baseTypes.Add(baseComponent);
-            _dictionary
-                .GetValueOrCreate(t, () => new HashSet<Type>())
-                .Add(baseComponent);
-
-        }
-    }
-
-    public IEnumerable<Type> GetBaseComponentTypes(ComponentInstance component)
-    {
-        return _dictionary.TryGetValue(component.Component.GetType(), out var set) ? set : Array.Empty<Type>();
-    }
-}
-
 internal static class LocalEcsCache
 {
     // Caches
@@ -60,15 +28,6 @@ internal static class LocalEcsCache
 
     private static readonly Dictionary<ushort, Dictionary<Type, ComponentInstance>> ComponentLookup = new();
     private static readonly Dictionary<Type, HashSet<ushort>> NetworkEntityLookup = new();
-    
-    private static readonly Dictionary<ushort, ECSExtender> EcsExtenders = new();
-
-    private static readonly InheritanceCache InheritanceCache = new InheritanceCache();
-    private static readonly Dictionary<Type, IEscTargetedCache> TargetedCaches = new();
-    
-    // Queries
-
-    private static readonly Dictionary<Type, ICachedQuery> CachedQueries = new();
     
     // Networking
     
@@ -102,27 +61,7 @@ internal static class LocalEcsCache
         Remove(key);
     }
     
-    // Cache Queries
-    
-    public static EcsBehaviourCache<T> CreateBehaviorCache<T>() where T : IBehaviour
-    {
-        var cache = new EcsBehaviourCache<T>();
-        TargetedCaches.Add(typeof(T), cache);
-        return cache;
-    }
-
-    public static CachedQuery<T> CacheQuery<T>() where T : IComponent
-    {
-        return (CachedQuery<T>)CachedQueries.GetValueOrCreate(typeof(T), () => new CachedQuery<T>());
-    }
-    
     // Methods
-
-    private static IEnumerable<IEscTargetedCache> GetTargetedCaches(ComponentInstance componentInstance)
-    {
-        var baseTypes = InheritanceCache.GetBaseComponentTypes(componentInstance);
-        return baseTypes.Select(baseType => TargetedCaches.GetValueOrDefault(baseType)).OfType<IEscTargetedCache>();
-    }
     
     public static void Add(ComponentInstance componentInstance)
     {
@@ -143,18 +82,6 @@ internal static class LocalEcsCache
         NetworkEntityLookup
             .GetValueOrCreate(componentInstance.Component.GetType())
             .Add(index.EntityID.ID);
-
-        InheritanceCache.AddComponent(componentInstance);
-        EcsExtenders
-            .GetValueOrCreate(index.EntityID.ID, () => new ECSExtender(index.EntityID))
-            .AddComponent(componentInstance);
-        
-        GetTargetedCaches(componentInstance).ForEach(cache => cache.Add(index, componentInstance));
-
-        if (CachedQueries.TryGetValue(componentInstance.ComponentType, out var cachedQuery))
-        {
-            cachedQuery.TryAdd(componentInstance);
-        }
         
         // Networking
         if (!componentInstance.IsNetworked)
@@ -173,23 +100,10 @@ internal static class LocalEcsCache
         if (!LocalComponents.Remove(index, out var instance))
             return;
 
+        instance.Remove();
+        
         ComponentLookup.GetValueOrDefault(index.EntityID.ID)?.Remove(instance.ComponentType);
         NetworkEntityLookup.GetValueOrDefault(instance.ComponentType)?.Remove(index.EntityID.ID);
-
-        var extender = EcsExtenders[index.EntityID.ID];
-        extender.RemoveComponent(index);
-        if (extender.IsEmpty())
-        {
-            extender.Disconnect();
-            EcsExtenders.Remove(index.EntityID.ID);
-        }
-        
-        GetTargetedCaches(instance).ForEach(cache => cache.Remove(index));
-        
-        if (CachedQueries.TryGetValue(instance.ComponentType, out var cachedQuery))
-        {
-            cachedQuery.Remove(index);
-        }
         
         if (!NetworkInfo.IsHost)
             return;
@@ -223,10 +137,8 @@ internal static class LocalEcsCache
     public static void Clear()
     {
         LocalComponents.Clear();
-        EcsExtenders.Clear();
         ComponentLookup.Clear();
         NetworkEntityLookup.Clear();
-        TargetedCaches.Values.ForEach(cache => cache.Clear());
         
         if (NetworkInfo.IsHost)
             NetworkComponents.Clear();

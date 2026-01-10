@@ -1,5 +1,6 @@
 ﻿using BoneStrike;
 using LabFusion.SDK.Modules;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MelonLoader;
@@ -20,5 +21,7 @@ public class Mod : MelonMod
         ModuleManager.RegisterModule<FusionModule>();
 
         RemoteEventMessageHandler.RegisterMod<Mod>();
+        
+        CachedQueryManager.Register<Mod>();
     }
 }

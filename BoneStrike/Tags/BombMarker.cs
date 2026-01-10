@@ -5,7 +5,7 @@ using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Entities.ECS.Query;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
 using UnityEngine;
 
@@ -13,7 +13,7 @@ namespace BoneStrike.Tags;
 
 public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged
 {
-    public static readonly CachedQuery<BombMarker> Query = EcsManager.CacheQuery<BombMarker>();
+    public static readonly CachedQuery<BombMarker> Query = CachedQueryManager.Create<BombMarker>();
     
     private const float MaxVelocitySquared = 1000f;
 
@@ -21,6 +21,8 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     private Vector3? _returnPosition;
     private List<Rigidbody>? _rigidbodies;
 
+    public NetworkEntity NetworkEntity { get; set; }
+    public MarrowEntity MarrowEntity { get; set; }
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;

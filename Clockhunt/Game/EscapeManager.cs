@@ -26,8 +26,7 @@ public static class EscapeManager
     private static IEnumerable<Vector3> GetEscapePoints()
     {
         var markers = ClockMarker.Query
-            .Where(entry => entry.Instance.IsReady)
-            .Select(entry => entry.Instance.NetworkEntity!).
+            .Select(entry => entry.NetworkEntity).
             ToList();
 
         if (markers is { Count: > 0 })

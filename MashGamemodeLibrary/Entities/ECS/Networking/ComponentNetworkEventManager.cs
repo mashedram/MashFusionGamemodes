@@ -1,5 +1,6 @@
 ﻿using LabFusion.Math;
 using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Data;
@@ -11,7 +12,7 @@ namespace MashGamemodeLibrary.Entities.ECS.Networking;
 
 public class NetEventCarrier
 {
-    public EcsIndex Index;
+    public EcsIndex EcsIndex;
     public byte EventIndex;
     public int Size;
     public Action<NetWriter> Writer;
@@ -19,7 +20,7 @@ public class NetEventCarrier
 
 public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
 {
-    private static readonly EcsBehaviourCache<INetworkEvents> NetworkBehaviourCache = EcsManager.CreateBehaviorCache<INetworkEvents>();
+    private static readonly IBehaviourCache<INetworkEvents> NetworkBehaviourCache = BehaviourManager.CreateCache<INetworkEvents>();
     // Handlers
     
     public ComponentNetworkEventManager() : base("sync.ECS.netevents", CommonNetworkRoutes.AllToAll)
@@ -29,7 +30,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
     public void Send(INetworkEvents networkEvents, byte eventIndex, int size, Action<NetWriter> writer)
     {
         var holder = NetworkBehaviourCache.GetHolder(networkEvents);
-        if (holder == null)
+        if (holder is not ComponentInstance componentInstance)
         {
             InternalLogger.Debug($"Could not find: {networkEvents.GetType().FullName} in lookup");
             return;
@@ -37,7 +38,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
         
         Relay(new NetEventCarrier()
         {
-            Index = holder.Index,
+            EcsIndex = componentInstance.Index,
             EventIndex = eventIndex,
             Size = size,
             Writer = writer
@@ -46,12 +47,12 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
     
     protected override int? GetSize(NetEventCarrier data)
     {
-        return data.Index.GetSize() + sizeof(byte) + data.Size;
+        return data.EcsIndex.GetSize() + sizeof(byte) + data.Size;
     }
     
     protected override void Write(NetWriter writer, NetEventCarrier data)
     {
-        data.Index.Serialize(writer);
+        data.EcsIndex.Serialize(writer);
         writer.Write(data.EventIndex);
 
         data.Writer(writer);

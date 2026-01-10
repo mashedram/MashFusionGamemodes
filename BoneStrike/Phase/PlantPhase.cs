@@ -86,9 +86,6 @@ public class PlantPhase : GamePhase
 
         if (PlayerGrabManager.IsHolding<BombMarker>(player.RigRefs.GetHand(handedness)))
         {
-            if (ElapsedTime < 15f)
-                return;
-
             PhaseShouldQuit.Value = true;
         }
         else
@@ -120,7 +117,7 @@ public class PlantPhase : GamePhase
         var bombs = BombMarker.Query;
         foreach (var entry in bombs)
         {
-            var networkEntity = entry.Instance.NetworkEntity;
+            var networkEntity = entry.NetworkEntity;
             var grip = networkEntity.GetExtender<GripExtender>();
             if (grip == null)
                 continue;

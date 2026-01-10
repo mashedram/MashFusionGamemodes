@@ -47,13 +47,13 @@ public static class FrogJumpscare
         var cameraPos = Camera.main?.transform.position;
         if (cameraPos == null) return;
 
-        foreach (var entry in ClockMarker.Query.Where(entry => entry.Instance.IsReady))
+        foreach (var entry in ClockMarker.Query)
         {
-            var marrowEntity = entry.Instance.MarrowEntity!;
+            var marrowEntity = entry.MarrowEntity;
             var distance = Vector3.Distance(marrowEntity.transform.position, (Vector3)cameraPos);
             if (distance > 8f) continue;
 
-            PlayJumpscare(entry.Instance.NetworkEntity!);
+            PlayJumpscare(entry.NetworkEntity!);
             break;
         }
     }

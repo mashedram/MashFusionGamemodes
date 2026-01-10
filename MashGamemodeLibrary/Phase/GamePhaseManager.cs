@@ -4,6 +4,7 @@ using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;
@@ -27,7 +28,7 @@ public static class GamePhaseManager
     
     // Behavior Helpers
 
-    private static readonly EcsBehaviourCache<IPhaseChanged> PhaseChangedBehaviours = EcsManager.CreateBehaviorCache<IPhaseChanged>();
+    private static readonly IBehaviourCache<IPhaseChanged> PhaseChangedBehaviours = BehaviourManager.CreateCache<IPhaseChanged>();
 
     // Action Logic
 

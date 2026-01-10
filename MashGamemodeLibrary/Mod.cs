@@ -58,6 +58,7 @@ public class Mod : MelonMod
         PlayerHider.Update();
         PlayerActionManager.Update();
         ConfigManager.Update();
+        SpawnHelper.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif

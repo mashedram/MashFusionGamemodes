@@ -78,7 +78,9 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     {
         serializer.SerializeValue(ref _timer);
     }
-    
+
+    public NetworkEntity NetworkEntity { get; set; }
+    public MarrowEntity MarrowEntity { get; set; }
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         SpawnTimer(marrowEntity.transform);

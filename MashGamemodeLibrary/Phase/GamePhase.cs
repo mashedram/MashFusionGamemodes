@@ -10,8 +10,8 @@ public abstract class GamePhase
 
     // Implementation
 
-    private float? _internalDuration;
     private MarkableTimer? _timer;
+    private float? InternalDuration => _timer?.Duration;
     public abstract string Name { get; }
     public bool IsActive { get; private set; }
     public abstract float Duration { get; }
@@ -57,9 +57,8 @@ public abstract class GamePhase
 
     public void Update(float delta)
     {
-        if (!Equals(_internalDuration, Duration))
+        if (_timer != null && !Equals(InternalDuration, Duration))
         {
-            _internalDuration = Duration;
             _timer?.SetTimeout(Duration);
         }
 
@@ -71,7 +70,6 @@ public abstract class GamePhase
     {
         IsActive = true;
 
-        _internalDuration = Duration;
         _timer ??= new MarkableTimer(Duration, Markers);
         _timer.Reset();
 

@@ -60,8 +60,8 @@ public static class ClockManager
         if (toRemove <= 0) return;
 
         var survivorClocks = clocks
-            .Where(e => e.Component.Owner != null &&
-                        !NightmareManager.IsNightmare(e.Component.Owner.PlayerID)).ToList();
+            .Where(e => e.Owner != null &&
+                        !NightmareManager.IsNightmare(e.Owner.PlayerID)).ToList();
 
         survivorClocks.Shuffle();
 
@@ -70,7 +70,7 @@ public static class ClockManager
             NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
             {
                 DespawnEffect = true,
-                EntityID = clock.Instance.EntityId
+                EntityID = clock.NetworkEntity.ID
             });
             toRemove--;
             if (toRemove <= 0)
