@@ -5,24 +5,16 @@ using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Loaders;
 
-public class MonoDiscLoader : IAudioLoader
+public class AudioBinLoader : IAudioLoader
 {
-    public MonoDiscLoader(AudioBin audioBin)
-    {
-        AudioNames = audioBin.GetAll();
-    }
+    private readonly AudioBin _audioBin;
     
-    public MonoDiscLoader(IEnumerable<string> monoDiscs)
+    public AudioBinLoader(AudioBin audioBin)
     {
-        AudioNames = monoDiscs.ToList();
+        _audioBin = audioBin;
     }
 
-    public MonoDiscLoader(IEnumerable<MonoDiscReference> monoDiscs)
-    {
-        AudioNames = monoDiscs.Select(v => v._barcode.ID).ToList();
-    }
-
-    public IReadOnlyList<string> AudioNames { get; }
+    public IReadOnlyList<string> AudioNames => _audioBin.GetAll();
 
     public void RefreshNames()
     {

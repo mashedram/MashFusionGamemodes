@@ -37,7 +37,7 @@ public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayReques
         Play(name, position);
     }
 
-    protected override bool Modifier(PositionalAudioPlayRequest data, ref AudioSource source)
+    protected override bool Modifier(PositionalAudioPlayRequest data, AudioSource source)
     {
         source.gameObject.transform.position = data.Position;
 

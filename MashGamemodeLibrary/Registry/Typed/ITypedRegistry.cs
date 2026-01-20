@@ -10,7 +10,9 @@ public interface ITypedRegistry<TValue> : IKeyable<TValue> where TValue : notnul
     public Type? GetType(ulong id);
     public bool TryGetType(ulong id, [MaybeNullWhen(false)] out Type type);
     public TValue? Get(ulong id);
+    public TValue? Get(Type type);
     public T? Get<T>() where T : TValue;
     public bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry);
+    public bool TryGet(Type type, [MaybeNullWhen(false)] out TValue entry);
     public bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue;
 }

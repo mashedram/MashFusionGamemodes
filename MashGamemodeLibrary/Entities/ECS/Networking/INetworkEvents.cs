@@ -5,7 +5,7 @@ namespace MashGamemodeLibrary.Entities.ECS.Networking;
 
 public interface INetworkEvents : IBehaviour
 {
-    void OnEvent(byte eventIndex, NetReader reader);
+    void OnEvent(byte senderId, byte eventIndex, NetReader reader);
 }
 
 public static class NetworkEventsExtender

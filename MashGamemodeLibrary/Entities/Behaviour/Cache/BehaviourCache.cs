@@ -51,11 +51,9 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
         var entry = new HeldBehaviour<TBehaviour>(holder, value);
 
         var key = Guid.NewGuid();
-        _behaviours.Add(key, entry);
-        _entityToBehaviourMap
-            .GetValueOrCreate(holder.EntityId)
-            .Add(entry.Behaviour.GetType(), entry);
-        _holderLookup.Add(value, holder);
+        _behaviours[key] = entry;
+        _entityToBehaviourMap.GetValueOrCreate(holder.EntityId)[entry.Behaviour.GetType()] = entry;
+        _holderLookup[value] = holder;
         
         OnAdded?.Try(v => v.Invoke(holder, value));
 

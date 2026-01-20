@@ -41,7 +41,7 @@ public class ObjectAudioPlayer : SyncedAudioPlayer<ObjectAudioPlayRequest>, IRan
         Play(name, entity);
     }
 
-    protected override bool Modifier(ObjectAudioPlayRequest data, ref AudioSource source)
+    protected override bool Modifier(ObjectAudioPlayRequest data, AudioSource source)
     {
         if (!new NetworkEntityReference(data.NetworkEntityId).TryGetEntity(out var networkEntity)) return false;
 

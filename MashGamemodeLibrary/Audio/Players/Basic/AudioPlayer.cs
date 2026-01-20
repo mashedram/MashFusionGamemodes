@@ -17,7 +17,7 @@ public class AudioPlayer : IRandomAudioPlayer
         SourceProvider = sourceProvider;
     }
 
-    private IEnumerable<string> AudioNames => Container.AudioNames;
+    private IReadOnlyList<string> AudioNames => Container.AudioNames;
 
     public bool IsPlaying => SourceProvider.IsPlaying;
 
@@ -33,7 +33,7 @@ public class AudioPlayer : IRandomAudioPlayer
 
     public string GetRandomAudioName()
     {
-        return AudioNames.GetRandom();
+        return AudioNames.Count > 0 ? AudioNames.GetRandom() : "";
     }
 
     public void Stop()

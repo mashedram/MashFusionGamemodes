@@ -6,6 +6,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.ECS;
@@ -21,6 +22,7 @@ using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util.Timer;
 using MelonLoader;
 using ExecutionContext = MashGamemodeLibrary.Execution.ExecutionContext;
+using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike.Phase;
 
@@ -85,25 +87,31 @@ public class DefusePhase : GamePhase
     {
         if (action == PlayerGameActions.Respawned && playerId.IsMe)
         {
-            PalletLoadoutManager.ReassignOwnLoadout();
+            SlotData.ClearSpawned();
+            Executor.RunCheckedInFuture(PalletLoadoutManager.ReassignOwnLoadout, TimeSpan.FromSeconds(1));
             return;
         }
         
-        if (!BoneStrike.Config.UseDynamicSpawns)
-            return;
-
         if (!playerId.IsMe)
             return;
 
         if (action != PlayerGameActions.Dying)
             return;
+        
+        if (!BoneStrike.IsInRound) {
+            FusionPlayer.ResetSpawnPoints();
+            return;
+        }
 
         var lives = EcsManager.GetComponent<LimitedRespawnComponent>(playerId.SmallID);
-        if (lives is { Respawns: <= 1 })
+        if (lives is { Respawns: <= 0 })
         {
             FusionPlayer.ResetSpawnPoints();
             return;
         }
+        
+        if (!BoneStrike.Config.UseDynamicSpawns)
+            return;
 
         var enemyPositions = NetworkPlayer.Players
             .Where(p => p.HasRig && p.PlayerID.IsEnemy())
@@ -121,9 +129,11 @@ public class DefusePhase : GamePhase
         DynamicSpawnCollector.SetRandomSpawn(
             spawnSearchTries,
             canReach,
+            new AvoidSpawningNear(canReach, BoneStrike.Config.DynamicSpawnDistanceFromObjective),
             enemyPositions
                 .Union(
                     clockPositions
+                        .Skip(1)
                         .Select(p => new AvoidSpawningNear(p, BoneStrike.Config.DynamicSpawnDistanceFromObjective))
                 )
                 .ToArray()

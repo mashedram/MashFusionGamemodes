@@ -20,8 +20,6 @@ public class Mod : MelonMod
         if (fusionMod == null) return;
         ModuleManager.RegisterModule<FusionModule>();
 
-        RemoteEventMessageHandler.RegisterMod<Mod>();
-        
-        CachedQueryManager.Register<Mod>();
+        MashGamemodeLibrary.Mod.Register<Mod>();
     }
 }

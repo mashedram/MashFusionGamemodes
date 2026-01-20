@@ -110,6 +110,10 @@ public class ComponentInstance : IBehaviourHolder
         
         _cacheKey?.Remove();
         LocalEcsCache.Remove(Index);
+        
+        if (_componentTarget == null)
+            return;
+        
         NetworkEntity.OnEntityUnregistered -= OnUnregistered;
         _componentTarget = null;
     }

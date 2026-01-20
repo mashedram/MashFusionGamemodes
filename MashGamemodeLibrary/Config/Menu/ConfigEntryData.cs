@@ -71,9 +71,10 @@ public record ConfigEntryData
         return (target, value) =>
         {
             target._overwrite = value;
-            target.FieldInfo.SetValue(config, value);
-
-            ConfigManager.OnValueChanged(config);
+            ConfigManager.SetLocalConfig(config, localConfig =>
+            {
+                target.FieldInfo.SetValue(localConfig, value);
+            });
         };
     }
 

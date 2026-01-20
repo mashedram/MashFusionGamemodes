@@ -12,7 +12,7 @@ public class LoadOnDemandContainer : IAudioContainer
         _loader = loader;
     }
 
-    public List<string> AudioNames => _loader.AudioNames;
+    public IReadOnlyList<string> AudioNames => _loader.AudioNames;
 
     public bool IsLoading => _loader.IsLoading;
 

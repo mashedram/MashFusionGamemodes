@@ -19,7 +19,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         PreloadAll();
     }
 
-    public List<string> AudioNames => _loader.AudioNames;
+    public IReadOnlyList<string> AudioNames => _loader.AudioNames;
     public List<ulong> AudioHashes => _clipCache.Keys.ToList();
 
     public bool IsLoading { get; private set; }

@@ -12,7 +12,7 @@ public class MusicPackLoader : IAudioLoader
         AudioNames = MusicPackManager.GetTracks(tag);
     }
 
-    public List<string> AudioNames { get; }
+    public IReadOnlyList<string> AudioNames { get; }
 
     public void RefreshNames()
     {

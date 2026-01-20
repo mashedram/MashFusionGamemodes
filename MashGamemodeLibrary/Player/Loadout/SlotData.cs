@@ -7,6 +7,7 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.RPC;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Loadout;
 
@@ -80,7 +81,6 @@ public class SlotData
             SpawnCallback = info =>
             {
                 // Insert into known items
-                // TODO: Add ownership here to return guns to their owners
                 info.WaitOnMarrowEntity((networkEntity, marrowEntity) =>
                 {
                     SpawnedGuns.Add(marrowEntity._poolee);
@@ -98,7 +98,7 @@ public class SlotData
                     {
                         return;
                     }
-
+                    
                     slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
                 });
             }

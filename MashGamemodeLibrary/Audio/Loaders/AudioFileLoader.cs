@@ -37,7 +37,7 @@ public class AudioFileLoader : IAudioLoader
         }
     }
 
-    public List<string> AudioNames => _nameToPath.Keys.ToList();
+    public IReadOnlyList<string> AudioNames => _nameToPath.Keys.ToList();
 
     public bool IsLoading { get; private set; }
 

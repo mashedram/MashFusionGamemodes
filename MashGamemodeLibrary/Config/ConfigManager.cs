@@ -99,7 +99,14 @@ public static class ConfigManager
 
     internal static void Enable<T>() where T : IConfig
     {
-        RemoteConfigInstance.SetAndSync(LocalConfigTypedRegistry.Get<T>());
+        var clonedConfig = LocalConfigTypedRegistry.Get<T>()?.Clone();
+        if (clonedConfig is not T typedConfig)
+        {
+            InternalLogger.Debug($"Failed to get config of type: {typeof(T)}");
+            return;
+        }
+        
+        RemoteConfigInstance.SetAndSync(typedConfig);
         
         InternalLogger.Debug("Set and synced config to remotes.");
     }
@@ -107,21 +114,34 @@ public static class ConfigManager
     public static T Get<T>() where T : class, IConfig
     {
         // If we are remote, and have a remote config, 
-        if (!NetworkInfo.IsHost)
+        if (RemoteConfigInstance.Value is T instance)
         {
-            if (RemoteConfigInstance.Value is T instance)
-            {
-                return instance;
-            }
-            MelonLogger.Error("Remote config is of an invalid type.");
+            return instance;
         }
-
+        MelonLogger.Error("Active config is of an invalid type.");
+        
         if (!LocalConfigTypedRegistry.TryGet<T>(out var config))
         {
-            throw new Exception($"No config of type {typeof(T).Name} has been registered!");
+            throw new Exception($"No local config of type {typeof(T).Name} has been registered!");
         }
 
         return config;
+    }
+
+    public static void SetLocalConfig(IConfig config, Action<IConfig> func)
+    {
+        var t = config.GetType();
+        if (!LocalConfigTypedRegistry.TryGet(t, out var localConfig))
+        {
+            InternalLogger.Debug($"Failed to set on config: {t}");
+            return;
+        }
+
+        func(localConfig);
+        
+        InternalLogger.Debug($"Config: {localConfig.GetType()} became dirty");
+        DirtyConfigs.Add(localConfig);
+        _lastChanged = DateTime.Now;
     }
 
     public static void Update()
@@ -131,14 +151,6 @@ public static class ConfigManager
 
         Save();
         Sync();
-    }
-
-    internal static void OnValueChanged(IConfig config)
-    {
-        InternalLogger.Debug($"Config: {config.GetType().FullName} became dirty");
-        
-        DirtyConfigs.Add(config);
-        _lastChanged = DateTime.Now;
     }
 
     internal static void Save()
@@ -156,7 +168,12 @@ public static class ConfigManager
         if (!NetworkInfo.IsHost) return;
         if (RemoteConfigInstance.Value == null) return;
 
-        RemoteConfigInstance.Sync();
+        if (!LocalConfigTypedRegistry.TryGet(RemoteConfigInstance.Value.GetType(), out var localConfig))
+            return;
+
+        var clonedConfig = (IConfig)localConfig.Clone();
+        
+        RemoteConfigInstance.SetAndSync(clonedConfig);
         InternalLogger.Debug($"Synced config: {RemoteConfigInstance.Value.GetType().FullName}");
     }
 }

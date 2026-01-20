@@ -75,6 +75,13 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         return value;
     }
 
+    public TValue? Get(Type type)
+    {
+        var id = GetID(type);
+        TryToValue(base.Get(id), out var value);
+        return value;
+    }
+
     public virtual T? Get<T>() where T : TValue
     {
         var id = GetID<T>();
@@ -94,6 +101,12 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
         value = internalValue;
         return true;
+    }
+
+    public bool TryGet(Type type, [MaybeNullWhen(false)] out TValue entry)
+    {
+        var id = GetID(type);
+        return TryGet(id, out entry);
     }
 
     public virtual bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue

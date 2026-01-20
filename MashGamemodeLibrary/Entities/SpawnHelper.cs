@@ -12,7 +12,7 @@ internal record CallbackHolder(ushort EntityId, OnMarrowEntitySpawned Callback)
     public int Tries { get; set; }
 }
 
-// TODO: Patch into MarrowEntity constructor and callback from there
+// This implementation sucks but fusions events are not being called reliably sooooo
 public static class SpawnHelper
 {
     private static LinkedListNode<CallbackHolder>? _currentNode;

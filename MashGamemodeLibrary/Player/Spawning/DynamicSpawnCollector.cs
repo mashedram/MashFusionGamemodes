@@ -1,11 +1,14 @@
 ﻿using System.Diagnostics;
+using LabFusion.Extensions;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Debug;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
+using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.AI;
+using Color = UnityEngine.Color;
 using Random = System.Random;
 
 namespace MashGamemodeLibrary.Player.Spawning;
@@ -13,11 +16,13 @@ namespace MashGamemodeLibrary.Player.Spawning;
 public record struct AvoidSpawningNear
 {
     public Vector3 Position;
-    internal float HalfRadiusSquare { get; }
-    public AvoidSpawningNear(Vector3 position, float size)
+    internal float Radius { get; }
+    internal float RadiusSquare { get; }
+    public AvoidSpawningNear(Vector3 position, float radius)
     {
         Position = position;
-        HalfRadiusSquare = Mathf.Pow(size / 2f, 2);
+        Radius = radius;
+        RadiusSquare = Mathf.Pow(radius, 2);
     }
 }
 
@@ -25,11 +30,14 @@ public static class DynamicSpawnCollector
 {
     private const float SafeRadius = 4f;
     private const int StaticLayer = 13;
-    private static GameObject? _spawnGameObject = null;
+    private const int DefaultLayer = 0;
+    private static GameObject? _spawnGameObject;
     
     private static Vector3 _center = Vector3.zero;
-    private static float _size;
+    private static float _radius;
     private static NavMeshData? _navMeshData;
+    
+    private static List<Vector3> _validSpawnPoints = new List<Vector3>();
 
     private static void SetSpawn(Vector3 position)
     {
@@ -42,18 +50,18 @@ public static class DynamicSpawnCollector
         FusionPlayer.SetSpawnPoints(_spawnGameObject.transform);
     }
 
-    public static void CollectAt(Vector3 center, float size)
+    public static void CollectAt(Vector3 center, float radius)
     {
         _center = center;
-        _size = size / 2f;
-        var bounds = new Bounds(center, Vector3.one * size);
+        _radius = radius;
+        var bounds = new Bounds(center, Vector3.one * (radius * 2f));
 
         var sources = new Il2CppSystem.Collections.Generic.List<NavMeshBuildSource>();
         
         NavMeshBuilder.CollectSources(
             bounds,
             // Bonelab static layer
-            StaticLayer,
+            1 << StaticLayer | 1 << DefaultLayer,
             NavMeshCollectGeometry.PhysicsColliders,
             0,
             new Il2CppSystem.Collections.Generic.List<NavMeshBuildMarkup>(),
@@ -78,6 +86,8 @@ public static class DynamicSpawnCollector
             center,
             Quaternion.identity
         );
+        
+        _validSpawnPoints.Clear();
     }
 
     private static Vector3 GetReachablePoint(Vector3 origin, Vector3 direction, float distance)
@@ -94,6 +104,13 @@ public static class DynamicSpawnCollector
     {
         return targets.Any(t =>
         {
+            var distance = Vector3.Distance(source, t);
+            if (distance < 1f)
+            {
+                DebugRenderer.RenderLine(source, t, Color.cyan);
+                return true;
+            }
+            
             var direction = t - source;
             var ray = new Ray(source, direction.normalized);
                 
@@ -101,12 +118,36 @@ public static class DynamicSpawnCollector
             if (Physics.Raycast(ray, direction.magnitude, StaticLayer))
                 return false;
                 
-            // DebugRenderer.RenderLine(source, t, Color.yellow);
+            DebugRenderer.RenderLine(source, t, Color.yellow);
             return true;
         });
     }
+
+    private static bool CanWalkPath(IReadOnlyList<Vector3> nodes)
+    {
+        var playerHeightOffset = Vector3.up * 1f;
+        
+        for (var i = 0; i < nodes.Count - 1; i++)
+        {
+            var nextIndex = i + 1;
+            var from = nodes[i] + playerHeightOffset;
+            var to = nodes[nextIndex] + playerHeightOffset;
+
+            var direction = (to - from);
+            var ray = new Ray(from, direction.normalized);
+            if (Physics.Raycast(ray, direction.magnitude, StaticLayer))
+            {
+                DebugRenderer.RenderLine(from, to, Color.red);
+                return false;
+            }
+            
+            DebugRenderer.RenderLine(from, to, Color.green);
+        }
+
+        return true;
+    }
     
-    public static Vector3? GetRandomPoint(int tries, Vector3 canReach, params AvoidSpawningNear[] avoid)
+    public static Vector3? GetRandomPoint(int tries, Vector3 canReach, AvoidSpawningNear primaryAvoid, params AvoidSpawningNear[] avoid)
     {
         if (_navMeshData == null)
         {
@@ -123,29 +164,43 @@ public static class DynamicSpawnCollector
             GetReachablePoint(canReach, Vector3.up, rayDistance),
             GetReachablePoint(canReach, Vector3.down, rayDistance),
         };
+
+        var sampleCenter = primaryAvoid.Position;
+        // Make the sample radius the distance to the avoiding goal, or half the total radius
+        var minimumRadius = Math.Min(primaryAvoid.Radius, _radius - SafeRadius);
+        var remainingRadius = _radius - minimumRadius;
+
+        var searchSize = remainingRadius / 2f;
+        // Add half the size of the radius 
+        var searchCenterRadius = minimumRadius + searchSize;
         
         // Check actual areas
-        // DebugRenderer.Clear();
+        DebugRenderer.Clear();
+        var fallbackPositions = new SortedList<int, Vector3>();
         for (var i = 0; i < tries; i++)
         {
-            if (!NavMesh.SamplePosition(_center + UnityEngine.Random.insideUnitSphere * _size, out NavMeshHit hit, SafeRadius, NavMesh.AllAreas))
+            var center = sampleCenter + UnityEngine.Random.insideUnitSphere * searchCenterRadius;
+            
+            if (!NavMesh.SamplePosition(center, out NavMeshHit hit, searchSize, NavMesh.AllAreas))
                 continue;
-
+            
             var target = hit.position;
-            if (avoid.Any(a => (a.Position - target).sqrMagnitude < a.HalfRadiusSquare))
-                continue;
-
-            // DebugRenderer.RenderCube(target, Vector3.one, Color.blue);
+            
+            // Check if we can reach the point
+            DebugRenderer.RenderCube(target, Vector3.one, Color.blue);
 
             // We don't care if this succeeds or fails
             var tempPath = new NavMeshPath();
             NavMesh.CalculatePath(target, canReach, NavMesh.AllAreas, tempPath);
             
-            // DebugRenderer.RenderCube(_center, Vector3.one, Color.green);
-            // foreach (var tempPathCorner in tempPath.corners)
-            // {
-            //     DebugRenderer.RenderCube(tempPathCorner, Vector3.one, Color.yellow);
-            // }
+            DebugRenderer.RenderCube(_center, Vector3.one, Color.green);
+            foreach (var tempPathCorner in tempPath.corners)
+            {
+                DebugRenderer.RenderCube(tempPathCorner, Vector3.one, Color.yellow);
+            }
+            
+            if (tempPath.status == NavMeshPathStatus.PathPartial)
+                target = tempPath.corners.Last();
 
             // Check paths for validity
             // If the navmesh failed to find a path, just check for direct LOS
@@ -153,18 +208,50 @@ public static class DynamicSpawnCollector
             if (!CanReachAny(start, reachPoints))
                 continue;
             
-            // DebugRenderer.RenderCube(target, Vector3.one, Color.red);
+            if (!CanWalkPath(tempPath.corners))
+                continue;
+            
+            // Check if this is only valid as a fallback
+
+            var avoidsInRange = avoid.Count(a => (a.Position - target).sqrMagnitude < a.RadiusSquare);
+            if (avoidsInRange > 0)
+            {
+                fallbackPositions.Add(avoid.Length - avoidsInRange, target);
+                continue;
+            }
+            
+            DebugRenderer.RenderCube(target, Vector3.one, Color.red);
                 
             InternalLogger.Debug($"Found spawn point at: {target.x} {target.y} {target.z}");
+            _validSpawnPoints.Add(target);
+            return target;
+        }
+        
+        InternalLogger.Debug("Failed to find valid spawn, falling back to fallbacks");
+        foreach (var (_, target) in fallbackPositions)
+        {
+            var tempPath = new NavMeshPath();
+            NavMesh.CalculatePath(target, canReach, NavMesh.AllAreas, tempPath);
+            
+            var start = tempPath.corners.LastOrDefault(target);
+            if (!CanReachAny(start, reachPoints))
+                continue;
+            
+            if (!CanWalkPath(tempPath.corners))
+                continue;
+            
+            InternalLogger.Debug($"Found fallback spawn point at: {target.x} {target.y} {target.z}");
             return target;
         }
 
-        return null;
+        return _validSpawnPoints.Count > 0 
+            ? _validSpawnPoints.GetRandom() 
+            : null;
     }
 
-    public static void SetRandomSpawn(int tries, Vector3 canReach, params AvoidSpawningNear[] avoid)
+    public static void SetRandomSpawn(int tries, Vector3 canReach, AvoidSpawningNear primaryAvoid, params AvoidSpawningNear[] avoid)
     {
-        var target = GetRandomPoint(tries, canReach, avoid);
+        var target = GetRandomPoint(tries, canReach, primaryAvoid, avoid);
 
         if (target == null)
         {

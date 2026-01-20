@@ -5,6 +5,7 @@ using LabFusion.SDK.Modules;
 using LabFusion.Utilities;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Music;
+using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.ECS;
@@ -15,9 +16,12 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Player.Visibility;
+using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using MelonLoader.Utils;
@@ -43,8 +47,8 @@ public class Mod : MelonMod
 	    
         ModuleManager.RegisterModule<FusionModule>();
 
-        RemoteEventMessageHandler.RegisterMod<Mod>();
-        EcsManager.RegisterAll<Mod>();
+        RegisterInternal<Mod>();
+        
 
         PlayerHider.Register();
         NetworkEventsExtender.Register();
@@ -71,7 +75,7 @@ public class Mod : MelonMod
 
     private void OnWarehouseReady()
     {
-        MusicPackManager.LoadPacks();
+        AudioRegistry.RegisterAll();
     }
 
     private static void Cleanup()
@@ -82,5 +86,19 @@ public class Mod : MelonMod
         SpectatorManager.LocalReset();
         PlayerGunManager.Reset();
         GamemodeCompatibilityChecker.ClearRemoteHashes();
+    }
+
+    private static void RegisterInternal<T>()
+    {
+        EcsManager.RegisterAll<T>();
+        RemoteEventMessageHandler.RegisterMod<T>();
+        AutoRegistery.Register<T>();
+    }
+    
+    public static void Register<T>()
+    {
+        GamePhaseManager.Registry.RegisterAll<T>();
+        TeamManager.Registry.RegisterAll<T>();
+        RegisterInternal<T>();
     }
 }

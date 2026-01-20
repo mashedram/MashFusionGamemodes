@@ -51,6 +51,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
     public virtual int RoundCount => 1;
     public new static bool IsStarted { get; private set; }
+    public new static bool IsInRound { get; private set; }
     
     public static event ConfigChangedHandler? OnConfigChanged;
 
@@ -129,12 +130,14 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
     public void StartRound(int index)
     {
+        IsInRound = true;
         Context.OnStart();
         Executor.RunChecked(OnRoundStart);
     }
 
     public void EndRound(ulong winnerTeamId)
     {
+        IsInRound = false;
         Reset();
         Executor.RunChecked(OnRoundEnd, winnerTeamId);
     }
@@ -192,6 +195,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     public override void OnGamemodeUnready()
     {
         Context.OnUnready();
+        IsStarted = false;
+        IsInRound = false;
     }
 
     public override void OnLevelReady()
@@ -211,6 +216,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         PlayerStatisticsTracker.Clear();
 
         IsStarted = true;
+        IsInRound = true;
         OnStart();
         InternalGamemodeManager.StartRound(0);
     }
@@ -218,6 +224,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     public override void OnGamemodeStopped()
     {
         IsStarted = false;
+        IsInRound = false;
 
         GamemodeCompatibilityChecker.SetActiveGamemode(null);
         GlobalStatisticsManager.SaveStatistics(this);

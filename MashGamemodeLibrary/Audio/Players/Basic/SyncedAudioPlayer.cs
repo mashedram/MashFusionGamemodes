@@ -53,7 +53,7 @@ public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlay
     }
     public string Name { get; }
 
-    protected abstract bool Modifier(TPacket data, ref AudioSource source);
+    protected abstract bool Modifier(TPacket data, AudioSource source);
 
     private void OnPlayRequest(PlayRequestPacket<TPacket> packet)
     {
@@ -69,7 +69,7 @@ public abstract class SyncedAudioPlayer<TPacket> : AudioPlayer, ISyncedAudioPlay
                 return;
 
             var source = SourceProvider.GetAudioSource();
-            if (!Modifier(packet.ExtraData, ref source.SourceRef))
+            if (!Modifier(packet.ExtraData, source.SourceRef))
                 return;
 
             source.Play(clip!);

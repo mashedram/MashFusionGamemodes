@@ -48,10 +48,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnRegistered()
     {
-        EcsManager.RegisterAll<Mod>();
-        GamePhaseManager.Registry.RegisterAll<Mod>();
-        TeamManager.Registry.RegisterAll<Mod>();
-
         LimitedRespawnComponent.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
             if (AnyDefusers())

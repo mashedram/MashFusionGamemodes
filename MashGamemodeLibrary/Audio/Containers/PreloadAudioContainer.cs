@@ -17,7 +17,7 @@ public class PreloadAudioContainer : IAudioContainer
         PreloadAll();
     }
 
-    public List<string> AudioNames => _loader.AudioNames;
+    public IReadOnlyList<string> AudioNames => _loader.AudioNames;
 
     public bool IsLoading { get; private set; }
 

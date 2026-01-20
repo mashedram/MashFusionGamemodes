@@ -62,6 +62,9 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         _grabber = grab.NetworkPlayer!.PlayerID;
         _timerObject?.gameObject.SetActive(true);
+        
+        if (grab.NetworkPlayer != null && grab.NetworkPlayer.PlayerID.IsMe)
+            this.SendEvent(SyncTimeEventIndex, sizeof(float), writer => writer.Write(_timer));
     }
 
     public bool CanGrab(GrabData grab)
@@ -99,7 +102,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         _timer += delta;
 
         var timeout = BoneStrike.Config.DefuseTime;
-        if (_timer > timeout)
+        var remainingTime = (timeout - _timer);
+        if (remainingTime <= 0f)
         {
             // Prevent it from triggering again
             Defuse();
@@ -156,12 +160,15 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         });
     }
     
-    public void OnEvent(byte eventIndex, NetReader reader)
+    public void OnEvent(byte senderId, byte eventIndex, NetReader reader)
     {
         switch (eventIndex)
         {
             case SyncTimeEventIndex:
             {
+                if (PlayerIDManager.LocalID == senderId)
+                    return;
+                
                 _timer = reader.ReadSingle();
                 break;
             }

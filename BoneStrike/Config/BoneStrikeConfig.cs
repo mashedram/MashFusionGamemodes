@@ -179,5 +179,32 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
+        
+        serializer.SerializeValue(ref UseDynamicSpawns);
+        serializer.SerializeValue(ref DynamicSpawnRange);
+        serializer.SerializeValue(ref DynamicSpawnDistanceFromEnemy);
+        serializer.SerializeValue(ref DynamicSpawnDistanceFromObjective);
+    }
+    
+    public object Clone()
+    {
+        return new BoneStrikeConfig
+        {
+            PlantDuration = PlantDuration,
+            DefuseDuration = DefuseDuration,
+            DefuseTime = DefuseTime,
+            MaxRespawns = MaxRespawns,
+            UseDynamicSpawns = UseDynamicSpawns,
+            DynamicSpawnDistanceFromEnemy = DynamicSpawnDistanceFromEnemy,
+            DynamicSpawnDistanceFromObjective = DynamicSpawnDistanceFromObjective,
+            DynamicSpawnRange = DynamicSpawnRange,
+            BalanceDamage = BalanceDamage,
+            DamageMultiplier = DamageMultiplier,
+            HealthMultiplier = HealthMultiplier,
+            PalletBarcodes = new List<string>(PalletBarcodes),
+            UtilityBarcodes = new List<string>(UtilityBarcodes),
+            BombExplosion = BombExplosion,
+            DevToolsDisabled = DevToolsDisabled
+        };
     }
 }

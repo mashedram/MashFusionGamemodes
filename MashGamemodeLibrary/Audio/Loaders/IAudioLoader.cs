@@ -4,7 +4,7 @@ namespace MashGamemodeLibrary.Audio.Loaders;
 
 public interface IAudioLoader
 {
-    List<string> AudioNames { get; }
+    IReadOnlyList<string> AudioNames { get; }
 
     bool IsLoading { get; }
     void RefreshNames();

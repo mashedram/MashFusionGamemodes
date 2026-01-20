@@ -96,16 +96,24 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
     }
 }
 
-public class RemoteEvent : RemoteEvent<DummySerializable>
+public class PlayerOnlyPacker : INetSerializable, IKnownSenderPacket
 {
-    public delegate void EventHandler();
+    public byte SenderSmallId { get; set; }
+    public void Serialize(INetSerializer serializer)
+    {
+    }
+}
 
-    public RemoteEvent(string name, EventHandler onEvent, INetworkRoute? route = null) : base(name, _ => onEvent.Invoke(), route)
+public class RemoteEvent : RemoteEvent<PlayerOnlyPacker>
+{
+    public delegate void EventHandler(byte senderId);
+
+    public RemoteEvent(string name, EventHandler onEvent, INetworkRoute? route = null) : base(name, e => onEvent.Invoke(e.SenderSmallId), route)
     {
     }
 
     public void Call()
     {
-        base.Call(new DummySerializable());
+        base.Call(new PlayerOnlyPacker());
     }
 }

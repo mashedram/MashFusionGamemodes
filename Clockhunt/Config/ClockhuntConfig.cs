@@ -133,4 +133,33 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
             root.AddElement(group);
         }
     }
+    public object Clone()
+    {
+        return new ClockhuntConfig
+        {
+            HidePhaseDuration = HidePhaseDuration,
+            HuntPhaseDuration = HuntPhaseDuration,
+            EscapePhaseDuration = EscapePhaseDuration,
+            ClocksPerPlayer = ClocksPerPlayer,
+            HuntPhaseClockCount = HuntPhaseClockCount,
+            IsEscapePhaseEnabled = IsEscapePhaseEnabled,
+            TeleportToSpawn = TeleportToSpawn,
+            DeliveryDistance = DeliveryDistance,
+            MaxRespawns = MaxRespawns,
+            NightmareHealthMult = NightmareHealthMult,
+            BalanceDamage = BalanceDamage,
+            DamageMultiplier = DamageMultiplier,
+            WeatherType = WeatherType,
+            MusicEnabled = MusicEnabled,
+            NightVision = NightVision,
+            NightVisionBrightness = NightVisionBrightness,
+            RuntimeSpawnPointsEnabled = RuntimeSpawnPointsEnabled,
+            RuntimeSpawnCount = RuntimeSpawnCount,
+            DevToolsDisabled = DevToolsDisabled,
+            DebugSkipSpectate = DebugSkipSpectate,
+            DebugSkipNightmare = DebugSkipNightmare,
+            DefaultStats = DefaultStats,
+            EscapeDistance = EscapeDistance
+        };
+    }
 }

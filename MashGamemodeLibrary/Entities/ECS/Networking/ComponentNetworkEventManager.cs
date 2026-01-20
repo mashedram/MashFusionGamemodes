@@ -76,6 +76,6 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
             return;
         }
         
-        eventReceiver.OnEvent(reader.ReadByte(), reader);
+        eventReceiver.OnEvent(smallId, reader.ReadByte(), reader);
     }
 }
