@@ -142,7 +142,10 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
     public BehaviourMember? TryAdd(IBehaviourHolder holder, IBehaviour behaviour)
     {
         if (behaviour is not TBehaviour typedBehaviour)
+        {
+            InternalLogger.Debug("Tried to add behaviour of type: " + behaviour.GetType().FullName + " to cache of type: " + typeof(TBehaviour).FullName);
             return null;
+        }
 
         var key = Add(holder, typedBehaviour);
         return new BehaviourMember(key, typedBehaviour, this);

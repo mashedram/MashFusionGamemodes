@@ -114,15 +114,15 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         MultiplayerHooking.OnJoinedServer += OnServerChanged;
         MultiplayerHooking.OnStartedServer += OnServerChanged;
         MultiplayerHooking.OnDisconnected += OnServerChanged;
-
-        Hooking.OnLevelLoaded += _ =>
+        
+        LocalPlayer.OnLocalRigCreated += _ =>
         {
             if (!NetworkInfo.HasServer)
                 return;
 
             if (NetworkInfo.IsHost)
                 return;
-
+            
             LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
         };
     }

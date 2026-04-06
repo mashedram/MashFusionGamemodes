@@ -66,7 +66,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
         var instance = LocalEcsCache.GetComponentInstance(index);
         if (instance == null)
         {
-            InternalLogger.Debug($"Skipping netevent on instance: {index.EntityID}, target not found.");
+            InternalLogger.Debug($"Skipping netevent on instance: {index.EntityID.ID}, target not found.");
             return;
         }
 

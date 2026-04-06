@@ -98,14 +98,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         GamePhaseManager.Enable<PlantPhase>();
-
-        var spawns = GamemodeMarker.FilterMarkers();
-
-        if (spawns.Count > 0)
-        {
-            GamemodeHelper.SetSpawnPoints(spawns);
-        }
-
+        
         PlayerStatManager.SetStats(new PlayerStats
         {
             Agility = 1.2f,
@@ -148,6 +141,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         Executor.RunIfHost(() =>
         {
+            // TODO: Doing this immediatly bugs, wait on rig load instead
             playerID.SetSpectating(true);
             _teams.QueueLateJoiner(playerID);
         });

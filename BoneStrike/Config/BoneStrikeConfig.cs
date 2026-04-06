@@ -1,10 +1,14 @@
-﻿using Il2CppSLZ.Marrow.Warehouse;
+﻿using System.Text.Json.Serialization;
+using Il2CppSLZ.Marrow.Warehouse;
+using LabFusion.Data;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
+using LabFusion.Player;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
+using UnityEngine;
 
 namespace BoneStrike.Config;
 
@@ -20,6 +24,26 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
             MinValue = 0.25f,
             Value = Convert.ToSingle(entry.Value) / 60f,
             OnValueChanged = f => setter(entry, Convert.ToSingle(f) * 60f)
+        };
+    }
+}
+
+internal class PositionElementProvider : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        return new FunctionElementData
+        {
+            Title = entry.Name,
+            OnPressed = () =>
+            {
+                var np = LocalPlayer.GetNetworkPlayer();
+                if (np is not { HasRig: true })
+                    return;
+
+                var position = np.RigRefs.RigManager.transform.position;
+                setter.Invoke(entry, position);
+            }
         };
     }
 }
@@ -124,66 +148,52 @@ internal class BarcodeListElement : IConfigElementProvider
 public class BoneStrikeConfig : IConfig
 {
     [ConfigMenuEntry("Plant Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [JsonInclude]
     public float PlantDuration = 60f;
     
     [ConfigMenuEntry("Defuse Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [JsonInclude]
     public float DefuseDuration = 60f;
 
     [ConfigMenuEntry("Defuse timer")] [ConfigRangeConstraint(2f, 20f)]
+    [JsonInclude]
     public float DefuseTime = 7f;
-
-    [ConfigMenuEntry("Max Respawns")] [ConfigRangeConstraint(0, 3)]
-    public int MaxRespawns;
-
-    [ConfigMenuEntry("Use Dynamic Spawns")]
-    public bool UseDynamicSpawns = true;
-    [ConfigMenuEntry("Minimum distance from opponents")]
-    [ConfigRangeConstraint(0f, 20f)]
-    [ConfigStepSize(5f)]
-    public float DynamicSpawnDistanceFromEnemy = 10f;
-    [ConfigMenuEntry("Minimum distance from objective")]
-    [ConfigRangeConstraint(0f, 40f)]
-    [ConfigStepSize(5f)]
-    public float DynamicSpawnDistanceFromObjective = 25f;
-    [ConfigMenuEntry("Dynamic spawn range from objective")]
-    [ConfigRangeConstraint(10f, 200f)]
-    [ConfigStepSize(10f)]
-    public float DynamicSpawnRange = 100f;
     
     [ConfigMenuEntry("Balance Weapon Damage")]
+    [JsonInclude]
     public bool BalanceDamage = true;
     [ConfigMenuEntry("Damage Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [JsonInclude]
     public float DamageMultiplier = 1f;
     [ConfigMenuEntry("Health Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [JsonInclude]
     public float HealthMultiplier = 1f;
     
     [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))]
+    [JsonInclude]
     public List<string> PalletBarcodes = new();
 
     [ConfigMenuEntry("Uility Items")] [ConfigElementProvider(typeof(BarcodeListElement))]
+    [JsonInclude]
     public List<string> UtilityBarcodes = new();
     
     [ConfigMenuEntry("Bomb Explosion Enabled")]
+    [JsonInclude]
     public bool BombExplosion = true;
     
     [ConfigMenuEntry("Dev Tools Disabled")]
+    [JsonInclude]
     public bool DevToolsDisabled = true;
 
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref DefuseDuration);
-        serializer.SerializeValue(ref MaxRespawns);
-        serializer.SerializeValue(ref DefuseDuration);
+        serializer.SerializeValue(ref DefuseTime);
         serializer.SerializeValue(ref HealthMultiplier);
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
-        
-        serializer.SerializeValue(ref UseDynamicSpawns);
-        serializer.SerializeValue(ref DynamicSpawnRange);
-        serializer.SerializeValue(ref DynamicSpawnDistanceFromEnemy);
-        serializer.SerializeValue(ref DynamicSpawnDistanceFromObjective);
     }
     
     public object Clone()
@@ -193,11 +203,6 @@ public class BoneStrikeConfig : IConfig
             PlantDuration = PlantDuration,
             DefuseDuration = DefuseDuration,
             DefuseTime = DefuseTime,
-            MaxRespawns = MaxRespawns,
-            UseDynamicSpawns = UseDynamicSpawns,
-            DynamicSpawnDistanceFromEnemy = DynamicSpawnDistanceFromEnemy,
-            DynamicSpawnDistanceFromObjective = DynamicSpawnDistanceFromObjective,
-            DynamicSpawnRange = DynamicSpawnRange,
             BalanceDamage = BalanceDamage,
             DamageMultiplier = DamageMultiplier,
             HealthMultiplier = HealthMultiplier,

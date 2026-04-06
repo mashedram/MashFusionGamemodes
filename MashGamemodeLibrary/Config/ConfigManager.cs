@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using LabFusion.Network;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
@@ -18,7 +19,6 @@ public static class ConfigManager
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
-        IncludeFields = true
     };
 
     // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.

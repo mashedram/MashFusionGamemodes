@@ -10,11 +10,13 @@ using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.ECS.Caches;
 
 internal record ComponentTarget(NetworkEntity NetworkEntity, MarrowEntity MarrowEntity);
 
+// Modify this to NOT require the marrow entity to be loaded
 public class ComponentInstance : IBehaviourHolder
 {
     public readonly EcsIndex Index;
@@ -38,7 +40,7 @@ public class ComponentInstance : IBehaviourHolder
         _componentTarget?.MarrowEntity ??
         throw new InvalidOperationException("ComponentInstance is not ready");
 
-    private List<Action<NetworkEntity, MarrowEntity>> _readyCallbacks = new();
+    private readonly List<Action<NetworkEntity, MarrowEntity>> _readyCallbacks = new();
 
     private CacheKey? _cacheKey;
     private List<BehaviourMember>? _behaviourMembers = null;
@@ -58,8 +60,11 @@ public class ComponentInstance : IBehaviourHolder
             
             // Unregister hooks
             entity.OnEntityUnregistered += OnUnregistered;
+            
             _cacheKey = CachedQueryManager.Add(Component);
             _behaviourMembers = BehaviourManager.Add(this, component);
+            
+            InternalLogger.Debug("Registered component: " + ComponentType.FullName);
             
             // Invoke callbacks
             foreach (var readyCallback in _readyCallbacks)

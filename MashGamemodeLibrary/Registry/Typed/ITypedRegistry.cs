@@ -15,4 +15,5 @@ public interface ITypedRegistry<TValue> : IKeyable<TValue> where TValue : notnul
     public bool TryGet(ulong id, [MaybeNullWhen(false)] out TValue entry);
     public bool TryGet(Type type, [MaybeNullWhen(false)] out TValue entry);
     public bool TryGet<T>([MaybeNullWhen(false)] out T entry) where T : TValue;
+    public IEnumerable<Type> GetAllTypes();
 }

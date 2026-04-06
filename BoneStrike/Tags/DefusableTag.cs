@@ -16,6 +16,7 @@ using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
+using MelonLoader;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
@@ -29,7 +30,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     private Transform? _offset;
     private TextMeshPro? _text;
     private Poolee? _timerObject;
-    
+
+    private bool _isDefused;
     private float _timer;
 
     public void OnDropped(GrabData grab)
@@ -81,9 +83,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     {
         serializer.SerializeValue(ref _timer);
     }
-
-    public NetworkEntity NetworkEntity { get; set; }
-    public MarrowEntity MarrowEntity { get; set; }
+    
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         SpawnTimer(marrowEntity.transform);
@@ -102,8 +102,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         _timer += delta;
 
         var timeout = BoneStrike.Config.DefuseTime;
-        var remainingTime = (timeout - _timer);
-        if (remainingTime <= 0f)
+        var remainingTime = timeout - _timer;
+        if (remainingTime <= 0f && !_isDefused)
         {
             // Prevent it from triggering again
             Defuse();
@@ -128,6 +128,10 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             return;
         if (!_grabber.IsMe)
             return;
+        if (_isDefused)
+            return;
+
+        _isDefused = true;
         
         if (NetworkInfo.IsHost)
         {
@@ -135,6 +139,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         }
         else
         {
+            MelonLogger.Msg("Sent defuse request.");
             this.SendEvent(DefuseEventIndex, 0, _ => {});
         }
         _grabber = null;

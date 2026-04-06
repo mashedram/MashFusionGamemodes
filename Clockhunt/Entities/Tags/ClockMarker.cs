@@ -14,7 +14,9 @@ namespace Clockhunt.Entities.Tags;
 public class ClockMarker : IComponent, IComponentReady, IGrabPredicate, INetSerializable
 {
     public static readonly CachedQuery<ClockMarker> Query = CachedQueryManager.Create<ClockMarker>();
-    
+
+    public NetworkEntity? NetworkEntity;
+    public MarrowEntity? MarrowEntity;
     public byte OwnerId;
 
     public ClockMarker()
@@ -27,8 +29,6 @@ public class ClockMarker : IComponent, IComponentReady, IGrabPredicate, INetSeri
     }
 
     public NetworkPlayer? Owner => NetworkPlayerManager.TryGetPlayer(OwnerId, out var player) ? player : null;
-    public NetworkEntity NetworkEntity { get; set; }
-    public MarrowEntity MarrowEntity { get; set; }
 
     public bool CanGrab(GrabData grabData)
     {
@@ -44,6 +44,7 @@ public class ClockMarker : IComponent, IComponentReady, IGrabPredicate, INetSeri
 
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
-        // NO-OP
+        NetworkEntity = networkEntity;
+        MarrowEntity = marrowEntity;
     }
 }

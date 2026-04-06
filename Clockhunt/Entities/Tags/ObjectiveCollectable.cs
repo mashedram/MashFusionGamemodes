@@ -11,7 +11,9 @@ namespace Clockhunt.Entities.Tags;
 public class ObjectiveCollectable : IComponent, IComponentReady, IGrabCallback, IDropCallback
 {
     public static readonly CachedQuery<ObjectiveCollectable> Query = CachedQueryManager.Create<ObjectiveCollectable>();
-    
+
+    public NetworkEntity? NetworkEntity;
+    public MarrowEntity? MarrowEntity;
     public bool IsGrabbed;
 
     public void OnDropped(GrabData grab)
@@ -24,10 +26,9 @@ public class ObjectiveCollectable : IComponent, IComponentReady, IGrabCallback, 
         IsGrabbed = true;
     }
     
-    public NetworkEntity NetworkEntity { get; set; }
-    public MarrowEntity MarrowEntity { get; set; }
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
-        // NO-OP
+        NetworkEntity = networkEntity;
+        MarrowEntity = marrowEntity;
     }
 }

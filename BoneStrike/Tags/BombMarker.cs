@@ -17,26 +17,26 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     
     private const float MaxVelocitySquared = 1000f;
 
-    private MarrowEntity? _marrowEntity;
+    public NetworkEntity? NetworkEntity;
+    public MarrowEntity? MarrowEntity;
     private Vector3? _returnPosition;
     private List<Rigidbody>? _rigidbodies;
-
-    public NetworkEntity NetworkEntity { get; set; }
-    public MarrowEntity MarrowEntity { get; set; }
+    
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
-        _marrowEntity = marrowEntity;
-        _rigidbodies = _marrowEntity._bodies.Select(b => b._rigidbody).ToList();
+        NetworkEntity = networkEntity;
+        MarrowEntity = marrowEntity;
+        _rigidbodies = MarrowEntity._bodies.Select(b => b._rigidbody).ToList();
     }
 
     public void OnPhaseChange(GamePhase gamePhase)
     {
-        if (_marrowEntity == null)
+        if (MarrowEntity == null)
             return;
 
         if (gamePhase is DefusePhase)
         {
-            _returnPosition = _marrowEntity.transform.position;
+            _returnPosition = MarrowEntity.transform.position;
         }
     }
 
@@ -57,6 +57,6 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
         _rigidbodies.ForEach(r => r.velocity = Vector3.zero);
         if (_returnPosition.HasValue)
             // We can be sure marrowentity exists because otherwise rigidbodies would be null
-            _marrowEntity!.transform.position = _returnPosition.Value;
+            MarrowEntity!.transform.position = _returnPosition.Value;
     }
 }

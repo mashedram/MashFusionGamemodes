@@ -147,7 +147,7 @@ public static class DynamicSpawnCollector
         return true;
     }
     
-    public static Vector3? GetRandomPoint(int tries, Vector3 canReach, AvoidSpawningNear primaryAvoid, params AvoidSpawningNear[] avoid)
+    public static Vector3? GetRandomPoint(int tries, Vector3 canReach, params AvoidSpawningNear[] avoid)
     {
         if (_navMeshData == null)
         {
@@ -164,24 +164,17 @@ public static class DynamicSpawnCollector
             GetReachablePoint(canReach, Vector3.up, rayDistance),
             GetReachablePoint(canReach, Vector3.down, rayDistance),
         };
-
-        var sampleCenter = primaryAvoid.Position;
-        // Make the sample radius the distance to the avoiding goal, or half the total radius
-        var minimumRadius = Math.Min(primaryAvoid.Radius, _radius - SafeRadius);
-        var remainingRadius = _radius - minimumRadius;
-
-        var searchSize = remainingRadius / 2f;
-        // Add half the size of the radius 
-        var searchCenterRadius = minimumRadius + searchSize;
+        
+        var halfRadius = _radius / 2f;
         
         // Check actual areas
         DebugRenderer.Clear();
         var fallbackPositions = new SortedList<int, Vector3>();
         for (var i = 0; i < tries; i++)
         {
-            var center = sampleCenter + UnityEngine.Random.insideUnitSphere * searchCenterRadius;
+            var center = canReach + UnityEngine.Random.insideUnitSphere * halfRadius;
             
-            if (!NavMesh.SamplePosition(center, out NavMeshHit hit, searchSize, NavMesh.AllAreas))
+            if (!NavMesh.SamplePosition(center, out NavMeshHit hit, _radius, NavMesh.AllAreas))
                 continue;
             
             var target = hit.position;
@@ -249,13 +242,14 @@ public static class DynamicSpawnCollector
             : null;
     }
 
-    public static void SetRandomSpawn(int tries, Vector3 canReach, AvoidSpawningNear primaryAvoid, params AvoidSpawningNear[] avoid)
+    public static void SetRandomSpawn(int tries, Vector3 fallback, Vector3 canReach, params AvoidSpawningNear[] avoid)
     {
-        var target = GetRandomPoint(tries, canReach, primaryAvoid, avoid);
+        var target = GetRandomPoint(tries, canReach, avoid);
 
         if (target == null)
         {
             MelonLogger.Error("Failed to find any spawnpoint! this is a bug.");
+            SetSpawn(fallback);
             return;
         }
 

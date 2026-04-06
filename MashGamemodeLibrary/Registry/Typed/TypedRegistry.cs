@@ -121,6 +121,11 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         entry = (T)value;
         return true;
     }
+    
+    public IEnumerable<Type> GetAllTypes()
+    {
+        return _typeCache.Values;
+    }
 
     public ulong GetID(Type type)
     {

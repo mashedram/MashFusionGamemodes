@@ -5,6 +5,7 @@ using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Integration;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
@@ -109,9 +110,17 @@ public class DefusePhase : GamePhase
             FusionPlayer.ResetSpawnPoints();
             return;
         }
-        
+
         if (!BoneStrike.Config.UseDynamicSpawns)
+        {
+            var spawns = GamemodeMarker.FilterMarkers();
+
+            if (spawns.Count > 0)
+            {
+                GamemodeHelper.SetSpawnPoints(spawns);
+            }
             return;
+        }
 
         var enemyPositions = NetworkPlayer.Players
             .Where(p => p.HasRig && p.PlayerID.IsEnemy())
@@ -125,11 +134,15 @@ public class DefusePhase : GamePhase
 
         var canReach = clockPositions.FirstOrDefault();
 
-        const int spawnSearchTries = 5;
+        var fallback = TeamManager.IsLocalTeam<TerroristTeam>()
+            ? BoneStrike.Config.FallbackTerroristSpawnPosition
+            : BoneStrike.Config.FallbackCounterTerroristSpawnPosition;
+
+        const int spawnSearchTries = 25;
         DynamicSpawnCollector.SetRandomSpawn(
             spawnSearchTries,
+            fallback,
             canReach,
-            new AvoidSpawningNear(canReach, BoneStrike.Config.DynamicSpawnDistanceFromObjective),
             enemyPositions
                 .Union(
                     clockPositions

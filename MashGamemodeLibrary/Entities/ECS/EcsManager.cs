@@ -1,4 +1,5 @@
-﻿using LabFusion.Entities;
+﻿using System.Runtime.CompilerServices;
+using LabFusion.Entities;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
@@ -22,8 +23,6 @@ public static class EcsManager
     {
         ComponentReadyCache.OnAdded += (instance, component) =>
         {
-            component.NetworkEntity = instance.NetworkEntity;
-            component.MarrowEntity = instance.MarrowEntity;
             component.OnReady(instance.NetworkEntity, instance.MarrowEntity);
         };
 
@@ -51,6 +50,12 @@ public static class EcsManager
     public static void RegisterAll<T>()
     {
         LocalEcsCache.Registry.RegisterAll<T>();
+        
+        // Ensure that all static constructors are run for the registered types, so if they have their own caches, these are also loaded
+        foreach (var allType in LocalEcsCache.Registry.GetAllTypes())
+        {
+            RuntimeHelpers.RunClassConstructor(allType.TypeHandle);
+        }
     }
 
     public static void AddComponent(this NetworkEntity entity, IComponent component)
