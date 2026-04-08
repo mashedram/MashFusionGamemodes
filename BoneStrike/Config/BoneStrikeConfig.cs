@@ -197,6 +197,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Manual Team Assignment", "Teams")]
     [JsonInclude]
     public bool ManualTeamAssignment = true;
+    [ConfigMenuEntry("Allow Unbalanced Teams", "Teams")]
+    [JsonInclude]
+    public bool AllowUnbalancedTeams = false;
 
     public void Serialize(INetSerializer serializer)
     {
@@ -211,6 +214,7 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
+        serializer.SerializeValue(ref AllowUnbalancedTeams);
     }
     
     public object Clone()
@@ -230,7 +234,8 @@ public class BoneStrikeConfig : IConfig
             UtilityBarcodes = new List<string>(UtilityBarcodes),
             BombExplosion = BombExplosion,
             DevToolsDisabled = DevToolsDisabled,
-            ManualTeamAssignment = ManualTeamAssignment
+            ManualTeamAssignment = ManualTeamAssignment,
+            AllowUnbalancedTeams = AllowUnbalancedTeams
         };
     }
 }

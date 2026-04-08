@@ -4,6 +4,7 @@ using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Warehouse;
 using Il2CppTMPro;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Marrow.Pool;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -28,6 +29,8 @@ public record SpawnTeamWallPacket : INetSerializable
     }
 }
 
+internal record struct PlayerWallSide(PlayerID PlayerID, bool IsInFront);
+
 // TODO: The clock should be on the arm in this phase, but due to the way this phase gets skipped except for the first round, I haven't done it yet
 public class TeamAssignmentPhase : GamePhase
 {
@@ -43,7 +46,7 @@ public class TeamAssignmentPhase : GamePhase
     public override string Name => "Team Assignment Phase";
     
     // TODO: This should be configurable
-    public override float Duration => 30f;
+    public override float Duration => 15f;
     
     private bool IsPositionInFrontOfWall(Vector3 position)
     {
@@ -53,12 +56,33 @@ public class TeamAssignmentPhase : GamePhase
         return Vector3.Dot(toPlayer, forward) > 0f;
     }
     
+    private IEnumerable<PlayerWallSide> GetPlayerWallSides()
+    {
+        return from player in NetworkPlayer.Players where player.HasRig select new PlayerWallSide(player.PlayerID, IsPositionInFrontOfWall(player.RigRefs.Head.position));
+    }
+    
     public override PhaseIdentifier GetNextPhase()
     {
         if (!HasReachedDuration()) 
             return PhaseIdentifier.Empty();
 
         return PhaseIdentifier.Of<PlantPhase>();
+    }
+
+    public override bool CanTimerTick()
+    {
+        if (BoneStrike.Config.AllowUnbalancedTeams)
+            return true;
+        
+        var wallSides = GetPlayerWallSides().ToList();
+        var team1Count = wallSides.Count(p => p.IsInFront);
+        var team2Count = wallSides.Count - team1Count;
+        
+        var imbalance = Mathf.Abs(team1Count - team2Count);
+        if (imbalance > 2)
+            return false;
+        
+        return true;
     }
 
     protected override void OnPhaseEnter()
@@ -115,7 +139,7 @@ public class TeamAssignmentPhase : GamePhase
         var time = Duration - ElapsedTime;
         var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
-        var textContent = $"{minutes:D2}:{seconds:D2}";
+        var textContent = $"{minutes:D1}:{seconds:D2}";
         foreach (var text in _timerTexts)
         {
             text.text = textContent;

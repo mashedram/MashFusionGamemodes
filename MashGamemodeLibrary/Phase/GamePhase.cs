@@ -55,6 +55,11 @@ public abstract class GamePhase
     {
     }
 
+    public virtual bool CanTimerTick()
+    {
+        return true;
+    }
+
     public void Update(float delta)
     {
         if (_timer != null && !Equals(InternalDuration, Duration))
@@ -62,7 +67,8 @@ public abstract class GamePhase
             _timer?.SetTimeout(Duration);
         }
 
-        _timer?.Update(delta);
+        if (CanTimerTick())
+            _timer?.Update(delta);
         Executor.RunUnchecked(OnUpdate);
     }
 

@@ -17,6 +17,8 @@ internal enum WeaponType
 
 internal class DamageRemapper
 {
+    public delegate float DamageRemapFunction(float damage, float roundsPerSecond, Gun.FireMode fireMode, float multIn);
+    
     private readonly float _highTarget;
     private readonly float _highValue;
 
@@ -24,8 +26,11 @@ internal class DamageRemapper
     private readonly float _lowValue;
 
     private readonly float _ttkMultiplier;
+    
+    private readonly DamageRemapFunction[] _remapFunctions;
+    
 
-    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.5f)
+    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.5f, params DamageRemapFunction[] remapFunctions)
     {
         _ttkMultiplier = ttkMultiplier;
         _lowValue = lowValue;
@@ -34,9 +39,11 @@ internal class DamageRemapper
         var halfDeviation = deviation / 2f;
         _lowTarget = Math.Max(target - halfDeviation, 0f);
         _highTarget = Math.Max(target + halfDeviation, 0f);
+        
+        _remapFunctions = remapFunctions;
     }
 
-    public float GetDamage(float damage, float roundsPerSecond, Gun.FireMode fireMode, float mult = 1f)
+    public float GetDamage(float damage, float roundsPerSecond, Gun.FireMode fireMode, float customMultiplier = 1f)
     {
         var clamped = MathUtil.Clamp(damage, _lowValue, _highValue);
 
@@ -49,9 +56,11 @@ internal class DamageRemapper
         } / baseRpm;
 
         var flat = MathUtil.Lerp(_lowTarget, _highTarget, clamped);
-        var normalized = flat / (normalizedRoundsPerSecond * _ttkMultiplier);
+        var normalized = flat / normalizedRoundsPerSecond;
 
-        return normalized * _ttkMultiplier * mult;
+        var mult = normalized * _ttkMultiplier;
+
+        return _remapFunctions.Aggregate(mult, (current, damageRemapFunction) => damageRemapFunction(damage, roundsPerSecond, fireMode, current));
     }
 }
 
@@ -78,10 +87,10 @@ public static class PlayerGunManager
     static PlayerGunManager()
     {
         DamageRemappers.Register(WeaponType.Pistol, new DamageRemapper(
-            1.2f,
-            0.3f,
-            0.6f,
-            1f
+            1.5f,
+            0.8f,
+            1.1f,
+            1.4f
         ));
         DamageRemappers.Register(WeaponType.Smg, new DamageRemapper(
             1.20f,
@@ -92,10 +101,11 @@ public static class PlayerGunManager
         ));
         DamageRemappers.Register(WeaponType.Shotgun, new DamageRemapper(
             1f,
-            1f,
-            2f,
+            0.4f,
+            1.2f,
             1.1f,
-            0.3f
+            0.3f,
+            ((damage, second, mode, @in) => mode == Gun.FireMode.SEMIAUTOMATIC ? @in * 0.75f : @in)
         ));
         DamageRemappers.Register(WeaponType.Rifle, new DamageRemapper(
             1.1f,

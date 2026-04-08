@@ -1,5 +1,6 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Tags;
+using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -17,6 +18,8 @@ public class TerroristTeam : Team
 
     public override void OnPhaseChanged(GamePhase phase)
     {
+        LocalVision.Blind = phase is PlantPhase && BoneStrike.Config.BlindAttackersDuringPlanting;
+        
         Executor.RunIfHost(() =>
         {
             Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(0));

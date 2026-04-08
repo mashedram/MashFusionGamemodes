@@ -98,6 +98,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     protected override void OnRoundStart()
     {
         Notifier.CancelAll();
+        LocalHealth.MortalityOverride = true;
         
         TeamManager.Enable<TerroristTeam>();
         TeamManager.Enable<CounterTerroristTeam>();
@@ -156,6 +157,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
+        LocalHealth.MortalityOverride = false;
 
         FusionPlayer.ResetSpawnPoints();
 
@@ -174,10 +176,15 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     public override bool CanAttackPlayer(PlayerID player)
     {
-        if (GamePhaseManager.IsPhase<PlantPhase>())
-            return false;
+        var activePhase = GamePhaseManager.ActivePhase;
+        return activePhase switch
+        {
+            null => true,
+            PlantPhase => false,
+            DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>(),
+            _ => !TeamManager.IsTeamMember(player)
+        };
 
-        return !TeamManager.IsTeamMember(player);
     }
 
     internal static void ExplodeAllBombs()
@@ -189,7 +196,11 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         foreach (var entry in BombMarker.Query)
         {
-            var position = entry.MarrowEntity.transform.position;
+            var transform = entry.MarrowEntity?.transform;
+            if (transform == null)
+                continue;
+            
+            var position = transform.position;
             GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
         }
     }

@@ -1,4 +1,6 @@
-﻿using LabFusion.Entities;
+﻿using Il2CppSLZ.Marrow;
+using LabFusion.Entities;
+using LabFusion.Network;
 using LabFusion.Player;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Team;
@@ -36,7 +38,8 @@ public static class PlayerStatManager
 
     public static void RefreshVitality()
     {
-        SetVitality(LocalStatOverride?.Vitality);
+        var stats = GetLocalStats(BoneLib.Player.Avatar);
+        SetVitality(stats?.Vitality);
     }
 
     public static void SetAvatarAndStats(string barcode, PlayerStats stats)
@@ -102,7 +105,15 @@ public static class PlayerStatManager
         return 1f + factor * TeamUnbalancedMultiplier;
     }
     
-    public static bool TryGetLocalStats(Avatar avatar, out PlayerStats stats)
+    public static PlayerStats? GetLocalStats(Avatar? avatar)
+    {
+        if (!TryGetLocalStats(avatar, out var stats))
+            return null;
+
+        return stats;
+    }
+    
+    public static bool TryGetLocalStats(Avatar? avatar, out PlayerStats stats)
     {
         if (!LocalStatOverride.HasValue)
         {
@@ -112,7 +123,7 @@ public static class PlayerStatManager
 
         if (BalanceStats)
         {
-            var heightModifier = GetBalancedModifier(avatar);
+            var heightModifier = avatar != null ? GetBalancedModifier(avatar) : 1f;
             var teamBalanceModifier = GetTeamBalanceModifier();
             stats = LocalStatOverride.Value.MultiplyHealth(heightModifier * teamBalanceModifier);
         }

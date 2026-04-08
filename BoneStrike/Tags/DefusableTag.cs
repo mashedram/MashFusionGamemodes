@@ -34,6 +34,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     private TextMeshPro? _text;
     private Poolee? _timerObject;
 
+    private TextMeshPro? _clockText;
+
     private bool _isDefused;
     private float _timer;
 
@@ -90,6 +92,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         SpawnTimer(marrowEntity.transform);
+        
+        _clockText = marrowEntity.GetComponentInChildren<TextMeshPro>();
     }
 
     public void OnRemoved(NetworkEntity networkEntity)
@@ -99,6 +103,16 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
     public void Update(float delta)
     {
+        var activePhase = GamePhaseManager.ActivePhase;
+        if (activePhase != null && _clockText != null)
+        {
+            var time = activePhase.Duration - activePhase.ElapsedTime;
+            var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
+            var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
+
+            _clockText.text = $"{minutes:D2}:{seconds:D2}";
+        }
+        
         if (_grabber == null) return;
         if (GamePhaseManager.IsPhase<PlantPhase>()) return;
 
