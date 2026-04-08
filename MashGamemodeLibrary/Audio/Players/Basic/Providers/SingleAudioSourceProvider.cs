@@ -6,7 +6,7 @@ public class SingleAudioSourceProvider : AudioSourceProvider
 {
     private AudioSourceEntity? _audioSource;
 
-    public SingleAudioSourceProvider(AudioModifierFactory modifierFactory) : base(modifierFactory)
+    public SingleAudioSourceProvider(AudioModifierFactory? modifierFactory = null) : base(modifierFactory)
     {
     }
 

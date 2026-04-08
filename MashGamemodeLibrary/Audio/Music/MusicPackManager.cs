@@ -13,17 +13,15 @@ public enum MusicPackTags
 
 public static class MusicPackManager
 {
-    private const string MusicPackPrefix = "MusicPack.";
-
     private static readonly Dictionary<MusicPackTags, AudioBin> AudioBins = new Dictionary<MusicPackTags, AudioBin>()
     {
         {
             MusicPackTags.Combat,
-            AudioRegistry.CreateBin("MusicPack.Combat", FusionMonoDiscReferences.CombatSongReferences.Select(s => s._barcode._id).ToArray())
+            AudioRegistry.CreateBin("MashTags.MusicPack.Combat", FusionMonoDiscReferences.CombatSongReferences.Select(s => s._barcode._id).ToArray())
         },
         {
             MusicPackTags.Ambient,
-            AudioRegistry.CreateBin("MusicPack.Ambient", FusionMonoDiscReferences.FistfightFusionReference._barcode._id)
+            AudioRegistry.CreateBin("MashTags.MusicPack.Ambient", FusionMonoDiscReferences.FistfightFusionReference._barcode._id)
         }
     };
 

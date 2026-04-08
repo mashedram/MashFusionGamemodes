@@ -140,6 +140,25 @@ public class PersistentTeams
             index = (index + 1) % _playerSets.Count;
         }
     }
+    
+    public void OverwritePlayerSets(IEnumerable<IEnumerable<PlayerID>> playerSets)
+    {
+        _playerSets.ForEach(set => set.Clear());
+        _playerIds.Clear();
+        
+        var index = 0;
+        foreach (var playerSet in playerSets)
+        {
+            var targetSet = _playerSets[index];
+            foreach (var playerID in playerSet)
+            {
+                _playerIds.Add(playerID);
+                targetSet.Add(playerID);
+            }
+            
+            index = (index + 1) % _playerSets.Count;
+        }
+    }
 
     public void RandomizeShift()
     {

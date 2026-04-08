@@ -1,5 +1,7 @@
-﻿using LabFusion.Player;
+﻿using LabFusion.Entities;
+using LabFusion.Player;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
@@ -15,6 +17,9 @@ public static class PlayerStatManager
     private const float SafeMargin = 0.2f;
     private const float MaxMargin = 0.8f;
     private const float Multiplier = 0.5f;
+
+    private const float TeamUnbalancedSteps = 1f;
+    private const float TeamUnbalancedMultiplier = 0.5f;
 
     private static void SetVitality(float? value)
     {
@@ -71,6 +76,32 @@ public static class PlayerStatManager
         return 1f - factor * Multiplier;
     }
     
+    private static float GetTeamBalanceModifier()
+    {
+        var localTeamId = TeamManager.GetLocalTeamID();
+        if (!localTeamId.HasValue)
+            return 1f;
+        
+        var validPlayers = NetworkPlayer.Players
+            .Where(p => p.HasRig)
+            .ToList();
+        
+        var teamMemberCount = validPlayers.Count(p => TeamManager.GetPlayerTeamID(p.PlayerID) == localTeamId.Value);
+        var totalPlayers = validPlayers.Count;
+        var enemyCount = totalPlayers - teamMemberCount;
+        
+        // Health should not change if the player team has the advantage of numbers, but should be reduced if they are outnumbered
+        if (enemyCount <= teamMemberCount)
+            return 1f;
+        
+        var difference = enemyCount - teamMemberCount;
+        if (difference >= TeamUnbalancedSteps) 
+            return 1f + TeamUnbalancedMultiplier;
+        
+        var factor = difference / TeamUnbalancedSteps;
+        return 1f + factor * TeamUnbalancedMultiplier;
+    }
+    
     public static bool TryGetLocalStats(Avatar avatar, out PlayerStats stats)
     {
         if (!LocalStatOverride.HasValue)
@@ -81,8 +112,9 @@ public static class PlayerStatManager
 
         if (BalanceStats)
         {
-            var modifier = GetBalancedModifier(avatar);
-            stats = LocalStatOverride.Value.MultiplyHealth(modifier);
+            var heightModifier = GetBalancedModifier(avatar);
+            var teamBalanceModifier = GetTeamBalanceModifier();
+            stats = LocalStatOverride.Value.MultiplyHealth(heightModifier * teamBalanceModifier);
         }
         else
         {

@@ -63,10 +63,13 @@ public class PlantPhase : GamePhase
         LocalInventory.SetAmmo(2000);
         Executor.RunIfHost(() =>
         {
+            BoneStrike.Context.PersistentTeams.AssignAll();
             PalletLoadoutManager.AssignAll();
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag());
+            
+            BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });
     }
 

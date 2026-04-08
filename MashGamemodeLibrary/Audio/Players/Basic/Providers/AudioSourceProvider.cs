@@ -6,9 +6,9 @@ public abstract class AudioSourceProvider
 {
     private readonly AudioModifierFactory _modifierFactory;
 
-    public AudioSourceProvider(AudioModifierFactory modifierFactory)
+    public AudioSourceProvider(AudioModifierFactory? modifierFactory)
     {
-        _modifierFactory = modifierFactory;
+        _modifierFactory = modifierFactory ?? new AudioModifierFactory();
     }
 
     public abstract bool IsPlaying { get; }

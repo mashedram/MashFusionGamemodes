@@ -8,7 +8,7 @@ public class AudioBin
     public string Tag { get; init; }
     public ulong TagHash { get; init; }
     private readonly List<string> _barcodes = new();
-    private readonly List<string> _fallbackBarcodes = new();
+    private readonly List<string> _fallbackBarcodes;
     
     public AudioBin(string tag, List<string> fallbackBarcodes)
     {
@@ -17,6 +17,7 @@ public class AudioBin
         
         Tag = tag;
         TagHash = tag.GetStableHash();
+        _fallbackBarcodes = fallbackBarcodes;
     }
 
     public void Add(string barcode)

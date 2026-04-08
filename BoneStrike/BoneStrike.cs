@@ -34,8 +34,6 @@ namespace BoneStrike;
 
 public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
 {
-
-    private readonly PersistentTeams _teams = new();
     private Vector3 _resetPoint = Vector3.zero;
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
@@ -46,6 +44,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     public override bool DisableManualUnragdoll => true;
 
     public override int RoundCount => 5;
+    
+    private bool _hasAssignedTeams;
 
     protected override void OnRegistered()
     {
@@ -62,17 +62,28 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnStart()
     {
-        Notifier.CancelAll();
-        
         _resetPoint = RigData.RigSpawn;
 
         Executor.RunIfHost(() =>
         {
-            _teams.Clear();
-            _teams.AddTeam<TerroristTeam>();
-            _teams.AddTeam<CounterTerroristTeam>();
-            _teams.AddPlayers(NetworkPlayer.Players.Select(p => p.PlayerID));
-            _teams.RandomizeShift();
+            Context.PersistentTeams.Clear();
+            Context.PersistentTeams.AddTeam<TerroristTeam>();
+            Context.PersistentTeams.AddTeam<CounterTerroristTeam>();
+
+            if (Config.ManualTeamAssignment)
+            {
+                _hasAssignedTeams = false;
+            }
+            else
+            {
+                Context.PersistentTeams.AddPlayers(
+                    NetworkPlayer.Players
+                        .Where(p => p.HasRig)
+                        .Select(p => p.PlayerID)
+                );
+                Context.PersistentTeams.RandomizeShift();
+                _hasAssignedTeams = true;
+            }
         });
     }
 
@@ -80,29 +91,37 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         Executor.RunIfHost(() =>
         {
-            _teams.SendMessage();
+            Context.PersistentTeams.SendMessage();
         });
     }
 
     protected override void OnRoundStart()
     {
+        Notifier.CancelAll();
+        
         TeamManager.Enable<TerroristTeam>();
         TeamManager.Enable<CounterTerroristTeam>();
 
         Executor.RunIfHost(() =>
         {
-            _teams.AssignAll();
-
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
+            
+            if (_hasAssignedTeams)
+            {
+                GamePhaseManager.Enable<PlantPhase>();
+            }
+            else
+            {
+                GamePhaseManager.Enable<TeamAssignmentPhase>();
+            }
+            
+            _hasAssignedTeams = true;
         });
         
         PlayerStatManager.BalanceStats = Config.BalanceStats;
-
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-
-        GamePhaseManager.Enable<PlantPhase>();
 
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]
@@ -120,7 +139,16 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
         Executor.RunIfHost(() =>
         {
-            _teams.AddScore(winnerTeamId, 1);
+            Context.PersistentTeams.AddScore(winnerTeamId, 1);
+
+            if (winnerTeamId == TeamManager.GetTeamID<CounterTerroristTeam>())
+            {
+                Context.CounterTerroristsWinAudioPlayer.PlayRandom();
+            }
+            else
+            {
+                Context.TerroristsWinAudioPlayer.PlayRandom();
+            }
         });
     }
 
@@ -138,9 +166,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         Executor.RunIfHost(() =>
         {
-            // TODO: Doing this immediatly bugs, wait on rig load instead
             playerID.SetSpectating(true);
-            _teams.QueueLateJoiner(playerID);
+            Context.PersistentTeams.QueueLateJoiner(playerID);
         });
 
     }

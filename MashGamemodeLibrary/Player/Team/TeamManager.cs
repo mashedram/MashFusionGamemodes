@@ -32,11 +32,11 @@ public static class TeamManager
 
     private static ulong GetTeamID(Type type)
     {
-        return Registry.CreateID(type);
+        return Registry.GetOrCreateId(type);
     }
 
 
-    private static ulong GetTeamID<T>() where T : Team
+    public static ulong GetTeamID<T>() where T : Team
     {
         return GetTeamID(typeof(T));
     }
@@ -94,6 +94,13 @@ public static class TeamManager
     public static bool IsLocalTeam<T>() where T : Team
     {
         return PlayerIDManager.LocalID.IsTeam<T>();
+    }
+    
+    public static ulong? GetPlayerTeamID(PlayerID player)
+    {
+        if (!AssignedTeams.TryGetValue(player, out var team)) return null;
+
+        return Registry.CreateID(team);
     }
 
     public static Team? GetPlayerTeam(PlayerID player)

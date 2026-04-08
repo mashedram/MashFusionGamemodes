@@ -44,13 +44,17 @@ public static class AudioRegistry
 
     public static AudioBin CreateBin(string tag, params string[] fallbacks)
     {
-        if (Bins.TryGetValue(tag, out var bin))
+        if (!tag.StartsWith(TagPrefix, StringComparison.Ordinal))
+            throw new ArgumentException($"Tag must start with {TagPrefix}", nameof(tag));
+        
+        var clippedTag = tag[TagPrefix.Length..];
+        if (Bins.TryGetValue(clippedTag, out var bin))
             return bin;
 
-        var newBin = new AudioBin(tag, fallbacks.ToList());
+        var newBin = new AudioBin(clippedTag, fallbacks.ToList());
         if (_isRegistered)
             PopulateBin(newBin);
-        Bins.Add(tag, newBin);
+        Bins.Add(clippedTag, newBin);
         return newBin;
     }
     

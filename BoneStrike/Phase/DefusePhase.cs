@@ -1,28 +1,12 @@
 ﻿using BoneStrike.Tags;
 using BoneStrike.Teams;
-using HarmonyLib;
-using Il2CppSLZ.Marrow;
-using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Entities;
 using LabFusion.Extensions;
-using LabFusion.Marrow.Integration;
-using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
-using LabFusion.Utilities;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Controller;
-using MashGamemodeLibrary.Player.Spawning;
-using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util.Timer;
 using MelonLoader;
-using ExecutionContext = MashGamemodeLibrary.Execution.ExecutionContext;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike.Phase;
@@ -81,6 +65,7 @@ public class DefusePhase : GamePhase
         Executor.RunIfHost(() =>
         {
             BoneStrike.Context.BombAudioPlayer.Start();
+            BoneStrike.Context.DefusePhaseStartAudioPlayer.PlayRandom();
         });
     }
 

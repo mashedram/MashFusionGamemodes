@@ -168,6 +168,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Balance Avatar Health", "Health")]
     [JsonInclude]
     public bool BalanceStats = true;
+    [ConfigMenuEntry("Blind Attackers During Planting", "Health")]
+    [JsonInclude]
+    public bool BlindAttackersDuringPlanting = true;
     [ConfigMenuEntry("Defender Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
     [JsonInclude]
     public float DefenderHealthMultiplier = 1f;
@@ -190,18 +193,24 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")]
     [JsonInclude]
     public bool DevToolsDisabled = true;
+    
+    [ConfigMenuEntry("Manual Team Assignment", "Teams")]
+    [JsonInclude]
+    public bool ManualTeamAssignment = true;
 
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref DefuseDuration);
         serializer.SerializeValue(ref DefuseTime);
+        serializer.SerializeValue(ref BlindAttackersDuringPlanting);
         serializer.SerializeValue(ref DefenderHealthMultiplier);
         serializer.SerializeValue(ref AttackerHealthMultiplier);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
+        serializer.SerializeValue(ref ManualTeamAssignment);
     }
     
     public object Clone()
@@ -211,6 +220,7 @@ public class BoneStrikeConfig : IConfig
             PlantDuration = PlantDuration,
             DefuseDuration = DefuseDuration,
             DefuseTime = DefuseTime,
+            BlindAttackersDuringPlanting = BlindAttackersDuringPlanting,
             BalanceStats = BalanceStats,
             BalanceDamage = BalanceDamage,
             DamageMultiplier = DamageMultiplier,
@@ -219,7 +229,8 @@ public class BoneStrikeConfig : IConfig
             PalletBarcodes = new List<string>(PalletBarcodes),
             UtilityBarcodes = new List<string>(UtilityBarcodes),
             BombExplosion = BombExplosion,
-            DevToolsDisabled = DevToolsDisabled
+            DevToolsDisabled = DevToolsDisabled,
+            ManualTeamAssignment = ManualTeamAssignment
         };
     }
 }
