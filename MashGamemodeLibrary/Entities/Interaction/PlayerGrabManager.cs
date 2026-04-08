@@ -215,16 +215,24 @@ public static class PlayerGrabManager
     {
         // Only apply grab predicates for the local player
         if (grab.NetworkPlayer == null) return true;
-        if (!grab.NetworkPlayer.PlayerID.IsMe) return true;
+        
+        if (!grab.NetworkPlayer.PlayerID.IsMe)
+        {
+            if (grab.NetworkPlayer.PlayerID.IsSpectating())
+                return false;
+            
+            return true;
+        }
+        
         if (!grab.IsHoldingItem(out var item)) return true;
         if (item.GameObject == null) return true;
         if (!item.IsNetworked(out var networkEntity)) return true;
 
         if (IsForceDisabled(grab)) return false;
-
-        var grabbedRig = item.GameObject.GetComponentInParent<RigManager>();
+        
+        var grabbedRig = MarrowBody.Cache.TryGet(item.GameObject, out var body);
         if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
-            SpectatorManager.IsSpectating(networkPlayer.PlayerID))
+            networkPlayer.PlayerID.IsSpectating())
             return false;
 
         var predicates = GrabPredicateCache

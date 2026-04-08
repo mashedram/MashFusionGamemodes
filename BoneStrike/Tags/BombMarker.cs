@@ -5,13 +5,14 @@ using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged
+public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged, IComponentUpdate, IGrabCallback, IDropCallback
 {
     public static readonly CachedQuery<BombMarker> Query = CachedQueryManager.Create<BombMarker>();
     
@@ -21,6 +22,8 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     public MarrowEntity? MarrowEntity;
     private Vector3? _returnPosition;
     private List<Rigidbody>? _rigidbodies;
+    
+    private bool _isGrabbed;
     
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
@@ -49,6 +52,9 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     {
         if (_rigidbodies == null)
             return;
+        
+        if (_isGrabbed)
+            return;
 
         var squaredVelocity = _rigidbodies.Average(r => r.velocity.sqrMagnitude);
         if (squaredVelocity < MaxVelocitySquared)
@@ -58,5 +64,15 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
         if (_returnPosition.HasValue)
             // We can be sure marrowentity exists because otherwise rigidbodies would be null
             MarrowEntity!.transform.position = _returnPosition.Value;
+    }
+    
+    public void OnGrabbed(GrabData grab)
+    {
+        _isGrabbed = true;
+    }
+    
+    public void OnDropped(GrabData grab)
+    {
+        _isGrabbed = false; 
     }
 }

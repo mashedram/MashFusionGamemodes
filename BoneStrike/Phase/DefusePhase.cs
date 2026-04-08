@@ -2,6 +2,7 @@
 using BoneStrike.Teams;
 using LabFusion.Extensions;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
@@ -19,6 +20,16 @@ public class DefusePhase : GamePhase
     protected override TimeMarker[] Markers => new[]
     {
         CommonTimeMarkerEvents.TimeRemaining(10f),
+        new TimeMarker(MarkerType.BeforeEnd, 30f, _ =>
+        {
+            if (!BoneStrike.Config.MarkBombNearEnd)
+                return;
+            
+            foreach (var bombMarker in BombMarker.Query)
+            {
+                bombMarker.NetworkEntity?.AddComponent(new OvertimeMarker());
+            }
+        }),
         CommonTimeMarkerEvents.TimeRemaining(60f)
     };
 

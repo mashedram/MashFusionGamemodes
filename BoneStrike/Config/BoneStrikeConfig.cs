@@ -159,6 +159,10 @@ public class BoneStrikeConfig : IConfig
     [JsonInclude]
     public float DefuseTime = 7f;
     
+    [ConfigMenuEntry("Mark Bomb in last 30 seconds", "Time")]
+    [JsonInclude]
+    public bool MarkBombNearEnd = true;
+    
     [ConfigMenuEntry("Balance Weapon Damage", "Weapons")]
     [JsonInclude]
     public bool BalanceDamage = true;
@@ -170,7 +174,7 @@ public class BoneStrikeConfig : IConfig
     public bool BalanceStats = true;
     [ConfigMenuEntry("Blind Attackers During Planting", "Health")]
     [JsonInclude]
-    public bool BlindAttackersDuringPlanting = true;
+    public bool BlindAttackersDuringPlanting;
     [ConfigMenuEntry("Defender Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
     [JsonInclude]
     public float DefenderHealthMultiplier = 1f;
@@ -215,6 +219,7 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
         serializer.SerializeValue(ref AllowUnbalancedTeams);
+        serializer.SerializeValue(ref MarkBombNearEnd);
     }
     
     public object Clone()
@@ -235,7 +240,8 @@ public class BoneStrikeConfig : IConfig
             BombExplosion = BombExplosion,
             DevToolsDisabled = DevToolsDisabled,
             ManualTeamAssignment = ManualTeamAssignment,
-            AllowUnbalancedTeams = AllowUnbalancedTeams
+            AllowUnbalancedTeams = AllowUnbalancedTeams,
+            MarkBombNearEnd = MarkBombNearEnd
         };
     }
 }

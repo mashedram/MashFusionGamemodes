@@ -121,7 +121,7 @@ public class PlantPhase : GamePhase
         foreach (var entry in bombs)
         {
             var networkEntity = entry.NetworkEntity;
-            var grip = networkEntity.GetExtender<GripExtender>();
+            var grip = networkEntity?.GetExtender<GripExtender>();
             if (grip == null)
                 continue;
 

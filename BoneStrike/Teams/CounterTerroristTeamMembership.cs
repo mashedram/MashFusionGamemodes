@@ -20,6 +20,8 @@ public class CounterTerroristTeam : Team
 
     public override void OnPhaseChanged(GamePhase phase)
     {
+        LocalVision.Blind = phase is PlantPhase && BoneStrike.Config.BlindAttackersDuringPlanting;
+        
         Executor.RunIfHost(() =>
         {
             Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(0));
