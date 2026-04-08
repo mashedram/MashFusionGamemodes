@@ -14,6 +14,8 @@ using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.ECS.Networking;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
@@ -21,11 +23,12 @@ using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, IComponentUpdate, IGrabCallback, IDropCallback, INetworkEvents, INetSerializable
+public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, IComponentUpdate, IGrabCallback, IDropCallback, INetworkEvents,
+    INetSerializable
 {
+    private static readonly RemoteEvent DefuseEvent = new("DefuseEvent", OnDefuse, CommonNetworkRoutes.AllToHost);
     private const int SyncTimeEventIndex = 0;
-    private const int DefuseEventIndex = 1;
-    
+
     private PlayerID? _grabber;
     private Transform? _offset;
     private TextMeshPro? _text;
@@ -47,14 +50,14 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         if (grab.NetworkPlayer != null && grab.NetworkPlayer.PlayerID.IsMe)
             this.SendEvent(SyncTimeEventIndex, sizeof(float), writer => writer.Write(_timer));
-            
+
     }
 
     public void OnGrabbed(GrabData grab)
     {
         if (grab.NetworkPlayer == null)
             return;
-        if (GamePhaseManager.IsPhase<PlantPhase>()) 
+        if (GamePhaseManager.IsPhase<PlantPhase>())
             return;
 
         Executor.RunIfMe(grab.NetworkPlayer.PlayerID, () =>
@@ -64,7 +67,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         _grabber = grab.NetworkPlayer!.PlayerID;
         _timerObject?.gameObject.SetActive(true);
-        
+
         if (grab.NetworkPlayer != null && grab.NetworkPlayer.PlayerID.IsMe)
             this.SendEvent(SyncTimeEventIndex, sizeof(float), writer => writer.Write(_timer));
     }
@@ -83,7 +86,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     {
         serializer.SerializeValue(ref _timer);
     }
-    
+
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         SpawnTimer(marrowEntity.transform);
@@ -119,7 +122,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         _text.text = (timeout - _timer).ToString("F1", CultureInfo.InvariantCulture);
     }
-    
+
     // Helpers
 
     private void Defuse()
@@ -132,7 +135,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             return;
 
         _isDefused = true;
-        
+
         if (NetworkInfo.IsHost)
         {
             WinManager.Win<CounterTerroristTeam>();
@@ -140,7 +143,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         else
         {
             MelonLogger.Msg("Sent defuse request.");
-            this.SendEvent(DefuseEventIndex, 0, _ => {});
+            DefuseEvent.CallFor(PlayerIDManager.GetHostID());
         }
         _grabber = null;
     }
@@ -155,7 +158,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         LocalAssetSpawner.Spawn(spawnable, Vector3.zero, Quaternion.identity, poolee =>
         {
             poolee.gameObject.SetActive(false);
-            
+
             _timerObject = poolee;
             _offset = _timerObject.transform.GetChild(0);
             _text = poolee.GetComponentInChildren<TextMeshPro>();
@@ -164,7 +167,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             poolee.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         });
     }
-    
+
     public void OnEvent(byte senderId, byte eventIndex, NetReader reader)
     {
         switch (eventIndex)
@@ -173,15 +176,30 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             {
                 if (PlayerIDManager.LocalID == senderId)
                     return;
-                
+
                 _timer = reader.ReadSingle();
                 break;
             }
-            case DefuseEventIndex:
-            {
-                Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
-                break;
-            }
+            // The old defuse system should be fixed
         }
+    }
+
+    private static void OnDefuse(byte senderId)
+    {
+        if (GamePhaseManager.IsPhase<PlantPhase>())
+            return;
+
+        if (!PlayerIDManager.SmallIDLookup.TryGetValue(senderId, out var playerID))
+            return;
+        
+        if (!playerID.IsValid)
+            return;
+
+        if (!playerID.IsTeam<CounterTerroristTeam>())
+        {
+            MelonLogger.Warning($"Player {playerID} attempted to defuse but is not on the Counter-Terrorist team.");
+        }
+            
+        Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }
 }

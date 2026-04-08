@@ -25,9 +25,11 @@ public class ColliderPatches
 
         if (!NetworkInfo.HasServer)
             return true;
+        
         // If we collide but aren't spectating, we don't care.
         if (!SpectatorManager.IsLocalPlayerSpectating())
             return true;
+        
 
         var rb = collision.rigidbody;
         if (!rb)

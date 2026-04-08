@@ -13,6 +13,10 @@ public class RigArtPatches
     [HarmonyPrefix]
     private static bool ToggleAvatar_Prefix(RigArt __instance)
     {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (__instance == null)
+            return true;
+        
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
             return true;
@@ -27,6 +31,10 @@ public class RigArtPatches
     [HarmonyPrefix]
     private static bool ToggleAmmoPouch_Prefix(RigArt __instance)
     {
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (__instance == null)
+            return true;
+        
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
             return true;

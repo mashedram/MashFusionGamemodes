@@ -84,7 +84,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
-            SpectatorManager.Clear();
+            SpectatorManager.StopSpectatingAll();
             
             GamePhaseManager.Enable<HidePhase>();
         });

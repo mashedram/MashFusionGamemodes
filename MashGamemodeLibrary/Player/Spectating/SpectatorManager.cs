@@ -95,15 +95,17 @@ public static class SpectatorManager
     }
 
     /// <summary>
-    ///     Set wether the local player can interact or not
+    /// Set weather the local player can interact or not
     /// </summary>
     /// <param name="state">True if the player can interact</param>
     private static void SetLocalInteractions(bool state)
     {
         var rig = BoneLib.Player.RigManager;
-        if (!state && rig != null)
+        switch (state)
         {
-            Loadout.Loadout.ClearPlayerLoadout(rig);
+            case false when rig != null:
+                Loadout.Loadout.ClearPlayerLoadout(rig);
+                break;
         }
 
         LocalControls.DisableInteraction = !state;
@@ -204,9 +206,12 @@ public static class SpectatorManager
             SpectatingPlayerIds.Remove(playerID.PlatformID);
     }
 
-    public static void Clear()
+    public static void StopSpectatingAll()
     {
-        SpectatingPlayerIds.Clear();
+        Executor.RunIfHost(() =>
+        {
+            SpectatingPlayerIds.Clear();
+        });
     }
 
     public static void LocalReset()

@@ -1,4 +1,5 @@
-﻿using Il2CppSLZ.Marrow;
+﻿using System.Collections.Immutable;
+using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Player;
 using UnityEngine;
@@ -6,18 +7,16 @@ using UnityEngine;
 namespace MashGamemodeLibrary.Player.Collision;
 
 // TODO: Make these the actual values from the game
-internal static class BonelabLayers
-{
-    public const int Player = 8;
-    public const int NoCollide = 9;
-    public const int Deciverse = 17;
-    public const int Socket = 18;
-}
 
 internal class PlayerColliderCache
 {
+    // No Raycast Layer
+    private static readonly int SpectatorLayer = 2;
     private static readonly Dictionary<string, int> OriginalLayers = new()
     {
+        {
+            "Feet", BonelabLayers.Feet  
+        },
         {
             "Foot (right)", BonelabLayers.NoCollide
         },
@@ -116,8 +115,45 @@ internal class PlayerColliderCache
         },
         {
             "InventoryAmmoReceiver", BonelabLayers.Socket
-        }
+        },
+        // From first list:
+        { "Knee", BonelabLayers.Feet },
+        { "KneetoPelvis", BonelabLayers.Feet },
+        // From second list (Deci variants):
+        { "DeciHead", BonelabLayers.Deciverse },
+        { "DeciChest", BonelabLayers.Deciverse },
+        { "DeciShoulderLf", BonelabLayers.Deciverse },
+        { "DeciElbowLf", BonelabLayers.Deciverse },
+        { "DeciHandLf", BonelabLayers.Deciverse },
+        { "DeciShoulderRt", BonelabLayers.Deciverse },
+        { "DeciElbowRt", BonelabLayers.Deciverse },
+        { "DeciHandRt", BonelabLayers.Deciverse },
+        { "DeciSpine", BonelabLayers.Deciverse },
+        { "DeciPelvis", BonelabLayers.Deciverse },
+        { "DeciHipLf", BonelabLayers.Deciverse },
+        { "DeciHipRt", BonelabLayers.Deciverse },
     };
+
+    static PlayerColliderCache()
+    {
+        // We only want terrain layers
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Default, false);
+        
+        // Ignore raycasts, so we don't have to worry about them when we set the rig
+        
+        
+        // Ignore everything else
+        Physics.IgnoreLayerCollision(SpectatorLayer, SpectatorLayer, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Fixture, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Player, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.NoCollide, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Dynamic, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.EnemyColliders, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Interactable, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Deciverse, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Socket, true);
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.PlayerAndNPC, true);
+    }
 
     private readonly HashSet<ColliderSet> _groundPropColliders = new();
 
@@ -203,28 +239,27 @@ internal class PlayerColliderCache
 
     public void SetIgnoreRaycast(PlayerID target, bool colliding)
     {
-
         if (_physicsRig == null)
             return;
 
+        var colliders = _physicsRigColliders;
+
         if (colliding)
         {
-            foreach (var collider in _physicsRigColliders)
+            foreach (var collider in colliders)
             {
                 if (OriginalLayers.TryGetValue(collider.gameObject.name, out var layer))
                     collider.gameObject.layer = layer;
             }
-
-            return;
         }
-
-        foreach (var collider in _physicsRigColliders)
+        else
         {
-            var go = collider.gameObject;
-            // We don't check if the collider is in the OriginalLayers, because we filter this earlier when we set the rig
-
-            // 2 Is ignore raycasts
-            go.layer = 2;
+            foreach (var collider in colliders)
+            {
+                var go = collider.gameObject;
+                // We don't check if the collider is in the OriginalLayers, because we filter this earlier when we set the rig
+                go.layer = SpectatorLayer;
+            }
         }
     }
 

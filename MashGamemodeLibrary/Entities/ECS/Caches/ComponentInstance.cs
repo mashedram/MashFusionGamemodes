@@ -11,6 +11,7 @@ using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Util;
+using MelonLoader;
 
 namespace MashGamemodeLibrary.Entities.ECS.Caches;
 
@@ -110,17 +111,23 @@ public class ComponentInstance : IBehaviourHolder
 
     private void OnUnregistered(NetworkEntity networkEntity)
     {
-        if (_behaviourMembers != null) 
-            BehaviourManager.RemoveAll(_behaviourMembers);
+        try
+        {
+            if (_behaviourMembers != null) 
+                BehaviourManager.RemoveAll(_behaviourMembers);
         
-        _cacheKey?.Remove();
-        LocalEcsCache.Remove(Index);
+            _cacheKey?.Remove();
+            LocalEcsCache.Remove(Index);
         
-        if (_componentTarget == null)
-            return;
+            if (_componentTarget == null)
+                return;
         
-        NetworkEntity.OnEntityUnregistered -= OnUnregistered;
-        _componentTarget = null;
+            NetworkEntity.OnEntityUnregistered -= OnUnregistered;
+            _componentTarget = null;
+        } catch (Exception e)
+        {
+            MelonLogger.Error("Error while unregistering component: " + e);
+        }
     }
 
     public void Remove()

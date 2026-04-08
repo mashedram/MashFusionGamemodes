@@ -19,7 +19,7 @@ public struct PlayerStats : INetSerializable
         serializer.SerializeValue(ref LowerStrength);
     }
 
-    public PlayerStats MulitplyHealth(float mult)
+    public readonly PlayerStats MultiplyHealth(float mult)
     {
         return this with
         {

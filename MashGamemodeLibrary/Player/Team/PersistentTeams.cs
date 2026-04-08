@@ -66,7 +66,7 @@ public class PersistentTeams
         new("PersistentTeams_WinMessage", OnWinMessage,
             CommonNetworkRoutes.HostToAll);
 
-    private readonly Queue<PlayerID> _lateJoinerQueue = new();
+    private readonly HashSet<PlayerID> _lateJoinerQueue = new();
     private readonly HashSet<PlayerID> _playerIds = new();
     private readonly List<HashSet<PlayerID>> _playerSets = new();
     private readonly List<int> _scores = new();
@@ -148,7 +148,7 @@ public class PersistentTeams
 
     public void QueueLateJoiner(PlayerID playerID)
     {
-        _lateJoinerQueue.Enqueue(playerID);
+        _lateJoinerQueue.Add(playerID);
     }
 
     public void AssignAll()
@@ -161,8 +161,22 @@ public class PersistentTeams
 
         // Resolve queue
         var index = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count).index;
-        while (_lateJoinerQueue.TryDequeue(out var playerID))
+        foreach (var playerID in _lateJoinerQueue)
         {
+            if (!playerID.IsValid)
+            {
+                _lateJoinerQueue.Remove(playerID);
+                continue;
+            }
+            
+            if (!NetworkPlayerManager.TryGetPlayer(playerID, out var player))
+                continue;
+            
+            if (!player.HasRig)
+                continue;
+            
+            _lateJoinerQueue.Remove(playerID);
+            
             // Avoid double adding
             if (!_playerIds.Add(playerID))
                 continue;

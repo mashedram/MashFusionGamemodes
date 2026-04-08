@@ -23,6 +23,7 @@ public static class Executor
         catch (Exception e)
         {
             MelonLogger.Error($"[Mash Gamemode Library] An error occurred during execution: {e}");
+            MelonLogger.Error("Stack Trace: " + new StackTrace());
         }
 #else
         runnable();
@@ -36,6 +37,7 @@ public static class Executor
             if (error == null) return;
 
             MelonLogger.Error($"This can only be ran from a host: {error}");
+            MelonLogger.Error("Stack Trace: " + new StackTrace());
             return;
         }
 

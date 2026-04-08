@@ -8,6 +8,7 @@ using LabFusion.Entities;
 using LabFusion.Marrow.Integration;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
+using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
@@ -61,6 +62,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnStart()
     {
+        Notifier.CancelAll();
+        
         _resetPoint = RigData.RigSpawn;
 
         Executor.RunIfHost(() =>
@@ -93,20 +96,13 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
         });
+        
+        PlayerStatManager.BalanceStats = Config.BalanceStats;
 
         PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         GamePhaseManager.Enable<PlantPhase>();
-        
-        PlayerStatManager.SetStats(new PlayerStats
-        {
-            Agility = 1.2f,
-            LowerStrength = 1.2f,
-            UpperStrength = 1.2f,
-            Speed = 1.5f,
-            Vitality = 1f
-        }.MulitplyHealth(Config.HealthMultiplier));
 
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]
@@ -120,6 +116,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         FusionPlayer.ResetSpawnPoints();
         LocalPlayer.TeleportToPosition(_resetPoint);
+        SpectatorManager.StopSpectatingAll();
 
         Executor.RunIfHost(() =>
         {
@@ -170,7 +167,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         }
     }
 
-    private static bool AnyDefusers()
+    internal static bool AnyDefusers()
     {
         return NetworkPlayer.Players
             .Any(player =>

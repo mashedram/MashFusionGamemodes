@@ -18,6 +18,7 @@ using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
+using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Player.Visibility;

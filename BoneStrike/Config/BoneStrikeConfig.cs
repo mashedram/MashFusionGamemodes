@@ -147,27 +147,33 @@ internal class BarcodeListElement : IConfigElementProvider
 
 public class BoneStrikeConfig : IConfig
 {
-    [ConfigMenuEntry("Plant Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [ConfigMenuEntry("Plant Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [JsonInclude]
     public float PlantDuration = 60f;
     
-    [ConfigMenuEntry("Defuse Phase Duration")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [ConfigMenuEntry("Defuse Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [JsonInclude]
     public float DefuseDuration = 60f;
 
-    [ConfigMenuEntry("Defuse timer")] [ConfigRangeConstraint(2f, 20f)]
+    [ConfigMenuEntry("Defuse timer", "Time")] [ConfigRangeConstraint(2f, 20f)]
     [JsonInclude]
     public float DefuseTime = 7f;
     
-    [ConfigMenuEntry("Balance Weapon Damage")]
+    [ConfigMenuEntry("Balance Weapon Damage", "Weapons")]
     [JsonInclude]
     public bool BalanceDamage = true;
-    [ConfigMenuEntry("Damage Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [ConfigMenuEntry("Damage Multiplier", "Weapons")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
     [JsonInclude]
     public float DamageMultiplier = 1f;
-    [ConfigMenuEntry("Health Multiplier")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [ConfigMenuEntry("Balance Avatar Health", "Health")]
     [JsonInclude]
-    public float HealthMultiplier = 1f;
+    public bool BalanceStats = true;
+    [ConfigMenuEntry("Defender Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [JsonInclude]
+    public float DefenderHealthMultiplier = 1f;
+    [ConfigMenuEntry("Attacker Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
+    [JsonInclude]
+    public float AttackerHealthMultiplier = 1.5f;
     
     [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))]
     [JsonInclude]
@@ -177,11 +183,11 @@ public class BoneStrikeConfig : IConfig
     [JsonInclude]
     public List<string> UtilityBarcodes = new();
     
-    [ConfigMenuEntry("Bomb Explosion Enabled")]
+    [ConfigMenuEntry("Bomb Explosion Enabled", "Utility")]
     [JsonInclude]
     public bool BombExplosion = true;
     
-    [ConfigMenuEntry("Dev Tools Disabled")]
+    [ConfigMenuEntry("Dev Tools Disabled", "Utility")]
     [JsonInclude]
     public bool DevToolsDisabled = true;
 
@@ -190,7 +196,9 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref DefuseDuration);
         serializer.SerializeValue(ref DefuseTime);
-        serializer.SerializeValue(ref HealthMultiplier);
+        serializer.SerializeValue(ref DefenderHealthMultiplier);
+        serializer.SerializeValue(ref AttackerHealthMultiplier);
+        serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
@@ -203,9 +211,11 @@ public class BoneStrikeConfig : IConfig
             PlantDuration = PlantDuration,
             DefuseDuration = DefuseDuration,
             DefuseTime = DefuseTime,
+            BalanceStats = BalanceStats,
             BalanceDamage = BalanceDamage,
             DamageMultiplier = DamageMultiplier,
-            HealthMultiplier = HealthMultiplier,
+            DefenderHealthMultiplier = DefenderHealthMultiplier,
+            AttackerHealthMultiplier = AttackerHealthMultiplier,
             PalletBarcodes = new List<string>(PalletBarcodes),
             UtilityBarcodes = new List<string>(UtilityBarcodes),
             BombExplosion = BombExplosion,

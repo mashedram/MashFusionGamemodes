@@ -153,7 +153,7 @@ public class NightmareInstance
         if (Descriptor.Avatar != null)
             LocalAvatar.AvatarOverride = GetConfig<NightmareConfig>().AvatarOverride ?? Descriptor.Avatar;
 
-        PlayerStatManager.SetStats(Descriptor.GetStats().MulitplyHealth(Clockhunt.Config.NightmareHealthMult));
+        PlayerStatManager.SetStats(Descriptor.GetStats().MultiplyHealth(Clockhunt.Config.NightmareHealthMult));
 
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }

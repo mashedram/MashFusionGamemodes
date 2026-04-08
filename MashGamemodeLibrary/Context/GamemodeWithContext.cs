@@ -165,7 +165,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         {
             PlayerTagManager.ClearPlayerTags();
             LocalEcsCache.Clear();
-            SpectatorManager.Clear();
+            SpectatorManager.StopSpectatingAll();
         });
     }
 

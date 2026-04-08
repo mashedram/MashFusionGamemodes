@@ -67,11 +67,11 @@ public class DefusePhase : GamePhase
         {
             foreach (var entry in PlayerHandTimerTag.Query)
             {
+                if (bomb.MarrowEntity == null)
+                    continue;
+                
                 entry.Target = bomb.MarrowEntity.gameObject;
             }
-                
-            if (BoneStrike.Config.UseDynamicSpawns)
-                DynamicSpawnCollector.CollectAt(bomb.MarrowEntity.transform.position, BoneStrike.Config.DynamicSpawnRange);
         }
         else
         {
@@ -82,75 +82,6 @@ public class DefusePhase : GamePhase
         {
             BoneStrike.Context.BombAudioPlayer.Start();
         });
-    }
-
-    public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
-    {
-        if (action == PlayerGameActions.Respawned && playerId.IsMe)
-        {
-            SlotData.ClearSpawned();
-            Executor.RunCheckedInFuture(PalletLoadoutManager.ReassignOwnLoadout, TimeSpan.FromSeconds(1));
-            return;
-        }
-        
-        if (!playerId.IsMe)
-            return;
-
-        if (action != PlayerGameActions.Dying)
-            return;
-        
-        if (!BoneStrike.IsInRound) {
-            FusionPlayer.ResetSpawnPoints();
-            return;
-        }
-
-        var lives = EcsManager.GetComponent<LimitedRespawnComponent>(playerId.SmallID);
-        if (lives is { Respawns: <= 0 })
-        {
-            FusionPlayer.ResetSpawnPoints();
-            return;
-        }
-
-        if (!BoneStrike.Config.UseDynamicSpawns)
-        {
-            var spawns = GamemodeMarker.FilterMarkers();
-
-            if (spawns.Count > 0)
-            {
-                GamemodeHelper.SetSpawnPoints(spawns);
-            }
-            return;
-        }
-
-        var enemyPositions = NetworkPlayer.Players
-            .Where(p => p.HasRig && p.PlayerID.IsEnemy())
-            .Select(p => new AvoidSpawningNear(p.RigRefs.Head.position, BoneStrike.Config.DynamicSpawnDistanceFromEnemy));
-
-        var clockPositions = BombMarker
-            .Query
-            .Select(n => n.MarrowEntity)
-            .Select(m => m.transform.position)
-            .ToList();
-
-        var canReach = clockPositions.FirstOrDefault();
-
-        var fallback = TeamManager.IsLocalTeam<TerroristTeam>()
-            ? BoneStrike.Config.FallbackTerroristSpawnPosition
-            : BoneStrike.Config.FallbackCounterTerroristSpawnPosition;
-
-        const int spawnSearchTries = 25;
-        DynamicSpawnCollector.SetRandomSpawn(
-            spawnSearchTries,
-            fallback,
-            canReach,
-            enemyPositions
-                .Union(
-                    clockPositions
-                        .Skip(1)
-                        .Select(p => new AvoidSpawningNear(p, BoneStrike.Config.DynamicSpawnDistanceFromObjective))
-                )
-                .ToArray()
-        );
     }
 
     private static void DropClock()

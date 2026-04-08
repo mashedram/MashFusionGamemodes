@@ -1,7 +1,11 @@
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Marrow.Integration;
+using LabFusion.SDK.Cosmetics;
+using LabFusion.SDK.Points;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Player.Visibility.Holster.Receivers;
 using MashGamemodeLibrary.Vision;
 using MashGamemodeLibrary.Vision.Holster;
@@ -18,6 +22,7 @@ internal class PlayerVisibilityState
 
     private readonly NetworkPlayer _player;
     private readonly HashSet<SlotContainer> _slotContainers = new();
+    private readonly List<RenderSet> _accessoryRenderers = new();
 
     private bool _isHiddenInternal;
     private bool _isSpecialHidden;
@@ -66,6 +71,7 @@ internal class PlayerVisibilityState
     {
         _inventoryRenderers.Clear();
         _slotContainers.Clear();
+        _accessoryRenderers.Clear();
 
         if (!_player.HasRig)
         {
@@ -108,6 +114,12 @@ internal class PlayerVisibilityState
                 continue;
 
             _slotContainers.Add(slotContainer);
+        }
+
+        foreach (var cosmeticInstance in rigManager.GetCosmetics())
+        {
+            var set = new RenderSet(cosmeticInstance.accessory, _isHiddenInternal);
+            _accessoryRenderers.Add(set);
         }
 
         var hands = new[]
@@ -157,8 +169,13 @@ internal class PlayerVisibilityState
 
             slotContainer.gameObject.SetActive(!(_isHiddenInternal || _isSpecialHidden));
         }
+        
+        foreach (var accessoryRenderer in _accessoryRenderers)
+        {
+            accessoryRenderer.SetHidden(hidden);
+        }
 
-        foreach (var rendererVisibility in _heldItems.Values.Select(heldItem => heldItem))
+        foreach (var rendererVisibility in _heldItems.Values)
             rendererVisibility.SetHidden(hidden);
 
         SetHeadUI(hidden);

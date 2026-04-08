@@ -78,9 +78,9 @@ public static class PlayerGunManager
     static PlayerGunManager()
     {
         DamageRemappers.Register(WeaponType.Pistol, new DamageRemapper(
-            0.9f,
+            1.2f,
+            0.3f,
             0.6f,
-            1f,
             1f
         ));
         DamageRemappers.Register(WeaponType.Smg, new DamageRemapper(
@@ -173,6 +173,9 @@ public static class PlayerGunManager
 
     private static void NormalizeGunDamage(Gun gun)
     {
+        if (gun?.defaultCartridge?.projectile == null)
+            return;
+        
         gun.defaultCartridge.projectile.damageMultiplier = GetGunDamageMultiplier(gun);
     }
 

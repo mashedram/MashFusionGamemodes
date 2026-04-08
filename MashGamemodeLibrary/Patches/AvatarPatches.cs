@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
+using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Stats;
 
 namespace MashGamemodeLibrary.Patches;
@@ -14,9 +15,10 @@ public static class AvatarPatches
     [HarmonyPostfix]
     public static void ComputeBaseStatsPostfix(Avatar __instance)
     {
-        var maybeStats = PlayerStatManager.LocalStatOverride;
-
-        if (!maybeStats.HasValue)
+        if (__instance == null)
+            return;
+        
+        if (!PlayerStatManager.TryGetLocalStats(__instance, out var stats))
             return;
 
         if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
@@ -27,8 +29,7 @@ public static class AvatarPatches
 
         if (rigManager != BoneLib.Player.RigManager)
             return;
-
-        var stats = maybeStats.Value;
+        
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;

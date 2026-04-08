@@ -4,7 +4,9 @@ using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Teams;
@@ -17,7 +19,7 @@ public class TerroristTeam : Team
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(BoneStrike.Config.MaxRespawns));
+            Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(0));
         });
     }
 
@@ -27,11 +29,20 @@ public class TerroristTeam : Team
         {
             Owner.AddTag(new PlayerHandTimerTag());
             
+            PlayerStatManager.SetStats(new PlayerStats
+            {
+                Agility = 1.2f,
+                LowerStrength = 1.2f,
+                UpperStrength = 1.2f,
+                Speed = 1.5f,
+                Vitality = 1f
+            }.MultiplyHealth(BoneStrike.Config.DefenderHealthMultiplier));
+            
             Notifier.Send(new Notification
             {
                 Title = "Terrorists",
                 Message =
-                    $"Hide and defend the bomb. You have {BoneStrike.Config.MaxRespawns} lives and can skip ahead by holding the bomb and tapping the menu key.",
+                    $"Hide and defend the bomb. Teleport the bomb to you by tapping the menu button if you lose it.",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,
