@@ -13,7 +13,6 @@ using LabFusion.Menu.Data;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Context;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -49,22 +48,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     {
         base.OnGamemodeRegistered();
 
-        EcsManager.RegisterAll<Mod>();
         NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
         TeamManager.Registry.RegisterAll<Mod>();
-        
-        LimitedRespawnComponent.RegisterSpectatePredicate<Clockhunt>(player =>
-        {
-            if (Config.DebugSkipSpectate)
-                return false;
-                
-            if (AnyAliveSurvivors(player))
-                return true;
-
-            WinManager.Win<NightmareTeam>();
-            return false;
-        });
     }
 
     private static void ListenToAvatarChange(Avatar avatar, string barcode)
@@ -86,11 +72,17 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
             NightmareManager.ClearNightmares();
             SpectatorManager.StopSpectatingAll();
             
+            LimitedRespawnComponent.RegisterSpectatePredicate<Clockhunt>(player =>
+            {
+                if (AnyAliveSurvivors(player))
+                    return true;
+
+                WinManager.Win<NightmareTeam>();
+                return false;
+            });
+            
             GamePhaseManager.Enable<HidePhase>();
         });
-        
-        PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
-        PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         ClockhuntMusicContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<ClockhuntMusicContext>("night",
@@ -140,6 +132,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     private static bool AnyAliveSurvivors(NetworkPlayer? skip = null)
     {
-        return NetworkPlayer.Players.Any(player => !PlayerIdExtension.IsSpectating(player.PlayerID) && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
+        return NetworkPlayer.Players.Any(player => !player.PlayerID.IsSpectating() && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
     }
 }

@@ -163,12 +163,9 @@ public class BoneStrikeConfig : IConfig
     [JsonInclude]
     public bool MarkBombNearEnd = true;
     
-    [ConfigMenuEntry("Balance Weapon Damage", "Weapons")]
+    [ConfigMenuEntry("Balance Weapon Damage", "Health")]
     [JsonInclude]
     public bool BalanceDamage = true;
-    [ConfigMenuEntry("Damage Multiplier", "Weapons")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
-    [JsonInclude]
-    public float DamageMultiplier = 1f;
     [ConfigMenuEntry("Balance Avatar Health", "Health")]
     [JsonInclude]
     public bool BalanceStats = true;
@@ -215,7 +212,6 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref AttackerHealthMultiplier);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
-        serializer.SerializeValue(ref DamageMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
         serializer.SerializeValue(ref AllowUnbalancedTeams);
@@ -232,7 +228,6 @@ public class BoneStrikeConfig : IConfig
             BlindAttackersDuringPlanting = BlindAttackersDuringPlanting,
             BalanceStats = BalanceStats,
             BalanceDamage = BalanceDamage,
-            DamageMultiplier = DamageMultiplier,
             DefenderHealthMultiplier = DefenderHealthMultiplier,
             AttackerHealthMultiplier = AttackerHealthMultiplier,
             PalletBarcodes = new List<string>(PalletBarcodes),

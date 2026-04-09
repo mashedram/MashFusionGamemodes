@@ -121,7 +121,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         });
         
         PlayerStatManager.BalanceStats = Config.BalanceStats;
-        PlayerGunManager.DamageMultiplier = Config.DamageMultiplier;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
@@ -168,6 +167,11 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         Executor.RunIfHost(() =>
         {
+            // Players joining during manual assignment should be assignable, since the game won't start without them anyway
+            var activePhase = GamePhaseManager.ActivePhase;
+            if (activePhase is TeamAssignmentPhase)
+                return;
+            
             playerID.SetSpectating(true);
             Context.PersistentTeams.QueueLateJoiner(playerID);
         });

@@ -40,12 +40,12 @@ public class TeamAssignmentPhase : GamePhase
     private static Poolee? _poolee;
     private static TextMeshPro[] _timerTexts = new TextMeshPro[2];
     
-    private Vector3 _wallPosition;
-    private Quaternion _wallRotation;
+    private static Vector3 _wallPosition;
+    private static Quaternion _wallRotation;
+    private static bool _areTeamsFair;
     
     public override string Name => "Team Assignment Phase";
     
-    // TODO: This should be configurable
     public override float Duration => 15f;
     
     private bool IsPositionInFrontOfWall(Vector3 position)
@@ -69,20 +69,29 @@ public class TeamAssignmentPhase : GamePhase
         return PhaseIdentifier.Of<PlantPhase>();
     }
 
-    public override bool CanTimerTick()
+    private bool AreTeamsFair()
     {
-        if (BoneStrike.Config.AllowUnbalancedTeams)
-            return true;
-        
         var wallSides = GetPlayerWallSides().ToList();
         var team1Count = wallSides.Count(p => p.IsInFront);
         var team2Count = wallSides.Count - team1Count;
+        
+        if (team1Count == 0 || team2Count == 0)
+            return false;
+        
+        if (BoneStrike.Config.AllowUnbalancedTeams)
+            return true;
         
         var imbalance = Mathf.Abs(team1Count - team2Count);
         if (imbalance > 2)
             return false;
         
         return true;
+    }
+
+    public override bool CanTimerTick()
+    {
+        _areTeamsFair = AreTeamsFair();
+        return _areTeamsFair;
     }
 
     protected override void OnPhaseEnter()
@@ -95,13 +104,9 @@ public class TeamAssignmentPhase : GamePhase
             
             var yaw = wallTransform.rotation.eulerAngles.y;
             
-            // Register the wall position in case the spawnable despawns for some reason
-            _wallPosition = wallTransform.position;
-            _wallRotation = Quaternion.Euler(0f, yaw, 0f);
-            
             SpawnTeamWallEvent.Call(new SpawnTeamWallPacket()
             {
-                Position = _wallPosition,
+                Position = wallTransform.position,
                 Yaw = yaw
             });
         });
@@ -136,12 +141,23 @@ public class TeamAssignmentPhase : GamePhase
         if (_poolee == null)
             return;
 
+        if (!_areTeamsFair)
+        {
+            foreach (var text in _timerTexts)
+            {
+                text.color = Color.red;
+                text.text = "X";
+            }
+            return;
+        }
+
         var time = Duration - ElapsedTime;
         var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
         var textContent = $"{minutes:D1}:{seconds:D2}";
         foreach (var text in _timerTexts)
         {
+            text.color = Color.white;
             text.text = textContent;
         }
     }
@@ -150,6 +166,9 @@ public class TeamAssignmentPhase : GamePhase
     
     private static void SpawnTeamWall(Vector3 position, Quaternion rotation)
     {
+        _wallPosition = position;
+        _wallRotation = rotation;
+        
         if (_poolee != null)
         {
             var transform = _poolee.transform;

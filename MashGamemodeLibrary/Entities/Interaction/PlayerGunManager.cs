@@ -43,7 +43,7 @@ internal class DamageRemapper
         _remapFunctions = remapFunctions;
     }
 
-    public float GetDamage(float damage, float roundsPerSecond, Gun.FireMode fireMode, float customMultiplier = 1f)
+    public float GetDamage(float damage, float roundsPerSecond, Gun.FireMode fireMode)
     {
         var clamped = MathUtil.Clamp(damage, _lowValue, _highValue);
 
@@ -81,8 +81,6 @@ public static class PlayerGunManager
     private static readonly Dictionary<Gun, float> CachedGunDamage = new(new UnityComparer());
 
     private static bool _normalizePlayerDamage;
-
-    private static float _damageMultiplier = 1f;
 
     static PlayerGunManager()
     {
@@ -136,16 +134,6 @@ public static class PlayerGunManager
         }
     }
 
-    public static float DamageMultiplier
-    {
-        get => _damageMultiplier;
-        set
-        {
-            _damageMultiplier = value;
-            CachedGunDamage.Clear();
-        }
-    }
-
     public static event OnGunFiredHandler? OnGunFired;
 
     private static WeaponType GetWeaponType(Gun gun)
@@ -175,7 +163,7 @@ public static class PlayerGunManager
         var type = GetWeaponType(gun);
 
         // We register all types at the start
-        var damage = DamageRemappers.Get(type)!.GetDamage(defaultDamage, gun.roundsPerSecond, gun.fireMode, _damageMultiplier);
+        var damage = DamageRemappers.Get(type)!.GetDamage(defaultDamage, gun.roundsPerSecond, gun.fireMode);
         CachedGunDamage[gun] = damage;
 
         return damage;
@@ -223,7 +211,6 @@ public static class PlayerGunManager
     {
         DefaultGunDamage.Clear();
         CachedGunDamage.Clear();
-        _damageMultiplier = 0f;
         _normalizePlayerDamage = false;
     }
 }
