@@ -3,6 +3,7 @@ using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Grabbables;
+using LabFusion.Marrow.Patching;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
@@ -24,6 +25,20 @@ public class GripPatches
 
         var grab = new GrabData(hand, __instance);
         return PlayerGrabManager.CanGrabEntity(grab);
+    }
+
+    // Fix for spectator grabbing shenangians
+    [HarmonyPatch(typeof(InventoryHand), nameof(InventoryHand.OnOverlapEnter))]
+    [HarmonyPrefix]
+    public static bool InteractableHostAttachHand(InventoryHand __instance, GameObject other)
+    {
+        if (!__instance || !other)
+            return true;
+
+        if (SpectatorManager.IsLocalPlayerSpectating())
+            return false;
+
+        return true;
     }
 
     [HarmonyPrefix]
