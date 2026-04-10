@@ -67,7 +67,7 @@ public class PlantPhase : GamePhase
             PalletLoadoutManager.AssignAll();
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
-            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag());
+            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new IsImportantTag());
             
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });

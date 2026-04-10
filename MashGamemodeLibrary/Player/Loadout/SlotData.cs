@@ -7,6 +7,7 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.RPC;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Execution;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Loadout;
@@ -84,26 +85,28 @@ public class SlotData
                 info.WaitOnMarrowEntity((networkEntity, marrowEntity) =>
                 {
                     SpawnedGuns.Add(marrowEntity._poolee);
-                    
-                    var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
-
-                    if (weaponSlotExtender == null)
+                    DelayUtilities.InvokeDelayed(() =>
                     {
-                        return;
-                    }
+                        var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
 
-                    var weaponSlot = weaponSlotExtender.Component;
+                        if (weaponSlotExtender == null)
+                        {
+                            return;
+                        }
 
-                    if (weaponSlot == null || weaponSlot.interactableHost == null)
-                    {
-                        return;
-                    }
+                        var weaponSlot = weaponSlotExtender.Component;
+
+                        if (weaponSlot == null || weaponSlot.interactableHost == null)
+                        {
+                            return;
+                        }
                     
-                    // If the item is held by the player, don't try to put it in the slot, just drop it on the ground
-                    if (weaponSlotExtender.Component.interactableHost.IsAttached)
-                        return;
+                        // If the item is held by the player, don't try to put it in the slot, just drop it on the ground
+                        if (weaponSlotExtender.Component.interactableHost.IsAttached)
+                            return;
                     
-                    slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
+                        slot.OnHandDrop(weaponSlot.interactableHost.TryCast<IGrippable>());
+                    }, 60);
                 });
             }
         });

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable;
@@ -78,6 +79,9 @@ public static class SpectatorManager
 
     public static bool IsSpectating(this PlayerID playerID)
     {
+        if (!NetworkSceneManager.IsLevelNetworked)
+            return false;
+        
         return SpectatingPlayerIds.Contains(playerID.PlatformID);
     }
 

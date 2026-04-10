@@ -85,7 +85,7 @@ public static class PlayerGunManager
     static PlayerGunManager()
     {
         DamageRemappers.Register(WeaponType.Pistol, new DamageRemapper(
-            1.5f,
+            1.8f,
             0.8f,
             1.1f,
             1.4f
@@ -110,7 +110,8 @@ public static class PlayerGunManager
             0.6f,
             2f,
             1.1f,
-            0.7f
+            0.7f,
+            (damage, second, mode, @in) => mode == Gun.FireMode.MANUAL ? @in * 4f : @in
         ));
     }
 
