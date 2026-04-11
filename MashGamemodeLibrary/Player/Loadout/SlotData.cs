@@ -85,6 +85,7 @@ public class SlotData
                 info.WaitOnMarrowEntity((networkEntity, marrowEntity) =>
                 {
                     SpawnedGuns.Add(marrowEntity._poolee);
+                    // TODO: Queue it up for adding instead
                     DelayUtilities.InvokeDelayed(() =>
                     {
                         var weaponSlotExtender = networkEntity.GetExtender<WeaponSlotExtender>();
