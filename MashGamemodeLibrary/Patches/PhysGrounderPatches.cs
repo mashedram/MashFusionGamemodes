@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Helpers;
 
 namespace MashGamemodeLibrary.Patches;
 

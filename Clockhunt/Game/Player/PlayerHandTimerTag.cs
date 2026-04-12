@@ -6,6 +6,7 @@ using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
@@ -53,7 +54,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!_owner.HasRig || activePhase == null || _owner.PlayerID.IsSpectatingAndHidden())
+        if (!_owner.HasRig || activePhase == null || _owner.PlayerID.IsSpectating())
         {
             _timerObject.gameObject.SetActive(false);
             return;

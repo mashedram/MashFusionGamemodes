@@ -11,6 +11,7 @@ using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 
 namespace MashGamemodeLibrary.Entities.Tagging.Player.Common;

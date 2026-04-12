@@ -3,6 +3,7 @@
 public static class BonelabLayers
 {
     public const int Default = 0;
+    public const int NoRaycast = 2;
     public const int Fixture = 7;
     
     public const int Player = 8;

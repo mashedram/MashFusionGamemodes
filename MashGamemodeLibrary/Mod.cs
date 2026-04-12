@@ -19,11 +19,12 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Collision;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Components.Colliders.Caches;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Spectating.data;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Player.Visibility;
 using MashGamemodeLibrary.Util;
-using MashGamemodeLibrary.Vision;
 using MelonLoader;
 using MelonLoader.Utils;
 #if DEBUG
@@ -45,14 +46,13 @@ public class Mod : MelonMod
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
-	    
+        
         ModuleManager.RegisterModule<FusionModule>();
 
         RegisterInternal<Mod>();
         
-
-        PlayerHider.Register();
         NetworkEventsExtender.Register();
+        CachedColliderCache.OnInitializeMelon();
 
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
@@ -60,7 +60,6 @@ public class Mod : MelonMod
 
     public override void OnUpdate()
     {
-        PlayerHider.Update();
         PlayerActionManager.Update();
         ConfigManager.Update();
         SpawnHelper.Update();
@@ -83,8 +82,7 @@ public class Mod : MelonMod
     {
         LocalEcsCache.Clear();
         PlayerGrabManager.Reset();
-        PlayerHider.Reset();
-        SpectatorManager.LocalReset();
+        PlayerDataManager.Reset();
         PlayerGunManager.Reset();
         GamemodeCompatibilityChecker.ClearRemoteHashes();
     }

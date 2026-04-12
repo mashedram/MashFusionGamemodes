@@ -16,8 +16,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public ulong CreateID(Type type)
     {
-        var fullName = type.AssemblyQualifiedName ?? type.FullName ?? type.Name;
-        return fullName.GetStableHash();
+        return type.GetStableHash();
     }
 
     public ulong CreateID<T>() where T : TValue

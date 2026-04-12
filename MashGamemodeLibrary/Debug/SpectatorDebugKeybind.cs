@@ -1,6 +1,7 @@
 ﻿#if DEBUG
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MelonLoader;
 using UnityEngine;
@@ -17,7 +18,7 @@ public class SpectatorDebugKeybind : DebugKeybind
         Executor.RunIfHost(() =>
         {
             var playerID = PlayerIDManager.LocalID;
-            playerID.SetSpectating(!SpectatorManager.IsSpectating(playerID));
+            playerID.SetSpectating(!playerID.IsSpectating());
         });
     };
 }

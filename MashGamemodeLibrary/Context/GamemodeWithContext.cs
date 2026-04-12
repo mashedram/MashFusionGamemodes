@@ -9,17 +9,14 @@ using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
-using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
-using MashGamemodeLibrary.Player.Visibility;
-using MashGamemodeLibrary.Vision;
 using UnityEngine;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -160,12 +157,13 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
         GameObjectExtender.DestroyAll();
 
-        PlayerHider.Reset();
+        // PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
             PlayerTagManager.ClearPlayerTags();
             LocalEcsCache.Clear();
-            SpectatorManager.StopSpectatingAll();
+            SpectatorExtender.StopSpectatingAll();
+            // SpectatorManager.StopSpectatingAll();
         });
     }
 

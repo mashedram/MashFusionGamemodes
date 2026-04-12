@@ -5,6 +5,7 @@ using LabFusion.MonoBehaviours;
 using LabFusion.Network;
 using LabFusion.Player;
 using MashGamemodeLibrary.Player.Collision;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
@@ -15,41 +16,42 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch(typeof(CollisionSyncer))]
 public class ColliderPatches
 {
-    [HarmonyPatch("OnCollisionEnter")]
-    [HarmonyPrefix]
-    private static bool OnCollisionEnter_Prefix(Collision collision)
-    {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-        if (collision == null)
-            return true;
-
-        if (!NetworkInfo.HasServer)
-            return true;
-        
-        // If we collide but aren't spectating, we don't care.
-        if (!SpectatorManager.IsLocalPlayerSpectating())
-            return true;
-        
-
-        var rb = collision.rigidbody;
-        if (!rb)
-        {
-            return true;
-        }
-
-        var go = rb.gameObject;
-        var marrowBody = MarrowBody.Cache.Get(go);
-
-        if (marrowBody == null)
-            return true;
-
-        if (!MarrowBodyExtender.Cache.TryGet(marrowBody, out var networkEntity))
-            return true;
-
-        if (networkEntity.ID == PlayerIDManager.LocalSmallID)
-            return true;
-
-        PlayerColliderManager.StartIgnoring(networkEntity);
-        return false;
-    }
+    // TODO: May not be needed anymore
+    // [HarmonyPatch("OnCollisionEnter")]
+    // [HarmonyPrefix]
+    // private static bool OnCollisionEnter_Prefix(Collision collision)
+    // {
+    //     // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+    //     if (collision == null)
+    //         return true;
+    //
+    //     if (!NetworkInfo.HasServer)
+    //         return true;
+    //     
+    //     // If we collide but aren't spectating, we don't care.
+    //     if (!SpectatorExtender.IsLocalPlayerSpectating())
+    //         return true;
+    //     
+    //
+    //     var rb = collision.rigidbody;
+    //     if (!rb)
+    //     {
+    //         return true;
+    //     }
+    //
+    //     var go = rb.gameObject;
+    //     var marrowBody = MarrowBody.Cache.Get(go);
+    //
+    //     if (marrowBody == null)
+    //         return true;
+    //
+    //     if (!MarrowBodyExtender.Cache.TryGet(marrowBody, out var networkEntity))
+    //         return true;
+    //
+    //     if (networkEntity.ID == PlayerIDManager.LocalSmallID)
+    //         return true;
+    //
+    //     PlayerColliderManager.StartIgnoring(networkEntity);
+    //     return false;
+    // }
 }

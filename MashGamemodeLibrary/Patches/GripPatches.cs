@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Grabbables;
 using LabFusion.Marrow.Patching;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -35,7 +36,7 @@ public class GripPatches
         if (!__instance || !other)
             return true;
 
-        if (SpectatorManager.IsLocalPlayerSpectating())
+        if (SpectatorExtender.IsLocalPlayerSpectating())
             return false;
 
         return true;
@@ -177,7 +178,7 @@ public class GripPatches
     [HarmonyPrefix]
     public static bool TakeOwnership_Prefix(NetworkEntity entity)
     {
-        return !SpectatorManager.IsLocalPlayerSpectating();
+        return !SpectatorExtender.IsLocalPlayerSpectating();
     }
 
 

@@ -2,7 +2,10 @@
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
+using MashGamemodeLibrary.Player.Spectating.data;
+using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
@@ -25,7 +28,7 @@ public static class PlayerStatManager
 
     private static void SetVitality(float? value)
     {
-        if (SpectatorManager.IsLocalPlayerSpectating())
+        if (SpectatorExtender.IsLocalPlayerSpectating())
         {
             value = 100f;
         }

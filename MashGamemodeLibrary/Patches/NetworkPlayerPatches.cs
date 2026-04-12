@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Visibility;
-using MashGamemodeLibrary.Vision;
 
 namespace MashGamemodeLibrary.Patches;
 
@@ -15,6 +13,6 @@ public class NetworkPlayerPatches
         if (isInactive)
             return;
 
-        PlayerHider.Refresh(__instance.PlayerID);
+        // TODO: May not be needed anymore
     }
 }

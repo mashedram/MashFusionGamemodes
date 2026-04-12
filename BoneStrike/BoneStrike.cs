@@ -24,6 +24,7 @@ using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -135,7 +136,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         FusionPlayer.ResetSpawnPoints();
         LocalPlayer.TeleportToPosition(_resetPoint);
-        SpectatorManager.StopSpectatingAll();
 
         Executor.RunIfHost(() =>
         {

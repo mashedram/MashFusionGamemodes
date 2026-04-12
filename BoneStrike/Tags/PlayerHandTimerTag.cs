@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
@@ -47,7 +48,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!_owner.HasRig || activePhase == null || _owner.PlayerID.IsHidden())
+        if (!_owner.HasRig || activePhase == null || (_owner.PlayerID.IsMe || _owner.PlayerID.IsSpectating()))
         {
             _timerObject.gameObject.SetActive(false);
             return;

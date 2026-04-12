@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
 
@@ -69,7 +70,7 @@ public static class FootstepSfxPatch
         if (playerId == null)
             return true;
         
-        if (!SpectatorManager.IsSpectating(playerId))
+        if (!playerId.IsSpectating())
             return true;
         
         return false;

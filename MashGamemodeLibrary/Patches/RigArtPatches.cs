@@ -1,14 +1,14 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Visibility;
-using MashGamemodeLibrary.Vision;
+using MashGamemodeLibrary.Player.Helpers;
 
 namespace MashGamemodeLibrary.Patches;
 
 [HarmonyPatch(typeof(RigArt))]
 public class RigArtPatches
 {
+    // TODO: Make this a postfix where we overwrite the end value
     [HarmonyPatch("ToggleAvatar")]
     [HarmonyPrefix]
     private static bool ToggleAvatar_Prefix(RigArt __instance)
@@ -24,7 +24,8 @@ public class RigArtPatches
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
 
-        return !player.PlayerID.IsHidden();
+        // TODO: Turn back to ishidden at some point
+        return !player.PlayerID.IsSpectating();
     }
 
     [HarmonyPatch("ToggleAmmoPouch")]
@@ -41,7 +42,8 @@ public class RigArtPatches
 
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
-
-        return !player.PlayerID.IsHidden();
+        
+        // TODO: Turn back to ishidden at some point
+        return !player.PlayerID.IsSpectating();
     }
 }

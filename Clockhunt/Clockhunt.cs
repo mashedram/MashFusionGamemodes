@@ -22,11 +22,10 @@ using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Player.Visibility;
-using MashGamemodeLibrary.Vision;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
@@ -70,7 +69,6 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
-            SpectatorManager.StopSpectatingAll();
             
             LimitedRespawnComponent.RegisterSpectatePredicate<Clockhunt>(player =>
             {
@@ -96,8 +94,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
             }, LocalWeatherManager.ClearLocalWeather));
 
         MarkerManager.ClearMarker();
-        
-        PlayerHider.HideAllSpecials();
+
+        // TODO: Make this function work again
+        // PlayerHider.HideAllSpecials();
 
         var currentAvatar = LocalAvatar.AvatarBarcode;
         if (currentAvatar != CalibrationAvatar)
@@ -108,7 +107,8 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     public override void OnLateJoin(PlayerID playerID)
     {
-        playerID.SetSpectating(true);
+        // TODO: Make this function work again
+        // playerID.SetSpectating(true);
     }
 
     protected override void OnUpdate(float delta)

@@ -16,8 +16,7 @@ using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Collision;
-using MashGamemodeLibrary.Player.Spectating;
-using MashGamemodeLibrary.Player.Visibility;
+using MashGamemodeLibrary.Player.Helpers;
 using MelonLoader;
 using UnityEngine;
 using Type = Il2CppSystem.Type;
@@ -174,8 +173,9 @@ public static class PlayerGrabManager
 
         // Callbacks to internal systems
 
-        PlayerHider.OnGrab(grab);
-        PlayerColliderManager.OnGrab(grab);
+        // TODO: Maybe not needed
+        // PlayerHider.OnGrab(grab);
+        // PlayerColliderManager.OnGrab(grab);
 
         // Callbacks to external systems
 
@@ -194,9 +194,10 @@ public static class PlayerGrabManager
         if (!heldItem.IsNetworked(out var networkEntity)) return;
 
         // Callbacks to internal systems
-
-        PlayerHider.OnDrop(grab);
-        PlayerColliderManager.OnDrop(grab);
+        
+        // TODO: Maybe not needed
+        // PlayerHider.OnDrop(grab);
+        // PlayerColliderManager.OnDrop(grab);
 
         // Callback to external systems
 
@@ -224,7 +225,7 @@ public static class PlayerGrabManager
 
         var grabbedRig = item.GameObject.GetComponentInParent<RigManager>();
         if (grabbedRig && NetworkPlayerManager.TryGetPlayer(grabbedRig, out var networkPlayer) &&
-            SpectatorManager.IsSpectating(networkPlayer.PlayerID))
+            networkPlayer.PlayerID.IsSpectating())
             return false;
 
         var predicates = GrabPredicateCache

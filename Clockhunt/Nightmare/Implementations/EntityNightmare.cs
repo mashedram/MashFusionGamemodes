@@ -17,6 +17,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
@@ -96,7 +97,7 @@ public class EntityNightmareInstance : NightmareInstance
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
         var player = NetworkPlayer.Players
-            .Where(e => !SpectatorManager.IsSpectating(e.PlayerID) && !NightmareManager.IsNightmare(e.PlayerID))
+            .Where(e => !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID))
             .DefaultIfEmpty(null)
             .GetRandom();
         

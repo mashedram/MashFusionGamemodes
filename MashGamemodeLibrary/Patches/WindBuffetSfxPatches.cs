@@ -2,6 +2,7 @@
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Player;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 
 namespace MashGamemodeLibrary.Patches;
