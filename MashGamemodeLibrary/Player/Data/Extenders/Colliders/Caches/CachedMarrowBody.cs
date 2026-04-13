@@ -14,7 +14,21 @@ public class CachedMarrowBody : ICachedCollider
     {
         MarrowBody = marrowBody;
 
-        Colliders = marrowBody.Colliders.Where(c => c != null).Select(collider => new CachedCollider(collider)).ToImmutableArray();
+        Colliders = marrowBody.Colliders
+            .Where(c => c != null)
+            .Where(c =>
+            {
+                var rb = c.attachedRigidbody;
+                if (rb == null)
+                    return true;
+
+                if (rb is { freezeRotation: true, constraints: RigidbodyConstraints.FreezePosition })
+                    return false;
+
+                return rb.constraints != RigidbodyConstraints.FreezeAll;
+            })
+            .Select(collider => new CachedCollider(collider))
+            .ToImmutableArray();
     }
     public MarrowBody MarrowBody { get; }
 

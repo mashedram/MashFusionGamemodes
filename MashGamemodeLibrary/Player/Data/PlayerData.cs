@@ -2,10 +2,17 @@
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
+using MashGamemodeLibrary.Player.Data.Components;
+using MashGamemodeLibrary.Player.Data.Components.Colliders;
+using MashGamemodeLibrary.Player.Data.Components.Visibility;
+using MashGamemodeLibrary.Player.Data.Extenders;
+using MashGamemodeLibrary.Player.Data.Extenders.Colliders;
+using MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 using MashGamemodeLibrary.Player.Data.Rules;
+using MashGamemodeLibrary.Player.Data.Rules.Networking;
 using MashGamemodeLibrary.Player.Spectating.data.Components;
-using MashGamemodeLibrary.Player.Spectating.data.Components.Colliders;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Spectating.data.Components.VisualOverlay;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
@@ -22,6 +29,10 @@ internal record NetworkRulePacket(PlayerID PlayerID, ulong RuleHash)
 
 public class PlayerData
 {
+    // Registries
+    private static readonly FactoryTypedRegistry<IPlayerExtender> ExtenderRegistry = new();
+    private static readonly FactoryTypedRegistry<IPlayerRule> RuleRegistry = new();
+    
     // Instance Data
     
     public NetworkPlayer Player { get; }
@@ -35,18 +46,18 @@ public class PlayerData
     public IEnumerable<IPlayerRuleInstance> RuleInstances => _ruleInstanceCache.Values;
     
     // Networking
-    private static readonly GenericRemoteEvent<NetworkRulePacket> RuleChangeEvent = new("MGL_Player_RuleChange", NetworkEventImportance.Unreliable, NetworkEventDirection.ServerToClients);
-    
+    private static readonly NetworkRuleChangeEvent NetworkRuleChangeEvent = new("PlayerData.RuleChange");
+        
     public PlayerData(NetworkPlayer player)
     {
         Player = player;
         
         // TODO: Automatic registries for these parts using factoryregistries
-        AddExtender(new PlayerVisibility(Player));
-        AddExtender(new PlayerCollisionsExtender(Player));
+        AddExtender(new PlayerVisibility());
+        AddExtender(new PlayerCollisionsExtender());
         
         if (player.PlayerID.IsMe)
-            AddExtender(new LocalInteractionsExtender(Player));
+            AddExtender(new LocalInteractionsExtender());
         
         // Rules
         AddRule<PlayerSpectatingRule>();
@@ -64,17 +75,20 @@ public class PlayerData
         _ruleHashCache.Add(instance.Hash, instance);
     }
     
-    internal void NotifyRuleChanged(IPlayerRule rule)
+    internal void NotifyRuleChanged(IPlayerRuleInstance ruleInstance)
     {
+        var rule = ruleInstance.GetBaseRule();
         Extenders.ForEach(e => e.OnRuleChanged(rule));
+        
+        Executor.RunIfHost(() =>
+        {
+            NetworkRuleChangeEvent.Send(Player.PlayerID, ruleInstance);
+        });
     }
 
-    public void OnRigChanged(RigManager rigManager)
+    public void OnRigCreated(NetworkPlayer player, RigManager rigManager)
     {
-        if (rigManager == RigManager)
-            return;
-        
-        Extenders.ForEach(e => e.OnRigChanged(rigManager));
+        Extenders.ForEach(e => e.OnPlayerChanged(player, rigManager));
     }
     
     // Accessors
@@ -88,6 +102,12 @@ public class PlayerData
             return false;
         
         return predicate(typedRuleInstance.GetRule());
+    }
+    
+    public IPlayerRuleInstance? GetRuleByHash(ulong hash)
+    {
+        return _ruleHashCache.GetValueOrDefault(hash);
+
     }
 
     public PlayerRuleModifier<TRule> CreateModifier<TRule>(RuleModifierPriority priority) where TRule : class, IPlayerRule, new()

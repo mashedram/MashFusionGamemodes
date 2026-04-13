@@ -1,10 +1,11 @@
 ﻿using Il2CppSLZ.Marrow;
+using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
-namespace MashGamemodeLibrary.Player.Spectating.data.Components;
+namespace MashGamemodeLibrary.Player.Data.Extenders;
 
 public interface IPlayerExtender
 {
-    void OnRigChanged(RigManager? rigManager);
+    void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager);
     void OnRuleChanged(IPlayerRule rule);
 }

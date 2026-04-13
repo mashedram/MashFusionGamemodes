@@ -1,4 +1,7 @@
-﻿using MashGamemodeLibrary.Player.Spectating.data.Rules;
+﻿using LabFusion.Network;
+using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data.Rules;
@@ -20,9 +23,15 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
     private readonly TRule _defaultRule = new TRule();
     private readonly SortedSet<PlayerRuleModifier<TRule>> _modifiers = new(new RuleModifierCompare<TRule>());
     
-    private TRule? _activeRule;
-    public ulong Hash { get; private init;  }
+    // The rule of the host, used when we are the host and is sent over the network
+    private TRule? _localRule;
     
+    // The rule to use when we are the client
+    private TRule _networkedRule = new TRule();
+    
+    // The hash of the rule type, used for networking
+    public ulong Hash { get; }
+
     public PlayerRuleInstance(PlayerData playerData)
     {
         _playerData = playerData;
@@ -43,29 +52,46 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
     
     public void NotifyChange()
     {
-        // Calculate the active rule
-        var activeRule = _defaultRule;
-        foreach (var playerRuleModifier in _modifiers)
+        Executor.RunIfHost(() =>
         {
-            if (!playerRuleModifier.IsEnabled())
-                continue;
+            // Calculate the active rule
+            var activeRule = _defaultRule;
+            foreach (var playerRuleModifier in _modifiers)
+            {
+                if (!playerRuleModifier.IsEnabled())
+                    continue;
 
-            activeRule = playerRuleModifier.Rule;
-            break;
-        }
+                activeRule = playerRuleModifier.Rule;
+                break;
+            }
         
-        if (Equals(activeRule, _activeRule))
-            return;
+            if (Equals(activeRule, _localRule))
+                return;
         
-        _activeRule = activeRule;
-        _playerData.NotifyRuleChanged(_activeRule);
+            _localRule = activeRule;
+        });
+        
+        _playerData.NotifyRuleChanged(this);
     }
     
     // Accessors
-
+    
     public TRule GetRule()
     {
-        return _defaultRule;
+        if (NetworkInfo.IsClient)
+            return _networkedRule;
+        
+        return _localRule ?? _defaultRule;
     }
     
+    public IPlayerRule GetBaseRule()
+    {
+        return GetRule();
+    }
+    
+    public void Deserialize(NetReader reader)
+    {
+        _networkedRule.Serialize(reader);
+        NotifyChange();
+    }
 }

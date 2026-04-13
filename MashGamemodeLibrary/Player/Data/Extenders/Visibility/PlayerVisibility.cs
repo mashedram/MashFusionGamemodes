@@ -1,30 +1,29 @@
-﻿using System.Collections.Immutable;
-using Il2CppSLZ.Marrow;
+﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
-using MashGamemodeLibrary.Player.Spectating.data.Components;
+using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
+using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts.Holster;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
-namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 
 public class PlayerVisibility : IPlayerExtender
 {
-    public NetworkPlayer Player { get; init; }
+    public NetworkPlayer? Player { get; init; }
     private readonly IPlayerVisibility[] _playerVisibilities;
 
-    public PlayerVisibility(NetworkPlayer player)
+    public PlayerVisibility()
     {
-        Player = player;
-        
         _playerVisibilities = new IPlayerVisibility[]
         {
-            new PlayerAvatarVisibility(player),
-            new PlayerVoiceVisibility(player),
-            new PlayerNametagVisibility(player),
-            new PlayerHolsterVisibility()
+            new PlayerAvatarVisibility(),
+            new PlayerVoiceVisibility(),
+            new PlayerNametagVisibility(),
+            new PlayerHolsterVisibility(),
+            new PlayerBodylogVisibility()
         };
     }
 
@@ -36,11 +35,17 @@ public class PlayerVisibility : IPlayerExtender
         }
     }
 
-    public void OnRigChanged(RigManager? rigManager)
+    public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
+        if (!networkPlayer.HasRig)
+            return;
         
+        foreach (var playerVisibility in _playerVisibilities)
+        {
+            playerVisibility.OnPlayerChanged(networkPlayer, rigManager);
+        }
     }
-    
+
     public void OnRuleChanged(IPlayerRule rule)
     {
         if (rule is not PlayerSpectatingRule spectatingRule) return;

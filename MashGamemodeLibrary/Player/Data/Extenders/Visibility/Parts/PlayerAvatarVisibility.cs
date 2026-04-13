@@ -7,20 +7,10 @@ namespace MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 
 public class PlayerAvatarVisibility : IPlayerVisibility
 {
-    private NetworkPlayer _player;
+    private RigManager? _rigManager;
     private bool _isVisible = true;
     
-    public PlayerAvatarVisibility(NetworkPlayer player)
-    {
-        _player = player;
-        _player.AvatarSetter.OnAvatarChanged += OnAvatarChanged;
-    }
-    
-    ~PlayerAvatarVisibility()
-    {
-        _player.AvatarSetter.OnAvatarChanged -= OnAvatarChanged;
-    }
-    
+    // TODO : Use player events for this
     private void OnAvatarChanged()
     {
         SetVisible(_isVisible);
@@ -29,17 +19,20 @@ public class PlayerAvatarVisibility : IPlayerVisibility
     public void SetVisible(bool isVisible)
     {
         _isVisible = isVisible;
-
-        var avatar = _player.RigRefs?.RigManager?._avatar;
+        
+        if (_rigManager == null)
+            return;
+        
+        var avatar = _rigManager._avatar;
         if (avatar == null)
             return;
         
         avatar.gameObject.SetActive(isVisible);
     }
     
-    public void OnRigChanged(RigManager? rigManager)
+    public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
-        // Reload the avatar
+        _rigManager = rigManager;
         SetVisible(_isVisible);
     }
 }

@@ -1,9 +1,11 @@
 ﻿using Il2CppSLZ.Marrow;
+using LabFusion.Entities;
 using LabFusion.Extensions;
+using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 
-namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts.Holster;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 
 internal class SlotContainerHider
 {
@@ -15,12 +17,6 @@ internal class SlotContainerHider
         "prop_pouch",
         "InventoryAmmoReceiver/Holder"
     };
-    
-    ~SlotContainerHider()
-    {
-        if (_art != null)
-            _art.SetActive(true);
-    }
     
     private static GameObject? GetArt(SlotContainer slotContainer)
     {
@@ -71,14 +67,10 @@ public class PlayerHolsterVisibility : IPlayerVisibility
         _holsterHiders.Values.ForEach(hider => hider.SetVisible(isVisible));
     }
     
-    public void OnRigChanged(RigManager? rigManager)
+    public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
-        if (rigManager == null)
-        {
-            _holsterHiders.Clear();
-            return;
-        }
-
+        _holsterHiders.Clear();
+        
         var slots = rigManager.physicsRig.GetComponentsInChildren<SlotContainer>();
         if (slots == null)
             return;

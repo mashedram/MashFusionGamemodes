@@ -3,6 +3,8 @@ using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Patches;
+using MashGamemodeLibrary.Player.Data.Components;
+using MashGamemodeLibrary.Player.Data.Extenders;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using UnityEngine;
@@ -13,16 +15,10 @@ namespace MashGamemodeLibrary.Player.Spectating.data.Components.VisualOverlay;
 
 public class LocalInteractionsExtender : IPlayerExtender
 {
-    private NetworkPlayer _player;
-    private RigManager? _rigManager;
+    private NetworkPlayer? _player;
     
-    private bool _hasInteractions;
+    private bool _areInteractionsEnabled = true;
     private GameObject? _overlayObject;
-    
-    public LocalInteractionsExtender(NetworkPlayer player)
-    {
-        _player = player;
-    }
 
     private GameObject GetOverlayObject()
     {
@@ -44,40 +40,47 @@ public class LocalInteractionsExtender : IPlayerExtender
         return _overlayObject;
     }
     
-    private void SetInteractions(bool hasInteractions)
+    private void SetInteractions(bool areInteractionsEnabled)
     {
-        GetOverlayObject().SetActive(hasInteractions);
+        _areInteractionsEnabled = areInteractionsEnabled;
         
-        if (!_hasInteractions && _rigManager != null)
-            Loadout.Loadout.ClearPlayerLoadout(_rigManager);
+        if (_player == null)
+            return;
+        if (!_player.HasRig)
+            return;
+
+        GetOverlayObject().SetActive(!_areInteractionsEnabled);
         
-        LocalControls.DisableInteraction = !hasInteractions;
-        LocalControls.DisableInventory = !hasInteractions;
-        LocalControls.DisableAmmoPouch = !hasInteractions;
-        DevToolsPatches.CanSpawn = hasInteractions;
-     
-        // TODO: Disable grabbing
-        // TODO: I kind off want to revamp this system first
-        // PlayerGrabManager.SetOverwrite(GrabOverwriteKey, state ? null : _ => false);
+        var rigManager = _player.RigRefs.RigManager;
+        if (!_areInteractionsEnabled)
+            Loadout.Loadout.ClearPlayerLoadout(rigManager);
+        
+        LocalControls.DisableInteraction = !_areInteractionsEnabled;
+        LocalControls.DisableInventory = !_areInteractionsEnabled;
+        LocalControls.DisableAmmoPouch = !_areInteractionsEnabled;
+        DevToolsPatches.CanSpawn = _areInteractionsEnabled;
     }
-    
-    public void OnRigChanged(RigManager? rigManager)
+
+    public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
-        if (!_player.PlayerID.IsMe)
+        if (!networkPlayer.PlayerID.IsMe)
             return;
         
-        SetInteractions(_hasInteractions);
+        _player = networkPlayer;
+        SetInteractions(_areInteractionsEnabled);
     }
-    
+
     public void OnRuleChanged(IPlayerRule rule)
     {
+        if (_player == null)
+            return;
+        
         if (!_player.PlayerID.IsMe)
             return;
         
         if (rule is not PlayerSpectatingRule spectatingRule)
             return;
 
-        _hasInteractions = spectatingRule.IsSpectating;
-        SetInteractions(_hasInteractions);
+        SetInteractions(!spectatingRule.IsSpectating);
     }
 }

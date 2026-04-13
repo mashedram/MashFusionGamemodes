@@ -14,8 +14,7 @@ public static class PlayerDataManager
 
     static PlayerDataManager()
     {
-
-        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
+        NetworkPlayer.OnNetworkRigCreated += OnNetworkRigCreated;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
     }
 
@@ -24,13 +23,10 @@ public static class PlayerDataManager
         return PlayerData.GetValueOrCreate(networkPlayer.PlayerID, () => new PlayerData(networkPlayer));
     }
     
-    private static void OnPlayerJoined(PlayerID playerID)
+    private static void OnNetworkRigCreated(NetworkPlayer player, RigManager rigManager)
     {
-        if (!NetworkPlayerManager.TryGetPlayer(playerID, out var networkPlayer))
-            return;
-        
-        var data = GetDataOrCreate(networkPlayer);
-        data.OnRigChanged(networkPlayer.RigRefs.RigManager);
+        var data = GetDataOrCreate(player);
+        data.OnRigCreated(player, rigManager);
     }
     
     private static void OnPlayerLeft(PlayerID playerId)

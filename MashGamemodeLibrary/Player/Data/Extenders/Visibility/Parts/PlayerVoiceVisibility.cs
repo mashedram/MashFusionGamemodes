@@ -7,15 +7,16 @@ namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts
 
 public class PlayerVoiceVisibility : IPlayerVisibility
 {
-    private NetworkPlayer _player;
-    
-    public PlayerVoiceVisibility(NetworkPlayer player)
-    {
-        _player = player;
-    }
+    private NetworkPlayer? _player;
     
     private bool TryGetAudioSource([MaybeNullWhen(false)] out AudioSource audioSource)
     {
+        if (_player == null)
+        {
+            audioSource = null;
+            return false;
+        }
+        
         audioSource = _player.VoiceSource?.VoiceSource.AudioSource;
         return audioSource != null;
     }
@@ -27,9 +28,9 @@ public class PlayerVoiceVisibility : IPlayerVisibility
 
         audioSource.mute = !isVisible; 
     }
-    
-    public void OnRigChanged(RigManager? rigManager)
+    public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
+        _player = networkPlayer;
         if (!TryGetAudioSource(out var audioSource))
             return;
     

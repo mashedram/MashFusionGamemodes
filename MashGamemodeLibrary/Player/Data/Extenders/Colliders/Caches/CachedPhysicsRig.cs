@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Player.Collision;
-using MashGamemodeLibrary.Player.Data.Components.Colliders.Caches;
+using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 using MashGamemodeLibrary.Player.Spectating.data.Colliders;
 using UnityEngine;
 
@@ -240,7 +240,7 @@ public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
         }
 
         // Resolve marrow bodies
-        foreach (var cachedEntity in CachedColliderCache.CachedEntities)
+        foreach (var cachedEntity in CachedMarrowEntities.CachedEntities)
         {
             // Don't set colliding with ourselves, that would be bad
             if (cachedEntity == this)

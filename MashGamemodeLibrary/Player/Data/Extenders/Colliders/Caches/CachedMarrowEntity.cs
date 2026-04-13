@@ -1,12 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using Il2CppSLZ.Marrow.Interaction;
+using MashGamemodeLibrary.Player.Spectating.data.Colliders;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Colliders.Caches;
 using UnityEngine;
 
-namespace MashGamemodeLibrary.Player.Spectating.data.Colliders;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 
-public class CachedMarrowEntity : ICachedCollider
+public class CachedMarrowEntity : ICachedCollider, IHibernationEntity
 {
 
     public CachedMarrowEntity(MarrowEntity entity)
@@ -16,6 +17,7 @@ public class CachedMarrowEntity : ICachedCollider
     }
     public MarrowEntity Entity { get; init; }
     public ImmutableArray<CachedMarrowBody> Bodies { get; init; }
+    public bool IsHibernating { get; set; }
 
     public IEnumerator<Collider> GetEnumerator()
     {

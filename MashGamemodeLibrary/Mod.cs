@@ -20,7 +20,7 @@ using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Data;
-using MashGamemodeLibrary.Player.Data.Components.Colliders.Caches;
+using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Spectating.data;
 using MashGamemodeLibrary.Player.Team;
@@ -52,7 +52,7 @@ public class Mod : MelonMod
         RegisterInternal<Mod>();
         
         NetworkEventsExtender.Register();
-        CachedColliderCache.OnInitializeMelon();
+        CachedMarrowEntities.OnInitializeMelon();
 
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
@@ -63,6 +63,7 @@ public class Mod : MelonMod
         PlayerActionManager.Update();
         ConfigManager.Update();
         SpawnHelper.Update();
+        PhysicsRigCollisionEditScheduler.Update();
 #if DEBUG
         DebugKeybind.UpdateAll();
 #endif

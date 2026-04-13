@@ -12,8 +12,14 @@ internal record NetworkRuleChangePacket(PlayerID PlayerID, ulong RuleHash, IPlay
 
 internal class NetworkRuleChangeEvent : GenericRemoteEvent<NetworkRuleChangePacket>
 {
-    public NetworkRuleChangeEvent(string name) : base(name, CommonNetworkRoutes.HostToAll)
+    public NetworkRuleChangeEvent(string name) : base(name, CommonNetworkRoutes.HostToRemote)
     {
+    }
+    
+    public void Send(PlayerID playerId, IPlayerRuleInstance ruleInstance)
+    {
+        var packet = new NetworkRuleChangePacket(playerId, ruleInstance.Hash, ruleInstance.GetBaseRule());
+        Relay(packet);
     }
     
     protected override int? GetSize(NetworkRuleChangePacket data)
@@ -37,7 +43,8 @@ internal class NetworkRuleChangeEvent : GenericRemoteEvent<NetworkRuleChangePack
             return;
         
         var ruleHash = reader.ReadUInt64();
-        
-        
+        var ruleInstance = playerData.GetRuleByHash(ruleHash);
+
+        ruleInstance?.Deserialize(reader);
     }
 }
