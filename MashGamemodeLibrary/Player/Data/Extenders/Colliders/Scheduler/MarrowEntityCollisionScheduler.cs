@@ -32,7 +32,8 @@ public static class MarrowEntityCollisionScheduler
     
     public static void ScheduleDespawnReset(CachedMarrowEntity entity)
     {
-        foreach (var physicsRig in PhysicsRigCache.GetAll())
+        // TODO : May need testing
+        foreach (var physicsRig in PhysicsRigCache.GetIgnoringCollisions())
         {
             ScheduleCollisionCheck(entity, physicsRig, true);
         }
