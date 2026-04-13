@@ -2,6 +2,7 @@
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using UnityEngine;
+using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts;
 
@@ -36,5 +37,10 @@ public class PlayerVoiceVisibility : IPlayerVisibility
     
         // If the avatar changed, we want to make sure the voice is still in the correct state
         audioSource.mute = !audioSource.mute;
+    }
+    
+    public void OnAvatarChanged(Avatar avatar)
+    {
+        // No-Op
     }
 }

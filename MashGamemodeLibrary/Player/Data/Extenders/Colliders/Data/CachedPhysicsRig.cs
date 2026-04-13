@@ -1,14 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Player.Collision;
-using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
-using MashGamemodeLibrary.Player.Spectating.data.Colliders;
+using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Scheduler;
 using UnityEngine;
 
-namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Colliders.Caches;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
 
-public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
+public class CachedPhysicsRig
 {
     private static readonly int SpectatorLayer = BonelabLayers.NoRaycast;
 
@@ -161,6 +159,19 @@ public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
             "DeciHipRt", BonelabLayers.Deciverse
         }
     };
+    public static readonly IReadOnlyList<int> SpectatorIgnoredLayers = new[]
+    {
+        BonelabLayers.Fixture,
+        BonelabLayers.Player,
+        BonelabLayers.NoCollide,
+        BonelabLayers.Dynamic,
+        BonelabLayers.EnemyColliders,
+        BonelabLayers.Interactable,
+        BonelabLayers.Deciverse,
+        BonelabLayers.Socket,
+        BonelabLayers.PlayerAndNPC
+    };
+    public static readonly int SpectatorIgnoredLayerMask = SpectatorIgnoredLayers.Aggregate(0, (mask, layer) => mask | (1 << layer));
 
     public ImmutableArray<CachedCollider> Colliders;
 
@@ -174,15 +185,10 @@ public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
 
         // Ignore everything else
         Physics.IgnoreLayerCollision(SpectatorLayer, SpectatorLayer, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Fixture, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Player, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.NoCollide, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Dynamic, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.EnemyColliders, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Interactable, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Deciverse, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Socket, true);
-        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.PlayerAndNPC, true);
+        foreach (var layer in SpectatorIgnoredLayers)
+        {
+            Physics.IgnoreLayerCollision(SpectatorLayer, layer, true);
+        }
     }
 
     public CachedPhysicsRig(PhysicsRig physicsRig)
@@ -197,37 +203,9 @@ public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
     }
 
     public PhysicsRig PhysicsRig { get; init; }
-
-    public IEnumerator<Collider> GetEnumerator()
-    {
-        return Colliders.Select(cachedCollider => cachedCollider.Collider).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
-
-    public void SetColliding(Collider collider, bool isColliding)
-    {
-        foreach (var cachedCollider in Colliders)
-        {
-            cachedCollider.SetColliding(collider, isColliding);
-        }
-    }
-
-    public void SetColliding(ICachedCollider other, bool isColliding)
-    {
-        foreach (var cachedCollider in Colliders)
-        {
-            cachedCollider.SetColliding(other, isColliding);
-        }
-    }
+    
     public bool IsColliding { get; private set; }
 
-    // TODO ON THIS
-    // - Layer changes on colliders
-    // - Marrow Entity collecting
     public void SetColliding(bool isColliding)
     {
         IsColliding = isColliding;
@@ -238,22 +216,7 @@ public class CachedPhysicsRig : ICachedCollider, IDisableableCollider
         {
             collider.SetLayer(isColliding ? null : SpectatorLayer);
         }
-
-        // Resolve marrow bodies
-        foreach (var cachedEntity in CachedMarrowEntities.CachedEntities)
-        {
-            // Don't set colliding with ourselves, that would be bad
-            if (cachedEntity == this)
-                continue;
-            
-            SetColliding(cachedEntity, isColliding);
-        }
-    }
-    public void OnColliderCached(ICachedCollider cachedCollider)
-    {
-        if (IsColliding)
-            return;
-
-        SetColliding(cachedCollider, IsColliding);
+        
+        MarrowEntityCollisionScheduler.ScheduleRigCollisions(this, isColliding);
     }
 }

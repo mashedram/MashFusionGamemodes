@@ -2,6 +2,7 @@
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using UnityEngine;
+using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 
@@ -51,5 +52,10 @@ public class PlayerBodylogVisibility : IPlayerVisibility
             _bodylogObjects.Add(bodylogObject);
         }
         SetVisible(_isVisible);
+    }
+    
+    public void OnAvatarChanged(Avatar avatar)
+    {
+        // No-Op
     }
 }

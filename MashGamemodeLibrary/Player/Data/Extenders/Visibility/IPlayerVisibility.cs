@@ -12,4 +12,5 @@ public interface IPlayerVisibility
     /// Will also get called if the player's rig changes
     /// </summary>
     void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager);
+    void OnAvatarChanged(Avatar avatar);
 }

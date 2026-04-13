@@ -8,4 +8,5 @@ public interface IPlayerRuleInstance
     ulong Hash { get; }
     void Deserialize(NetReader reader);
     IPlayerRule GetBaseRule();
+    void Reset();
 }

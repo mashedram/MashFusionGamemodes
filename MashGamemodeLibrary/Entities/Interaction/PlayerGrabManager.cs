@@ -216,13 +216,7 @@ public static class PlayerGrabManager
     {
         // Only apply grab predicates for the local player
         if (grab.NetworkPlayer == null) return true;
-        if (!grab.NetworkPlayer.PlayerID.IsMe)
-        {
-            if (SpectatorExtender.IsLocalPlayerSpectating())
-                return false;
-            
-            return true;
-        }
+        if (!grab.NetworkPlayer.PlayerID.IsMe) return true;
         if (!grab.IsHoldingItem(out var item)) return true;
         if (item.GameObject == null) return true;
         if (!item.IsNetworked(out var networkEntity)) return true;

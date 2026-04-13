@@ -48,7 +48,8 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
             return;
 
         var activePhase = GamePhaseManager.ActivePhase;
-        if (!_owner.HasRig || activePhase == null || (_owner.PlayerID.IsMe || _owner.PlayerID.IsSpectating()))
+        // If the owner of this tag is spectating and not me, hide it
+        if (!_owner.PlayerID.IsMe && _owner.IsSpectating() || activePhase == null)
         {
             _timerObject.gameObject.SetActive(false);
             return;

@@ -1,6 +1,7 @@
 ﻿using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
@@ -9,24 +10,18 @@ namespace MashGamemodeLibrary.Player.Helpers;
 
 public static class SpectatorExtender
 {
-    private static readonly Dictionary<PlayerID, PlayerRuleModifier<PlayerSpectatingRule>> SpectatingModifiers = new();
     
-    private static PlayerRuleModifier<PlayerSpectatingRule> GetOrCreateSpectatingModifier(PlayerID playerId)
+    private static PlayerRuleInstance<PlayerSpectatingRule> GetOrCreateSpectatingModifier(PlayerID playerId)
     {
-        if (SpectatingModifiers.TryGetValue(playerId, out var modifier))
-            return modifier;
-        
         var playerData = PlayerDataManager.GetPlayerData(playerId);
         if (playerData == null) throw new Exception($"Player data not found for player ID: {playerId}");
 
-        var newModifier = playerData.CreateModifier<PlayerSpectatingRule>(RuleModifierPriority.Highest);
-        SpectatingModifiers[playerId] = newModifier;
-        return newModifier;
+        return playerData.GetRuleInstance<PlayerSpectatingRule>();
     }
     
     public static bool IsSpectating(this NetworkPlayer player)
     {
-        return PlayerDataManager.GetPlayerData(player).CheckRule<PlayerSpectatingRule>(r => r.IsSpectating);
+        return PlayerDataManager.GetPlayerData(player)?.CheckRule<PlayerSpectatingRule>(r => r.IsSpectating) ?? false;
     }
     
     public static bool IsSpectating(this PlayerID playerId)
@@ -52,9 +47,10 @@ public static class SpectatorExtender
     
     public static void StopSpectatingAll()
     {
-        foreach (var modifier in SpectatingModifiers.Values)
+        PlayerDataManager.ForEachPlayerData(data =>
         {
+            var modifier = data.GetRuleInstance<PlayerSpectatingRule>();
             modifier.Modify(rule => rule.IsSpectating = false);
-        }
+        });
     }
 }

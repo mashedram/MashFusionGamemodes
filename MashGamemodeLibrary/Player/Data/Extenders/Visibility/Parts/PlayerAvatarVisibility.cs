@@ -9,12 +9,6 @@ public class PlayerAvatarVisibility : IPlayerVisibility
 {
     private RigManager? _rigManager;
     private bool _isVisible = true;
-    
-    // TODO : Use player events for this
-    private void OnAvatarChanged()
-    {
-        SetVisible(_isVisible);
-    }
 
     public void SetVisible(bool isVisible)
     {
@@ -33,6 +27,12 @@ public class PlayerAvatarVisibility : IPlayerVisibility
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         _rigManager = rigManager;
+        SetVisible(_isVisible);
+    }
+    
+    public void OnAvatarChanged(Avatar avatar)
+    {
+        // Reload avatar visibility
         SetVisible(_isVisible);
     }
 }

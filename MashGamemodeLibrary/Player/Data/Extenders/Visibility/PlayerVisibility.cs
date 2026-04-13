@@ -1,7 +1,9 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
+using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts;
@@ -12,43 +14,50 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 
 public class PlayerVisibility : IPlayerExtender
 {
-    public NetworkPlayer? Player { get; init; }
-    private readonly IPlayerVisibility[] _playerVisibilities;
-
-    public PlayerVisibility()
-    {
-        _playerVisibilities = new IPlayerVisibility[]
-        {
-            new PlayerAvatarVisibility(),
-            new PlayerVoiceVisibility(),
-            new PlayerNametagVisibility(),
-            new PlayerHolsterVisibility(),
-            new PlayerBodylogVisibility()
-        };
-    }
+    public NetworkPlayer? Player { get; set; }
+    private bool _isVisible = true;
+    private readonly IPlayerVisibility[] _playerVisibilities = {
+        new PlayerAvatarVisibility(),
+        new PlayerVoiceVisibility(),
+        new PlayerNametagVisibility(),
+        new PlayerHolsterVisibility(),
+        new PlayerBodylogVisibility()
+    };
 
     private void SetVisibility(bool isVisible)
     {
+        _isVisible = isVisible;
+        if (Player == null)
+            return;
+        
+        if (Player.PlayerID.IsMe)
+            return;
+        
         foreach (var playerVisibility in _playerVisibilities)
         {
-            playerVisibility.SetVisible(isVisible);
+            playerVisibility.SetVisible(_isVisible);
         }
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
-        if (!networkPlayer.HasRig)
-            return;
-        
-        foreach (var playerVisibility in _playerVisibilities)
+        Player = networkPlayer;
+        _playerVisibilities.ForEach(p =>
         {
-            playerVisibility.OnPlayerChanged(networkPlayer, rigManager);
-        }
+            p.OnPlayerChanged(networkPlayer, rigManager);
+            p.SetVisible(_isVisible);
+        });
     }
 
     public void OnRuleChanged(IPlayerRule rule)
     {
         if (rule is not PlayerSpectatingRule spectatingRule) return;
         SetVisibility(!spectatingRule.IsSpectating);
+    }
+    
+    public void OnEvent(IPlayerEvent playerEvent)
+    {
+        if (playerEvent is AvatarChangedEvent)
+            SetVisibility(_isVisible);
     }
 }

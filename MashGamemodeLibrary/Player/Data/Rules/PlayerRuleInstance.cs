@@ -1,4 +1,5 @@
-﻿using LabFusion.Network;
+﻿using LabFusion.Extensions;
+using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
@@ -6,26 +7,13 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data.Rules;
 
-internal class RuleModifierCompare<TRule> : IComparer<PlayerRuleModifier<TRule>> where TRule : class, IPlayerRule, new()
-{
-    public int Compare(PlayerRuleModifier<TRule>? x, PlayerRuleModifier<TRule>? y)
-    {
-        if (ReferenceEquals(x, y)) return 0;
-        if (y is null) return 1;
-        if (x is null) return -1;
-        return x.Priority.CompareTo(y.Priority);
-    }
-}
-
 public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class, IPlayerRule, new()
 {
+    public delegate void ModifyRuleDelegate(TRule rule);
     private readonly PlayerData _playerData;
-    private readonly TRule _defaultRule = new TRule();
-    private readonly SortedSet<PlayerRuleModifier<TRule>> _modifiers = new(new RuleModifierCompare<TRule>());
     
     // The rule of the host, used when we are the host and is sent over the network
-    private TRule? _localRule;
-    
+    private TRule _localRule = new TRule();
     // The rule to use when we are the client
     private TRule _networkedRule = new TRule();
     
@@ -37,40 +25,18 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
         _playerData = playerData;
         Hash = typeof(TRule).GetStableHash();
     }
-
-    public PlayerRuleModifier<TRule> GetModifier(RuleModifierPriority priority)
-    {
-        var modifier = new PlayerRuleModifier<TRule>(this, priority);
-        _modifiers.Add(modifier);
-        return modifier;
-    }
     
-    internal void DropModifier(PlayerRuleModifier<TRule> playerRuleModifier)
+    public void Modify(ModifyRuleDelegate modifier)
     {
-        _modifiers.Remove(playerRuleModifier);
+        if (NetworkInfo.IsClient)
+            return;
+        
+        modifier(_localRule);
+        NotifyChange();
     }
     
     public void NotifyChange()
     {
-        Executor.RunIfHost(() =>
-        {
-            // Calculate the active rule
-            var activeRule = _defaultRule;
-            foreach (var playerRuleModifier in _modifiers)
-            {
-                if (!playerRuleModifier.IsEnabled())
-                    continue;
-
-                activeRule = playerRuleModifier.Rule;
-                break;
-            }
-        
-            if (Equals(activeRule, _localRule))
-                return;
-        
-            _localRule = activeRule;
-        });
-        
         _playerData.NotifyRuleChanged(this);
     }
     
@@ -81,7 +47,7 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
         if (NetworkInfo.IsClient)
             return _networkedRule;
         
-        return _localRule ?? _defaultRule;
+        return _localRule;
     }
     
     public IPlayerRule GetBaseRule()
@@ -89,6 +55,12 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
         return GetRule();
     }
     
+    public void Reset()
+    {
+        _localRule = new TRule();
+        NotifyChange();
+    }
+
     public void Deserialize(NetReader reader)
     {
         _networkedRule.Serialize(reader);

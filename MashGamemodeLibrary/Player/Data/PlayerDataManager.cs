@@ -14,19 +14,22 @@ public static class PlayerDataManager
 
     static PlayerDataManager()
     {
-        NetworkPlayer.OnNetworkRigCreated += OnNetworkRigCreated;
+        MultiplayerHooking.OnPlayerJoined += OnPlayerJoined;
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
-    }
-
-    private static PlayerData GetDataOrCreate(NetworkPlayer networkPlayer)
-    {
-        return PlayerData.GetValueOrCreate(networkPlayer.PlayerID, () => new PlayerData(networkPlayer));
+        NetworkPlayer.OnNetworkRigCreated += OnNetworkRigCreated;
     }
     
-    private static void OnNetworkRigCreated(NetworkPlayer player, RigManager rigManager)
+    private static void OnPlayerJoined(PlayerID playerID)
     {
-        var data = GetDataOrCreate(player);
-        data.OnRigCreated(player, rigManager);
+        PlayerData.GetValueOrCreate(playerID, () => new PlayerData(playerID));
+    }
+    
+    private static void OnNetworkRigCreated(NetworkPlayer networkPlayer, RigManager rigManager)
+    {
+        var playerID = networkPlayer.PlayerID;
+        var data = PlayerData.GetValueOrCreate(playerID, () => new PlayerData(playerID));
+        
+        data.OnRigCreated(networkPlayer, rigManager);
     }
     
     private static void OnPlayerLeft(PlayerID playerId)
@@ -36,9 +39,12 @@ public static class PlayerDataManager
     
     // Accessors
     
-    public static PlayerData GetPlayerData(NetworkPlayer networkPlayer)
+    public static PlayerData? GetPlayerData(NetworkPlayer networkPlayer)
     {
-        return GetDataOrCreate(networkPlayer);
+        if (!networkPlayer.HasRig)
+            return null;
+        
+        return PlayerData.GetValueOrDefault(networkPlayer.PlayerID);
     }
 
     public static PlayerData? GetPlayerData(byte playerID)
@@ -55,12 +61,31 @@ public static class PlayerDataManager
     {
         if (!NetworkInfo.HasServer)
             return null;
+        var localPlayer = LocalPlayer.GetNetworkPlayer();
+        if (localPlayer == null)
+            return null;
         
-        return GetDataOrCreate(LocalPlayer.GetNetworkPlayer()!);
+        return PlayerData.GetValueOrDefault(localPlayer.PlayerID);
     }
     
+    public static void ForEachPlayerData(Action<PlayerData> action)
+    {
+        foreach (var playerData in PlayerData.Values)
+        {
+            action(playerData);
+        }
+    }
+
     public static void Reset()
     {
-        // TODO
+        PlayerData.Clear();
+    }
+
+    internal static void SendCatchup(PlayerID playerID)
+    {
+        ForEachPlayerData(playerData =>
+        {
+            playerData.SendCatchup(playerID);
+        });
     }
 }

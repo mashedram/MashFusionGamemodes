@@ -1,17 +1,15 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Player;
-using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Patches;
-using MashGamemodeLibrary.Player.Data.Components;
-using MashGamemodeLibrary.Player.Data.Extenders;
+using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace MashGamemodeLibrary.Player.Spectating.data.Components.VisualOverlay;
+namespace MashGamemodeLibrary.Player.Data.Extenders.LocalInteractions;
 
 public class LocalInteractionsExtender : IPlayerExtender
 {
@@ -82,5 +80,10 @@ public class LocalInteractionsExtender : IPlayerExtender
             return;
 
         SetInteractions(!spectatingRule.IsSpectating);
+    }
+    
+    public void OnEvent(IPlayerEvent playerEvent)
+    {
+        // No-Op
     }
 }

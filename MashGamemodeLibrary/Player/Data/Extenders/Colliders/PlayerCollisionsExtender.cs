@@ -1,8 +1,9 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Data.Components;
+using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Colliders.Caches;
+using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
@@ -11,7 +12,7 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders;
 public class PlayerCollisionsExtender : IPlayerExtender
 {
     private bool _isColliding = true;
-    private CachedPhysicsRig? _cachedPhysicsRig;
+    private PhysicsRig? _cachedPhysicsRig;
     
     private void SetColliding(bool isColliding)
     {
@@ -20,12 +21,12 @@ public class PlayerCollisionsExtender : IPlayerExtender
         if (_cachedPhysicsRig == null)
             return;
         
-        PhysicsRigCollisionEditScheduler.ScheduleEdit(_cachedPhysicsRig, isColliding);
+        PhysicsRigCache.GetRig(_cachedPhysicsRig)?.SetColliding(_isColliding);
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
-        _cachedPhysicsRig = CachedMarrowEntities.GetCachedPhysicsRig(rigManager.physicsRig);
+        _cachedPhysicsRig = rigManager.physicsRig;
         SetColliding(_isColliding);
     }
     
@@ -35,5 +36,10 @@ public class PlayerCollisionsExtender : IPlayerExtender
         
         _isColliding = !spectatingRule.IsSpectating;
         SetColliding(_isColliding);
+    }
+    
+    public void OnEvent(IPlayerEvent playerEvent)
+    {
+        // No-Op
     }
 }

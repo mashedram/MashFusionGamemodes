@@ -4,6 +4,7 @@ using LabFusion.Extensions;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
+using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 
@@ -81,5 +82,10 @@ public class PlayerHolsterVisibility : IPlayerVisibility
             hider.SetSlotContainer(slotContainer);
             hider.SetVisible(_isVisible);
         }
+    }
+       
+    public void OnAvatarChanged(Avatar avatar)
+    {
+        // No-Op
     }
 }
