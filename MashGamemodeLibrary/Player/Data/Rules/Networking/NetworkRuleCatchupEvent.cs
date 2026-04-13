@@ -17,7 +17,6 @@ public class NetworkRuleCatchupEvent : GenericRemoteEvent<NetworkRuleCatchupEven
     
     protected override int? GetSize(NetworkRuleCatchupEventArgs data)
     {
-        // TODO: Predict this
         return null;
     }
     
