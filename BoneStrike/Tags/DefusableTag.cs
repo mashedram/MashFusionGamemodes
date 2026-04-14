@@ -78,10 +78,10 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     {
         if (GamePhaseManager.IsPhase<PlantPhase>())
         {
-            return TeamManager.IsLocalTeam<TerroristTeam>();
+            return LogicTeamManager.IsLocalTeam<TerroristTeam>();
         }
 
-        return TeamManager.IsLocalTeam<CounterTerroristTeam>();
+        return LogicTeamManager.IsLocalTeam<CounterTerroristTeam>();
     }
 
     public void Serialize(INetSerializer serializer)

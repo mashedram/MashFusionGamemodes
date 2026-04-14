@@ -6,7 +6,9 @@ public class CachedCollider
 {
     private readonly Collider _collider;
     private readonly int _sourceLayer;
-    
+
+    public int SourceLayer => _sourceLayer;
+
     public CachedCollider(Collider collider) : this(collider, collider.gameObject.layer)
     {
     }

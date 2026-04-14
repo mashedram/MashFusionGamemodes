@@ -27,7 +27,6 @@ using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt;
 
@@ -49,7 +48,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
         NightmareManager.RegisterAll<Mod>();
         GamePhaseManager.Registry.RegisterAll<Mod>();
-        TeamManager.Registry.RegisterAll<Mod>();
+        LogicTeamManager.Registry.RegisterAll<Mod>();
     }
 
     private static void ListenToAvatarChange(Avatar avatar, string barcode)
@@ -63,8 +62,8 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     protected override void OnRoundStart()
     {
-        TeamManager.Enable<NightmareTeam>();
-        TeamManager.Enable<SurvivorTeam>();
+        LogicTeamManager.Enable<NightmareTeam>();
+        LogicTeamManager.Enable<SurvivorTeam>();
         
         Executor.RunIfHost(() =>
         {

@@ -12,7 +12,7 @@ using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Teams;
 
-public class TerroristTeam : Team
+public class TerroristTeam : LogicTeam
 {
     public override string Name => "Terrorists";
 

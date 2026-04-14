@@ -83,33 +83,33 @@ public class PersistentTeams
     private void AutoBalance()
     {
         var emptyTeams = _playerSets.Where(set => set.Count == 0).ToList();
-        if (emptyTeams.Count > 0)
+        if (emptyTeams.Count <= 0) 
+            return;
+
+        var totalPlayers = _playerSets.Select(s => s.Count).Sum();
+
+        if (totalPlayers < _playerSets.Count)
+            return;
+
+        var targetSize = totalPlayers / _playerSets.Count;
+
+        foreach (var emptySet in emptyTeams)
         {
-            var totalPlayers = _playerSets.Select(s => s.Count).Sum();
-
-            if (totalPlayers < _playerSets.Count)
-                return;
-
-            var targetSize = totalPlayers / _playerSets.Count;
-
-            foreach (var emptySet in emptyTeams)
+            while (emptySet.Count < targetSize)
             {
-                while (emptySet.Count < targetSize)
-                {
-                    var largestSet = _playerSets
-                        .Where(set => set.Count > targetSize && set != emptySet)
-                        .MaxBy(set => set.Count);
+                var largestSet = _playerSets
+                    .Where(set => set.Count > targetSize && set != emptySet)
+                    .MaxBy(set => set.Count);
 
-                    if (largestSet == null || largestSet.Count == 0)
-                        break;
+                if (largestSet == null || largestSet.Count == 0)
+                    break;
 
-                    var player = largestSet.GetRandom();
-                    if (player == null)
-                        break;
+                var player = largestSet.GetRandom();
+                if (player == null)
+                    break;
 
-                    largestSet.Remove(player);
-                    emptySet.Add(player);
-                }
+                largestSet.Remove(player);
+                emptySet.Add(player);
             }
         }
     }
@@ -121,9 +121,9 @@ public class PersistentTeams
         _scores.Add(0);
     }
 
-    public void AddTeam<T>() where T : Team
+    public void AddTeam<T>() where T : LogicTeam
     {
-        var id = TeamManager.Registry.CreateID<T>();
+        var id = LogicTeamManager.Registry.CreateID<T>();
         AddTeamID(id);
     }
 
@@ -140,12 +140,12 @@ public class PersistentTeams
             index = (index + 1) % _playerSets.Count;
         }
     }
-    
+
     public void OverwritePlayerSets(IEnumerable<IEnumerable<PlayerID>> playerSets)
     {
         _playerSets.ForEach(set => set.Clear());
         _playerIds.Clear();
-        
+
         var index = 0;
         foreach (var playerSet in playerSets)
         {
@@ -155,7 +155,7 @@ public class PersistentTeams
                 _playerIds.Add(playerID);
                 targetSet.Add(playerID);
             }
-            
+
             index = (index + 1) % _playerSets.Count;
         }
     }
@@ -187,15 +187,15 @@ public class PersistentTeams
                 _lateJoinerQueue.Remove(playerID);
                 continue;
             }
-            
+
             if (!NetworkPlayerManager.TryGetPlayer(playerID, out var player))
                 continue;
-            
+
             if (!player.HasRig)
                 continue;
-            
+
             _lateJoinerQueue.Remove(playerID);
-            
+
             // Avoid double adding
             if (!_playerIds.Add(playerID))
                 continue;

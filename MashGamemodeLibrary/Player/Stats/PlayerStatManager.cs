@@ -84,7 +84,7 @@ public static class PlayerStatManager
     
     private static float GetTeamBalanceModifier()
     {
-        var localTeamId = TeamManager.GetLocalTeamID();
+        var localTeamId = LogicTeamManager.GetLocalTeamID();
         if (!localTeamId.HasValue)
             return 1f;
         
@@ -92,7 +92,7 @@ public static class PlayerStatManager
             .Where(p => p.HasRig)
             .ToList();
         
-        var teamMemberCount = validPlayers.Count(p => TeamManager.GetPlayerTeamID(p.PlayerID) == localTeamId.Value);
+        var teamMemberCount = validPlayers.Count(p => LogicTeamManager.GetPlayerTeamID(p.PlayerID) == localTeamId.Value);
         var totalPlayers = validPlayers.Count;
         var enemyCount = totalPlayers - teamMemberCount;
         

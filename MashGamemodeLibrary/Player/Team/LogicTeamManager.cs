@@ -12,17 +12,15 @@ using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Player.Team;
 
-public static class TeamManager
+public static class LogicTeamManager
 {
-
-    public delegate void OnAssignedTeamHandler(PlayerID playerID, Team team);
     private static readonly HashSet<ulong> EnabledTeams = new();
-    public static readonly FactoryTypedRegistry<Team> Registry = new();
+    public static readonly FactoryTypedRegistry<LogicTeam> Registry = new();
 
-    private static readonly SyncedDictionary<byte, Team> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(),
-        new DynamicInstanceEncoder<Team>(Registry));
+    private static readonly SyncedDictionary<byte, LogicTeam> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(),
+        new DynamicInstanceEncoder<LogicTeam>(Registry));
 
-    static TeamManager()
+    static LogicTeamManager()
     {
         AssignedTeams.OnValueAdded += OnAssigned;
         AssignedTeams.OnValueRemoved += OnRemoved;
@@ -36,14 +34,14 @@ public static class TeamManager
     }
 
 
-    public static ulong GetTeamID<T>() where T : Team
+    public static ulong GetTeamID<T>() where T : LogicTeam
     {
         return GetTeamID(typeof(T));
     }
 
     // Implementations
 
-    public static void Enable<T>() where T : Team
+    public static void Enable<T>() where T : LogicTeam
     {
         var id = GetTeamID<T>();
         EnabledTeams.Add(id);
@@ -66,13 +64,13 @@ public static class TeamManager
         return Registry.CreateID(team);
     }
 
-    public static Team? GetLocalTeam()
+    public static LogicTeam? GetLocalTeam()
     {
         var id = PlayerIDManager.LocalSmallID;
         return AssignedTeams.GetValueOrDefault(id);
     }
 
-    public static bool IsTeam<T>(this PlayerID playerID) where T : Team
+    public static bool IsTeam<T>(this PlayerID playerID) where T : LogicTeam
     {
         return AssignedTeams.TryGetValue(playerID, out var team) && team.GetType() == typeof(T);
     }
@@ -91,7 +89,7 @@ public static class TeamManager
         return AssignedTeams.TryGetValue(enemyPlayerID, out var otherTeam) && Registry.GetID(localTeam) != Registry.GetID(otherTeam);
     }
 
-    public static bool IsLocalTeam<T>() where T : Team
+    public static bool IsLocalTeam<T>() where T : LogicTeam
     {
         return PlayerIDManager.LocalID.IsTeam<T>();
     }
@@ -103,7 +101,7 @@ public static class TeamManager
         return Registry.CreateID(team);
     }
 
-    public static Team? GetPlayerTeam(PlayerID player)
+    public static LogicTeam? GetPlayerTeam(PlayerID player)
     {
         return AssignedTeams.GetValueOrDefault(player);
     }
@@ -119,7 +117,7 @@ public static class TeamManager
         return localTeam.GetType() == playerTeam.GetType();
     }
 
-    public static void Assign<T>(this NetworkPlayer player, T team) where T : Team
+    public static void Assign<T>(this NetworkPlayer player, T team) where T : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
@@ -127,7 +125,7 @@ public static class TeamManager
         });
     }
 
-    public static void Assign<T>(this PlayerID playerID) where T : Team
+    public static void Assign<T>(this PlayerID playerID) where T : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
@@ -158,7 +156,7 @@ public static class TeamManager
         Executor.RunIfHost(() =>
         {
             var teamIndex = Random.Range(0, 2);
-            var ids = EnabledTeams.Select(id => Registry.Get(id)).OfType<Team>().ToList();
+            var ids = EnabledTeams.Select(id => Registry.Get(id)).OfType<LogicTeam>().ToList();
             foreach (var networkPlayer in NetworkPlayer.Players)
             {
                 var team = ids[teamIndex];
@@ -169,7 +167,7 @@ public static class TeamManager
         });
     }
 
-    public static void AssignAll<T>() where T : Team
+    public static void AssignAll<T>() where T : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
@@ -208,7 +206,7 @@ public static class TeamManager
         });
     }
 
-    public static void AssignRandom<T>(IRandomProvider<PlayerID>? provider = null) where T : Team
+    public static void AssignRandom<T>(IRandomProvider<PlayerID>? provider = null) where T : LogicTeam
     {
         provider ??= new BasicRandomProvider<PlayerID>(() =>
         {
@@ -227,7 +225,7 @@ public static class TeamManager
 
     // Remote
 
-    private static void OnAssigned(byte smallID, Team team)
+    private static void OnAssigned(byte smallID, LogicTeam team)
     {
         if (!NetworkPlayerManager.TryGetPlayer(smallID, out var player))
         {
@@ -238,7 +236,7 @@ public static class TeamManager
         team.Assign(player);
     }
 
-    private static void OnRemoved(byte platformId, Team team)
+    private static void OnRemoved(byte platformId, LogicTeam team)
     {
         team.Remove();
     }

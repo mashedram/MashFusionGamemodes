@@ -18,7 +18,7 @@ public class ClockhuntMusicContext
 
     public float PhaseProgress => _phase != null ? Mathf.Clamp01(_phase.ElapsedTime / _phase.Duration) : 1f;
     public bool IsChasing { get; private set; }
-    public static bool IsLocalNightmare => TeamManager.IsLocalTeam<NightmareTeam>();
+    public static bool IsLocalNightmare => LogicTeamManager.IsLocalTeam<NightmareTeam>();
 
     public bool IsPhase<T>() where T : GamePhase
     {

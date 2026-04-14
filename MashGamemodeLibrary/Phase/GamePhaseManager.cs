@@ -73,7 +73,7 @@ public static class GamePhaseManager
 
         PhaseChangedBehaviours.ForEach(behaviour => behaviour.OnPhaseChange(ActivePhase));
 
-        TeamManager.OnPhaseChanged(ActivePhase);
+        LogicTeamManager.OnPhaseChanged(ActivePhase);
     }
 
     public static void Update(float delta)

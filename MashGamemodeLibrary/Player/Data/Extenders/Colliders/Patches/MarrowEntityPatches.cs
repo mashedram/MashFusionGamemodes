@@ -14,7 +14,7 @@ public class MarrowEntityPatches
         if (__instance == null)
             return;
         
-        MarrowEntityCache.OnMarrowEntityCreated(__instance);
+        MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
     }
     
     [HarmonyPatch(nameof(MarrowEntity.OnPoolSpawn))]
@@ -24,7 +24,7 @@ public class MarrowEntityPatches
         if (__instance == null)
             return;
 
-        MarrowEntityCache.OnMarrowEntityCreated(__instance);
+        MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
     }
 
     [HarmonyPatch(nameof(MarrowEntity.Despawn))]
@@ -34,26 +34,6 @@ public class MarrowEntityPatches
         if (__instance == null)
             return;
 
-        MarrowEntityCache.OnMarrowEntityDestroyed(__instance);
-    }
-
-    [HarmonyPatch(nameof(MarrowEntity.Hibernate))]
-    [HarmonyPostfix]
-    private static void Hibernate_Postfix(MarrowEntity __instance)
-    {
-        if (__instance == null)
-            return;
-        
-        MarrowEntityCache.OnMarrowEntityHibernate(__instance);
-    }
-
-    [HarmonyPatch(nameof(MarrowEntity.ClearHibernation))]
-    [HarmonyPostfix]
-    private static void ClearHibernation_Postfix(MarrowEntity __instance)
-    {
-        if (__instance == null)
-            return;
-        
-        MarrowEntityCache.OnMarrowEntityWake(__instance);
+        MarrowEntityEventHandler.OnMarrowEntityDestroyed(__instance);
     }
 }

@@ -6,7 +6,7 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Player.Team;
 
-public abstract class Team
+public abstract class LogicTeam
 {
     public abstract string Name { get; }
     private NetworkPlayer? _owner;

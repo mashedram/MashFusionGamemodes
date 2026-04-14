@@ -1,15 +1,13 @@
 ﻿using System.Collections.Immutable;
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Player.Collision;
-using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Scheduler;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
 
 public class CachedPhysicsRig
 {
-    private static readonly int SpectatorLayer = BonelabLayers.NoRaycast;
-
+    public static readonly int SpectatorLayer = BonelabLayers.NoRaycast;
     private static readonly Dictionary<string, int> PhysicsRigLayout = new()
     {
         {
@@ -169,7 +167,9 @@ public class CachedPhysicsRig
         BonelabLayers.Interactable,
         BonelabLayers.Deciverse,
         BonelabLayers.Socket,
-        BonelabLayers.PlayerAndNPC
+        BonelabLayers.PlayerAndNPC,
+        BonelabLayers.EntityTrigger,
+        BonelabLayers.BeingTrigger
     };
     public static readonly int SpectatorIgnoredLayerMask = SpectatorIgnoredLayers.Aggregate(0, (mask, layer) => mask | (1 << layer));
 
@@ -181,7 +181,9 @@ public class CachedPhysicsRig
         Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Default, false);
 
         // Ignore raycasts, so we don't have to worry about them when we set the rig
-
+        
+        // Allow feet to collide with the floor
+        Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.FeetOnly, true);
 
         // Ignore everything else
         Physics.IgnoreLayerCollision(SpectatorLayer, SpectatorLayer, true);
@@ -211,12 +213,9 @@ public class CachedPhysicsRig
         IsColliding = isColliding;
 
         // Set avatar layers
-
         foreach (var collider in Colliders)
         {
             collider.SetLayer(isColliding ? null : SpectatorLayer);
         }
-        
-        MarrowEntityCollisionScheduler.ScheduleRigCollisions(this, isColliding);
     }
 }

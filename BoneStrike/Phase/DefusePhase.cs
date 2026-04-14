@@ -6,9 +6,9 @@ using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util.Timer;
 using MelonLoader;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike.Phase;
 
@@ -48,7 +48,7 @@ public class DefusePhase : GamePhase
         Notifier.Send(new Notification
         {
             Title = "Game Start!",
-            Message = TeamManager.IsLocalTeam<TerroristTeam>() ? "Defend the bomb!" : "Defuse the bomb!",
+            Message = LogicTeamManager.IsLocalTeam<TerroristTeam>() ? "Defend the bomb!" : "Defuse the bomb!",
             ShowPopup = true,
             SaveToMenu = false,
             PopupLength = 4f,
@@ -82,7 +82,7 @@ public class DefusePhase : GamePhase
 
     private static void DropClock()
     {
-        if (!TeamManager.IsLocalTeam<TerroristTeam>())
+        if (!LogicTeamManager.IsLocalTeam<TerroristTeam>())
             return;
         
         foreach (var gripWithHand in PlayerGrabManager.GetLocalHandsHoldingTag<BombMarker>())

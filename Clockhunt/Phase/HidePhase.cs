@@ -41,7 +41,7 @@ public class HidePhase : GamePhase, ITimedPhase
         
         Executor.RunIfHost(() =>
         {
-            TeamManager.AssignAll<SurvivorTeam>();
+            LogicTeamManager.AssignAll<SurvivorTeam>();
             
             NetworkPlayer.Players.ForEach(player =>
             {

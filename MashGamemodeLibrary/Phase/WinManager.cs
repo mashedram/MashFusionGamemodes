@@ -4,8 +4,7 @@ using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using Team = MashGamemodeLibrary.Player.Team.Team;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
+using MashGamemodeLibrary.Player.Team;
 
 namespace MashGamemodeLibrary.Phase;
 
@@ -28,14 +27,14 @@ public static class WinManager
 {
     private static readonly RemoteEvent<WinPacket> WinEvent = new(OnWinEvent, CommonNetworkRoutes.HostToAll);
 
-    public static void Win<T>() where T : Team
+    public static void Win<T>() where T : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
             if (!InternalGamemodeManager.InRound)
                 return;
 
-            var id = TeamManager.Registry.CreateID<T>();
+            var id = LogicTeamManager.Registry.CreateID<T>();
             WinEvent.Call(new WinPacket
             {
                 TeamID = id
@@ -49,7 +48,7 @@ public static class WinManager
 
     private static void OnWinEvent(WinPacket packet)
     {
-        var localTeam = TeamManager.GetLocalTeamID();
+        var localTeam = LogicTeamManager.GetLocalTeamID();
         if (localTeam == packet.TeamID)
             Notifier.Send(new Notification
             {

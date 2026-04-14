@@ -29,7 +29,6 @@ using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace BoneStrike;
 
@@ -101,8 +100,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         Notifier.CancelAll();
         LocalHealth.MortalityOverride = true;
         
-        TeamManager.Enable<TerroristTeam>();
-        TeamManager.Enable<CounterTerroristTeam>();
+        LogicTeamManager.Enable<TerroristTeam>();
+        LogicTeamManager.Enable<CounterTerroristTeam>();
 
         Executor.RunIfHost(() =>
         {
@@ -141,7 +140,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         {
             Context.PersistentTeams.AddScore(winnerTeamId, 1);
 
-            if (winnerTeamId == TeamManager.GetTeamID<CounterTerroristTeam>())
+            if (winnerTeamId == LogicTeamManager.GetTeamID<CounterTerroristTeam>())
             {
                 Context.CounterTerroristsWinAudioPlayer.PlayRandom();
             }
@@ -186,7 +185,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             null => true,
             PlantPhase => false,
             DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>(),
-            _ => !TeamManager.IsTeamMember(player)
+            _ => !LogicTeamManager.IsTeamMember(player)
         };
 
     }

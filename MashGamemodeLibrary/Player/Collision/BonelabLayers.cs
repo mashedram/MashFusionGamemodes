@@ -14,5 +14,8 @@ public static class BonelabLayers
     public const int Deciverse = 17;
     public const int Socket = 18;
     public const int PlayerAndNPC = 21;
+    public const int FeetOnly = 23;
     public const int Feet = 24;
+    public const int EntityTrigger = 30;
+    public const int BeingTrigger = 31;
 }

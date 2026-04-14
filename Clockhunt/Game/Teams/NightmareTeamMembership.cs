@@ -10,7 +10,7 @@ using MelonLoader;
 
 namespace Clockhunt.Game.Teams;
 
-public class NightmareTeam : Team
+public class NightmareTeam : LogicTeam
 {
     public override string Name => "Nightmare";
     public virtual uint Capacity => 1;

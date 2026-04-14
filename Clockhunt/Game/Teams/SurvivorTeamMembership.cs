@@ -11,7 +11,7 @@ using MashGamemodeLibrary.Player.Team;
 
 namespace Clockhunt.Game.Teams;
 
-public class SurvivorTeam : Team
+public class SurvivorTeam : LogicTeam
 {
     public override string Name => "Survivors";
 

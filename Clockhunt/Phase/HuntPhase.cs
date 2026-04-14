@@ -27,10 +27,10 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Util.Timer;
 using UnityEngine;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace Clockhunt.Phase;
 
@@ -157,7 +157,7 @@ public class HuntPhase : GamePhase, ITimedPhase
             var context = Clockhunt.Context;
 
 #if DEBUG
-            if (!Clockhunt.Config.DebugSkipNightmare) TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
+            if (!Clockhunt.Config.DebugSkipNightmare) LogicTeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #else
             TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #endif

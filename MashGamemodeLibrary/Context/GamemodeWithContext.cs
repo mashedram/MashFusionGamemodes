@@ -17,8 +17,8 @@ using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
 
 namespace MashGamemodeLibrary.Context;
 
@@ -153,7 +153,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         PlayerStatManager.ResetStats();
         PlayerGunManager.Reset();
         FusionPlayer.ResetSpawnPoints();
-        TeamManager.Disable();
+        LogicTeamManager.Disable();
 
         GameObjectExtender.DestroyAll();
 

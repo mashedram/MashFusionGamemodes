@@ -9,12 +9,11 @@ using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
-using Team = MashGamemodeLibrary.Player.Team.Team;
-using TeamManager = MashGamemodeLibrary.Player.Team.TeamManager;
+using MashGamemodeLibrary.Player.Team;
 
 namespace BoneStrike.Teams;
 
-public class CounterTerroristTeam : Team
+public class CounterTerroristTeam : LogicTeam
 {
     public override string Name => "Counter Terrorists";
 
