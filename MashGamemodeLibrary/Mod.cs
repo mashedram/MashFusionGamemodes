@@ -4,6 +4,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary;
 using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Config;
+using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Caches;
@@ -45,7 +46,7 @@ public class Mod : MelonMod
         RegisterInternal<Mod>();
         
         NetworkEventsExtender.Register();
-
+        
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
     }
@@ -63,6 +64,12 @@ public class Mod : MelonMod
     public override void OnSceneWasInitialized(int buildIndex, string sceneName)
     {
         Cleanup();
+    }
+
+    public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
+    {
+        // Stop gamemode
+        InternalGamemodeManager.Reset();
     }
 
     private void OnWarehouseReady()

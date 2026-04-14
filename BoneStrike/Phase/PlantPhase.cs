@@ -1,5 +1,6 @@
 ﻿using BoneStrike.Tags;
 using BoneStrike.Teams;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Marrow.Extenders;
@@ -33,6 +34,17 @@ internal class FetchClockPacket : INetSerializable, IKnownSenderPacket
     }
 }
 
+internal class TeleportClockRequest : INetSerializable, IKnownSenderPacket
+{
+    public ushort ClockNetworkId;
+    public byte SenderSmallId { get; set; }
+
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref ClockNetworkId);
+    }
+}
+
 public class PlantPhase : GamePhase
 {
     private static readonly string ClockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
@@ -40,7 +52,8 @@ public class PlantPhase : GamePhase
     public static readonly SyncedVariable<bool> PhaseShouldQuit = new("SkipPlantPhase", new BoolEncoder(), false, CommonNetworkRoutes.AllToAll);
 
     private static readonly RemoteEvent<FetchClockPacket> FetchClockEvent = new("FetchClockEvent", OnFetchClock, CommonNetworkRoutes.AllToHost);
-
+    private static readonly RemoteEvent<TeleportClockRequest> TeleportClockEvent = new("TeleportClockEvent", OnTeleportClock, CommonNetworkRoutes.HostToRemote);
+    
     public override string Name => "Plant Phase";
     public override float Duration => BoneStrike.Config.PlantDuration;
 
@@ -110,31 +123,62 @@ public class PlantPhase : GamePhase
         if (!player.HasRig)
             return;
 
-        var hand = player.RigRefs.GetHand(packet.Hand);
-
-        if (hand.HasAttachedObject())
-            return;
-        
-        var position = hand.palmPositionTransform.position;
-
         var bombs = BombMarker.Query;
         foreach (var entry in bombs)
         {
             var networkEntity = entry.NetworkEntity;
-            var grip = networkEntity?.GetExtender<GripExtender>();
-            if (grip == null)
+            if (networkEntity == null)
                 continue;
 
-            if (grip.Components.Any(g => g.HasAttachedHands()))
-                continue;
-
-
-            var marrow = grip.Components.FirstOrDefault()?._marrowEntity;
-            if (marrow == null)
-                continue;
-
-            NetworkEntityManager.TakeOwnership(networkEntity);
-            marrow.Teleport(position, Quaternion.identity, true);
+            if (networkEntity.OwnerID.IsMe)
+            {
+                TeleportClock(player, networkEntity);
+            }
+            else
+            {
+                TeleportClockEvent.CallFor(networkEntity.OwnerID, new TeleportClockRequest
+                {
+                    ClockNetworkId = networkEntity.ID
+                });
+            }
         }
+    }
+
+    private static void TeleportClock(NetworkPlayer networkPlayer, NetworkEntity networkEntity)
+    {
+        if (!networkPlayer.HasRig)
+            return;
+        
+        var hand = networkPlayer.RigRefs.GetHand(Handedness.RIGHT);
+        if (hand.HasAttachedObject())
+            return;
+        
+        var networkProp = networkEntity.GetExtender<NetworkProp>();
+        if (networkProp == null)
+            return;
+        
+        var marrowEntity = networkProp.MarrowEntity;
+        if (marrowEntity == null)
+            return;
+
+        if (marrowEntity.IsCulled)
+        {
+            marrowEntity.ClearHibernation();
+        }
+        
+        var position = hand.transform.position;
+        marrowEntity.Teleport(position, Quaternion.identity, true);
+    }
+    
+    private static void OnTeleportClock(TeleportClockRequest packet)
+    {
+        if (!NetworkPlayerManager.TryGetPlayer(packet.SenderSmallId, out var player))
+            return;
+        
+        var clockEntity = NetworkEntityManager.IDManager.RegisteredEntities.GetEntity(packet.ClockNetworkId);   
+        if (clockEntity == null)
+            return;
+        
+        TeleportClock(player, clockEntity);
     }
 }
