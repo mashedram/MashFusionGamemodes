@@ -55,6 +55,14 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
         assembly.GetTypes()
             .Where(t => typeof(TValue).IsAssignableFrom(t) && t is { IsClass: true, IsAbstract: false, IsInterface: false })
+            .Where(t =>
+            {
+                var constructor = t.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes);
+                if (constructor != null) return true;
+                
+                InternalLogger.Error($"Type: {t.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
+                return false;
+            })
             .ForEach(t => { registerTypeMethod.MakeGenericMethod(t).Invoke(this, null); });
     }
 

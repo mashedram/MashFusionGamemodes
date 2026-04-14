@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
-namespace MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 
 public class PlayerVoiceVisibility : IPlayerVisibility
 {

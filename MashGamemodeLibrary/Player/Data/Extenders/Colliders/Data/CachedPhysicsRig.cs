@@ -172,9 +172,6 @@ public class CachedPhysicsRig
         BonelabLayers.BeingTrigger
     };
     public static readonly int SpectatorIgnoredLayerMask = SpectatorIgnoredLayers.Aggregate(0, (mask, layer) => mask | (1 << layer));
-
-    public ImmutableArray<CachedCollider> Colliders;
-
     static CachedPhysicsRig()
     {
         // We only want terrain layers
@@ -193,6 +190,10 @@ public class CachedPhysicsRig
         }
     }
 
+    // Instance
+    public ImmutableArray<CachedCollider> Colliders;
+    public ImmutableArray<CollisionSFX> CollisionSFXs;
+    
     public CachedPhysicsRig(PhysicsRig physicsRig)
     {
         PhysicsRig = physicsRig;
@@ -201,6 +202,10 @@ public class CachedPhysicsRig
             .GetComponentsInChildren<Collider>()
             .Select(c => PhysicsRigLayout.TryGetValue(c.name, out var sourceLayer) ? new CachedCollider(c, sourceLayer) : null)
             .OfType<CachedCollider>()
+            .ToImmutableArray();
+        
+        CollisionSFXs = physicsRig
+            .GetComponentsInChildren<CollisionSFX>()
             .ToImmutableArray();
     }
 

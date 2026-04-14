@@ -61,6 +61,9 @@
         <Reference Include="MelonLoader">
             <HintPath>$(BONELAB_DIR)\MelonLoader\net6\MelonLoader.dll</HintPath>
         </Reference>
+        <Reference Include="Spiderman">
+          <HintPath>$(BONELAB_DIR)\Mods\Spiderman.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.Addressables">
             <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Unity.Addressables.dll</HintPath>
         </Reference>

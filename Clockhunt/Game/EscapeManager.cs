@@ -30,7 +30,7 @@ public static class EscapeManager
             ToList();
 
         if (markers is { Count: > 0 })
-            return markers.Select(networkEntity => networkEntity.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position).OfType<Vector3>();
+            return markers.Select(networkEntity => networkEntity?.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position).OfType<Vector3>();
 
         var spawns = FusionPlayer.SpawnPoints;
         if (spawns is { Count: > 0 })

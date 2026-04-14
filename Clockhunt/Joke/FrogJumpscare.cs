@@ -50,6 +50,7 @@ public static class FrogJumpscare
         foreach (var entry in ClockMarker.Query)
         {
             var marrowEntity = entry.MarrowEntity;
+            if (marrowEntity == null) continue;
             var distance = Vector3.Distance(marrowEntity.transform.position, (Vector3)cameraPos);
             if (distance > 8f) continue;
 

@@ -1,6 +1,5 @@
 ﻿using Clockhunt;
 using LabFusion.SDK.Modules;
-using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MelonLoader;
 
@@ -18,6 +17,6 @@ public class Mod : MelonMod
         if (fusionMod == null) return;
         ModuleManager.RegisterModule<FusionModule>();
 
-        RemoteEventMessageHandler.RegisterMod<Mod>();
+        MashGamemodeLibrary.Mod.Register<Mod>();
     }
 }

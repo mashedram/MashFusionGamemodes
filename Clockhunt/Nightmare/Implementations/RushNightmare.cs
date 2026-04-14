@@ -95,7 +95,7 @@ public class RushNightmareDescriptor : NightmareDescriptor
         Vitality = 6f,
         UpperStrength = 8f,
         Speed = 3f,
-        Agility = 3f,
+        Agility = 0.5f,
         LowerStrength = 8f
     };
 

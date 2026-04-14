@@ -10,6 +10,7 @@ using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Networking;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Integrations;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
@@ -27,6 +28,8 @@ using MashGamemodeLibrary.Debug;
 
 [assembly: MelonInfo(typeof(Mod), "Mash's Gamemode Library", "0.1.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
+[assembly: MelonAdditionalDependencies("LabFusion")]
+[assembly: MelonOptionalDependencies("Spiderman")]
 
 [assembly: NetworkIdentifiable("MGL")]
 
@@ -40,6 +43,8 @@ public class Mod : MelonMod
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
+        
+        ModIntegrations.TryInitialize();
         
         ModuleManager.RegisterModule<FusionModule>();
 

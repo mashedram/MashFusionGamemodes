@@ -119,7 +119,7 @@ public class EntityNightmareDescriptor : NightmareDescriptor
     {
         Vitality = 3f,
         UpperStrength = 8f,
-        Speed = 3f,
+        Speed = 1.3f,
         Agility = 2f,
         LowerStrength = 8f
     };

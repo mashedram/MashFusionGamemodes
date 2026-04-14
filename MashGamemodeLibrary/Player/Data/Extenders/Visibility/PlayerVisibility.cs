@@ -6,7 +6,6 @@ using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility.Parts;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
@@ -21,7 +20,8 @@ public class PlayerVisibility : IPlayerExtender
         new PlayerVoiceVisibility(),
         new PlayerNametagVisibility(),
         new PlayerHolsterVisibility(),
-        new PlayerBodylogVisibility()
+        new PlayerBodylogVisibility(),
+        new PlayerWindbuffetVisibility()
     };
 
     private void SetVisibility(bool isVisible)

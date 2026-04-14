@@ -67,6 +67,9 @@ public static class ClockManager
 
         foreach (var clock in survivorClocks.Take(toRemove))
         {
+            if (clock.NetworkEntity == null) 
+                continue;
+            
             NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
             {
                 DespawnEffect = true,

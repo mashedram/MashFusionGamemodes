@@ -7,12 +7,6 @@ public class CachedCollider
     private readonly Collider _collider;
     private readonly int _sourceLayer;
 
-    public int SourceLayer => _sourceLayer;
-
-    public CachedCollider(Collider collider) : this(collider, collider.gameObject.layer)
-    {
-    }
-    
     public CachedCollider(Collider collider, int sourceLayer)
     {
         _collider = collider;
@@ -25,18 +19,5 @@ public class CachedCollider
             return;
         
         _collider.gameObject.layer = layer ?? _sourceLayer;
-    }
-    
-    public void SetColliding(Collider collider, bool isColliding)
-    {
-        if (collider == null || _collider == null)
-            return;
-        
-        Physics.IgnoreCollision(_collider, collider, !isColliding);
-    }
-    
-    public void SetColliding(CachedCollider other, bool isColliding)
-    {
-        SetColliding(other._collider, isColliding);
     }
 }

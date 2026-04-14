@@ -42,13 +42,9 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
     public override bool DisableManualUnragdoll => Config.DevToolsDisabled;
 
-    public override void OnGamemodeRegistered()
+    protected override void OnRegistered()
     {
-        base.OnGamemodeRegistered();
-
         NightmareManager.RegisterAll<Mod>();
-        GamePhaseManager.Registry.RegisterAll<Mod>();
-        LogicTeamManager.Registry.RegisterAll<Mod>();
     }
 
     private static void ListenToAvatarChange(Avatar avatar, string barcode)

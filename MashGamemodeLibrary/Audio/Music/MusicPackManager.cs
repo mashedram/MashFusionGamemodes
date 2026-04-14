@@ -1,4 +1,5 @@
-﻿using Il2CppSLZ.Marrow.Warehouse;
+﻿using BoneLib;
+using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Marrow;
 using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Util;
@@ -17,11 +18,27 @@ public static class MusicPackManager
     {
         {
             MusicPackTags.Combat,
-            AudioRegistry.CreateBin("MashTags.MusicPack.Combat", FusionMonoDiscReferences.CombatSongReferences.Select(s => s._barcode._id).ToArray())
+            AudioRegistry.CreateBin("MashTags.MusicPack.Combat", 
+                FusionMonoDiscReferences.CombatSongReferences.Select(s => s._barcode._id).Union(new []
+                {
+                    "SLZ.BONELAB.Content.MonoDisc.LavaGangLoop",
+                    "SLZ.BONELAB.Content.MonoDisc.FistFightFugue",
+                    "SLZ.BONELAB.Content.MonoDisc.Bonestep",
+                    "SLZ.BONELAB.Content.MonoDisc.BackThroughTheLab",
+                    "SLZ.BONELAB.Content.MonoDisc.HallVortex",
+                    "SLZ.BONELAB.Content.MonoDisc.RipToBits"
+                }).ToArray())
         },
         {
             MusicPackTags.Ambient,
-            AudioRegistry.CreateBin("MashTags.MusicPack.Ambient", FusionMonoDiscReferences.FistfightFusionReference._barcode._id)
+            AudioRegistry.CreateBin("MashTags.MusicPack.Ambient", new []
+            {
+                FusionMonoDiscReferences.FistfightFusionReference._barcode._id,
+                "SLZ.BONELAB.Content.MonoDisc.MirrorAlive",
+                "SLZ.BONELAB.Content.MonoDisc.UnsolvedSciences",
+                "SLZ.BONELAB.Content.MonoDisc.EverydayCastle",
+                "SLZ.BONELAB.Content.MonoDisc.BonelightSonata"
+            })
         }
     };
 

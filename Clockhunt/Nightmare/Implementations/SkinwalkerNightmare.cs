@@ -96,7 +96,7 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
     {
         Vitality = 8f,
         UpperStrength = 5f,
-        Speed = 2f,
+        Speed = 1.35f,
         Agility = 2f,
         LowerStrength = 5f
     };

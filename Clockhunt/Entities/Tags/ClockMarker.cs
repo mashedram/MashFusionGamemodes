@@ -11,17 +11,16 @@ using MashGamemodeLibrary.Phase;
 
 namespace Clockhunt.Entities.Tags;
 
-public class ClockMarker : IComponent, IComponentReady, IGrabPredicate, INetSerializable
+public class ClockMarker : IComponentReady, IGrabPredicate, INetSerializable
 {
     public static readonly CachedQuery<ClockMarker> Query = CachedQueryManager.Create<ClockMarker>();
 
     public NetworkEntity? NetworkEntity;
     public MarrowEntity? MarrowEntity;
     public byte OwnerId;
-
-    public ClockMarker()
-    {
-    }
+    
+    // Default constructor for serialization
+    public ClockMarker() { }
 
     public ClockMarker(NetworkPlayer player)
     {

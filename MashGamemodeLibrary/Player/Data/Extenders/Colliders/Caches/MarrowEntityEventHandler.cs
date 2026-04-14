@@ -1,4 +1,5 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
+﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
 using UnityEngine;
@@ -7,9 +8,16 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 
 public static class MarrowEntityEventHandler
 {
-    private static bool ShouldColliderBeDynamic(Collider collider)
+    public static bool ShouldColliderBeDynamic(Collider collider)
     {
         if (collider == null)
+            return false;
+        
+        var go = collider.gameObject;
+        if (go == null)
+            return false;
+        
+        if (go.isStatic)
             return false;
         
         // Ignore already ignored colliders
@@ -34,40 +42,38 @@ public static class MarrowEntityEventHandler
         return true;
     }
     
-    private static void FixColliderLayers(MarrowEntity entity)
+    public static void FixColliderLayer(Collider collider)
     {
-        if (entity == null)
+        if (collider == null)
             return;
 
-        foreach (var entityBody in entity._bodies)
-        {
-            if (entityBody == null)
-                continue;
+        if (!ShouldColliderBeDynamic(collider))
+            return;
+        
+        collider.gameObject.layer = BonelabLayers.Dynamic;
+    }
 
-            foreach (var collider in entityBody.Colliders)
-            {
-                if (!ShouldColliderBeDynamic(collider))
-                    continue;
-                
-                collider.gameObject.layer = BonelabLayers.Dynamic;
-            }
+    public static void FixColliderLayers(ImpactProperties impactProperties)
+    {
+        if (impactProperties == null)
+            return;
+
+        foreach (var collider in impactProperties.GetComponents<Collider>())
+        {
+            FixColliderLayer(collider);
         }
     }
-    
+
     public static void OnMarrowEntityCreated(MarrowEntity entity)
     {
         // Ignore despawned entities
         if (entity.IsDespawned)
             return;
 
-        if (entity.name == "PhysicsRig")
-        {
-            PhysicsRigCache.OnPhysicsRigCreated(entity);
+        if (entity.name != "PhysicsRig") 
             return;
-        }
-
-        // We need to fix the colliders on the entity for the spectator system to work properly
-        FixColliderLayers(entity);
+        
+        PhysicsRigCache.OnPhysicsRigCreated(entity);
     }
 
     public static void OnMarrowEntityDestroyed(MarrowEntity entity)
