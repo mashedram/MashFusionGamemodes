@@ -16,7 +16,7 @@ public static class LogicTeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();
     public static readonly FactoryTypedRegistry<LogicTeam> Registry = new();
-
+    
     private static readonly SyncedDictionary<byte, LogicTeam> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(),
         new DynamicInstanceEncoder<LogicTeam>(Registry));
 

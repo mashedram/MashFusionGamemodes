@@ -1,5 +1,6 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Tags;
+using LabFusion.Menu;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
@@ -9,12 +10,14 @@ using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using UnityEngine;
 
 namespace BoneStrike.Teams;
 
 public class TerroristTeam : LogicTeam
 {
     public override string Name => "Terrorists";
+    public override Texture Icon { get; } = MenuResources.GetLogoIcon("LavaGang");
 
     public override void OnPhaseChanged(GamePhase phase)
     {

@@ -63,6 +63,7 @@
         </Reference>
         <Reference Include="Spiderman">
           <HintPath>$(BONELAB_DIR)\Mods\Spiderman.dll</HintPath>
+            <Private>false</Private>
         </Reference>
         <Reference Include="Unity.Addressables">
             <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Unity.Addressables.dll</HintPath>

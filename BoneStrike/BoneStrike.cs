@@ -6,6 +6,7 @@ using BoneStrike.Teams;
 using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Marrow.Integration;
+using LabFusion.Menu;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;

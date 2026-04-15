@@ -3,12 +3,15 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Team;
 
 public abstract class LogicTeam
 {
     public abstract string Name { get; }
+    public virtual Texture? Icon => null;
+    
     private NetworkPlayer? _owner;
     public NetworkPlayer Owner => _owner ?? throw new InvalidOperationException($"No player is currently assigned to team: {Name}!");
 
