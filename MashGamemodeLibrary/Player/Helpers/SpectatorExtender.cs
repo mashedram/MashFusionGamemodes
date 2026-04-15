@@ -2,9 +2,9 @@
 using LabFusion.Player;
 using MashGamemodeLibrary.Player.Data;
 using MashGamemodeLibrary.Player.Data.Rules;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Spectating.data;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
 namespace MashGamemodeLibrary.Player.Helpers;
 

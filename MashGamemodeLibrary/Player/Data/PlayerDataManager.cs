@@ -46,15 +46,31 @@ public static class PlayerDataManager
         
         return PlayerData.GetValueOrDefault(networkPlayer.PlayerID);
     }
+    
+    public static PlayerData? GetOrCreatePlayerData(byte playerID)
+    {
+        if (PlayerData.TryGetValue(playerID, out var data))
+            return data;
+        
+        if (!NetworkPlayerManager.TryGetPlayer(playerID, out var networkPlayer))
+            return null;
+        
+        var newData = new PlayerData(networkPlayer.PlayerID);
+        PlayerData[playerID] = newData;
+        if (networkPlayer.HasRig)
+            newData.OnRigCreated(networkPlayer, networkPlayer.RigRefs.RigManager);
+        return newData;
+    }
 
     public static PlayerData? GetPlayerData(byte playerID)
     {
-        return PlayerData.GetValueOrDefault(playerID);
+        return GetOrCreatePlayerData(playerID);
     }
     
     public static bool TryGetPlayerData(PlayerID playerId, [MaybeNullWhen(false)] out PlayerData playerData)
     {
-        return PlayerData.TryGetValue(playerId, out playerData);
+        playerData = GetOrCreatePlayerData(playerId);
+        return playerData != null;
     }
     
     public static PlayerData? GetLocalPlayerData()
@@ -65,7 +81,7 @@ public static class PlayerDataManager
         if (localPlayer == null)
             return null;
         
-        return PlayerData.GetValueOrDefault(localPlayer.PlayerID);
+        return GetOrCreatePlayerData(localPlayer.PlayerID);
     }
     
     public static void ForEachPlayerData(Action<PlayerData> action)

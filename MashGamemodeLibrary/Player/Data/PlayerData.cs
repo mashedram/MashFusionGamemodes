@@ -15,8 +15,8 @@ using MashGamemodeLibrary.Player.Data.Extenders.LocalInteractions;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 using MashGamemodeLibrary.Player.Data.Rules;
 using MashGamemodeLibrary.Player.Data.Rules.Networking;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 
@@ -33,6 +33,13 @@ public class PlayerData : IEventReceiver
     private static readonly FactoryTypedRegistry<IPlayerExtender> ExtenderRegistry = new();
     private static readonly FactoryTypedRegistry<IPlayerRule> RuleRegistry = new();
     private static readonly FactoryTypedRegistry<IEventCaller> EventCallerRegistry = new();
+
+    public static void Register<TMod>()
+    {
+        ExtenderRegistry.RegisterAll<TMod>();
+        RuleRegistry.RegisterAll<TMod>();
+        EventCallerRegistry.RegisterAll<TMod>();
+    }
     
     // Instance Data
     
@@ -56,17 +63,20 @@ public class PlayerData : IEventReceiver
         PlayerID = playerID;
         
         // TODO: Automatic registries for these parts using factoryregistries
-        AddExtender(new PlayerVisibility());
-        AddExtender(new PlayerCollisionsExtender());
-        
-        if (PlayerID.IsMe)
-            AddExtender(new LocalInteractionsExtender());
+        // AddExtender(new PlayerVisibility());
+        // AddExtender(new PlayerCollisionsExtender());
+        //
+        // if (PlayerID.IsMe)
+        //     AddExtender(new LocalInteractionsExtender());
+        ExtenderRegistry.GetAll().ForEach(AddExtender);
         
         // Rules
-        AddRule<PlayerSpectatingRule>();
+        // AddRule<PlayerSpectatingRule>();
+        RuleRegistry.GetAllTypes().ForEach(AddRule);
         
         // Events
-        AddEventCaller(new AvatarChangeEventCaller());
+        EventCallerRegistry.GetAll().ForEach(AddEventCaller);
+        // AddEventCaller(new AvatarChangeEventCaller());
     }
 
     private void AddExtender(IPlayerExtender playerExtender)
@@ -78,6 +88,13 @@ public class PlayerData : IEventReceiver
     {
         var instance = new PlayerRuleInstance<TRule>(this);
         _ruleInstanceCache.Add(typeof(TRule), instance);
+        _ruleHashCache.Add(instance.Hash, instance);
+    }
+
+    private void AddRule(Type ruleType)
+    {
+        var instance = (IPlayerRuleInstance)Activator.CreateInstance(typeof(PlayerRuleInstance<>).MakeGenericType(ruleType), this)!;
+        _ruleInstanceCache.Add(ruleType, instance);
         _ruleHashCache.Add(instance.Hash, instance);
     }
     

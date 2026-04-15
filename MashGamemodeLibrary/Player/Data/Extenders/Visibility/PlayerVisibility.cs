@@ -5,9 +5,9 @@ using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 

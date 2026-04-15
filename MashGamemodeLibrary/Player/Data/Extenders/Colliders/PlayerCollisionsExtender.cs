@@ -4,8 +4,8 @@ using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders;
 

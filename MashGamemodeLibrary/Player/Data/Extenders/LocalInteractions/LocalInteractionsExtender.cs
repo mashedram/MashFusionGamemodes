@@ -3,8 +3,8 @@ using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Player.Data.Events;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -41,8 +41,11 @@ public class LocalInteractionsExtender : IPlayerExtender
     private void SetInteractions(bool areInteractionsEnabled)
     {
         _areInteractionsEnabled = areInteractionsEnabled;
-        
-        if (_player == null)
+
+        if (_player?.PlayerID == null)
+            return;
+        // Local Only extender
+        if (!_player.PlayerID.IsMe)
             return;
         if (!_player.HasRig)
             return;

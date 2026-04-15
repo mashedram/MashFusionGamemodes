@@ -1,6 +1,7 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
-namespace MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
+namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 
 public class PlayerSpectatingRule : IPlayerRule
 {

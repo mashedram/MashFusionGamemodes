@@ -89,7 +89,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         return value;
     }
 
-    public virtual T? Get<T>() where T : TValue
+    public virtual T Get<T>() where T : TValue
     {
         var id = GetID<T>();
         if (Get(id) is not T tag)
@@ -132,6 +132,12 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
     public IEnumerable<Type> GetAllTypes()
     {
         return _typeCache.Values;
+    }
+
+    public IEnumerable<TValue> GetAll()
+    {
+        // We can be sure to not get null here, since we directly take from registered keys
+        return _typeCache.Keys.Select(k => Get(k)!);
     }
 
     public ulong GetID(Type type)

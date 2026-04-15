@@ -5,7 +5,6 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Spectating.data;
-using MashGamemodeLibrary.Player.Spectating.data.Rules.Rules;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
