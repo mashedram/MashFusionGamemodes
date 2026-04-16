@@ -2,21 +2,13 @@
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 
 public static class PhysicsRigCache
 {
     private static readonly Dictionary<PhysicsRig, CachedPhysicsRig> Cache = new(new UnityComparer());
-    
-    public static void OnPhysicsRigCreated(MarrowEntity marrowEntity)
-    {
-        var physicsRig = marrowEntity.GetComponent<PhysicsRig>();
-        if (physicsRig == null)
-            return;
-        
-        Cache[physicsRig] = new CachedPhysicsRig(physicsRig);
-    }
     
     public static void OnPhysicsRigDestroyed(MarrowEntity marrowEntity)
     {
@@ -44,8 +36,8 @@ public static class PhysicsRigCache
         return Cache.Values;
     }
     
-    public static CachedPhysicsRig? GetRig(PhysicsRig cachedPhysicsRig)
+    public static CachedPhysicsRig GetRig(PhysicsRig cachedPhysicsRig)
     {
-        return Cache.GetValueOrDefault(cachedPhysicsRig);
+        return Cache.GetValueOrCreate(cachedPhysicsRig, () => new CachedPhysicsRig(cachedPhysicsRig));
     }
 }

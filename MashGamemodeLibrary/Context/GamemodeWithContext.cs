@@ -73,7 +73,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     /// <summary>
     ///     Called when the gamemode ends fully.
     ///     Does not get called on round ends.
-    ///     Gets called after cleanup.
+    ///     Gets called before cleanup.
     /// </summary>
     protected virtual void OnEnd()
     {
@@ -90,7 +90,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
     /// <summary>
     ///     Gets called when the round ends naturally, with a winner.
-    ///     Gets called after cleanup.
+    ///     Gets called before cleanup.
     /// </summary>
     protected virtual void OnRoundEnd(ulong winnerTeamId)
     {
@@ -135,8 +135,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     public void EndRound(ulong winnerTeamId)
     {
         IsInRound = false;
-        Reset();
         Executor.RunChecked(OnRoundEnd, winnerTeamId);
+        Reset();
     }
 
     private void Reset()
@@ -227,8 +227,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         GamemodeCompatibilityChecker.SetActiveGamemode(null);
         GlobalStatisticsManager.SaveStatistics(this);
 
-        Reset();
         OnEnd();
+        Reset();
     }
 
     protected override void OnUpdate()

@@ -5,17 +5,12 @@ using BoneStrike.Tags;
 using BoneStrike.Teams;
 using LabFusion.Data;
 using LabFusion.Entities;
-using LabFusion.Marrow.Integration;
-using LabFusion.Menu;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
@@ -23,10 +18,9 @@ using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
@@ -59,6 +53,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             WinManager.Win<TerroristTeam>();
             return false;
         });
+        
+        PlayerStatisticsTracker.Register(BonestrikeStatisticsKeys.Defusals, v => v * 50);
     }
 
     protected override void OnStart()
@@ -93,12 +89,15 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         Executor.RunIfHost(() =>
         {
             Context.PersistentTeams.SendMessage();
+            
+            LeaderboardTag.Spawn(_resetPoint);
         });
     }
 
     protected override void OnRoundStart()
     {
         Notifier.CancelAll();
+        LeaderboardTag.Despawn();
         LocalHealth.MortalityOverride = true;
         
         LogicTeamManager.Enable<TerroristTeam>();
@@ -149,6 +148,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             {
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
+            
+            LeaderboardTag.Spawn(_resetPoint);
         });
     }
 

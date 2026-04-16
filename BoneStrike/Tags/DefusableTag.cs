@@ -17,6 +17,7 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
 using UnityEngine;
@@ -151,7 +152,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         _isDefused = true;
 
         if (NetworkInfo.IsHost)
-        {
+        { 
+            PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
             WinManager.Win<CounterTerroristTeam>();
         }
         else
@@ -213,7 +215,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         {
             MelonLogger.Warning($"Player {playerID} attempted to defuse but is not on the Counter-Terrorist team.");
         }
-            
+
+        PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
         Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Data.Events;
+using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders;

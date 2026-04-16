@@ -176,6 +176,16 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     {
         return _dictionary.GetValueOrDefault(key, d);
     }
+    
+    public TValue GetValueOrCreate(TKey key, Func<TValue> createFunc)
+    {
+        if (_dictionary.TryGetValue(key, out var value))
+            return value;
+
+        var newValue = createFunc();
+        SetValue(key, newValue, true);
+        return newValue;
+    }
 
     public bool ContainsKey(TKey key)
     {

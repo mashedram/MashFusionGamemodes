@@ -32,6 +32,9 @@ public abstract class LogicTeam
     {
         InternalLogger.Debug($"Player: {player.Username} joined team: {Name}");
         
+        player.Icon.Texture = Icon;
+        player.Icon.Visible = Icon != null;
+        
         _owner = player;
         Executor.RunChecked(OnAssigned);
     }
@@ -45,6 +48,8 @@ public abstract class LogicTeam
         }
         
         InternalLogger.Debug($"Player: {Owner.Username} left team: {Name}");
+        Owner.Icon.Texture = null;
+        Owner.Icon.Visible = false;
         
         Executor.RunChecked(OnRemoved);
     }

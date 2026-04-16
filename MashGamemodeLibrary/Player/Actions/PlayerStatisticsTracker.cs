@@ -12,16 +12,20 @@ public static class PlayerStatisticsTracker
     {
         Statistics.TryAdd(key, 0);
         Statistics[key] += value;
+        
+        GlobalStatisticsCollector.SyncChangeToHost(key, Statistics[key]);
     }
 
     public static void Clear()
     {
         Statistics.Clear();
+        GlobalStatisticsCollector.Clear();
     }
 
     public static void Register(Enum key, Func<int, int> mapper)
     {
         Awarders[key] = mapper;
+        GlobalStatisticsCollector.RegisterStatisticKey(key);
     }
 
     private static int GetTotalBits(int extraBits = 0)

@@ -102,7 +102,7 @@ public class SlotData
                             return;
                         }
                     
-                        // If the item is held by the player, don't try to put it in the slot, just drop it on the ground
+                        // If the item is held by the player, don't try to put it in the slot, just let the player grab it
                         if (weaponSlotExtender.Component.interactableHost.IsAttached)
                             return;
                     

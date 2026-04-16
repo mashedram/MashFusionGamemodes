@@ -12,6 +12,9 @@ public class TriggerEvent3dPatches
     [HarmonyPrefix]
     public static bool OnTriggerEnterPrefix(TriggerEvents3D __instance, Collider collider)
     {
+        if (__instance == null)
+            return true;
+        
         if (collider == null)
             return true;
         
@@ -28,6 +31,9 @@ public class TriggerEvent3dPatches
     [HarmonyPrefix]
     public static bool OnTriggerExitPrefix(TriggerEvents3D __instance, Collider collider)
     {
+        if (__instance == null)
+            return true;
+        
         if (collider == null)
             return true;
         
@@ -44,6 +50,9 @@ public class TriggerEvent3dPatches
     [HarmonyPrefix]
     public static bool OnTriggerStayPrefix(TriggerEvents3D __instance, Collider collider)
     {
+        if (__instance == null)
+            return true;
+        
         if (collider == null)
             return true;
         

@@ -8,54 +8,46 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 
 public static class MarrowEntityEventHandler
 {
-    public static bool ShouldColliderBeDynamic(Collider collider)
+    public static void FixColliderLayer(Collider collider)
     {
         if (collider == null)
-            return false;
+            return;
         
         var go = collider.gameObject;
         if (go == null)
-            return false;
+            return;
         
         if (go.isStatic)
-            return false;
+            return;
         
         // Ignore already ignored colliders
         var layer = collider.gameObject.layer;
         // Anything on the not default layer, that is part of a marrow entity, is valid.
         if (layer != BonelabLayers.Default)
-            return false;
+            return;
         
         if ((CachedPhysicsRig.SpectatorIgnoredLayerMask & (1 << layer)) != 0)
-            return false;
+            return;
         
         var rb = collider.attachedRigidbody;
         if (rb == null)
-            return false;
+            return;
         
         if (rb is { freezeRotation: true, constraints: RigidbodyConstraints.FreezePosition })
-            return false;
+            return;
         
         if (rb.constraints == RigidbodyConstraints.FreezeAll)
-            return false;
-
-        return true;
-    }
-    
-    public static void FixColliderLayer(Collider collider)
-    {
-        if (collider == null)
             return;
 
-        if (!ShouldColliderBeDynamic(collider))
-            return;
-        
         collider.gameObject.layer = BonelabLayers.Dynamic;
     }
 
     public static void FixColliderLayers(ImpactProperties impactProperties)
     {
         if (impactProperties == null)
+            return;
+        
+        if (impactProperties.gameObject == null)
             return;
 
         foreach (var collider in impactProperties.GetComponents<Collider>())
@@ -68,31 +60,39 @@ public static class MarrowEntityEventHandler
     {
         if (entity == null)
             return;
+        
+        if (entity._bodies == null)
+            return;
 
         foreach (var entityBody in entity._bodies)
         {
             if (entityBody == null)
                 continue;
+            
+            if (entityBody._colliders == null)
+                continue;
 
             foreach (var collider in entityBody.Colliders)
             {
-                if (!ShouldColliderBeDynamic(collider))
-                    continue;
-                
-                collider.gameObject.layer = BonelabLayers.Dynamic;
+                FixColliderLayer(collider);
             }
         }
     }
 
     public static void OnMarrowEntityCreated(MarrowEntity entity)
     {
+        if (entity == null)
+            return;
+        
+        if (entity.gameObject == null)
+            return;
+        
         // Ignore despawned entities
         if (entity.IsDespawned)
             return;
 
-        if (entity.name != "PhysicsRig")
+        if (entity.name == "PhysicsRig")
         {
-            PhysicsRigCache.OnPhysicsRigCreated(entity);
             return;
         }
         
@@ -101,6 +101,9 @@ public static class MarrowEntityEventHandler
 
     public static void OnMarrowEntityDestroyed(MarrowEntity entity)
     {
+        if (entity == null)
+            return;
+        
         if (entity.name != "PhysicsRig") 
             return;
         

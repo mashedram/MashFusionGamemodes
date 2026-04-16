@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Events.Callers;
+using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders;
 using MashGamemodeLibrary.Player.Data.Extenders.LocalInteractions;
@@ -62,21 +63,14 @@ public class PlayerData : IEventReceiver
     {
         PlayerID = playerID;
         
-        // TODO: Automatic registries for these parts using factoryregistries
-        // AddExtender(new PlayerVisibility());
-        // AddExtender(new PlayerCollisionsExtender());
-        //
-        // if (PlayerID.IsMe)
-        //     AddExtender(new LocalInteractionsExtender());
+        // Extenders
         ExtenderRegistry.GetAll().ForEach(AddExtender);
         
         // Rules
-        // AddRule<PlayerSpectatingRule>();
         RuleRegistry.GetAllTypes().ForEach(AddRule);
         
         // Events
         EventCallerRegistry.GetAll().ForEach(AddEventCaller);
-        // AddEventCaller(new AvatarChangeEventCaller());
     }
 
     private void AddExtender(IPlayerExtender playerExtender)
@@ -107,6 +101,7 @@ public class PlayerData : IEventReceiver
     {
         var rule = ruleInstance.GetBaseRule();
         Extenders.ForEach(e => e.OnRuleChanged(rule));
+        PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
         
         Executor.RunIfHost(() =>
         {

@@ -7,6 +7,7 @@ using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Queries;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using UnityEngine;
 
@@ -45,7 +46,7 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
 
     public void OnRemoved(NetworkEntity networkEntity)
     {
-        WinManager.Win<CounterTerroristTeam>();
+        Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }
     
     public void Update(float delta)

@@ -1,4 +1,6 @@
-﻿namespace MashGamemodeLibrary.Player.Data.Events.Callers;
+﻿using MashGamemodeLibrary.Player.Data.Events.Data;
+
+namespace MashGamemodeLibrary.Player.Data.Events.Callers;
 
 public interface IEventReceiver
 {

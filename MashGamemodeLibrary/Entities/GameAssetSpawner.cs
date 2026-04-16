@@ -1,5 +1,7 @@
 ﻿using Il2CppSLZ.Marrow.Data;
+using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
+using LabFusion.Player;
 using LabFusion.RPC;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
@@ -58,6 +60,21 @@ public static class GameAssetSpawner
         });
     }
 
+    public static void Despawn(NetworkEntity networkEntity)
+    {
+        if (networkEntity.ID <= PlayerIDManager.MaxPlayerID)
+        {
+            MelonLogger.Error($"Attempted to despawn a player entity: {networkEntity.ID}");
+            return;
+        }
+        
+        NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
+        {
+            EntityID = networkEntity.ID,
+            DespawnEffect = true
+        });
+    }
+    
     public static void DespawnAll<T>() where T : IComponent
     {
         Executor.RunIfHost(() =>

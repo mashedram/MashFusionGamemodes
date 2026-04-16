@@ -8,7 +8,8 @@ namespace MashGamemodeLibrary.Player.Actions;
 public enum PlayerDamageStatistics
 {
     Kills,
-    Assists
+    Assists,
+    Deaths
 }
 
 public static class PlayerDamageTracker
@@ -21,6 +22,7 @@ public static class PlayerDamageTracker
 
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Kills, v => v * 10);
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Assists, v => v * 5);
+        PlayerStatisticsTracker.Register(PlayerDamageStatistics.Deaths, v => v * -5);
     }
 
     public static void Reset()
@@ -52,6 +54,9 @@ public static class PlayerDamageTracker
 
     private static void OnDeath(PlayerID damager, PlayerID damaged)
     {
+        if (damaged.IsMe)
+            return;
+        
         if (damaged.Equals(damager))
             return;
 
@@ -74,6 +79,10 @@ public static class PlayerDamageTracker
                 break;
             case PlayerActionType.DYING_BY_OTHER_PLAYER:
                 OnDeath(otherPlayer, playerId);
+                break;
+            case PlayerActionType.DYING:
+                if (playerId.IsMe)
+                    PlayerStatisticsTracker.Increment(PlayerDamageStatistics.Deaths);
                 break;
         }
     }

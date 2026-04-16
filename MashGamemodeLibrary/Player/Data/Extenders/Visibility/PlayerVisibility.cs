@@ -1,11 +1,14 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Player;
 using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Events;
+using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
@@ -33,6 +36,10 @@ public class PlayerVisibility : IPlayerExtender
         if (Player.PlayerID.IsMe)
             return;
         
+        // If the local player is spectating, and this is not the local player, we want to keep them visible so they can see other spectators
+        if (SpectatorExtender.IsLocalPlayerSpectating())
+            return;
+        
         foreach (var playerVisibility in _playerVisibilities)
         {
             playerVisibility.SetVisible(_isVisible);
@@ -57,7 +64,13 @@ public class PlayerVisibility : IPlayerExtender
     
     public void OnEvent(IPlayerEvent playerEvent)
     {
-        if (playerEvent is AvatarChangedEvent)
-            SetVisibility(_isVisible);
+        switch (playerEvent)
+        {
+            case AvatarChangedEvent:
+            case PlayerRuleChangedEvent { Rule: PlayerSpectatingRule }:
+                SetVisibility(_isVisible);
+                break;
+        }
+
     }
 }

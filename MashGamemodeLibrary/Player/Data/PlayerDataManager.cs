@@ -4,6 +4,7 @@ using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data;
@@ -102,6 +103,14 @@ public static class PlayerDataManager
         ForEachPlayerData(playerData =>
         {
             playerData.SendCatchup(playerID);
+        });
+    }
+
+    internal static void CallEventOnAll(IPlayerEvent playerEvent)
+    {
+        ForEachPlayerData(playerData =>
+        {
+            playerData.ReceiveEvent(playerEvent);
         });
     }
 }
