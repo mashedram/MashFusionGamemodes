@@ -86,7 +86,7 @@ public static class VisionManager
     public static void EnableNightVision()
     {
         _nightVisionEnabled = true;
-        
+
         if (!Clockhunt.Config.NightVision) return;
 
         var go = GetOrCreate();
@@ -96,7 +96,7 @@ public static class VisionManager
     public static void DisableNightVision()
     {
         _nightVisionEnabled = false;
-        
+
         _instance?.SetActive(false);
     }
 }

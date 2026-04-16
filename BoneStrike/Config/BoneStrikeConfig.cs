@@ -147,59 +147,49 @@ internal class BarcodeListElement : IConfigElementProvider
 
 public class BoneStrikeConfig : IConfig
 {
-    [ConfigMenuEntry("Plant Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    [JsonInclude]
+    [ConfigMenuEntry("Plant Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] [JsonInclude]
     public float PlantDuration = 60f;
-    
-    [ConfigMenuEntry("Defuse Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Defuse Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] [JsonInclude]
     public float DefuseDuration = 60f;
 
-    [ConfigMenuEntry("Defuse timer", "Time")] [ConfigRangeConstraint(2f, 20f)]
-    [JsonInclude]
+    [ConfigMenuEntry("Defuse timer", "Time")] [ConfigRangeConstraint(2f, 20f)] [JsonInclude]
     public float DefuseTime = 7f;
-    
-    [ConfigMenuEntry("Mark Bomb in last 30 seconds", "Time")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Mark Bomb in last 30 seconds", "Time")] [JsonInclude]
     public bool MarkBombNearEnd = true;
-    
-    [ConfigMenuEntry("Balance Weapon Damage", "Health")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Balance Weapon Damage", "Health")] [JsonInclude]
     public bool BalanceDamage = true;
-    [ConfigMenuEntry("Balance Avatar Health", "Health")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Balance Avatar Health", "Health")] [JsonInclude]
     public bool BalanceStats = true;
-    [ConfigMenuEntry("Blind Attackers During Planting", "Health")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Blind Attackers During Planting", "Health")] [JsonInclude]
     public bool BlindAttackersDuringPlanting;
-    [ConfigMenuEntry("Defender Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Defender Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)] [JsonInclude]
     public float DefenderHealthMultiplier = 1f;
-    [ConfigMenuEntry("Attacker Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Attacker Health Multiplier", "Health")] [ConfigRangeConstraint(0.25f, 4f)] [ConfigStepSize(0.25f)] [JsonInclude]
     public float AttackerHealthMultiplier = 1.5f;
-    
-    [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Weapons")] [ConfigElementProvider(typeof(CrateBarcodeListElement))] [JsonInclude]
     public List<string> PalletBarcodes = new();
 
-    [ConfigMenuEntry("Uility Items")] [ConfigElementProvider(typeof(BarcodeListElement))]
-    [JsonInclude]
+    [ConfigMenuEntry("Uility Items")] [ConfigElementProvider(typeof(BarcodeListElement))] [JsonInclude]
     public List<string> UtilityBarcodes = new();
-    
-    [ConfigMenuEntry("Bomb Explosion Enabled", "Utility")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Bomb Explosion Enabled", "Utility")] [JsonInclude]
     public bool BombExplosion = true;
-    
-    [ConfigMenuEntry("Dev Tools Disabled", "Utility")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Dev Tools Disabled", "Utility")] [JsonInclude]
     public bool DevToolsDisabled = true;
-    
-    [ConfigMenuEntry("Manual Team Assignment", "Teams")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Manual Team Assignment", "Teams")] [JsonInclude]
     public bool ManualTeamAssignment = true;
-    [ConfigMenuEntry("Allow Unbalanced Teams", "Teams")]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Allow Unbalanced Teams", "Teams")] [JsonInclude]
     public bool AllowUnbalancedTeams = false;
 
     public void Serialize(INetSerializer serializer)
@@ -217,7 +207,7 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref AllowUnbalancedTeams);
         serializer.SerializeValue(ref MarkBombNearEnd);
     }
-    
+
     public object Clone()
     {
         return new BoneStrikeConfig

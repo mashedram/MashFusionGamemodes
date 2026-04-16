@@ -32,7 +32,7 @@ public class TerroristTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddTag(new PlayerHandTimerTag());
-            
+
             PlayerStatManager.SetStats(new PlayerStats
             {
                 Agility = 1.2f,
@@ -41,7 +41,7 @@ public class TerroristTeam : LogicTeam
                 Speed = 1.5f,
                 Vitality = 1f
             }.MultiplyHealth(BoneStrike.Config.DefenderHealthMultiplier));
-            
+
             Notifier.Send(new Notification
             {
                 Title = "Terrorists",

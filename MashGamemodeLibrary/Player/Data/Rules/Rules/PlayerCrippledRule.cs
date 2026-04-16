@@ -9,6 +9,7 @@ namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 public class PlayerCrippledRule : IPlayerRule
 {
     private bool _isEnabled;
+
     public bool IsEnabled
     {
         get => _isEnabled;

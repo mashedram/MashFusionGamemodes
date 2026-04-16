@@ -33,7 +33,7 @@ public class CachedQuery<T> : ICachedQuery, IEnumerable<T>
     {
         _components.Remove(key.Guid);
     }
-    
+
     public IEnumerator<T> GetEnumerator()
     {
         return _components.Values.GetEnumerator();

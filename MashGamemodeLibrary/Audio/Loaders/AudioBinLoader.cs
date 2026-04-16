@@ -8,7 +8,7 @@ namespace MashGamemodeLibrary.Audio.Loaders;
 public class AudioBinLoader : IAudioLoader
 {
     private readonly AudioBin _audioBin;
-    
+
     public AudioBinLoader(AudioBin audioBin)
     {
         _audioBin = audioBin;

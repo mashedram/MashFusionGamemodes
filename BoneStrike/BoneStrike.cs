@@ -39,7 +39,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     public override bool DisableManualUnragdoll => true;
 
     public override int RoundCount => 5;
-    
+
     private bool _hasAssignedTeams;
 
     protected override void OnRegistered()
@@ -53,7 +53,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             WinManager.Win<TerroristTeam>();
             return false;
         });
-        
+
         PlayerStatisticsTracker.Register(BonestrikeStatisticsKeys.Defusals, v => v * 50);
     }
 
@@ -89,7 +89,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         Executor.RunIfHost(() =>
         {
             Context.PersistentTeams.SendMessage();
-            
+
             LeaderboardTag.Spawn(_resetPoint);
         });
     }
@@ -99,7 +99,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         Notifier.CancelAll();
         LeaderboardTag.Despawn();
         LocalHealth.MortalityOverride = true;
-        
+
         LogicTeamManager.Enable<TerroristTeam>();
         LogicTeamManager.Enable<CounterTerroristTeam>();
 
@@ -107,7 +107,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         {
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
-            
+
             if (_hasAssignedTeams)
             {
                 GamePhaseManager.Enable<PlantPhase>();
@@ -116,10 +116,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             {
                 GamePhaseManager.Enable<TeamAssignmentPhase>();
             }
-            
+
             _hasAssignedTeams = true;
         });
-        
+
         PlayerStatManager.BalanceStats = Config.BalanceStats;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
@@ -148,7 +148,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             {
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
-            
+
             LeaderboardTag.Spawn(_resetPoint);
         });
     }
@@ -172,7 +172,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             var activePhase = GamePhaseManager.ActivePhase;
             if (activePhase is TeamAssignmentPhase)
                 return;
-            
+
             playerID.SetSpectating(true);
             Context.PersistentTeams.QueueLateJoiner(playerID);
         });
@@ -204,7 +204,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             var transform = entry.MarrowEntity?.transform;
             if (transform == null)
                 continue;
-            
+
             var position = transform.position;
             GameAssetSpawner.SpawnNetworkAsset(explosionBarcode, position);
         }

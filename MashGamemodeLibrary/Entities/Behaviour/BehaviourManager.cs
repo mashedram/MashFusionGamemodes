@@ -14,12 +14,12 @@ public static class BehaviourManager
         var baseTypes = InheritanceCache.GetBaseTypes(behaviour);
         return baseTypes.Select(baseType => Caches.GetValueOrDefault(baseType)).OfType<IBehaviourCache>();
     }
-    
+
     public static IBehaviourCache<TBehaviour> CreateCache<TBehaviour>()
         where TBehaviour : IBehaviour
     {
         if (Caches.TryGetValue(typeof(TBehaviour), out var value))
-            return (IBehaviourCache<TBehaviour>) value;
+            return (IBehaviourCache<TBehaviour>)value;
 
         var newValue = new BehaviourCache<TBehaviour>();
         Caches[typeof(TBehaviour)] = newValue;
@@ -32,13 +32,13 @@ public static class BehaviourManager
             return new List<BehaviourMember>();
 
         InheritanceCache.AddComponent(typedBehaviour);
-        
+
         return GetTargetedCaches(typedBehaviour)
             .Select(cache => cache.TryAdd(holder, typedBehaviour))
             .OfType<BehaviourMember>()
             .ToList();
     }
-    
+
     internal static void Remove(BehaviourMember behaviour)
     {
         behaviour.Remove();

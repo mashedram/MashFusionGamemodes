@@ -18,9 +18,11 @@ public class ClockMarker : IComponentReady, IGrabPredicate, INetSerializable
     public NetworkEntity? NetworkEntity;
     public MarrowEntity? MarrowEntity;
     public byte OwnerId;
-    
+
     // Default constructor for serialization
-    public ClockMarker() { }
+    public ClockMarker()
+    {
+    }
 
     public ClockMarker(NetworkPlayer player)
     {

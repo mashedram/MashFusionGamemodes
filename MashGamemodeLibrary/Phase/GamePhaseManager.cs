@@ -25,7 +25,7 @@ public static class GamePhaseManager
 
     private static readonly SyncedVariable<ulong?> WantedPhase = new("GamePhaseManager_WantedPhase", new NullableValueEncoder<ulong>(new ULongEncoder()),
         null);
-    
+
     // Behavior Helpers
 
     private static readonly IBehaviourCache<IPhaseChanged> PhaseChangedBehaviours = BehaviourManager.CreateCache<IPhaseChanged>();

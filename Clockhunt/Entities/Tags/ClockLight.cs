@@ -25,19 +25,19 @@ public class ClockLight : IComponent, IComponentReady, IPhaseChanged
             _lightGo = null;
             return;
         }
-        
+
         if (_lightGo != null) return;
 
         if (_marrowEntity == null) return;
 
         _lightGo = _marrowEntity.gameObject.CreateSafeObject("ClockLight");
-        
+
         var light = _lightGo.AddComponent<Light>();
         light.type = LightType.Point;
         light.color = Color.red;
         light.intensity = 1f;
     }
-    
+
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;

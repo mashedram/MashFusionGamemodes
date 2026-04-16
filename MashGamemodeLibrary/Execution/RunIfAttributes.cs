@@ -10,7 +10,7 @@ public enum ExecutionContext
 public class RunIf : Attribute
 {
     public ExecutionContext ExecutionContext { get; }
-    
+
     public RunIf(ExecutionContext executionContext)
     {
         ExecutionContext = executionContext;

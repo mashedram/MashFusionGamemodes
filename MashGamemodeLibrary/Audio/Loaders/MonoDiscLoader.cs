@@ -11,7 +11,7 @@ public class MonoDiscLoader : IAudioLoader
     {
         AudioNames = audioBin.GetAll();
     }
-    
+
     public MonoDiscLoader(IEnumerable<string> monoDiscs)
     {
         AudioNames = monoDiscs.ToList();

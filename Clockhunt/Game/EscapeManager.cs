@@ -26,11 +26,11 @@ public static class EscapeManager
     private static IEnumerable<Vector3> GetEscapePoints()
     {
         var markers = ClockMarker.Query
-            .Select(entry => entry.NetworkEntity).
-            ToList();
+            .Select(entry => entry.NetworkEntity).ToList();
 
         if (markers is { Count: > 0 })
-            return markers.Select(networkEntity => networkEntity?.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position).OfType<Vector3>();
+            return markers.Select(networkEntity => networkEntity?.GetExtender<IMarrowEntityExtender>()?.MarrowEntity?.transform.position)
+                .OfType<Vector3>();
 
         var spawns = FusionPlayer.SpawnPoints;
         if (spawns is { Count: > 0 })

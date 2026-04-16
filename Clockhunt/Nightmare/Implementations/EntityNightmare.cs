@@ -47,7 +47,7 @@ public class EntityNightmareInstance : NightmareInstance
         new SyncedAudioContainer(new AudioFileLoader("Growls")),
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
             modifier.SetMaxDistance(160f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.2f)))));
-    
+
     private GameObject? _light;
 
     public EntityNightmareInstance(byte owner, NightmareDescriptor descriptor) : base(owner, descriptor)
@@ -100,8 +100,8 @@ public class EntityNightmareInstance : NightmareInstance
             .Where(e => !e.PlayerID.IsSpectating() && !NightmareManager.IsNightmare(e.PlayerID))
             .DefaultIfEmpty(null)
             .GetRandom();
-        
-        if (player != null) 
+
+        if (player != null)
             SpawnMarkerAt(player);
 
         RoarAudioPlayer.PlayRandom(Owner.RigRefs.Head.position);

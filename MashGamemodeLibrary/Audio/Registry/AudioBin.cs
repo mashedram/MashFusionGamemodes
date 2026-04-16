@@ -9,12 +9,12 @@ public class AudioBin
     public ulong TagHash { get; init; }
     private readonly List<string> _barcodes = new();
     private readonly List<string> _fallbackBarcodes;
-    
+
     public AudioBin(string tag, List<string> fallbackBarcodes)
     {
         if (fallbackBarcodes.Count == 0)
             InternalLogger.Debug($"No fallback audio found for audio tag: {tag}");
-        
+
         Tag = tag;
         TagHash = tag.GetStableHash();
         _fallbackBarcodes = fallbackBarcodes;

@@ -14,13 +14,13 @@ public class TriggerEvent3dPatches
     {
         if (__instance == null)
             return true;
-        
+
         if (collider == null)
             return true;
-        
+
         if (collider.gameObject == null)
             return true;
-        
+
         if (collider.gameObject.layer == CachedPhysicsRig.SpectatorLayer)
             return false;
 
@@ -33,32 +33,32 @@ public class TriggerEvent3dPatches
     {
         if (__instance == null)
             return true;
-        
+
         if (collider == null)
             return true;
-        
+
         if (collider.gameObject == null)
             return true;
-        
+
         if (collider.gameObject.layer == CachedPhysicsRig.SpectatorLayer)
             return false;
 
         return true;
     }
-    
+
     [HarmonyPatch(nameof(TriggerEvents3D.OnTriggerStay))]
     [HarmonyPrefix]
     public static bool OnTriggerStayPrefix(TriggerEvents3D __instance, Collider collider)
     {
         if (__instance == null)
             return true;
-        
+
         if (collider == null)
             return true;
-        
+
         if (collider.gameObject == null)
             return true;
-        
+
         if (collider.gameObject.layer == CachedPhysicsRig.SpectatorLayer)
             return false;
 

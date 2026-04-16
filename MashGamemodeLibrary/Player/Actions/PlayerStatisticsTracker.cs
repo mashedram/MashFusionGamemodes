@@ -12,7 +12,7 @@ public static class PlayerStatisticsTracker
     {
         Statistics.TryAdd(key, 0);
         Statistics[key] += value;
-        
+
         GlobalStatisticsCollector.SyncChangeToHost(key, Statistics[key]);
     }
 

@@ -8,7 +8,7 @@ public class MappedDynamicInstanceEncoder<TInternal, TValue> : IRefEncoder<TValu
 {
     public delegate TValue MapToValueDelegate(TInternal @internal);
     public delegate ulong MapToKeyDelegate(ITypedRegistry<TInternal> registry, TValue value);
-    
+
     private readonly ITypedRegistry<TInternal> _typedRegistry;
     private readonly MapToValueDelegate _mapToValue;
     private readonly MapToKeyDelegate _mapToKey;
@@ -61,7 +61,7 @@ public class MappedDynamicInstanceEncoder<TInternal, TValue> : IRefEncoder<TValu
     {
         var id = serializer.IsReader ? 0 : _mapToKey(_typedRegistry, value);
         serializer.SerializeValue(ref id);
-        
+
         if (value is INetSerializable value2)
             value2.Serialize(serializer);
     }

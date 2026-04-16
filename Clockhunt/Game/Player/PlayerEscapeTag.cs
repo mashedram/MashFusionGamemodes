@@ -39,8 +39,8 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
 {
     // Config
     private const float EscapeTime = 30f;
-    public static readonly SyncedVariable<Vector3?> EscapePosition = new ("EscapePosition", new NullableValueEncoder<Vector3>(new Vector3Encoder()), null);
-    
+    public static readonly SyncedVariable<Vector3?> EscapePosition = new("EscapePosition", new NullableValueEncoder<Vector3>(new Vector3Encoder()), null);
+
     // Remotes
     private static readonly RemoteEvent<EscapeUpdatePacket> EscapeUpdateEvent = new(OnEscapeUpdate, CommonNetworkRoutes.HostToAll);
 
@@ -54,7 +54,7 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
 
     public PlayerEscapeTag()
     {
-        _timer = new MarkableTimer(EscapeTime, 
+        _timer = new MarkableTimer(EscapeTime,
             new TimeMarker(MarkerType.Interval, 10f, timer => CallEscapeTimer(timer)),
             new TimeMarker(MarkerType.AfterStart, 0f, timer => CallEscapeTimer(timer))
         );
@@ -69,7 +69,7 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
             WinManager.Win<SurvivorTeam>();
         };
     }
-    
+
     private bool IsInEscapeDistance()
     {
         if (!EscapePosition.Value.HasValue) return false;
@@ -78,12 +78,12 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
 
         return distance <= Clockhunt.Config.EscapeDistance;
     }
-        
+
     public void Update(float delta)
     {
         if (!EscapePosition.Value.HasValue)
             return;
-        
+
         if (!IsInEscapeDistance())
         {
             _timer.Reset();
@@ -92,7 +92,7 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
 
         _timer.Update(delta);
     }
-    
+
     private void CallEscapeTimer(float? time)
     {
         if (!time.HasValue)
@@ -104,16 +104,16 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
             });
             return;
         }
-        
+
         EscapeUpdateEvent.CallFor(_owner.PlayerID, new EscapeUpdatePacket
         {
             IsEscaping = true,
             Time = time.Value
         });
     }
-    
+
     // Remote Listeners
-    
+
     private static void OnEscapeUpdate(EscapeUpdatePacket packet)
     {
         if (!packet.IsEscaping)
@@ -143,7 +143,7 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
             });
             return;
         }
-        
+
         Notifier.Send(new Notification
         {
             Title = "Stay Here!",
@@ -154,18 +154,18 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
             Type = NotificationType.INFORMATION
         });
     }
-    
+
     private static void OnEscapeAvailable(Vector3? escape)
     {
         if (!GamePhaseManager.IsPhase<EscapePhase>())
             return;
-        
+
         if (!escape.HasValue)
             return;
-        
+
         MarkerManager.SetMarker(escape.Value);
     }
-    
+
     public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
     {
         _owner = networkPlayer;

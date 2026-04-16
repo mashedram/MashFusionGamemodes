@@ -11,12 +11,13 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
 {
     public delegate void ModifyRuleDelegate(TRule rule);
     private readonly PlayerData _playerData;
-    
+
     // The rule of the host, used when we are the host and is sent over the network
-    private TRule _localRule = new TRule();
+    private TRule _localRule = new();
+
     // The rule to use when we are the client
-    private TRule _networkedRule = new TRule();
-    
+    private TRule _networkedRule = new();
+
     // The hash of the rule type, used for networking
     public ulong Hash { get; }
 
@@ -25,36 +26,36 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
         _playerData = playerData;
         Hash = typeof(TRule).GetStableHash();
     }
-    
+
     public void Modify(ModifyRuleDelegate modifier)
     {
         if (NetworkInfo.IsClient)
             return;
-        
+
         modifier(_localRule);
         NotifyChange();
     }
-    
+
     public void NotifyChange()
     {
         _playerData.NotifyRuleChanged(this);
     }
-    
+
     // Accessors
-    
+
     public TRule GetRule()
     {
         if (NetworkInfo.IsClient)
             return _networkedRule;
-        
+
         return _localRule;
     }
-    
+
     public IPlayerRule GetBaseRule()
     {
         return GetRule();
     }
-    
+
     public void Reset()
     {
         _localRule = new TRule();

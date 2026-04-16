@@ -11,7 +11,7 @@ public abstract class LogicTeam
 {
     public abstract string Name { get; }
     public virtual Texture? Icon => null;
-    
+
     private NetworkPlayer? _owner;
     public NetworkPlayer Owner => _owner ?? throw new InvalidOperationException($"No player is currently assigned to team: {Name}!");
 
@@ -31,10 +31,10 @@ public abstract class LogicTeam
     internal void Assign(NetworkPlayer player)
     {
         InternalLogger.Debug($"Player: {player.Username} joined team: {Name}");
-        
+
         player.Icon.Texture = Icon;
         player.Icon.Visible = Icon != null;
-        
+
         _owner = player;
         Executor.RunChecked(OnAssigned);
     }
@@ -46,11 +46,11 @@ public abstract class LogicTeam
             InternalLogger.Debug($"Attempted to remove player from team: {Name}, but no player was assigned!");
             return;
         }
-        
+
         InternalLogger.Debug($"Player: {Owner.Username} left team: {Name}");
         Owner.Icon.Texture = null;
         Owner.Icon.Visible = false;
-        
+
         Executor.RunChecked(OnRemoved);
     }
 }

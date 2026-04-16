@@ -17,10 +17,10 @@ public class GunInfo
     public Gun.FireMode FireMode { get; init; }
     public WeaponType WeaponType { get; init; }
     public float Recoil { get; init; }
-    
+
     public float BulletCount { get; init; }
     public float SpreadAngle { get; init; }
-    
+
     public float BulletVelocity { get; init; }
     public float BulletMass { get; init; }
 
@@ -29,10 +29,10 @@ public class GunInfo
         WeaponType = GetWeaponType(gun);
         FireMode = gun.fireMode;
         RoundsPerSecond = gun.roundsPerSecond;
-        Recoil = 
-            gun.pullAnimationSpeed * gun.pullAnimationPerc - 
+        Recoil =
+            gun.pullAnimationSpeed * gun.pullAnimationPerc -
             gun.returnAnimationSpeed * gun.returnAnimationPerc;
-        
+
         var projectileData = gun.defaultCartridge.projectile;
         if (projectileData == null)
             return;
@@ -42,7 +42,7 @@ public class GunInfo
         BulletVelocity = projectileData.startVelocity;
         BulletMass = projectileData.mass;
     }
-    
+
     // Helpers
     private static readonly ImmutableDictionary<string, WeaponType> WeaponTypeLookup = ImmutableDictionary.CreateRange(new[]
     {
@@ -51,7 +51,7 @@ public class GunInfo
         KeyValuePair.Create("Shotgun", WeaponType.Shotgun),
         KeyValuePair.Create("Rifle", WeaponType.Rifle)
     });
-    
+
     private static WeaponType GetWeaponType(Gun gun)
     {
         var crate = gun._poolee?.SpawnableCrate;

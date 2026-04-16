@@ -116,7 +116,7 @@ public class RemoteEvent : RemoteEvent<PlayerOnlyPacker>
     {
         base.Call(new PlayerOnlyPacker());
     }
-    
+
     public void CallFor(PlayerID playerId)
     {
         base.CallFor(playerId, new PlayerOnlyPacker());

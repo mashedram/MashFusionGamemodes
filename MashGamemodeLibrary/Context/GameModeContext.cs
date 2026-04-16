@@ -17,16 +17,16 @@ public abstract class GameModeContext<TContext> where TContext : GameModeContext
 
     private void AddToCache<T>(ISet<T> set, FieldInfo field)
     {
-        if (!typeof(T).IsAssignableFrom(field.FieldType)) 
+        if (!typeof(T).IsAssignableFrom(field.FieldType))
             return;
-        
+
 #if DEBUG
         if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
 #endif
-        
+
         if (field.GetValue(this) is not T value)
             return;
-        
+
         set.Add(value);
     }
 

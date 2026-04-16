@@ -83,7 +83,7 @@ public class PersistentTeams
     private void AutoBalance()
     {
         var emptyTeams = _playerSets.Where(set => set.Count == 0).ToList();
-        if (emptyTeams.Count <= 0) 
+        if (emptyTeams.Count <= 0)
             return;
 
         var totalPlayers = _playerSets.Select(s => s.Count).Sum();
@@ -298,6 +298,7 @@ public class PersistentTeams
         var winCount = teamScores[localTeamID].score;
         var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
 
-        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists, PlayerDamageStatistics.Deaths);
+        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
+            PlayerDamageStatistics.Deaths);
     }
 }

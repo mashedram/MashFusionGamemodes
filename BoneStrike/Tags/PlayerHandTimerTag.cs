@@ -19,7 +19,7 @@ namespace BoneStrike.Tags;
 public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
 {
     public static readonly CachedQuery<PlayerHandTimerTag> Query = CachedQueryManager.Create<PlayerHandTimerTag>();
-    
+
     private Transform? _compasPointer;
     private bool _isSpawning;
 

@@ -22,7 +22,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
     private void SpawnTimer()
     {
         if (_timerObject != null || _isSpawning) return;
-        
+
         _isSpawning = true;
         const string timerBarcode = "Mash.ClockhuntAssets.Spawnable.HandTimer";
         var spawnable = LocalAssetSpawner.CreateSpawnable(timerBarcode);
@@ -40,14 +40,14 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
     {
         _owner = networkPlayer;
         SpawnTimer();
-        
+
     }
-    
+
     public void OnRemoved(NetworkEntity networkEntity)
     {
         _timerObject?.Despawn();
     }
-    
+
     public void Update(float delta)
     {
         if (_timerObject == null)
@@ -59,11 +59,11 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
             _timerObject.gameObject.SetActive(false);
             return;
         }
-        
+
         var leftHand = _owner.RigRefs.LeftHand.transform;
         var position = leftHand.position + leftHand.forward * 0.05f + leftHand.right * -0.05f;
         var rotation = leftHand.rotation;
-        
+
         _timerObject.transform.SetPositionAndRotation(position, rotation);
 
         if (_text == null)

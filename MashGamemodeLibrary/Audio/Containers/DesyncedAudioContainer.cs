@@ -11,15 +11,15 @@ public class DesyncedAudioContainer : ISyncedAudioContainer
     {
         _parent = parent;
     }
-    
+
     public IReadOnlyList<string> AudioNames => _parent.AudioNames;
     public bool IsLoading => _parent.IsLoading;
     public void RequestClip(string name, Action<AudioClip?> onClipReady)
     {
         _parent.RequestClip(name, onClipReady);
     }
-    
-    public List<ulong> AudioHashes { get; } = new List<ulong>()
+
+    public List<ulong> AudioHashes { get; } = new()
     {
         1
     };

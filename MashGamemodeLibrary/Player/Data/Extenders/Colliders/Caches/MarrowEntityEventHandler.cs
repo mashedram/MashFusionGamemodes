@@ -12,30 +12,30 @@ public static class MarrowEntityEventHandler
     {
         if (collider == null)
             return;
-        
+
         var go = collider.gameObject;
         if (go == null)
             return;
-        
+
         if (go.isStatic)
             return;
-        
+
         // Ignore already ignored colliders
         var layer = collider.gameObject.layer;
         // Anything on the not default layer, that is part of a marrow entity, is valid.
         if (layer != BonelabLayers.Default)
             return;
-        
-        if ((CachedPhysicsRig.SpectatorIgnoredLayerMask & (1 << layer)) != 0)
+
+        if ((CachedPhysicsRig.SpectatorIgnoredLayerMask & 1 << layer) != 0)
             return;
-        
+
         var rb = collider.attachedRigidbody;
         if (rb == null)
             return;
-        
+
         if (rb is { freezeRotation: true, constraints: RigidbodyConstraints.FreezePosition })
             return;
-        
+
         if (rb.constraints == RigidbodyConstraints.FreezeAll)
             return;
 
@@ -46,7 +46,7 @@ public static class MarrowEntityEventHandler
     {
         if (impactProperties == null)
             return;
-        
+
         if (impactProperties.gameObject == null)
             return;
 
@@ -55,12 +55,12 @@ public static class MarrowEntityEventHandler
             FixColliderLayer(collider);
         }
     }
-    
+
     private static void FixColliderLayers(MarrowEntity entity)
     {
         if (entity == null)
             return;
-        
+
         if (entity._bodies == null)
             return;
 
@@ -68,7 +68,7 @@ public static class MarrowEntityEventHandler
         {
             if (entityBody == null)
                 continue;
-            
+
             if (entityBody._colliders == null)
                 continue;
 
@@ -83,10 +83,10 @@ public static class MarrowEntityEventHandler
     {
         if (entity == null)
             return;
-        
+
         if (entity.gameObject == null)
             return;
-        
+
         // Ignore despawned entities
         if (entity.IsDespawned)
             return;
@@ -95,7 +95,7 @@ public static class MarrowEntityEventHandler
         {
             return;
         }
-        
+
         FixColliderLayers(entity);
     }
 
@@ -103,10 +103,10 @@ public static class MarrowEntityEventHandler
     {
         if (entity == null)
             return;
-        
-        if (entity.name != "PhysicsRig") 
+
+        if (entity.name != "PhysicsRig")
             return;
-        
+
         PhysicsRigCache.OnPhysicsRigDestroyed(entity);
     }
 }

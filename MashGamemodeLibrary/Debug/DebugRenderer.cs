@@ -18,11 +18,11 @@ public class DebugRenderer
         tex.Apply();
         return tex;
     }
-    
+
     private static void RenderLine(Vector3[] positions, Color color)
     {
         if (!IsEnabled) return;
-        
+
         var go = new GameObject("DebugRay");
         var lineRenderer = go.AddComponent<LineRenderer>();
         lineRenderer.positionCount = positions.Length;
@@ -47,15 +47,19 @@ public class DebugRenderer
     public static void RenderLine(Vector3 start, Vector3 end, Color? color = null)
     {
         if (!IsEnabled) return;
-        
-        RenderLine(new []{ start, end }, color ?? Color.green);
+
+        RenderLine(new[]
+        {
+            start,
+            end
+        }, color ?? Color.green);
     }
 
     [Conditional("DEBUG")]
     public static void RenderCube(Vector3 center, Vector3 size, Color? color = null)
     {
         if (!IsEnabled) return;
-        
+
         var half = size / 2f;
 
         // 8 corners

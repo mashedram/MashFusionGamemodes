@@ -10,12 +10,14 @@ public interface INetworkEvents : IBehaviour
 
 public static class NetworkEventsExtender
 {
-    private static readonly ComponentNetworkEventManager Manager = new ComponentNetworkEventManager();
-    
+    private static readonly ComponentNetworkEventManager Manager = new();
+
     public static void SendEvent(this INetworkEvents target, byte index, int size, Action<NetWriter> writer)
     {
         Manager.Send(target, index, size, writer);
     }
-    
-    public static void Register() {}
+
+    public static void Register()
+    {
+    }
 }

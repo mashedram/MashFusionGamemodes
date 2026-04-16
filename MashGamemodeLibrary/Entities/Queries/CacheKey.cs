@@ -3,7 +3,7 @@
 public record CacheKey(ICachedQuery Query, Guid Guid)
 {
     private bool _isValid = true;
-    
+
     public void Remove()
     {
         if (!_isValid)

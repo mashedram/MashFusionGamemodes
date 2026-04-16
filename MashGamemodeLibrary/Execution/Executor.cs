@@ -150,7 +150,7 @@ public static class Executor
             MelonLogger.Error("Failed to execute executor call", exception);
         }
     }
-    
+
     public static void RunChecked<T>(T action) where T : Delegate
     {
         if (!MayExecute<T>())
@@ -166,7 +166,7 @@ public static class Executor
 
         RunUnchecked(() => action.DynamicInvoke(argument1));
     }
-    
+
     private static IEnumerator DelayThenInvoke<T>(T action, float timeout) where T : Delegate
     {
         yield return new WaitForSeconds(timeout);
@@ -180,7 +180,7 @@ public static class Executor
             MelonLogger.Error("Failed to execute delayed executor call", exception);
         }
     }
-    
+
     public static void RunCheckedInFuture<T>(T action, TimeSpan timeout) where T : Delegate
     {
         if (!MayExecute<T>())
@@ -188,9 +188,9 @@ public static class Executor
 
         MelonCoroutines.Start(DelayThenInvoke(action, timeout.Seconds));
     }
-    
+
     // Event Invocation
-    
+
     public static void Try<T>(this T value, Action<T> action)
     {
         try
@@ -216,7 +216,7 @@ public static class Executor
 
         return defaultValue();
     }
-    
+
     public static TReturn Try<TInstance, TReturn>(this TInstance value, Func<TInstance, TReturn> action, TReturn defaultValue)
     {
         return Try(value, action, () => defaultValue);

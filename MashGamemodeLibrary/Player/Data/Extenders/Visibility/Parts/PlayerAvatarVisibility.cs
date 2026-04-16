@@ -13,23 +13,23 @@ public class PlayerAvatarVisibility : IPlayerVisibility
     public void SetVisible(bool isVisible)
     {
         _isVisible = isVisible;
-        
+
         if (_rigManager == null)
             return;
-        
+
         var avatar = _rigManager._avatar;
         if (avatar == null)
             return;
-        
+
         avatar.gameObject.SetActive(isVisible);
     }
-    
+
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         _rigManager = rigManager;
         SetVisible(_isVisible);
     }
-    
+
     public void OnAvatarChanged(Avatar avatar)
     {
         // Reload avatar visibility

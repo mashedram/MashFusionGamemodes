@@ -13,7 +13,7 @@ public class ToSpawnPointKeybind : DebugKeybind
         const float range = 60f;
         var start = BoneLib.Player.Head.position;
         DynamicSpawnCollector.CollectAt(start, range);
-        var target = DynamicSpawnCollector.GetRandomPoint(30, start, new AvoidSpawningNear(start, range/4f));
+        var target = DynamicSpawnCollector.GetRandomPoint(30, start, new AvoidSpawningNear(start, range / 4f));
         if (target != null)
             LocalPlayer.TeleportToPosition(target.Value);
     };

@@ -57,7 +57,7 @@ public static class PlayerTagManager
     {
         if (player.NetworkEntity.GetComponent<T>() != null)
             return false;
-        
+
         player.NetworkEntity.AddComponent(factory());
         return true;
     }
@@ -65,7 +65,7 @@ public static class PlayerTagManager
     public static void RemoveTag<T>(this NetworkPlayer player) where T : IComponent
     {
         if (player.NetworkEntity == null)
-            return ;
+            return;
 
         player.NetworkEntity.RemoveComponent<T>();
     }

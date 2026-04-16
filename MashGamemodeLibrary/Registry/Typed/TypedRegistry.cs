@@ -59,7 +59,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
             {
                 var constructor = t.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes);
                 if (constructor != null) return true;
-                
+
                 InternalLogger.Error($"Type: {t.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
                 return false;
             })
@@ -128,7 +128,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         entry = (T)value;
         return true;
     }
-    
+
     public IEnumerable<Type> GetAllTypes()
     {
         return _typeCache.Values;

@@ -207,12 +207,12 @@ public static class InternalGamemodeManager
 
         StartRound(_roundIndex + 1);
     }
-    
+
     public static void Reset()
     {
         if (GamemodeManager.ActiveGamemode is not IGamemode)
             return;
-        
+
         GamemodeManager.StopGamemode();
     }
 }

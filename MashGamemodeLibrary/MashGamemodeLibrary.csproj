@@ -50,7 +50,7 @@
             <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppSLZ.Marrow.dll</HintPath>
         </Reference>
         <Reference Include="Il2CppUltEvents">
-          <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppUltEvents.dll</HintPath>
+            <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppUltEvents.dll</HintPath>
         </Reference>
         <Reference Include="Il2CppUniTask">
             <HintPath>$(BONELAB_DIR)\MelonLoader\Il2CppAssemblies\Il2CppUniTask.dll</HintPath>
@@ -62,7 +62,7 @@
             <HintPath>$(BONELAB_DIR)\MelonLoader\net6\MelonLoader.dll</HintPath>
         </Reference>
         <Reference Include="Spiderman">
-          <HintPath>$(BONELAB_DIR)\Mods\Spiderman.dll</HintPath>
+            <HintPath>$(BONELAB_DIR)\Mods\Spiderman.dll</HintPath>
             <Private>false</Private>
         </Reference>
         <Reference Include="Unity.Addressables">

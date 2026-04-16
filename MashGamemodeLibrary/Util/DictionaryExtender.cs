@@ -13,8 +13,8 @@ public static class DictionaryExtender
         dict[key] = newValue;
         return newValue;
     }
-    
-    public static TValue GetValueOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key) 
+
+    public static TValue GetValueOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
         where TKey : notnull
         where TValue : new()
     {
@@ -31,7 +31,7 @@ public static class DictionaryExtender
         dict.ForEach(onEach);
         dict.Clear();
     }
-    
+
     public static void Clear<TKey, TValue>(this Dictionary<TKey, TValue> dict, Action<TKey, TValue> onEach) where TKey : notnull
     {
         dict.Clear(kvp => onEach(kvp.Key, kvp.Value));

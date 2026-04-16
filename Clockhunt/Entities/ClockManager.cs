@@ -16,7 +16,7 @@ namespace Clockhunt.Entities;
 public static class ClockManager
 {
     private static readonly string ClockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
-    
+
     public static void SpawnEntityForPlayer(NetworkPlayer player)
     {
         var position = player.RigRefs.RightHand.transform.position;
@@ -67,9 +67,9 @@ public static class ClockManager
 
         foreach (var clock in survivorClocks.Take(toRemove))
         {
-            if (clock.NetworkEntity == null) 
+            if (clock.NetworkEntity == null)
                 continue;
-            
+
             NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
             {
                 DespawnEffect = true,

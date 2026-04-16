@@ -14,33 +14,33 @@ internal class NetworkRuleChangeEvent : GenericRemoteEvent<NetworkRuleChangePack
     public NetworkRuleChangeEvent(string name) : base(name, CommonNetworkRoutes.HostToRemote)
     {
     }
-    
+
     public void Send(PlayerID playerId, IPlayerRuleInstance ruleInstance)
     {
         var packet = new NetworkRuleChangePacket(playerId, ruleInstance.Hash, ruleInstance.GetBaseRule());
         Relay(packet);
     }
-    
+
     protected override int? GetSize(NetworkRuleChangePacket data)
     {
         // Can't really predict this, sry
         return null;
     }
-    
+
     protected override void Write(NetWriter writer, NetworkRuleChangePacket data)
     {
         writer.Write(data.PlayerID);
         writer.Write(data.RuleHash);
         data.Rule.Serialize(writer);
     }
-    
+
     protected override void Read(byte smallId, NetReader reader)
     {
         var playerId = reader.ReadByte();
         var playerData = PlayerDataManager.GetPlayerData(playerId);
-        if (playerData == null)            
+        if (playerData == null)
             return;
-        
+
         var ruleHash = reader.ReadUInt64();
         var ruleInstance = playerData.GetRuleByHash(ruleHash);
 

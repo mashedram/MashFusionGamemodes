@@ -23,46 +23,47 @@ namespace MashGamemodeLibrary.Entities.ECS.Caches;
 internal static class LocalEcsCache
 {
     // Caches
-    
+
     private static readonly Dictionary<EcsIndex, ComponentInstance> LocalComponents = new();
 
     private static readonly Dictionary<ushort, Dictionary<Type, ComponentInstance>> ComponentLookup = new();
     private static readonly Dictionary<Type, HashSet<ushort>> NetworkEntityLookup = new();
-    
+
     // Networking
-    
+
     internal static readonly FactoryTypedRegistry<IComponent> Registry = new();
+
     private static readonly SyncedDictionary<EcsIndex, IComponent> NetworkComponents =
-        new SyncedDictionary<EcsIndex, IComponent>(
-            "sync.ECS", 
-            new NetSerializableEncoder<EcsIndex>(), 
+        new(
+            "sync.ECS",
+            new NetSerializableEncoder<EcsIndex>(),
             new DynamicInstanceEncoder<IComponent>(Registry)
         );
-    
+
     static LocalEcsCache()
     {
         NetworkComponents.OnValueAdded += OnNetworkComponentAdded;
         NetworkComponents.OnValueRemoved += OnNetworkComponentRemoved;
     }
-    
+
     private static void OnNetworkComponentAdded(EcsIndex key, IComponent component)
     {
         if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
             return;
-        
+
         Add(new ComponentInstance(key, component));
     }
 
     private static void OnNetworkComponentRemoved(EcsIndex key, IComponent oldValue)
-    {   
-        if (!NetworkInfo.HasServer ||NetworkInfo.IsHost)
+    {
+        if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
             return;
-        
+
         Remove(key);
     }
-    
+
     // Methods
-    
+
     public static void Add(ComponentInstance componentInstance)
     {
         var index = componentInstance.Index;
@@ -70,7 +71,7 @@ internal static class LocalEcsCache
 
         if (componentInstance.PlayerOnly && index.EntityID.ID > PlayerIDManager.MaxPlayerID)
             throw new Exception($"Failed to add tag meant for players to prop ({componentInstance.Component.GetType().FullName})");
-        
+
         // Logic
         if (!LocalComponents.TryAdd(index, componentInstance))
             return;
@@ -82,13 +83,13 @@ internal static class LocalEcsCache
         NetworkEntityLookup
             .GetValueOrCreate(componentInstance.Component.GetType())
             .Add(index.EntityID.ID);
-        
+
         // Networking
         if (!componentInstance.IsNetworked)
             return;
         if (!NetworkInfo.IsHost)
             return;
-        
+
         Executor.RunIfHost(() =>
         {
             NetworkComponents[index] = componentInstance.Component;
@@ -101,10 +102,10 @@ internal static class LocalEcsCache
             return;
 
         instance.Remove();
-        
+
         ComponentLookup.GetValueOrDefault(index.EntityID.ID)?.Remove(instance.ComponentType);
         NetworkEntityLookup.GetValueOrDefault(instance.ComponentType)?.Remove(index.EntityID.ID);
-        
+
         if (!NetworkInfo.IsHost)
             return;
 
@@ -116,10 +117,10 @@ internal static class LocalEcsCache
     {
         if (!ComponentLookup.TryGetValue(entity.ID, out var cache))
             return;
-        
+
         if (!cache.TryGetValue(typeof(T), out var instance))
             return;
-        
+
         Remove(instance.Index);
     }
 
@@ -139,16 +140,16 @@ internal static class LocalEcsCache
         LocalComponents.Clear();
         ComponentLookup.Clear();
         NetworkEntityLookup.Clear();
-        
+
         if (NetworkInfo.IsHost)
             NetworkComponents.Clear();
     }
-    
+
     public static ComponentInstance? GetComponentInstance(EcsIndex index)
     {
         return LocalComponents.GetValueOrDefault(index);
     }
-    
+
     public static T? GetComponent<T>(ushort entityId) where T : class, IComponent
     {
         if (!ComponentLookup.TryGetValue(entityId, out var cache))

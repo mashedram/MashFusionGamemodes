@@ -16,12 +16,12 @@ public class BehaviourMember
         Behaviour = behaviour;
         Cache = cache;
     }
-    
+
     ~BehaviourMember()
     {
         if (!InCache)
             return;
-        
+
         BehaviourManager.Remove(this);
     }
 

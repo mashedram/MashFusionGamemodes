@@ -93,7 +93,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         SpawnTimer(marrowEntity.transform);
-        
+
         _clockText = marrowEntity.GetComponentInChildren<TextMeshPro>();
     }
 
@@ -113,7 +113,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
             _clockText.text = $"{minutes:D2}:{seconds:D2}";
         }
-        
+
         if (_grabber == null) return;
         if (GamePhaseManager.IsPhase<PlantPhase>()) return;
 
@@ -152,7 +152,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         _isDefused = true;
 
         if (NetworkInfo.IsHost)
-        { 
+        {
             PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
             WinManager.Win<CounterTerroristTeam>();
         }
@@ -207,7 +207,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         if (!PlayerIDManager.SmallIDLookup.TryGetValue(senderId, out var playerID))
             return;
-        
+
         if (!playerID.IsValid)
             return;
 

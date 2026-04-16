@@ -12,12 +12,12 @@ public class CachedCollider
         _collider = collider;
         _sourceLayer = sourceLayer;
     }
-    
+
     public void SetLayer(int? layer)
     {
         if (_collider == null)
             return;
-        
+
         _collider.gameObject.layer = layer ?? _sourceLayer;
     }
 }

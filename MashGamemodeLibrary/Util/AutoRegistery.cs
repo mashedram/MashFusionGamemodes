@@ -8,7 +8,8 @@ namespace MashGamemodeLibrary.Util;
 
 public static class AutoRegistery
 {
-    private static readonly Type[] TargetTypes = {
+    private static readonly Type[] TargetTypes =
+    {
         typeof(ICachedQuery),
         typeof(IBehaviourCache)
     };
@@ -29,14 +30,14 @@ public static class AutoRegistery
         }
         return false;
     }
-    
+
     internal static void Register(Assembly assembly)
     {
         foreach (var type in assembly.GetTypes())
         {
             if (!HasField(type))
                 continue;
-            
+
             InternalLogger.Debug($"Registering static fields on: {type}");
             RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }

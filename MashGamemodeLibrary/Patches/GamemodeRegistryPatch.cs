@@ -14,4 +14,4 @@ public class GamemodeRegistryPatch
         var gamemode = GamemodeRegistration.Gamemodes.First(v => v.GetType() == type);
         GamemodeCompatibilityChecker.RegisterGamemodeInfo(gamemode);
     }
-} 
+}

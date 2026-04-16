@@ -22,11 +22,11 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
 {
     private static readonly IBehaviourCache<INetworkEvents> NetworkBehaviourCache = BehaviourManager.CreateCache<INetworkEvents>();
     // Handlers
-    
+
     public ComponentNetworkEventManager() : base("sync.ECS.netevents", CommonNetworkRoutes.AllToAll)
     {
     }
-    
+
     public void Send(INetworkEvents networkEvents, byte eventIndex, int size, Action<NetWriter> writer)
     {
         var holder = NetworkBehaviourCache.GetHolder(networkEvents);
@@ -35,8 +35,8 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
             InternalLogger.Debug($"Could not find: {networkEvents.GetType().FullName} in lookup");
             return;
         }
-        
-        Relay(new NetEventCarrier()
+
+        Relay(new NetEventCarrier
         {
             EcsIndex = componentInstance.Index,
             EventIndex = eventIndex,
@@ -44,12 +44,12 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
             Writer = writer
         });
     }
-    
+
     protected override int? GetSize(NetEventCarrier data)
     {
         return data.EcsIndex.GetSize() + sizeof(byte) + data.Size;
     }
-    
+
     protected override void Write(NetWriter writer, NetEventCarrier data)
     {
         data.EcsIndex.Serialize(writer);
@@ -57,7 +57,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
 
         data.Writer(writer);
     }
-    
+
     protected override void Read(byte smallId, NetReader reader)
     {
         var index = new EcsIndex();
@@ -75,7 +75,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
             InternalLogger.Debug($"Received an event for: {instance.Component.GetType().FullName} which does not receive net events.");
             return;
         }
-        
+
         eventReceiver.OnEvent(smallId, reader.ReadByte(), reader);
     }
 }

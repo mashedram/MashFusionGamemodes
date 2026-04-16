@@ -16,7 +16,7 @@ public static class LogicTeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();
     public static readonly FactoryTypedRegistry<LogicTeam> Registry = new();
-    
+
     private static readonly SyncedDictionary<byte, LogicTeam> AssignedTeams = new("sync.AssignedTeams", new ByteEncoder(),
         new DynamicInstanceEncoder<LogicTeam>(Registry));
 
@@ -79,13 +79,13 @@ public static class LogicTeamManager
     {
         return AssignedTeams.TryGetValue(playerID, out var team) && Registry.CreateID(team) == teamID;
     }
-    
+
     public static bool IsEnemy(this PlayerID enemyPlayerID)
     {
         var localTeam = GetLocalTeam();
         if (localTeam == null)
             return false;
-        
+
         return AssignedTeams.TryGetValue(enemyPlayerID, out var otherTeam) && Registry.GetID(localTeam) != Registry.GetID(otherTeam);
     }
 
@@ -93,7 +93,7 @@ public static class LogicTeamManager
     {
         return PlayerIDManager.LocalID.IsTeam<T>();
     }
-    
+
     public static ulong? GetPlayerTeamID(PlayerID player)
     {
         if (!AssignedTeams.TryGetValue(player, out var team)) return null;

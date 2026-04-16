@@ -25,7 +25,7 @@ namespace MashGamemodeLibrary.Player.Data;
 
 internal record NetworkRulePacket(PlayerID PlayerID, ulong RuleHash)
 {
-    
+
 }
 
 public class PlayerData : IEventReceiver
@@ -41,34 +41,34 @@ public class PlayerData : IEventReceiver
         RuleRegistry.RegisterAll<TMod>();
         EventCallerRegistry.RegisterAll<TMod>();
     }
-    
+
     // Instance Data
-    
+
     public PlayerID PlayerID { get; init; }
 
     private readonly Dictionary<Type, IPlayerExtender> _extenderCache = new();
     private readonly Dictionary<Type, IPlayerRuleInstance> _ruleInstanceCache = new();
     private readonly Dictionary<ulong, IPlayerRuleInstance> _ruleHashCache = new();
     private readonly Dictionary<Type, IEventCaller> _eventCallerCache = new();
-    
+
     public IEnumerable<IPlayerExtender> Extenders => _extenderCache.Values;
     public IEnumerable<IPlayerRuleInstance> RuleInstances => _ruleInstanceCache.Values;
     public IEnumerable<IEventCaller> EventCallers => _eventCallerCache.Values;
-    
+
     // Networking
     private static readonly NetworkRuleChangeEvent NetworkRuleChangeEvent = new("PlayerData.RuleChange");
     private static readonly NetworkRuleCatchupEvent NetworkRuleCatchupEvent = new("PlayerData.RuleCatchup");
-        
+
     public PlayerData(PlayerID playerID)
     {
         PlayerID = playerID;
-        
+
         // Extenders
         ExtenderRegistry.GetAll().ForEach(AddExtender);
-        
+
         // Rules
         RuleRegistry.GetAllTypes().ForEach(AddRule);
-        
+
         // Events
         EventCallerRegistry.GetAll().ForEach(AddEventCaller);
     }
@@ -91,18 +91,18 @@ public class PlayerData : IEventReceiver
         _ruleInstanceCache.Add(ruleType, instance);
         _ruleHashCache.Add(instance.Hash, instance);
     }
-    
+
     private void AddEventCaller(IEventCaller eventCaller)
     {
         _eventCallerCache.Add(eventCaller.GetType(), eventCaller);
     }
-    
+
     internal void NotifyRuleChanged(IPlayerRuleInstance ruleInstance)
     {
         var rule = ruleInstance.GetBaseRule();
         Extenders.ForEach(e => e.OnRuleChanged(rule));
         PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
-        
+
         Executor.RunIfHost(() =>
         {
             NetworkRuleChangeEvent.Send(PlayerID, ruleInstance);
@@ -114,9 +114,9 @@ public class PlayerData : IEventReceiver
         Extenders.ForEach(e => e.OnPlayerChanged(player, rigManager));
         EventCallers.ForEach(e => e.OnEnable(this, player));
     }
-    
+
     // Accessors
-    
+
     public bool CheckRule<TRule>(Func<TRule, bool> predicate) where TRule : class, IPlayerRule, new()
     {
         if (!_ruleInstanceCache.TryGetValue(typeof(TRule), out var ruleInstance))
@@ -124,10 +124,10 @@ public class PlayerData : IEventReceiver
 
         if (ruleInstance is not PlayerRuleInstance<TRule> typedRuleInstance)
             return false;
-        
+
         return predicate(typedRuleInstance.GetRule());
     }
-    
+
     public IPlayerRuleInstance? GetRuleByHash(ulong hash)
     {
         return _ruleHashCache.GetValueOrDefault(hash);
@@ -141,7 +141,7 @@ public class PlayerData : IEventReceiver
 
         return (ruleInstance as PlayerRuleInstance<TRule>)!;
     }
-    
+
     public void Reset()
     {
         foreach (var playerRuleInstance in RuleInstances)
@@ -149,12 +149,12 @@ public class PlayerData : IEventReceiver
             playerRuleInstance.Reset();
         }
     }
-    
+
     public void SendCatchup(PlayerID playerID)
     {
         NetworkRuleCatchupEvent.SendCatchup(playerID, this);
     }
-    
+
     public void ReceiveEvent(IPlayerEvent playerEvent)
     {
         Extenders.ForEach(e => e.OnEvent(playerEvent));

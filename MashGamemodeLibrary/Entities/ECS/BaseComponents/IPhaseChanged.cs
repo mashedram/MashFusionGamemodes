@@ -5,5 +5,5 @@ namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 public interface IPhaseChanged : IBehaviour
 {
-    void OnPhaseChange(GamePhase gamePhase); 
+    void OnPhaseChange(GamePhase gamePhase);
 }

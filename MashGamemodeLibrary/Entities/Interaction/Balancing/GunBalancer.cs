@@ -3,12 +3,12 @@
 public class GunBalancer
 {
     public readonly IGunModifier[] Modifiers;
-    
+
     public GunBalancer(params IGunModifier[] modifiers)
     {
         Modifiers = modifiers;
     }
-    
+
     public float GetDamage(GunInfo gunInfo)
     {
         var modifiers = new float[Modifiers.Length];
@@ -18,7 +18,7 @@ public class GunBalancer
             var modifier = Modifiers[i].GetModifier(gunInfo);
             modifiers[i] = 1f - modifier;
         }
-        
+
         // This should accumulate the modifiers additively
         // All damage is based around 1 so no need to multiply later
         return modifiers.Aggregate(1f, (current, modifier) => current + modifier);

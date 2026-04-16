@@ -55,7 +55,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     private readonly IEncoder<TKey> _keyEncoder;
     private readonly IRefEncoder<TValue>? _refEncoder;
     private readonly IEncoder<TValue> _valueEncoder;
-    
+
     public SyncedDictionary(string name, IEncoder<TKey> keyEncoder, IEncoder<TValue> valueEncoder, INetworkRoute route) : base(name, route)
     {
         _keyEncoder = keyEncoder;
@@ -176,7 +176,7 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
     {
         return _dictionary.GetValueOrDefault(key, d);
     }
-    
+
     public TValue GetValueOrCreate(TKey key, Func<TValue> createFunc)
     {
         if (_dictionary.TryGetValue(key, out var value))

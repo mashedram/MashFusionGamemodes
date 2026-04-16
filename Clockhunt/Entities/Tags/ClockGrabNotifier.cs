@@ -13,7 +13,7 @@ public class ClockGrabNotifier : IComponent, IGrabCallback, IDropCallback
     {
         if (grab.NetworkPlayer == null)
             return;
-        
+
         Holders.Remove(grab.NetworkPlayer.PlayerID);
     }
 
@@ -21,7 +21,7 @@ public class ClockGrabNotifier : IComponent, IGrabCallback, IDropCallback
     {
         if (grab.NetworkPlayer == null)
             return;
-        
+
         Holders.Add(grab.NetworkPlayer.PlayerID);
     }
 }

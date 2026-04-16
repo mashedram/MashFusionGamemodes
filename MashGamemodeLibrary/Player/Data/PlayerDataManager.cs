@@ -19,43 +19,43 @@ public static class PlayerDataManager
         MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
         NetworkPlayer.OnNetworkRigCreated += OnNetworkRigCreated;
     }
-    
+
     private static void OnPlayerJoined(PlayerID playerID)
     {
         PlayerData.GetValueOrCreate(playerID, () => new PlayerData(playerID));
     }
-    
+
     private static void OnNetworkRigCreated(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         var playerID = networkPlayer.PlayerID;
         var data = PlayerData.GetValueOrCreate(playerID, () => new PlayerData(playerID));
-        
+
         data.OnRigCreated(networkPlayer, rigManager);
     }
-    
+
     private static void OnPlayerLeft(PlayerID playerId)
     {
         PlayerData.Remove(playerId);
     }
-    
+
     // Accessors
-    
+
     public static PlayerData? GetPlayerData(NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)
             return null;
-        
+
         return PlayerData.GetValueOrDefault(networkPlayer.PlayerID);
     }
-    
+
     public static PlayerData? GetOrCreatePlayerData(byte playerID)
     {
         if (PlayerData.TryGetValue(playerID, out var data))
             return data;
-        
+
         if (!NetworkPlayerManager.TryGetPlayer(playerID, out var networkPlayer))
             return null;
-        
+
         var newData = new PlayerData(networkPlayer.PlayerID);
         PlayerData[playerID] = newData;
         if (networkPlayer.HasRig)
@@ -67,13 +67,13 @@ public static class PlayerDataManager
     {
         return GetOrCreatePlayerData(playerID);
     }
-    
+
     public static bool TryGetPlayerData(PlayerID playerId, [MaybeNullWhen(false)] out PlayerData playerData)
     {
         playerData = GetOrCreatePlayerData(playerId);
         return playerData != null;
     }
-    
+
     public static PlayerData? GetLocalPlayerData()
     {
         if (!NetworkInfo.HasServer)
@@ -81,10 +81,10 @@ public static class PlayerDataManager
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer == null)
             return null;
-        
+
         return GetOrCreatePlayerData(localPlayer.PlayerID);
     }
-    
+
     public static void ForEachPlayerData(Action<PlayerData> action)
     {
         foreach (var playerData in PlayerData.Values)

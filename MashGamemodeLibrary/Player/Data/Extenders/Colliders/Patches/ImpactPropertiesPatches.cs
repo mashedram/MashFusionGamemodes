@@ -12,9 +12,9 @@ public class ImpactPropertiesPatches
     [HarmonyPostfix]
     public static void AwakePostfix(ImpactProperties __instance)
     {
-        if (__instance == null) 
+        if (__instance == null)
             return;
-        
+
         MarrowEntityEventHandler.FixColliderLayers(__instance);
     }
 }

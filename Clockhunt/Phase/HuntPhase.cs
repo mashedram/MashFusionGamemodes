@@ -151,7 +151,7 @@ public class HuntPhase : GamePhase, ITimedPhase
     {
         Executor.RunIfHost(() =>
         {
-            if (Clockhunt.Config.RuntimeSpawnPointsEnabled) 
+            if (Clockhunt.Config.RuntimeSpawnPointsEnabled)
                 SpawnManager.SubmitSynced(Clockhunt.Config.RuntimeSpawnCount);
 
             var context = Clockhunt.Context;

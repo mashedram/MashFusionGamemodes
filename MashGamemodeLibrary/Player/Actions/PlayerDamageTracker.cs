@@ -56,7 +56,7 @@ public static class PlayerDamageTracker
     {
         if (damaged.IsMe)
             return;
-        
+
         if (damaged.Equals(damager))
             return;
 

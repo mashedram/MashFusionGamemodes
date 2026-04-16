@@ -16,20 +16,20 @@ public static class FootstepSfxPatch
 {
     private static readonly Dictionary<PlayerID, List<FootstepSFX>> PlayerFootstepSfx = new();
     private static readonly Dictionary<FootstepSFX, PlayerID> FootstepSfxPlayer = new();
-    
+
     static FootstepSfxPatch()
     {
         MultiplayerHooking.OnPlayerLeft += id =>
         {
-            if (!PlayerFootstepSfx.Remove(id, out var entries)) 
+            if (!PlayerFootstepSfx.Remove(id, out var entries))
                 return;
-            
+
             foreach (var sfx in entries)
             {
                 FootstepSfxPlayer.Remove(sfx);
             }
         };
-        
+
         NetworkPlayer.OnNetworkRigCreated += (player, rig) =>
         {
             var sfxes = rig.GetComponentsInChildren<FootstepSFX>();
@@ -43,14 +43,14 @@ public static class FootstepSfxPatch
                 FootstepSfxPlayer[sfx] = playerId;
             }
         };
-        
+
         MultiplayerHooking.OnLoadingBegin += () =>
         {
             PlayerFootstepSfx.Clear();
             FootstepSfxPlayer.Clear();
         };
     }
-    
+
     private static PlayerID? GetPlayerId(FootstepSFX sfx)
     {
         return FootstepSfxPlayer.GetValueOrDefault(sfx);
@@ -62,17 +62,17 @@ public static class FootstepSfxPatch
     {
         if (__instance == null)
             return true;
-        
+
         if (!NetworkInfo.HasServer)
             return true;
-        
+
         var playerId = GetPlayerId(__instance);
         if (playerId == null)
             return true;
-        
+
         if (!playerId.IsSpectating())
             return true;
-        
+
         return false;
     }
 }

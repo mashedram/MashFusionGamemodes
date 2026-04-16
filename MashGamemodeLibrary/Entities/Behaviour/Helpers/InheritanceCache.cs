@@ -11,7 +11,7 @@ internal class InheritanceCache
     public void AddComponent(IBehaviour behaviour)
     {
         var t = behaviour.GetType();
-        
+
         if (_dictionary.ContainsKey(t))
             return;
 

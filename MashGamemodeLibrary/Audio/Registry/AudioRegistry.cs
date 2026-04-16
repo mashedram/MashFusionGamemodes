@@ -10,7 +10,7 @@ internal class RegisterableAudio
     public string Tag { get; init; }
     public ulong TagHash { get; init; }
     public string Barcode { get; init; }
-    
+
     public RegisterableAudio(string tag, string barcode)
     {
         Tag = tag;
@@ -35,7 +35,7 @@ public static class AudioRegistry
             bin.Add(registerableAudio.Barcode);
         }
     }
-    
+
     private static void BinAudio(RegisterableAudio audio)
     {
         if (Bins.TryGetValue(audio.Tag, out var bin))
@@ -46,7 +46,7 @@ public static class AudioRegistry
     {
         if (!tag.StartsWith(TagPrefix, StringComparison.Ordinal))
             throw new ArgumentException($"Tag must start with {TagPrefix}", nameof(tag));
-        
+
         var clippedTag = tag[TagPrefix.Length..];
         if (Bins.TryGetValue(clippedTag, out var bin))
             return bin;
@@ -57,14 +57,14 @@ public static class AudioRegistry
         Bins.Add(clippedTag, newBin);
         return newBin;
     }
-    
+
     public static void RegisterPallet(Pallet pallet)
     {
         foreach (var palletDataCard in pallet.DataCards)
         {
             if (palletDataCard.GetIl2CppType() != MonoDiscType)
                 continue;
-                
+
             if (!palletDataCard._description.StartsWith(TagPrefix, StringComparison.Ordinal))
                 continue;
 
@@ -77,13 +77,13 @@ public static class AudioRegistry
             RegisterableAudios.Add(registerableAudio);
         }
     }
-    
+
     public static void RegisterAll()
     {
         if (_isRegistered)
             return;
         _isRegistered = true;
-        
+
         foreach (var pallet in AssetWarehouse.Instance.GetPallets())
         {
             RegisterPallet(pallet);

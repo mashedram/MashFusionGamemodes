@@ -10,7 +10,7 @@ internal static class InternalLogger
     {
         MelonLogger.Msg($"[Mash's Gamemode Library - DEBUG] {txt}");
     }
-    
+
     public static void Error(string error)
     {
         MelonLogger.Error($"[Mash's Gamemode Library - ERROR] {error}");

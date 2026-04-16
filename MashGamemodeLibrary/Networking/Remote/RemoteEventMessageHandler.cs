@@ -114,7 +114,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
         MultiplayerHooking.OnJoinedServer += OnServerChanged;
         MultiplayerHooking.OnStartedServer += OnServerChanged;
         MultiplayerHooking.OnDisconnected += OnServerChanged;
-        
+
         LocalPlayer.OnLocalRigCreated += _ =>
         {
             if (!NetworkInfo.HasServer)
@@ -122,7 +122,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
             if (NetworkInfo.IsHost)
                 return;
-            
+
             LevelLoadedEvent.CallFor(PlayerIDManager.GetHostID(), new RemoteSceneLoadedPacket());
         };
     }
@@ -142,7 +142,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
         return eventId;
     }
-    
+
     /// <summary>
     ///     This registers all *STATIC* RemoteEvents in the assembly of type T.
     /// </summary>

@@ -9,7 +9,9 @@ public class NightmareConfig : INetSerializable
     public string? AvatarOverride = null;
     public float AbilityCooldown = 60f;
 
-    protected virtual void SerializeCustom(INetSerializer serializer) {}
+    protected virtual void SerializeCustom(INetSerializer serializer)
+    {
+    }
 
     // Just do 4096 and reduce the size.
     // Configs get send only once in a while anyway
@@ -24,7 +26,7 @@ public class NightmareConfig : INetSerializable
         serializer.SerializeValue(ref AbilityCooldown);
         SerializeCustom(serializer);
     }
-    
+
     public void AttachToGroup(GroupElementData group)
     {
         group.AddElement(new FunctionElementData

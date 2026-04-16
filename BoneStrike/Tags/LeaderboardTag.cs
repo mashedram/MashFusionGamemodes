@@ -24,24 +24,24 @@ namespace BoneStrike.Tags;
 internal class LeaderboardPlayerEntry
 {
     public const string Barcode = "Mash.BoneStrike.Spawnable.Leaderboard";
-    
+
     public GameObject Root;
     public Image Background;
     public TextMeshPro PositionText;
     public TextMeshPro NameText;
-    
+
     public TextMeshPro KillsText;
     public TextMeshPro DeathsText;
     public TextMeshPro AssistsText;
     public TextMeshPro DefusesText;
     public TextMeshPro ScoreText;
-    
+
     public LeaderboardPlayerEntry(GameObject root)
     {
         var transform = root.transform;
         Root = transform.Find("Content").gameObject;
         Background = Root.GetComponent<Image>();
-        
+
         PositionText = root.transform.Find("Content/Position").GetComponent<TextMeshPro>();
         NameText = root.transform.Find("Content/Player").GetComponent<TextMeshPro>();
         KillsText = root.transform.Find("Content/Stats/Kills").GetComponent<TextMeshPro>();
@@ -60,7 +60,7 @@ public class LeaderboardPlayerData
     public int Assists { get; init; }
     public int Defuses { get; init; }
     public int Score { get; init; }
-    
+
     public LeaderboardPlayerData(PlayerStatistics statistics)
     {
         PlayerId = PlayerIDManager.GetPlayerID(statistics.PlayerID);
@@ -68,8 +68,8 @@ public class LeaderboardPlayerData
         Deaths = statistics.GetValue(PlayerDamageStatistics.Deaths);
         Assists = statistics.GetValue(PlayerDamageStatistics.Assists);
         Defuses = statistics.GetValue(BonestrikeStatisticsKeys.Defusals);
-        
-        Score = (Kills + (Assists / 2) + (Defuses * 2) - Deaths) * 125;
+
+        Score = (Kills + Assists / 2 + Defuses * 2 - Deaths) * 125;
     }
 }
 
@@ -89,7 +89,7 @@ public class LeaderboardTag : IComponent, IComponentReady
         entry.AssistsText.text = data.Assists.ToString();
         entry.DefusesText.text = data.Defuses.ToString();
         entry.ScoreText.text = data.Score.ToString();
-        
+
         entry.Background.color = data.PlayerId.IsTeam<TerroristTeam>() ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
     }
 
@@ -106,29 +106,29 @@ public class LeaderboardTag : IComponent, IComponentReady
         for (var i = 0; i < _entries.Count - 1; i++)
         {
             var entry = _entries[i + 1];
-           
+
             // Check visibility
             var isVisible = i < statistics.Count;
             entry.Root.SetActive(isVisible);
             if (!isVisible)
                 continue;
-            
+
             var data = statistics[i];
             SetEntryData(entry, data, i + 1);
         }
-            
+
         if (hasAssignedLocalPlayer)
             return;
-        
+
         var localPlayerPosition = statistics.FindIndex(s => s.PlayerId.IsMe);
         if (localPlayerPosition == -1)
             return;
-        
+
         var localPlayerData = statistics[localPlayerPosition];
         var localEntry = _entries[localPlayerPosition + 1];
         SetEntryData(localEntry, localPlayerData, localPlayerPosition + 1);
     }
-    
+
     public void LoadEntries(MarrowEntity marrowEntity)
     {
         var playerList = marrowEntity.transform.Find("Center/Players");
@@ -143,11 +143,11 @@ public class LeaderboardTag : IComponent, IComponentReady
             var child = playerList.GetChild(i);
             if (child == null)
                 continue;
-            
+
             _entries.Add(new LeaderboardPlayerEntry(child.gameObject));
         }
     }
-    
+
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         Executor.RunIfHost(() =>
@@ -156,21 +156,21 @@ public class LeaderboardTag : IComponent, IComponentReady
                 GameAssetSpawner.Despawn(_networkEntity);
             _networkEntity = networkEntity;
         });
-        
+
         LoadEntries(marrowEntity);
         SetContent();
     }
-    
+
     public static void Spawn(Vector3 position)
     {
         GameAssetSpawner.SpawnNetworkAsset(LeaderboardPlayerEntry.Barcode, position, new LeaderboardTag());
     }
-    
+
     public static void Despawn()
     {
         if (_networkEntity == null)
             return;
-        
+
         GameAssetSpawner.Despawn(_networkEntity);
         _networkEntity = null;
     }

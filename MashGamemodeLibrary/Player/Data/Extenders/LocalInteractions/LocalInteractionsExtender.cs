@@ -15,7 +15,7 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.LocalInteractions;
 public class LocalInteractionsExtender : IPlayerExtender
 {
     private NetworkPlayer? _player;
-    
+
     private bool _areInteractionsEnabled = true;
     private GameObject? _overlayObject;
 
@@ -38,7 +38,7 @@ public class LocalInteractionsExtender : IPlayerExtender
 
         return _overlayObject;
     }
-    
+
     private void SetInteractions(bool areInteractionsEnabled)
     {
         _areInteractionsEnabled = areInteractionsEnabled;
@@ -52,11 +52,11 @@ public class LocalInteractionsExtender : IPlayerExtender
             return;
 
         GetOverlayObject().SetActive(!_areInteractionsEnabled);
-        
+
         var rigManager = _player.RigRefs.RigManager;
         if (!_areInteractionsEnabled)
             Loadout.Loadout.ClearPlayerLoadout(rigManager);
-        
+
         LocalControls.DisableInteraction = !_areInteractionsEnabled;
         LocalControls.DisableInventory = !_areInteractionsEnabled;
         LocalControls.DisableAmmoPouch = !_areInteractionsEnabled;
@@ -67,7 +67,7 @@ public class LocalInteractionsExtender : IPlayerExtender
     {
         if (!networkPlayer.PlayerID.IsMe)
             return;
-        
+
         _player = networkPlayer;
         SetInteractions(_areInteractionsEnabled);
     }
@@ -76,16 +76,16 @@ public class LocalInteractionsExtender : IPlayerExtender
     {
         if (_player == null)
             return;
-        
+
         if (!_player.PlayerID.IsMe)
             return;
-        
+
         if (rule is not PlayerSpectatingRule spectatingRule)
             return;
 
         SetInteractions(!spectatingRule.IsSpectating);
     }
-    
+
     public void OnEvent(IPlayerEvent playerEvent)
     {
         // No-Op

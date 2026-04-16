@@ -14,15 +14,15 @@ public static class CachedQueryManager
         var cache = new CachedQuery<T>();
 
         // TODO: Load all queryables of this type from the assemblies, and add them to the cache
-        
+
         return cache;
     }
 
     public static CachedQuery<T> Create<T>()
     {
-        return (CachedQuery<T>) Queries.GetValueOrCreate(typeof(T), CreateCache<T>);
+        return (CachedQuery<T>)Queries.GetValueOrCreate(typeof(T), CreateCache<T>);
     }
-    
+
     internal static CacheKey? Add(object queryable)
     {
         return Queries.GetValueOrDefault(queryable.GetType())?.TryAdd(queryable);

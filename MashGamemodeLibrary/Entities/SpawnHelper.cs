@@ -27,7 +27,7 @@ public static class SpawnHelper
     {
         WaitOnMarrowEntity(networkEntity.ID, networkEntity, callback);
     }
-    
+
     public static void WaitOnMarrowEntity(this NetworkEntityReference entityReference, OnMarrowEntitySpawned callback)
     {
         var entityId = entityReference.ID;

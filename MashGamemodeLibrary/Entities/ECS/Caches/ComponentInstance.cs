@@ -25,7 +25,7 @@ public class ComponentInstance : IBehaviourHolder
     public readonly IComponent Component;
 
     public Guid Guid { get; } = Guid.NewGuid();
-    
+
     public readonly bool IsNetworked;
     public readonly bool PlayerOnly;
 
@@ -33,11 +33,11 @@ public class ComponentInstance : IBehaviourHolder
 
     private ComponentTarget? _componentTarget;
     public bool IsReady => _componentTarget != null;
-    
-    public NetworkEntity NetworkEntity => 
+
+    public NetworkEntity NetworkEntity =>
         _componentTarget?.NetworkEntity ??
         throw new InvalidOperationException("ComponentInstance is not ready");
-    public MarrowEntity MarrowEntity => 
+    public MarrowEntity MarrowEntity =>
         _componentTarget?.MarrowEntity ??
         throw new InvalidOperationException("ComponentInstance is not ready");
 
@@ -45,28 +45,28 @@ public class ComponentInstance : IBehaviourHolder
 
     private CacheKey? _cacheKey;
     private List<BehaviourMember>? _behaviourMembers = null;
-    
+
     public ComponentInstance(EcsIndex index, IComponent component)
     {
         Index = index;
         ComponentType = component.GetType();
         Component = component;
-        
+
         IsNetworked = ComponentType.GetCustomAttribute<LocalOnly>() == null;
         PlayerOnly = ComponentType.GetInterfaces().Any(i => i.IsAssignableTo(typeof(IPlayerBehaviour)));
-        
+
         Index.EntityID.WaitOnMarrowEntity((entity, marrowEntity) =>
         {
             _componentTarget = new ComponentTarget(entity, marrowEntity);
-            
+
             // Unregister hooks
             entity.OnEntityUnregistered += OnUnregistered;
-            
+
             _cacheKey = CachedQueryManager.Add(Component);
             _behaviourMembers = BehaviourManager.Add(this, component);
-            
+
             InternalLogger.Debug("Registered component: " + ComponentType.FullName);
-            
+
             // Invoke callbacks
             foreach (var readyCallback in _readyCallbacks)
             {
@@ -88,7 +88,7 @@ public class ComponentInstance : IBehaviourHolder
             callback(_componentTarget.NetworkEntity, _componentTarget.MarrowEntity);
             return;
         }
-        
+
         _readyCallbacks.Add(callback);
     }
 
@@ -113,18 +113,19 @@ public class ComponentInstance : IBehaviourHolder
     {
         try
         {
-            if (_behaviourMembers != null) 
+            if (_behaviourMembers != null)
                 BehaviourManager.RemoveAll(_behaviourMembers);
-        
+
             _cacheKey?.Remove();
             LocalEcsCache.Remove(Index);
-        
+
             if (_componentTarget == null)
                 return;
-        
+
             NetworkEntity.OnEntityUnregistered -= OnUnregistered;
             _componentTarget = null;
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             MelonLogger.Error("Error while unregistering component: " + e);
         }
@@ -134,7 +135,7 @@ public class ComponentInstance : IBehaviourHolder
     {
         if (_componentTarget == null)
             return;
-        
+
         OnUnregistered(NetworkEntity);
     }
 }

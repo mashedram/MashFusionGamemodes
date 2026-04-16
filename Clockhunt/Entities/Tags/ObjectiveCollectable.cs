@@ -25,7 +25,7 @@ public class ObjectiveCollectable : IComponent, IComponentReady, IGrabCallback, 
     {
         IsGrabbed = true;
     }
-    
+
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         NetworkEntity = networkEntity;

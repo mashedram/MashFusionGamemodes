@@ -18,7 +18,9 @@ public class PlayerVisibility : IPlayerExtender
 {
     public NetworkPlayer? Player { get; set; }
     private bool _isVisible = true;
-    private readonly IPlayerVisibility[] _playerVisibilities = {
+
+    private readonly IPlayerVisibility[] _playerVisibilities =
+    {
         new PlayerAvatarVisibility(),
         new PlayerVoiceVisibility(),
         new PlayerNametagVisibility(),
@@ -32,14 +34,14 @@ public class PlayerVisibility : IPlayerExtender
         _isVisible = isVisible;
         if (Player == null)
             return;
-        
+
         if (Player.PlayerID.IsMe)
             return;
-        
+
         // If the local player is spectating, and this is not the local player, we want to keep them visible so they can see other spectators
         if (SpectatorExtender.IsLocalPlayerSpectating())
             return;
-        
+
         foreach (var playerVisibility in _playerVisibilities)
         {
             playerVisibility.SetVisible(_isVisible);
@@ -61,7 +63,7 @@ public class PlayerVisibility : IPlayerExtender
         if (rule is not PlayerSpectatingRule spectatingRule) return;
         SetVisibility(!spectatingRule.IsSpectating);
     }
-    
+
     public void OnEvent(IPlayerEvent playerEvent)
     {
         switch (playerEvent)

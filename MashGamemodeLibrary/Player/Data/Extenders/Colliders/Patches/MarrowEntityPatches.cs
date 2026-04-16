@@ -13,10 +13,10 @@ public class MarrowEntityPatches
     {
         if (__instance == null)
             return;
-        
+
         MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
     }
-    
+
     [HarmonyPatch(nameof(MarrowEntity.OnPoolSpawn))]
     [HarmonyPostfix]
     private static void OnPoolSpawn_Postfix(MarrowEntity __instance)

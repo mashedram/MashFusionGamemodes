@@ -24,7 +24,7 @@ public class DefusePhase : GamePhase
         {
             if (!BoneStrike.Config.MarkBombNearEnd)
                 return;
-            
+
             foreach (var bombMarker in BombMarker.Query)
             {
                 bombMarker.NetworkEntity?.AddComponent(new OvertimeMarker());
@@ -64,7 +64,7 @@ public class DefusePhase : GamePhase
             {
                 if (bomb.MarrowEntity == null)
                     continue;
-                
+
                 entry.Target = bomb.MarrowEntity.gameObject;
             }
         }
@@ -84,7 +84,7 @@ public class DefusePhase : GamePhase
     {
         if (!LogicTeamManager.IsLocalTeam<TerroristTeam>())
             return;
-        
+
         foreach (var gripWithHand in PlayerGrabManager.GetLocalHandsHoldingTag<BombMarker>())
         {
             gripWithHand.Hand.TryDetach();

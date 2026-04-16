@@ -21,10 +21,10 @@ public record SpawnTeamWallPacket : INetSerializable
 {
     public Vector3 Position;
     public float Yaw;
-    
+
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref Position); 
+        serializer.SerializeValue(ref Position);
         serializer.SerializeValue(ref Yaw);
     }
 }
@@ -35,19 +35,19 @@ internal record struct PlayerWallSide(PlayerID PlayerID, bool IsInFront);
 public class TeamAssignmentPhase : GamePhase
 {
     private static readonly RemoteEvent<SpawnTeamWallPacket> SpawnTeamWallEvent = new(SpawnTeamWallHandler, CommonNetworkRoutes.HostToAll);
- 
+
     private static readonly string TeamWallBarcode = "Mash.BoneStrike.Spawnable.TeamWALL";
     private static Poolee? _poolee;
     private static TextMeshPro[] _timerTexts = new TextMeshPro[2];
-    
+
     private static Vector3 _wallPosition;
     private static Quaternion _wallRotation;
     private static bool _areTeamsFair;
-    
+
     public override string Name => "Team Assignment Phase";
-    
+
     public override float Duration => 15f;
-    
+
     private bool IsPositionInFrontOfWall(Vector3 position)
     {
         var toPlayer = position - _wallPosition;
@@ -55,15 +55,17 @@ public class TeamAssignmentPhase : GamePhase
 
         return Vector3.Dot(toPlayer, forward) > 0f;
     }
-    
+
     private IEnumerable<PlayerWallSide> GetPlayerWallSides()
     {
-        return from player in NetworkPlayer.Players where player.HasRig select new PlayerWallSide(player.PlayerID, IsPositionInFrontOfWall(player.RigRefs.Head.position));
+        return from player in NetworkPlayer.Players
+            where player.HasRig
+            select new PlayerWallSide(player.PlayerID, IsPositionInFrontOfWall(player.RigRefs.Head.position));
     }
-    
+
     public override PhaseIdentifier GetNextPhase()
     {
-        if (!HasReachedDuration()) 
+        if (!HasReachedDuration())
             return PhaseIdentifier.Empty();
 
         return PhaseIdentifier.Of<PlantPhase>();
@@ -74,17 +76,17 @@ public class TeamAssignmentPhase : GamePhase
         var wallSides = GetPlayerWallSides().ToList();
         var team1Count = wallSides.Count(p => p.IsInFront);
         var team2Count = wallSides.Count - team1Count;
-        
+
         if (team1Count == 0 || team2Count == 0)
             return false;
-        
+
         if (BoneStrike.Config.AllowUnbalancedTeams)
             return true;
-        
+
         var imbalance = Mathf.Abs(team1Count - team2Count);
         if (imbalance > 2)
             return false;
-        
+
         return true;
     }
 
@@ -101,10 +103,10 @@ public class TeamAssignmentPhase : GamePhase
             var wallTransform = LocalPlayer.GetNetworkPlayer()?.RigRefs.Head;
             if (wallTransform == null)
                 return;
-            
+
             var yaw = wallTransform.rotation.eulerAngles.y;
-            
-            SpawnTeamWallEvent.Call(new SpawnTeamWallPacket()
+
+            SpawnTeamWallEvent.Call(new SpawnTeamWallPacket
             {
                 Position = wallTransform.position,
                 Yaw = yaw
@@ -116,22 +118,26 @@ public class TeamAssignmentPhase : GamePhase
     {
         Executor.RunIfHost(() =>
         {
-            var sets = new List<PlayerID>[] { new(), new() };
+            var sets = new List<PlayerID>[]
+            {
+                new(),
+                new()
+            };
             foreach (var player in NetworkPlayer.Players)
             {
                 if (!player.HasRig)
                     continue;
-                
+
                 var teamIndex = IsPositionInFrontOfWall(player.RigRefs.Head.position) ? 0 : 1;
                 sets[teamIndex].Add(player.PlayerID);
             }
-            
+
             BoneStrike.Context.PersistentTeams.OverwritePlayerSets(sets);
-        }); 
-        
-        if (_poolee == null) 
+        });
+
+        if (_poolee == null)
             return;
-        
+
         _poolee.Despawn();
         _poolee = null;
     }
@@ -163,12 +169,12 @@ public class TeamAssignmentPhase : GamePhase
     }
 
     // Event Handler
-    
+
     private static void SpawnTeamWall(Vector3 position, Quaternion rotation)
     {
         _wallPosition = position;
         _wallRotation = rotation;
-        
+
         if (_poolee != null)
         {
             var transform = _poolee.transform;

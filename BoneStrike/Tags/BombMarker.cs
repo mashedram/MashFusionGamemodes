@@ -16,16 +16,16 @@ namespace BoneStrike.Tags;
 public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged, IComponentUpdate, IGrabCallback, IDropCallback
 {
     public static readonly CachedQuery<BombMarker> Query = CachedQueryManager.Create<BombMarker>();
-    
+
     private const float MaxVelocitySquared = 1000f;
 
     public NetworkEntity? NetworkEntity;
     public MarrowEntity? MarrowEntity;
     private Vector3? _returnPosition;
     private List<Rigidbody>? _rigidbodies;
-    
+
     private bool _isGrabbed;
-    
+
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
         NetworkEntity = networkEntity;
@@ -48,12 +48,12 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     {
         Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }
-    
+
     public void Update(float delta)
     {
         if (_rigidbodies == null)
             return;
-        
+
         if (_isGrabbed)
             return;
 
@@ -66,14 +66,14 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
             // We can be sure marrowentity exists because otherwise rigidbodies would be null
             MarrowEntity!.transform.position = _returnPosition.Value;
     }
-    
+
     public void OnGrabbed(GrabData grab)
     {
         _isGrabbed = true;
     }
-    
+
     public void OnDropped(GrabData grab)
     {
-        _isGrabbed = false; 
+        _isGrabbed = false;
     }
 }

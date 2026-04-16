@@ -68,7 +68,7 @@ public class PlantPhase : GamePhase
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new IsImportantTag());
-            
+
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });
     }
@@ -114,7 +114,7 @@ public class PlantPhase : GamePhase
 
         if (hand.HasAttachedObject())
             return;
-        
+
         var position = hand.palmPositionTransform.position;
 
         var bombs = BombMarker.Query;
@@ -129,7 +129,7 @@ public class PlantPhase : GamePhase
             var marrow = networkProp.MarrowEntity;
             if (marrow == null)
                 continue;
-            
+
             NetworkEntityManager.TakeOwnership(networkEntity);
             marrow.EnableColliders(false);
             marrow.Teleport(position, Quaternion.identity, true);

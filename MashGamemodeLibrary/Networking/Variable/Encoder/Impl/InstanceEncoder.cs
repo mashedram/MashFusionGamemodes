@@ -8,7 +8,7 @@ public class InstanceEncoder<TValue> : IRefEncoder<TValue> where TValue : class,
 {
     public InstanceEncoder()
     {
-        
+
     }
 
     public int GetSize(TValue value)

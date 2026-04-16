@@ -3,5 +3,5 @@
 [AttributeUsage(AttributeTargets.Class)]
 public class LocalOnly : Attribute
 {
-    
+
 }

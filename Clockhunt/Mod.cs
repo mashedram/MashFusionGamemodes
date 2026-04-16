@@ -7,6 +7,7 @@ using MelonLoader;
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 
 [assembly: NetworkIdentifiable("clockhunt")]
+
 namespace Clockhunt;
 
 public class Mod : MelonMod

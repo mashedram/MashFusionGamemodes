@@ -19,14 +19,14 @@ public class CounterTerroristTeam : LogicTeam
 {
     public override string Name => "Counter Terrorists";
     public override Texture Icon { get; } = MenuResources.GetLogoIcon("SabreLake");
-    
+
     public override void OnPhaseChanged(GamePhase phase)
     {
         Executor.RunIfHost(() =>
         {
             Owner.ToggleTag(phase is DefusePhase, () => new LimitedRespawnComponent(0));
         });
-        
+
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             var isLocked = phase is PlantPhase;
@@ -40,7 +40,7 @@ public class CounterTerroristTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddTag(new PlayerHandTimerTag());
-            
+
             PlayerStatManager.SetStats(new PlayerStats
             {
                 Agility = 1.2f,
@@ -49,7 +49,7 @@ public class CounterTerroristTeam : LogicTeam
                 Speed = 1.5f,
                 Vitality = 1f
             }.MultiplyHealth(BoneStrike.Config.AttackerHealthMultiplier));
-            
+
             Notifier.Send(new Notification
             {
                 Title = "Counter Terrorists",

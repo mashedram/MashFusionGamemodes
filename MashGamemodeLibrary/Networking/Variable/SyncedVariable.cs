@@ -96,7 +96,7 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
     public void SyncTo(byte playerId)
     {
         Relay(_value, playerId);
-    } 
+    }
 
     private void SetValue(TValue newValue)
     {

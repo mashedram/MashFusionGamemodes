@@ -13,9 +13,9 @@ public class AnnouncementAudioPlayer : SyncedAudioPlayer<DummySerializable>
     public AnnouncementAudioPlayer(string name, ISyncedAudioContainer container, AudioModifierFactory? audioModifierFactory = null)
         : base(name, container, new SingleAudioSourceProvider(audioModifierFactory))
     {
-        
+
     }
-    
+
     protected override bool Modifier(DummySerializable data, AudioSource source)
     {
         source.spatialBlend = 0f;

@@ -1,4 +1,5 @@
-﻿using LabFusion.Network.Serialization;using LabFusion.Player;
+﻿using LabFusion.Network.Serialization;
+using LabFusion.Player;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -14,12 +15,12 @@ public class NetworkRuleCatchupEvent : GenericRemoteEvent<NetworkRuleCatchupEven
     public NetworkRuleCatchupEvent(string name) : base(name, CommonNetworkRoutes.HostToRemote)
     {
     }
-    
+
     protected override int? GetSize(NetworkRuleCatchupEventArgs data)
     {
         return null;
     }
-    
+
     protected override void Write(NetWriter writer, NetworkRuleCatchupEventArgs data)
     {
         var rules = data.RuleInstances.ToArray();
@@ -31,14 +32,14 @@ public class NetworkRuleCatchupEvent : GenericRemoteEvent<NetworkRuleCatchupEven
             ruleInstance.GetBaseRule().Serialize(writer);
         }
     }
-    
+
     protected override void Read(byte smallId, NetReader reader)
     {
         var playerId = reader.ReadByte();
         var playerData = PlayerDataManager.GetPlayerData(playerId);
-        if (playerData == null)            
+        if (playerData == null)
             return;
-        
+
         var ruleCount = reader.ReadInt32();
         for (var i = 0; i < ruleCount; i++)
         {
@@ -47,12 +48,12 @@ public class NetworkRuleCatchupEvent : GenericRemoteEvent<NetworkRuleCatchupEven
             ruleInstance?.Deserialize(reader);
         }
     }
-    
+
     public void OnCatchup(PlayerID playerId)
     {
         PlayerDataManager.SendCatchup(playerId);
     }
-    
+
     public void SendCatchup(PlayerID playerId, PlayerData playerData)
     {
         var data = new NetworkRuleCatchupEventArgs(playerData.PlayerID, playerData.RuleInstances);

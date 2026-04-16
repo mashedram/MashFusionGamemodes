@@ -25,56 +25,56 @@ public static class HeadSfxPatches
 
         return true;
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.Speak))]
     [HarmonyPrefix]
     public static bool SpeakPrefix(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.JumpEffort))]
     [HarmonyPrefix]
     public static bool JumpEffort(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.DoubleJump))]
     [HarmonyPrefix]
     public static bool DoubleJump(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.DyingVocal))]
     [HarmonyPrefix]
     public static bool DyingVocal(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.DeathVocal))]
     [HarmonyPrefix]
     public static bool DeathVocal(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.RecoveryVocal))]
     [HarmonyPrefix]
     public static bool RecoveryVocal(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.BigDamageVocal))]
     [HarmonyPrefix]
     public static bool BigDamageVocal(HeadSFX __instance)
     {
         return CanPlay(__instance);
     }
-    
+
     [HarmonyPatch(nameof(HeadSFX.SmallDamageVocal))]
     [HarmonyPrefix]
     public static bool SmallDamageVocal(HeadSFX __instance)

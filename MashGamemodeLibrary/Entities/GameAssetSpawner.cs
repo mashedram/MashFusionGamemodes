@@ -41,11 +41,11 @@ public static class GameAssetSpawner
                     }
                     return;
                 }
-                
+
                 // We're done, no extra behavior
                 if (components.Length == 0)
                     return;
-                
+
                 Executor.RunIfHost(() =>
                 {
                     result.WaitOnMarrowEntity((entity, _) =>
@@ -67,14 +67,14 @@ public static class GameAssetSpawner
             MelonLogger.Error($"Attempted to despawn a player entity: {networkEntity.ID}");
             return;
         }
-        
+
         NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
         {
             EntityID = networkEntity.ID,
             DespawnEffect = true
         });
     }
-    
+
     public static void DespawnAll<T>() where T : IComponent
     {
         Executor.RunIfHost(() =>

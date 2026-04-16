@@ -60,11 +60,11 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     {
         LogicTeamManager.Enable<NightmareTeam>();
         LogicTeamManager.Enable<SurvivorTeam>();
-        
+
         Executor.RunIfHost(() =>
         {
             NightmareManager.ClearNightmares();
-            
+
             LimitedRespawnComponent.RegisterSpectatePredicate<Clockhunt>(player =>
             {
                 if (AnyAliveSurvivors(player))
@@ -73,7 +73,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
                 WinManager.Win<NightmareTeam>();
                 return false;
             });
-            
+
             GamePhaseManager.Enable<HidePhase>();
         });
 
@@ -127,6 +127,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
 
     private static bool AnyAliveSurvivors(NetworkPlayer? skip = null)
     {
-        return NetworkPlayer.Players.Any(player => !player.PlayerID.IsSpectating() && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
+        return NetworkPlayer.Players.Any(player =>
+            !player.PlayerID.IsSpectating() && player.PlayerID.IsTeam<SurvivorTeam>() && !player.PlayerID.Equals(skip?.PlayerID));
     }
 }

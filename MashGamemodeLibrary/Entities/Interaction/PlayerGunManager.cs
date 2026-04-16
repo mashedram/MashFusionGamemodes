@@ -18,7 +18,7 @@ internal enum WeaponType
 internal class DamageRemapper
 {
     public delegate float DamageRemapFunction(float damage, float roundsPerSecond, Gun.FireMode fireMode, float multIn);
-    
+
     private readonly float _highTarget;
     private readonly float _highValue;
 
@@ -26,11 +26,12 @@ internal class DamageRemapper
     private readonly float _lowValue;
 
     private readonly float _ttkMultiplier;
-    
-    private readonly DamageRemapFunction[] _remapFunctions;
-    
 
-    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.5f, params DamageRemapFunction[] remapFunctions)
+    private readonly DamageRemapFunction[] _remapFunctions;
+
+
+    public DamageRemapper(float ttkMultiplier, float lowValue, float highValue, float target, float deviation = 0.5f,
+        params DamageRemapFunction[] remapFunctions)
     {
         _ttkMultiplier = ttkMultiplier;
         _lowValue = lowValue;
@@ -39,7 +40,7 @@ internal class DamageRemapper
         var halfDeviation = deviation / 2f;
         _lowTarget = Math.Max(target - halfDeviation, 0f);
         _highTarget = Math.Max(target + halfDeviation, 0f);
-        
+
         _remapFunctions = remapFunctions;
     }
 
@@ -103,7 +104,7 @@ public static class PlayerGunManager
             1.2f,
             1.1f,
             0.3f,
-            ((damage, second, mode, @in) => mode == Gun.FireMode.SEMIAUTOMATIC ? @in * 0.75f : @in)
+            (damage, second, mode, @in) => mode == Gun.FireMode.SEMIAUTOMATIC ? @in * 0.75f : @in
         ));
         DamageRemappers.Register(WeaponType.Rifle, new DamageRemapper(
             1.1f,
@@ -174,7 +175,7 @@ public static class PlayerGunManager
     {
         if (gun?.defaultCartridge?.projectile == null)
             return;
-        
+
         gun.defaultCartridge.projectile.damageMultiplier = GetGunDamageMultiplier(gun);
     }
 

@@ -8,6 +8,7 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
 public class CachedPhysicsRig
 {
     public static readonly int SpectatorLayer = BonelabLayers.NoRaycast;
+
     private static readonly Dictionary<string, int> PhysicsRigLayout = new()
     {
         {
@@ -157,6 +158,7 @@ public class CachedPhysicsRig
             "DeciHipRt", BonelabLayers.Deciverse
         }
     };
+
     public static readonly IReadOnlyList<int> SpectatorIgnoredLayers = new[]
     {
         BonelabLayers.Fixture,
@@ -171,14 +173,15 @@ public class CachedPhysicsRig
         BonelabLayers.EntityTrigger,
         BonelabLayers.BeingTrigger
     };
-    public static readonly int SpectatorIgnoredLayerMask = SpectatorIgnoredLayers.Aggregate(0, (mask, layer) => mask | (1 << layer));
+
+    public static readonly int SpectatorIgnoredLayerMask = SpectatorIgnoredLayers.Aggregate(0, (mask, layer) => mask | 1 << layer);
     static CachedPhysicsRig()
     {
         // We only want terrain layers
         Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Default, false);
 
         // Ignore raycasts, so we don't have to worry about them when we set the rig
-        
+
         // Allow feet to collide with the floor
         Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.FeetOnly, true);
 
@@ -193,7 +196,7 @@ public class CachedPhysicsRig
     // Instance
     public ImmutableArray<CachedCollider> Colliders;
     public ImmutableArray<CollisionSFX> CollisionSFXs;
-    
+
     public CachedPhysicsRig(PhysicsRig physicsRig)
     {
         PhysicsRig = physicsRig;
@@ -203,14 +206,14 @@ public class CachedPhysicsRig
             .Select(c => PhysicsRigLayout.TryGetValue(c.name, out var sourceLayer) ? new CachedCollider(c, sourceLayer) : null)
             .OfType<CachedCollider>()
             .ToImmutableArray();
-        
+
         CollisionSFXs = physicsRig
             .GetComponentsInChildren<CollisionSFX>()
             .ToImmutableArray();
     }
 
     public PhysicsRig PhysicsRig { get; init; }
-    
+
     public bool IsColliding { get; private set; }
 
     public void SetColliding(bool isColliding)

@@ -16,7 +16,7 @@ public class RigArtPatches
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance == null)
             return true;
-        
+
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
             return true;
@@ -35,14 +35,14 @@ public class RigArtPatches
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance == null)
             return true;
-        
+
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
             return true;
 
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
             return true;
-        
+
         // TODO: Turn back to ishidden at some point
         return !player.PlayerID.IsSpectating();
     }

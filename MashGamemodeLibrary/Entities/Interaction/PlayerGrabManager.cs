@@ -148,7 +148,7 @@ public class GrabData
 public static class PlayerGrabManager
 {
     private static readonly Dictionary<string, Func<GrabData, bool>> OverwriteMap = new();
-    
+
     // Caches
 
     private static readonly IBehaviourCache<IGrabCallback> GrabCallbackCache = BehaviourManager.CreateCache<IGrabCallback>();
@@ -194,7 +194,7 @@ public static class PlayerGrabManager
         if (!heldItem.IsNetworked(out var networkEntity)) return;
 
         // Callbacks to internal systems
-        
+
         // TODO: Maybe not needed
         // PlayerHider.OnDrop(grab);
         // PlayerColliderManager.OnDrop(grab);
@@ -231,7 +231,7 @@ public static class PlayerGrabManager
         var predicates = GrabPredicateCache
             .GetAll(networkEntity.ID);
 
-        return predicates.All(predicate => predicate.Try(p=> p.CanGrab(grab), false));
+        return predicates.All(predicate => predicate.Try(p => p.CanGrab(grab), false));
     }
 
     public static bool IsHolding<T>(Hand hand) where T : class, IComponent
@@ -292,13 +292,13 @@ public static class PlayerGrabManager
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer is not { HasRig: true })
             return Array.Empty<GripWithHand>();
-        
+
         var hands = new[]
         {
             localPlayer.RigRefs.LeftHand,
             localPlayer.RigRefs.RightHand
         };
-        
+
         return hands
             .Select(hand =>
             {

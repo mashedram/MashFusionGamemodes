@@ -16,10 +16,10 @@ public class PlayerBodylogVisibility : IPlayerVisibility
         "BodyLog/PreviewPoint",
         "BodyLog/Dial"
     };
-    
+
     private bool _isVisible = true;
     private List<GameObject> _bodylogObjects = new();
-    
+
     public void SetVisible(bool isVisible)
     {
         _isVisible = isVisible;
@@ -29,7 +29,7 @@ public class PlayerBodylogVisibility : IPlayerVisibility
                 bodylogObject.SetActive(isVisible);
         }
     }
-    
+
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         foreach (var bodylogObject in _bodylogObjects)
@@ -37,23 +37,23 @@ public class PlayerBodylogVisibility : IPlayerVisibility
             if (bodylogObject != null)
                 bodylogObject.SetActive(true);
         }
-        
+
         _bodylogObjects.Clear();
 
         var slot = rigManager.inventory.specialItems[0];
         if (slot == null)
             return;
-        
+
         foreach (var bodylogPart in BodylogParts)
         {
             var bodylogObject = slot.transform.Find(bodylogPart)?.gameObject;
             if (bodylogObject == null) continue;
-            
+
             _bodylogObjects.Add(bodylogObject);
         }
         SetVisible(_isVisible);
     }
-    
+
     public void OnAvatarChanged(Avatar avatar)
     {
         // No-Op

@@ -18,7 +18,7 @@ public static class ConfigManager
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        WriteIndented = true,
+        WriteIndented = true
     };
 
     // Two registries, one for our local hosted and saved config instance, and one for the config we are using and receive from the client.
@@ -105,9 +105,9 @@ public static class ConfigManager
             InternalLogger.Debug($"Failed to get config of type: {typeof(T)}");
             return;
         }
-        
+
         RemoteConfigInstance.SetAndSync(typedConfig);
-        
+
         InternalLogger.Debug("Set and synced config to remotes.");
     }
 
@@ -119,7 +119,7 @@ public static class ConfigManager
             return instance;
         }
         MelonLogger.Error("Active config is of an invalid type.");
-        
+
         if (!LocalConfigTypedRegistry.TryGet<T>(out var config))
         {
             throw new Exception($"No local config of type {typeof(T).Name} has been registered!");
@@ -138,7 +138,7 @@ public static class ConfigManager
         }
 
         func(localConfig);
-        
+
         InternalLogger.Debug($"Config: {localConfig.GetType()} became dirty");
         DirtyConfigs.Add(localConfig);
         _lastChanged = DateTime.Now;
@@ -172,7 +172,7 @@ public static class ConfigManager
             return;
 
         var clonedConfig = (IConfig)localConfig.Clone();
-        
+
         RemoteConfigInstance.SetAndSync(clonedConfig);
         InternalLogger.Debug($"Synced config: {RemoteConfigInstance.Value.GetType().FullName}");
     }

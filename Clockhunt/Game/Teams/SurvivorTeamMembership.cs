@@ -22,8 +22,8 @@ public class SurvivorTeam : LogicTeam
             Owner.AddTag(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
             Owner.AddTag(new PlayerHandTimerTag());
         });
-        
-        Executor.RunIfMe(Owner.PlayerID,() =>
+
+        Executor.RunIfMe(Owner.PlayerID, () =>
         {
             PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
         });

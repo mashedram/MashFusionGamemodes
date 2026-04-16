@@ -38,20 +38,20 @@ namespace MashGamemodeLibrary;
 public class Mod : MelonMod
 {
     public static readonly string ModDataDirectory = MelonEnvironment.UserDataDirectory + "/mashgamemodelibrary";
-    
+
     public override void OnInitializeMelon()
     {
         var fusionMod = FindMelon("LabFusion", "Lakatrazz");
         if (fusionMod == null) return;
-        
+
         ModIntegrations.TryInitialize();
-        
+
         ModuleManager.RegisterModule<FusionModule>();
 
         RegisterInternal<Mod>();
-        
+
         NetworkEventsExtender.Register();
-        
+
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
     }
@@ -99,7 +99,7 @@ public class Mod : MelonMod
         AutoRegistery.Register<T>();
         PlayerData.Register<T>();
     }
-    
+
     public static void Register<T>()
     {
         GamePhaseManager.Registry.RegisterAll<T>();

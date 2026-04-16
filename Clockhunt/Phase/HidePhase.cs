@@ -23,7 +23,7 @@ public class HidePhase : GamePhase, ITimedPhase
     public override PhaseIdentifier GetNextPhase()
     {
         if (!HasReachedDuration()) return PhaseIdentifier.Empty();
-        
+
         return PhaseIdentifier.Of<HuntPhase>();
     }
 
@@ -38,11 +38,11 @@ public class HidePhase : GamePhase, ITimedPhase
             ShowPopup = true,
             Type = NotificationType.INFORMATION
         });
-        
+
         Executor.RunIfHost(() =>
         {
             LogicTeamManager.AssignAll<SurvivorTeam>();
-            
+
             NetworkPlayer.Players.ForEach(player =>
             {
                 if (!player.HasRig) return;

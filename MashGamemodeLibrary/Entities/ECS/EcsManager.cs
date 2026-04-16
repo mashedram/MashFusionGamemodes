@@ -15,7 +15,7 @@ public static class EcsManager
 
     private static readonly IBehaviourCache<IComponentReady> ComponentReadyCache = BehaviourManager.CreateCache<IComponentReady>();
     private static readonly IBehaviourCache<IComponentPlayerReady> ComponentPlayerReadyCache = BehaviourManager.CreateCache<IComponentPlayerReady>();
-    
+
     private static readonly IBehaviourCache<IComponentUpdate> ComponentUpdateCache = BehaviourManager.CreateCache<IComponentUpdate>();
     private static readonly IBehaviourCache<IComponentRemoved> ComponentRemovedCache = BehaviourManager.CreateCache<IComponentRemoved>();
 
@@ -44,13 +44,13 @@ public static class EcsManager
     {
         ComponentUpdateCache.ForEach(behaviour => behaviour.Update(delta));
     }
-    
+
     // Public methods
-    
+
     public static void RegisterAll<T>()
     {
         LocalEcsCache.Registry.RegisterAll<T>();
-        
+
         // Ensure that all static constructors are run for the registered types, so if they have their own caches, these are also loaded
         foreach (var allType in LocalEcsCache.Registry.GetAllTypes())
         {
@@ -62,7 +62,7 @@ public static class EcsManager
     {
         var index = EcsIndex.Create(entity, component);
         var instance = new ComponentInstance(index, component);
-        
+
         LocalEcsCache.Add(instance);
     }
 
@@ -70,7 +70,7 @@ public static class EcsManager
     {
         LocalEcsCache.Remove<T>(entity);
     }
-    
+
     public static void ClearComponents(this NetworkEntity networkEntity)
     {
         LocalEcsCache.Clear(networkEntity.ID);
@@ -80,12 +80,12 @@ public static class EcsManager
     {
         return LocalEcsCache.GetComponent<T>(entity.ID);
     }
-    
+
     public static T? GetComponent<T>(ushort entityId) where T : class, IComponent
     {
         return LocalEcsCache.GetComponent<T>(entityId);
     }
-    
+
     public static T? GetComponent<T>(byte playerId) where T : class, IComponent
     {
         return LocalEcsCache.GetComponent<T>(playerId);

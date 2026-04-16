@@ -15,7 +15,7 @@ public static class CosmeticInstancePatch
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance?.NetworkPlayer?.PlayerID == null)
             return true;
-        
+
         if (!__instance.NetworkPlayer.IsSpectating())
             return true;
 

@@ -20,12 +20,12 @@ public static class StableHash
     {
         return Fnv1A64(input);
     }
-    
+
     public static ulong GetStableHash(this Type type)
     {
         return Fnv1A64(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
     }
-    
+
     public static ulong GetStableHash<T>(this T instance) where T : Enum
     {
         return Fnv1A64($"{typeof(T).Name}-{instance}");

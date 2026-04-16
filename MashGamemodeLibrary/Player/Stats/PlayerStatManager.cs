@@ -64,49 +64,49 @@ public static class PlayerStatManager
         SetVitality(null);
         LocalAvatar.RefreshAvatar();
     }
-    
+
     // Getter
 
     private static float GetBalancedModifier(Avatar avatar)
     {
         var difference = Mathf.Abs(avatar.height - TargetHeight);
-        
-        if (difference <= SafeMargin) 
+
+        if (difference <= SafeMargin)
             return 1f;
-        
-        if (difference >= MaxMargin) 
+
+        if (difference >= MaxMargin)
             return 1f - Multiplier;
-        
+
         var factor = (difference - SafeMargin) / (MaxMargin - SafeMargin);
         return 1f - factor * Multiplier;
     }
-    
+
     private static float GetTeamBalanceModifier()
     {
         var localTeamId = LogicTeamManager.GetLocalTeamID();
         if (!localTeamId.HasValue)
             return 1f;
-        
+
         var validPlayers = NetworkPlayer.Players
             .Where(p => p.HasRig)
             .ToList();
-        
+
         var teamMemberCount = validPlayers.Count(p => LogicTeamManager.GetPlayerTeamID(p.PlayerID) == localTeamId.Value);
         var totalPlayers = validPlayers.Count;
         var enemyCount = totalPlayers - teamMemberCount;
-        
+
         // Health should not change if the player team has the advantage of numbers, but should be reduced if they are outnumbered
         if (enemyCount <= teamMemberCount)
             return 1f;
-        
+
         var difference = enemyCount - teamMemberCount;
-        if (difference >= TeamUnbalancedSteps) 
+        if (difference >= TeamUnbalancedSteps)
             return 1f + TeamUnbalancedMultiplier;
-        
+
         var factor = difference / TeamUnbalancedSteps;
         return 1f + factor * TeamUnbalancedMultiplier;
     }
-    
+
     public static PlayerStats? GetLocalStats(Avatar? avatar)
     {
         if (!TryGetLocalStats(avatar, out var stats))
@@ -114,7 +114,7 @@ public static class PlayerStatManager
 
         return stats;
     }
-    
+
     public static bool TryGetLocalStats(Avatar? avatar, out PlayerStats stats)
     {
         if (!LocalStatOverride.HasValue)

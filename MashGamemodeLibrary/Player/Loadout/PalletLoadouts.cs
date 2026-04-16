@@ -196,11 +196,11 @@ public static class PalletLoadoutManager
     {
         AssignLoadoutEvent.Call(new DummySerializable());
     }
-    
+
     public static void ReassignOwnLoadout()
     {
         SlotData.ClearSpawned();
-        
+
         var loadout = GetLoadout();
         loadout.Assign();
     }

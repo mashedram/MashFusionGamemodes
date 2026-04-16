@@ -49,7 +49,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     public virtual int RoundCount => 1;
     public new static bool IsStarted { get; private set; }
     public new static bool IsInRound { get; private set; }
-    
+
     public static event ConfigChangedHandler? OnConfigChanged;
 
     // Constructor
@@ -111,7 +111,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     protected virtual void OnCleanup()
     {
     }
-    
+
     /// <summary>
     ///     Called on the host when a player joins after the gamemode has started.
     /// </summary>

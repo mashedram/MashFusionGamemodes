@@ -17,7 +17,7 @@ public static class AvatarPatches
     {
         if (__instance == null)
             return;
-        
+
         if (!PlayerStatManager.TryGetLocalStats(__instance, out var stats))
             return;
 
@@ -29,7 +29,7 @@ public static class AvatarPatches
 
         if (rigManager != BoneLib.Player.RigManager)
             return;
-        
+
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;

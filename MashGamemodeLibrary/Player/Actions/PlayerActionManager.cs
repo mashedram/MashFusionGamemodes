@@ -72,7 +72,7 @@ public static class PlayerActionManager
     {
         if (!NetworkInfo.HasServer)
             return;
-        
+
         PlayerInputTags.ForEach(tag => tag.OnInput(type, state, handedness));
     }
 }

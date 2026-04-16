@@ -28,6 +28,7 @@ public static class NightmareManager
     private static readonly FactoryTypedRegistry<NightmareConfig> NightmareConfigRegistry = new();
 
     private static readonly Dictionary<ulong, NightmareConfig> LocalConfigs = new();
+
     private static readonly SyncedDictionary<ulong, NightmareConfig> ActiveConfigs = new("NightmareConfigs", new ULongEncoder(),
         new DynamicInstanceEncoder<NightmareConfig>(NightmareConfigRegistry));
 
@@ -37,14 +38,16 @@ public static class NightmareManager
         .ToList()
     );
 
-    private static readonly SyncedDictionary<byte, ulong> PlayerNightmareIds = new("NightmareManager_PlayerNightmareIds", new ByteEncoder(), new ULongEncoder());
+    private static readonly SyncedDictionary<byte, ulong> PlayerNightmareIds =
+        new("NightmareManager_PlayerNightmareIds", new ByteEncoder(), new ULongEncoder());
+
     private static readonly Dictionary<byte, NightmareInstance> NightmareInstances = new();
 
     static NightmareManager()
     {
         PlayerNightmareIds.OnValueAdded += OnPlayerNightmareChange;
         PlayerNightmareIds.OnValueChanged += OnPlayerNightmareChange;
-        
+
         PlayerNightmareIds.OnValueRemoved += OnPlayerNightmareRemove;
 
         NightmareRegistry.OnRegister += (key, descriptor) =>
@@ -52,7 +55,7 @@ public static class NightmareManager
             var id = NightmareConfigRegistry.CreateID(descriptor.ConfigType);
             if (!NightmareConfigRegistry.Contains(id))
                 NightmareConfigRegistry.Register(id, descriptor.ConfigFactory);
-            
+
             LocalConfigs[key] = descriptor.ConfigFactory.Invoke();
         };
     }
@@ -96,11 +99,11 @@ public static class NightmareManager
         }
 
         var descriptorID = NightmareRandomProvider.GetRandomValue();
-        
+
         // Default value means no id
         if (descriptorID == 0)
             throw new Exception($"Failed to assign nightmare to player {playerID}");
-        
+
         PlayerNightmareIds[playerID] = descriptorID;
     }
 
@@ -166,7 +169,7 @@ public static class NightmareManager
         {
             ActiveConfigs[nightmareId] = LocalConfigs[nightmareId];
         });
-        
+
         var instance = descriptor.CreateInstance(smallId);
         NightmareInstances[smallId] = instance;
         instance.Apply();

@@ -34,7 +34,7 @@ internal class RespawnCountPacket : INetSerializable
 public class LimitedRespawnComponent : IComponentRemoved, IComponentPlayerReady, IPlayerActionCallback
 {
     public static readonly CachedQuery<LimitedRespawnComponent> Query = CachedQueryManager.Create<LimitedRespawnComponent>();
-    
+
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);
     private static readonly Dictionary<Type, PlayerSpectatePredicate> GlobalPredicates = new();

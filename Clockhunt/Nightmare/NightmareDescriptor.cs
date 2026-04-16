@@ -24,7 +24,7 @@ public abstract class NightmareDescriptor
 
     public virtual Type ConfigType => typeof(NightmareConfig);
     public virtual Func<NightmareConfig> ConfigFactory => () => new NightmareConfig();
-    
+
     public T GetConfig<T>() where T : NightmareConfig
     {
         return NightmareManager.GetConfig<T>(this);

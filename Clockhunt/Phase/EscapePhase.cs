@@ -21,7 +21,7 @@ public class EscapePhase : GamePhase, ITimedPhase
 {
     public override string Name => "Escape";
     public override float Duration => Clockhunt.Config.EscapePhaseDuration;
-    
+
     public override PhaseIdentifier GetNextPhase()
     {
         return PhaseIdentifier.Empty();
@@ -37,7 +37,7 @@ public class EscapePhase : GamePhase, ITimedPhase
             {
                 entry.SetRespawns(0);
             });
-            
+
             var context = Clockhunt.Context;
             var name = context.EscapeAudioPlayer.GetRandomAudioName();
             context.EscapeAudioPlayer.Play(name, escapePoint);
