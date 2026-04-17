@@ -14,7 +14,6 @@ using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -160,7 +159,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         // PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
-            PlayerTagManager.ClearPlayerTags();
+            PlayerComponentExtender.ClearPlayerComponents();
             LocalEcsCache.Clear();
             SpectatorExtender.StopSpectatingAll();
             // SpectatorManager.StopSpectatingAll();

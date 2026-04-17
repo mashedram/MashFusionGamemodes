@@ -1,7 +1,4 @@
-﻿using BoneStrike.Phase;
-using BoneStrike.Tags;
-using LabFusion.Menu;
-using LabFusion.Player;
+﻿using BoneStrike.Tags;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -10,20 +7,19 @@ using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
-using UnityEngine;
+using TheHunt.Phase;
 
-namespace BoneStrike.Teams;
+namespace TheHunt.Teams;
 
-public class TerroristTeam : LogicTeam
+public class HiderTeam : LogicTeam
 {
-    public override string Name => "Terrorists";
-    public override Texture Icon { get; } = MenuResources.GetLogoIcon("LavaGang");
+    public override string Name => "Hiders";
 
     public override void OnPhaseChanged(GamePhase phase)
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawnComponent(0));
+            Owner.ToggleComponent(phase is not HidePhase, () => new LimitedRespawnComponent(0));
         });
     }
 
@@ -36,17 +32,16 @@ public class TerroristTeam : LogicTeam
             PlayerStatManager.SetStats(new PlayerStats
             {
                 Agility = 1.2f,
-                LowerStrength = 1.2f,
-                UpperStrength = 1.2f,
-                Speed = 1.5f,
+                LowerStrength = 1.1f,
+                UpperStrength = 1.1f,
+                Speed = 1.32f,
                 Vitality = 1f
-            }.MultiplyHealth(BoneStrike.Config.DefenderHealthMultiplier));
+            });
 
             Notifier.Send(new Notification
             {
-                Title = "Terrorists",
-                Message =
-                    $"Hide and defend the bomb. Teleport the bomb to you by tapping the menu button if you lose it.",
+                Title = "Hiders",
+                Message = $"Get away.",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,

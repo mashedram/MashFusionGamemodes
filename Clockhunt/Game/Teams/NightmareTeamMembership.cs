@@ -4,7 +4,6 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 using MelonLoader;
 

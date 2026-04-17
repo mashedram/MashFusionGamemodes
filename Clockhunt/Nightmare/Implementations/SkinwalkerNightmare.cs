@@ -11,7 +11,7 @@ using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player;
-using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 
 namespace Clockhunt.Nightmare.Implementations;

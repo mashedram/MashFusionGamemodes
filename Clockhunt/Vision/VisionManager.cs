@@ -11,19 +11,19 @@ internal struct NightVisionObject
     public GameObject GameObject;
     public ColorAdjustments ColorAdjustments;
 
-    public void SetActive(bool state)
+    public readonly void SetActive(bool state)
     {
         if (!GameObject)
             return;
         GameObject.SetActive(state);
     }
 
-    public void SetColor(Color color)
+    public readonly void SetColor(Color color)
     {
         ColorAdjustments.colorFilter.value = color;
     }
 
-    public void SetBrightness(float value)
+    public readonly void SetBrightness(float value)
     {
         ColorAdjustments.postExposure.value = value;
     }

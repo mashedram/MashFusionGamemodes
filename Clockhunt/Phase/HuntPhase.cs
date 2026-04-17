@@ -26,7 +26,6 @@ using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util;
 using MashGamemodeLibrary.Util.Timer;

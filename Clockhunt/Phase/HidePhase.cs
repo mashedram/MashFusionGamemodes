@@ -8,7 +8,6 @@ using LabFusion.Extensions;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;

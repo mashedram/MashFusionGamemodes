@@ -1,8 +1,5 @@
-﻿using BoneStrike.Phase;
-using BoneStrike.Tags;
-using LabFusion.Menu;
+﻿using BoneStrike.Tags;
 using LabFusion.Player;
-using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -11,27 +8,23 @@ using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
-using UnityEngine;
+using TheHunt.Phase;
 
-namespace BoneStrike.Teams;
+namespace TheHunt.Teams;
 
-public class CounterTerroristTeam : LogicTeam
+public class NightmareTeam : LogicTeam
 {
-    public override string Name => "Counter Terrorists";
-    public override Texture Icon { get; } = MenuResources.GetLogoIcon("SabreLake");
+    public override string Name => "Nightmare";
 
     public override void OnPhaseChanged(GamePhase phase)
     {
-        Executor.RunIfHost(() =>
-        {
-            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawnComponent(0));
-        });
-
+        // TODO : Assign nightmare
+        
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            var isLocked = phase is PlantPhase;
-            LocalControls.LockedMovement = isLocked;
-            LocalVision.Blind = phase is PlantPhase && BoneStrike.Config.BlindAttackersDuringPlanting;
+            var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase;
+            LocalControls.LockedMovement = playerLocked;
+            LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
         });
     }
 
@@ -40,20 +33,22 @@ public class CounterTerroristTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponents(new PlayerHandTimerTag());
+            Owner.RemoveComponent<LimitedRespawnComponent>();
 
+            // TODO: Assign per nightmare
             PlayerStatManager.SetStats(new PlayerStats
             {
-                Agility = 1.2f,
-                LowerStrength = 1.2f,
-                UpperStrength = 1.2f,
+                Agility = 1.4f,
+                LowerStrength = 3f,
+                UpperStrength = 3f,
                 Speed = 1.5f,
-                Vitality = 1f
-            }.MultiplyHealth(BoneStrike.Config.AttackerHealthMultiplier));
+                Vitality = 10f
+            });
 
             Notifier.Send(new Notification
             {
-                Title = "Counter Terrorists",
-                Message = $"Once the bomb has been planted, disarm it by holding it.",
+                Title = "The Nightmare",
+                Message = $"You know what to do.",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,
@@ -61,7 +56,7 @@ public class CounterTerroristTeam : LogicTeam
             });
         });
     }
-
+    
     protected override void OnRemoved()
     {
         Executor.RunIfMe(Owner.PlayerID, () =>

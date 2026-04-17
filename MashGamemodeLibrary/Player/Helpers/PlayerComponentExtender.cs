@@ -2,15 +2,13 @@
 using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Player;
 using MashGamemodeLibrary.Execution;
 
-namespace MashGamemodeLibrary.Player.Controller;
+namespace MashGamemodeLibrary.Player.Helpers;
 
-public static class PlayerTagManager
+public static class PlayerComponentExtender
 {
-    public static void ClearPlayerTags()
+    public static void ClearPlayerComponents()
     {
         Executor.RunIfHost(() =>
         {
@@ -33,13 +31,13 @@ public static class PlayerTagManager
         return component != null;
     }
 
-    public static bool HasTag<T>(this NetworkPlayer player) where T : class, IComponent
+    public static bool HasComponent<T>(this NetworkPlayer player) where T : class, IComponent
     {
 
         return player.NetworkEntity?.GetComponent<T>() != null;
     }
 
-    public static bool HasTag<T>(this NetworkPlayer player, Func<T, bool> predicate) where T : class, IComponent
+    public static bool HasComponent<T>(this NetworkPlayer player, Func<T, bool> predicate) where T : class, IComponent
     {
         if (player.NetworkEntity == null)
             return false;
@@ -48,12 +46,12 @@ public static class PlayerTagManager
         return component != null && predicate(component);
     }
 
-    public static void AddTag(this NetworkPlayer player, IComponent component)
+    public static void AddComponents(this NetworkPlayer player, IComponent component)
     {
         player.NetworkEntity?.AddComponent(component);
     }
 
-    public static bool TryAddTag<T>(this NetworkPlayer player, Func<T> factory) where T : class, IComponent
+    public static bool TryAddComponent<T>(this NetworkPlayer player, Func<T> factory) where T : class, IComponent
     {
         if (player.NetworkEntity.GetComponent<T>() != null)
             return false;
@@ -62,7 +60,7 @@ public static class PlayerTagManager
         return true;
     }
 
-    public static void RemoveTag<T>(this NetworkPlayer player) where T : IComponent
+    public static void RemoveComponent<T>(this NetworkPlayer player) where T : IComponent
     {
         if (player.NetworkEntity == null)
             return;
@@ -70,18 +68,18 @@ public static class PlayerTagManager
         player.NetworkEntity.RemoveComponent<T>();
     }
 
-    public static void ToggleTag<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : class, IComponent
+    public static void ToggleComponent<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : class, IComponent
     {
         if (player.NetworkEntity == null)
             return;
 
         if (state)
         {
-            player.TryAddTag(factory);
+            player.TryAddComponent(factory);
         }
         else
         {
-            player.RemoveTag<T>();
+            player.RemoveComponent<T>();
         }
     }
 }

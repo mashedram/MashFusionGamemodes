@@ -4,7 +4,6 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.MonoBehaviours;
 using LabFusion.Network;
 using LabFusion.Player;
-using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;

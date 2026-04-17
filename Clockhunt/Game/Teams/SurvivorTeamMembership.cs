@@ -5,7 +5,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Controller;
+using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 
@@ -19,8 +19,8 @@ public class SurvivorTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.AddTag(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
-            Owner.AddTag(new PlayerHandTimerTag());
+            Owner.AddComponents(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
+            Owner.AddComponents(new PlayerHandTimerTag());
         });
 
         Executor.RunIfMe(Owner.PlayerID, () =>
@@ -33,9 +33,9 @@ public class SurvivorTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.RemoveTag<LimitedRespawnComponent>();
-            Owner.RemoveTag<PlayerHandTimerTag>();
-            Owner.RemoveTag<PlayerEscapeTag>();
+            Owner.RemoveComponent<LimitedRespawnComponent>();
+            Owner.RemoveComponent<PlayerHandTimerTag>();
+            Owner.RemoveComponent<PlayerEscapeTag>();
         });
     }
 
@@ -43,7 +43,7 @@ public class SurvivorTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleTag(phase is EscapePhase, () => new PlayerEscapeTag());
+            Owner.ToggleComponent(phase is EscapePhase, () => new PlayerEscapeTag());
         });
     }
 }

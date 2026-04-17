@@ -1,7 +1,7 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
-using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;

@@ -15,7 +15,6 @@ using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Player.Collision;
 using MashGamemodeLibrary.Player.Helpers;
 using MelonLoader;
 using UnityEngine;

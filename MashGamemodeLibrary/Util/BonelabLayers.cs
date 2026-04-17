@@ -1,4 +1,4 @@
-﻿namespace MashGamemodeLibrary.Player.Collision;
+﻿namespace MashGamemodeLibrary.Util;
 
 public static class BonelabLayers
 {
@@ -13,7 +13,7 @@ public static class BonelabLayers
     public const int Interactable = 15;
     public const int Deciverse = 17;
     public const int Socket = 18;
-    public const int PlayerAndNPC = 21;
+    public const int PlayerAndNpc = 21;
     public const int FeetOnly = 23;
     public const int Feet = 24;
     public const int EntityTrigger = 30;

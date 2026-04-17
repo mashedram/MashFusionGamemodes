@@ -24,7 +24,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
         if (_timerObject != null || _isSpawning) return;
 
         _isSpawning = true;
-        const string timerBarcode = "Mash.ClockhuntAssets.Spawnable.HandTimer";
+        const string timerBarcode = "Mash.BoneStrike.Spawnable.HandTimer";
         var spawnable = LocalAssetSpawner.CreateSpawnable(timerBarcode);
         LocalAssetSpawner.Register(spawnable);
         LocalAssetSpawner.Spawn(spawnable, Vector3.zero, Quaternion.identity, poolee =>

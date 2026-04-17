@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Il2CppSLZ.Marrow;
-using MashGamemodeLibrary.Player.Collision;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
@@ -169,7 +169,7 @@ public class CachedPhysicsRig
         BonelabLayers.Interactable,
         BonelabLayers.Deciverse,
         BonelabLayers.Socket,
-        BonelabLayers.PlayerAndNPC,
+        BonelabLayers.PlayerAndNpc,
         BonelabLayers.EntityTrigger,
         BonelabLayers.BeingTrigger
     };

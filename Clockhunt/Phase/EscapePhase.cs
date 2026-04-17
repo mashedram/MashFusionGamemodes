@@ -11,7 +11,6 @@ using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 

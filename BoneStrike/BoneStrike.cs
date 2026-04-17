@@ -17,9 +17,10 @@ using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
-using MashGamemodeLibrary.Player.Controller;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -29,7 +30,7 @@ namespace BoneStrike;
 
 public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
 {
-    private Vector3 _resetPoint = Vector3.zero;
+    private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
 
@@ -59,7 +60,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnStart()
     {
-        _resetPoint = RigData.RigSpawn;
+        ResetPoint.Value = RigData.RigSpawn;
 
         Executor.RunIfHost(() =>
         {
@@ -90,7 +91,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         {
             Context.PersistentTeams.SendMessage();
 
-            LeaderboardTag.Spawn(_resetPoint);
+            LeaderboardTag.Spawn(ResetPoint);
         });
     }
 
@@ -134,7 +135,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         FusionPlayer.ResetSpawnPoints();
-        LocalPlayer.TeleportToPosition(_resetPoint);
+        LocalPlayer.TeleportToPosition(ResetPoint);
 
         Executor.RunIfHost(() =>
         {
@@ -149,7 +150,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
 
-            LeaderboardTag.Spawn(_resetPoint);
+            LeaderboardTag.Spawn(ResetPoint);
         });
     }
 
@@ -189,7 +190,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>(),
             _ => !LogicTeamManager.IsTeamMember(player)
         };
-
     }
 
     internal static void ExplodeAllBombs()
@@ -214,7 +214,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         return NetworkPlayer.Players
             .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasTag<LimitedRespawnComponent>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
             );
     }
 }
