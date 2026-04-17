@@ -13,6 +13,11 @@ public static class GameObjectExtender
         GameObjects.Clear();
     }
 
+    /// <summary>
+    /// Creates a GameObject as a child of the given parent, and adds it to the list of GameObjects to be destroyed when the entity is removed.
+    /// </summary> <param name="parent">The parent transform.</param>
+    /// <param name="name">The name of the GameObject.</param>
+    /// <returns>The created GameObject.</returns>
     public static GameObject CreateSafeObject(this Transform parent, string name)
     {
         var gameObject = new GameObject

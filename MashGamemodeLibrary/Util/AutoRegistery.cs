@@ -6,29 +6,17 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Util;
 
+public interface IGuaranteeStaticConstructor
+{
+}
+
 public static class AutoRegistery
 {
-    private static readonly Type[] TargetTypes =
-    {
-        typeof(ICachedQuery),
-        typeof(IBehaviourCache)
-    };
 
     private static bool HasField(Type type)
     {
         var fields = type.GetFields();
-        foreach (var fieldInfo in fields)
-        {
-            var fieldType = fieldInfo.FieldType;
-            foreach (var targetType in TargetTypes)
-            {
-                if (targetType.IsAssignableFrom(fieldType))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return fields.Select(fieldInfo => fieldInfo.FieldType).Any(fieldType => typeof(IGuaranteeStaticConstructor).IsAssignableFrom(fieldType));
     }
 
     internal static void Register(Assembly assembly)
@@ -38,7 +26,7 @@ public static class AutoRegistery
             if (!HasField(type))
                 continue;
 
-            InternalLogger.Debug($"Registering static fields on: {type}");
+            InternalLogger.Debug($"Ensuring the static on constructor is ran: {type}");
             RuntimeHelpers.RunClassConstructor(type.TypeHandle);
         }
     }

@@ -93,7 +93,7 @@ public class ClockhuntConfig : AutoSerialized<ClockhuntConfig>, IConfig, IConfig
     [ConfigMenuEntry("Debug - Skip Nightmare", "EXPERIMENTAL")]
     public bool DebugSkipNightmare = false;
 
-    public PlayerStats DefaultStats = new()
+    public AvatarStats DefaultStats = new()
     {
         Vitality = 0.75f,
         Speed = 1.1f,

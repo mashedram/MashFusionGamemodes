@@ -9,6 +9,8 @@ public class KeyedRegistry<TKey, TValue> : IKeyedRegistry<TKey, TValue>
 {
     private readonly Dictionary<TKey, TValue> _dictionary = new();
 
+    public int Count => _dictionary.Count;
+    
     public event IKeyedRegistry<TKey, TValue>.OnRegisterHandler? OnRegister;
     public void Register<T>(TKey id, T value) where T : TValue
     {

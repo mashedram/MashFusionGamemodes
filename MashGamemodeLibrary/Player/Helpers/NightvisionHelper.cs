@@ -1,10 +1,8 @@
-﻿using Clockhunt.Config;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using LightType = UnityEngine.LightType;
 
-namespace Clockhunt.Vision;
+namespace MashGamemodeLibrary.Player.Helpers;
 
 internal struct NightVisionObject
 {
@@ -29,18 +27,33 @@ internal struct NightVisionObject
     }
 }
 
-public static class VisionManager
+public static class NightVisionHelper
 {
-    private static bool _nightVisionEnabled = false;
+    private static bool _nightVisionEnabled;
+    private static float _nightVisionBrightness = 1f;
     private static NightVisionObject? _instance;
 
-    static VisionManager()
+    public static bool Enabled
     {
-        Clockhunt.OnConfigChanged += config =>
-        {
-            _instance?.SetActive(_nightVisionEnabled && config.NightVision);
-            _instance?.SetBrightness(config.NightVisionBrightness);
-        };
+        get => _nightVisionEnabled;
+        set => ToggleNightVision(value);
+    }
+
+    public static float Brightness
+    {
+        get => _nightVisionBrightness;
+        set {
+            _nightVisionBrightness = value;
+            _instance?.SetBrightness(value);
+        }
+    }
+
+    private static void ToggleNightVision(bool isEnabled)
+    {
+        _nightVisionEnabled = isEnabled;
+        
+        var go = GetOrCreate();
+        go.SetActive(isEnabled);
     }
 
     private static NightVisionObject GetOrCreate()
@@ -65,7 +78,7 @@ public static class VisionManager
 
         var colorAdjustments = profile.Add<ColorAdjustments>(true);
         colorAdjustments.contrast.value = 20f; // Increase contrast
-        colorAdjustments.postExposure.value = Clockhunt.Config.NightVisionBrightness; // Slightly increase exposure
+        colorAdjustments.postExposure.value = _nightVisionBrightness; // Slightly increase exposure
         colorAdjustments.colorFilter.value = Color.white;
 
         var light = go.AddComponent<Light>();
@@ -81,22 +94,5 @@ public static class VisionManager
             ColorAdjustments = colorAdjustments
         };
         return _instance.Value;
-    }
-
-    public static void EnableNightVision()
-    {
-        _nightVisionEnabled = true;
-
-        if (!Clockhunt.Config.NightVision) return;
-
-        var go = GetOrCreate();
-        go.SetActive(true);
-    }
-
-    public static void DisableNightVision()
-    {
-        _nightVisionEnabled = false;
-
-        _instance?.SetActive(false);
     }
 }

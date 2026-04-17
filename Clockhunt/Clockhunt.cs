@@ -113,7 +113,7 @@ internal class Clockhunt : GamemodeWithContext<ClockhuntContext, ClockhuntConfig
     protected override void OnCleanup()
     {
         MarkerManager.ClearMarker();
-        VisionManager.DisableNightVision();
+        NightVisionHelper.Enabled = false;
 
         LocalAvatar.AvatarOverride = null;
 

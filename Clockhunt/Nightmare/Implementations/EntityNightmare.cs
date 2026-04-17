@@ -56,7 +56,7 @@ public class EntityNightmareInstance : NightmareInstance
 
     public override void OnApplied()
     {
-        Executor.RunIfMe(Owner.PlayerID, VisionManager.EnableNightVision);
+        Executor.RunIfMe(Owner.PlayerID, () => NightVisionHelper.Enabled = true);
 
         Executor.RunIfNotMe(Owner.PlayerID, () =>
         {
@@ -115,7 +115,7 @@ public class EntityNightmareDescriptor : NightmareDescriptor
     public override string SurvivorDescription => "Avoid the entity and escape.";
     public override string Avatar => "fa534c5a83ee4ec6bd641fec424c4142.Avatar.CharTallv4";
 
-    public override PlayerStats Stats => new()
+    public override AvatarStats Stats => new()
     {
         Vitality = 3f,
         UpperStrength = 8f,

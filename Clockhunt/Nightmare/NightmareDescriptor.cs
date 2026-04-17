@@ -30,9 +30,9 @@ public abstract class NightmareDescriptor
         return NightmareManager.GetConfig<T>(this);
     }
 
-    public abstract PlayerStats Stats { get; }
+    public abstract AvatarStats Stats { get; }
 
-    public virtual PlayerStats GetStats()
+    public virtual AvatarStats GetStats()
     {
         return Stats;
     }

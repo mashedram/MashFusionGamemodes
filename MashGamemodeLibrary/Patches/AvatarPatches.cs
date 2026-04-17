@@ -18,7 +18,7 @@ public static class AvatarPatches
         if (__instance == null)
             return;
 
-        if (!PlayerStatManager.TryGetLocalStats(__instance, out var stats))
+        if (!AvatarStatManager.TryGetLocalStats(__instance, out var stats))
             return;
 
         if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")

@@ -149,7 +149,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         SlotData.ClearSpawned();
 
         GamePhaseManager.Disable();
-        PlayerStatManager.ResetStats();
+        AvatarStatManager.ResetStats();
         PlayerGunManager.Reset();
         FusionPlayer.ResetSpawnPoints();
         LogicTeamManager.Disable();

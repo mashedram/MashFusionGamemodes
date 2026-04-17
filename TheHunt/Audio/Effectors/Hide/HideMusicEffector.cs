@@ -9,10 +9,10 @@ public class HideMusicEffector : AudioEffector<EnvironmentContext>
 {
     public HideMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
-        "Sylvie.SignalisMonodiscs.MonoDisc.3000Cycles",
-        "Sylvie.SignalisMonodiscs.MonoDisc.FalkesTheme",
-        "Sylvie.SignalisMonodiscs.MonoDisc.TrainRide",
-        "Sylvie.SignalisMonodiscs.MonoDisc.Home"
+        "Sylvie.TheHuntAssets.MonoDisc.3000Cycles",
+        "Sylvie.TheHuntAssets.MonoDisc.FalkesTheme",
+        "Sylvie.TheHuntAssets.MonoDisc.TrainRide",
+        "Sylvie.TheHuntAssets.MonoDisc.Home"
     }))))
     {
     }

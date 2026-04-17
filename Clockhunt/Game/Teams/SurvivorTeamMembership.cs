@@ -19,13 +19,13 @@ public class SurvivorTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.AddComponents(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
-            Owner.AddComponents(new PlayerHandTimerTag());
+            Owner.AddComponent(new LimitedRespawnComponent(Clockhunt.Config.MaxRespawns));
+            Owner.AddComponent(new PlayerHandTimerTag());
         });
 
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            PlayerStatManager.SetStats(Clockhunt.Config.DefaultStats);
+            AvatarStatManager.SetStats(Clockhunt.Config.DefaultStats);
         });
     }
 

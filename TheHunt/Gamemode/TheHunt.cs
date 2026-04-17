@@ -20,6 +20,7 @@ using MashGamemodeLibrary.Player.Team;
 using TheHunt.Audio;
 using TheHunt.Audio.Hunt;
 using TheHunt.Config;
+using TheHunt.Nightmare;
 using TheHunt.Phase;
 using TheHunt.Teams;
 using UnityEngine;
@@ -44,10 +45,17 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
     
     protected override void OnRegistered()
     {
+        NightmareComponent.RegisterAll<TheHunt>();
+        
         LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(_ =>
         {
-            if (AnyHiders())
+            var hiders = CountHiders();
+            if (hiders > 0)
+            {
+                if (hiders == 1)
+                    GamePhaseManager.Enable<FinallyPhase>();
                 return true;
+            }
 
             WinManager.Win<NightmareTeam>();
             return false;
@@ -82,9 +90,40 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
         LogicTeamManager.Enable<HiderTeam>();
         LogicTeamManager.Enable<NightmareTeam>();
 
-        Executor.RunIfHost(GamePhaseManager.Enable<HidePhase>);
+        Executor.RunIfHost(() =>
+        {
+            GamePhaseManager.Enable<HidePhase>();
+            
+            // Assign nightmare
+            if (!_nightmareQueue.TryDequeue(out var nightmareID))
+            {
+                // No nightmare, refresh the queue
+                foreach (var p in PlayerIDManager.PlayerIDs.Shuffle())
+                {
+                    _nightmareQueue.Enqueue(p);
+                }
+
+                // Always has a value, due to PlayerIDs never being empty
+                nightmareID = _nightmareQueue.Dequeue();
+            }
         
-        PlayerStatManager.BalanceStats = Config.BalanceStats;
+            foreach (var playerID in PlayerIDManager.PlayerIDs)
+            {
+                if (!playerID.IsValid)
+                    return;
+                
+                if (playerID.Equals(nightmareID))
+                {
+                    playerID.Assign<NightmareTeam>();
+                }
+                else
+                {
+                    playerID.Assign<HiderTeam>();    
+                }
+            }
+        });
+        
+        AvatarStatManager.BalanceStats = Config.BalanceStats;
         
         EnvironmentContext.Reset();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("night",
@@ -92,33 +131,9 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
             {
                 new ChaseEnvironmentState(),
                 new HuntEnvironmentState(),
-                new HidePhaseEnvironmentState()
+                new HidePhaseEnvironmentState(),
+                new FinallyEnvironmentState()
             }, LocalWeatherManager.ClearLocalWeather));
-        
-        // Assign nightmare
-        if (!_nightmareQueue.TryDequeue(out var playerID))
-        {
-            // No nightmare, refresh the queue
-            foreach (var p in PlayerIDManager.PlayerIDs.Shuffle())
-            {
-                _nightmareQueue.Enqueue(p);
-            }
-
-            // Always has a value, due to PlayerIDs never being empty
-            playerID = _nightmareQueue.Dequeue();
-        }
-        
-        foreach (var iD in PlayerIDManager.PlayerIDs)
-        {
-            if (iD.Equals(playerID))
-            {
-                playerID.Assign<NightmareTeam>();
-            }
-            else
-            {
-                playerID.Assign<HiderTeam>();    
-            }
-        }
     }
 
     protected override void OnRoundEnd(ulong winnerTeamId)
@@ -134,10 +149,32 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
         LocalHealth.MortalityOverride = false;
     }
 
-    private static bool AnyHiders()
+    public override void OnLateJoin(PlayerID playerID)
+    {
+        Executor.RunIfHost(() =>
+        {
+            // Players joining during manual assignment should be assignable, since the game won't start without them anyway
+            var activePhase = GamePhaseManager.ActivePhase;
+            if (activePhase is HidePhase)
+                return;
+
+            playerID.SetSpectating(true);
+        });
+    }
+    
+    public override bool CanAttackPlayer(PlayerID player)
+    {
+        if (LogicTeamManager.IsLocalTeam<NightmareTeam>())
+            return true;
+
+        return false;
+    }
+
+
+    private static int CountHiders()
     {
         return NetworkPlayer.Players
-            .Any(player =>
+            .Count(player =>
                 player.HasRig && player.PlayerID.IsTeam<HiderTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
             );
     }

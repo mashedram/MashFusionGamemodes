@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Player.Actions;
 

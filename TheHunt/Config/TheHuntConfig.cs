@@ -17,10 +17,26 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
         {
             Title = entry.Name,
             Increment = 0.25f,
-            MaxValue = 10f,
+            MaxValue = 30f,
             MinValue = 0.25f,
             Value = Convert.ToSingle(entry.Value) / 60f,
             OnValueChanged = f => setter(entry, Convert.ToSingle(f) * 60f)
+        };
+    }
+}
+
+internal class MinuteElementProvider : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        return new IntElementData
+        {
+            Title = entry.Name,
+            Increment = 1,
+            MaxValue = 30,
+            MinValue = 1,
+            Value = Convert.ToInt32(entry.Value) / 60,
+            OnValueChanged = f => setter(entry, Convert.ToInt32(f) * 60)
         };
     }
 }
@@ -31,7 +47,8 @@ public class TheHuntConfig : IConfig
     [JsonInclude]
     public float HideDuration = 90f;
     
-    [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
+    [ConfigMenuEntry("Hunt Phase Duration", "Time")] 
+    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
     [JsonInclude]
     public float HuntDuration = 360f;
     
@@ -55,14 +72,24 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Weather Type", "Environment")]
     public WeatherType WeatherType = WeatherType.None;
 
-    [ConfigMenuEntry("Music", "Environment")] [SerializableField]
+    [ConfigMenuEntry("Music", "Environment")]
     public bool MusicEnabled = true;
 
-    [ConfigMenuEntry("Nightmare Night Vision", "Environment")] [SerializableField]
+    [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     public bool NightVision = true;
 
-    [ConfigMenuEntry("Night Vision Brightness", "Environment")] [SerializableField]
+    [ConfigMenuEntry("Night Vision Brightness", "Environment")]
+    [ConfigRangeConstraint(0.2f, 3f)]
+    [ConfigStepSize(0.2f)]
     public float NightVisionBrightness = 1.0f;
+    
+    [ConfigMenuEntry("Lock Hider Avatars", "Avatars")]
+    [JsonInclude]
+    public bool LockHiderAvatars = false;
+    
+    [ConfigMenuEntry("Set Nightmare Avatars", "Avatars")]
+    [JsonInclude]
+    public bool SetNightmareAvatars = false;
 
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")] 
     [JsonInclude]
@@ -75,6 +102,12 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref FinallyDuration);
         serializer.SerializeValue(ref LockNightmare);
         serializer.SerializeValue(ref BlindNightmare);
+        serializer.SerializeValue(ref WeatherType);
+        serializer.SerializeValue(ref MusicEnabled);
+        serializer.SerializeValue(ref NightVision);
+        serializer.SerializeValue(ref NightVisionBrightness);
+        serializer.SerializeValue(ref LockHiderAvatars);
+        serializer.SerializeValue(ref SetNightmareAvatars);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref DevToolsDisabled);
     }
@@ -88,6 +121,12 @@ public class TheHuntConfig : IConfig
             FinallyDuration = FinallyDuration,
             LockNightmare = LockNightmare,
             BlindNightmare = BlindNightmare,
+            WeatherType = WeatherType,
+            MusicEnabled = MusicEnabled,
+            NightVision = NightVision,
+            NightVisionBrightness = NightVisionBrightness,
+            LockHiderAvatars = LockHiderAvatars,
+            SetNightmareAvatars = SetNightmareAvatars,
             BalanceStats = BalanceStats,
             DevToolsDisabled = DevToolsDisabled
         };

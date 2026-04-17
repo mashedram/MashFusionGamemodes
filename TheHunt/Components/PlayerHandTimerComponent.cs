@@ -8,6 +8,7 @@ using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Helpers;
+using TheHunt.Phase;
 using UnityEngine;
 
 namespace TheHunt.Components;
@@ -62,6 +63,11 @@ public class PlayerHandTimerComponent : IComponentPlayerReady, IComponentUpdate,
             return;
 
         var time = activePhase.Duration - activePhase.ElapsedTime;
+        
+        // Little edge case
+        if (GamePhaseManager.ActivePhase is HuntPhase)
+            time += Gamemode.TheHunt.Config.FinallyDuration;
+        
         var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
 

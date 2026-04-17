@@ -121,7 +121,7 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             _hasAssignedTeams = true;
         });
 
-        PlayerStatManager.BalanceStats = Config.BalanceStats;
+        AvatarStatManager.BalanceStats = Config.BalanceStats;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
 
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
@@ -177,7 +177,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
             playerID.SetSpectating(true);
             Context.PersistentTeams.QueueLateJoiner(playerID);
         });
-
     }
 
     public override bool CanAttackPlayer(PlayerID player)

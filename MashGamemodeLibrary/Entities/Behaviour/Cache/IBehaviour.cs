@@ -1,4 +1,4 @@
-﻿namespace MashGamemodeLibrary.Entities.ECS.Declerations;
+﻿namespace MashGamemodeLibrary.Entities.Behaviour.Cache;
 
 public interface IBehaviour
 {

@@ -2,7 +2,7 @@
 
 namespace MashGamemodeLibrary.Player;
 
-public struct PlayerStats : INetSerializable
+public struct AvatarStats : INetSerializable
 {
     public float Vitality;
     public float Speed;
@@ -19,7 +19,7 @@ public struct PlayerStats : INetSerializable
         serializer.SerializeValue(ref LowerStrength);
     }
 
-    public readonly PlayerStats MultiplyHealth(float mult)
+    public readonly AvatarStats MultiplyHealth(float mult)
     {
         return this with
         {

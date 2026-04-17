@@ -5,6 +5,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
+using MashGamemodeLibrary.Player.Helpers;
 using UnityEngine;
 
 namespace Clockhunt.Nightmare.Implementations;
@@ -23,7 +24,7 @@ public class RushNightmareInstance : NightmareInstance
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            VisionManager.EnableNightVision();
+            Executor.RunIfMe(Owner.PlayerID, () => NightVisionHelper.Enabled = true);
 
             Owner.RigRefs.RigManager.remapHeptaRig.doubleJump = true;
         });
@@ -90,7 +91,7 @@ public class RushNightmareDescriptor : NightmareDescriptor
     public override string SurvivorDescription => "Use cover!";
     public override string Avatar => "nitwit.TF2AvatarPack.Avatar.HeavyAPose";
 
-    public override PlayerStats Stats => new()
+    public override AvatarStats Stats => new()
     {
         Vitality = 6f,
         UpperStrength = 8f,

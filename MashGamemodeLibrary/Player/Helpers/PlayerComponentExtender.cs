@@ -46,11 +46,22 @@ public static class PlayerComponentExtender
         return component != null && predicate(component);
     }
 
-    public static void AddComponents(this NetworkPlayer player, IComponent component)
+    public static void AddComponent(this NetworkPlayer player, IComponent component)
     {
         player.NetworkEntity?.AddComponent(component);
     }
+    
+    public static void AddComponents(this NetworkPlayer player, params IComponent[] components)
+    {
+        if (player.NetworkEntity == null)
+            return;
 
+        foreach (var component in components)
+        {
+            player.NetworkEntity.AddComponent(component);
+        }
+    }
+    
     public static bool TryAddComponent<T>(this NetworkPlayer player, Func<T> factory) where T : class, IComponent
     {
         if (player.NetworkEntity.GetComponent<T>() != null)

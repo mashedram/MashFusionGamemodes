@@ -47,7 +47,7 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            VisionManager.EnableNightVision();
+            Executor.RunIfMe(Owner.PlayerID, () => NightVisionHelper.Enabled = true);
             _disguiseAvatarBarcode = LocalAvatar.AvatarBarcode ?? NightmareAvatarBarcode;
             _isDisguised = true;
         });
@@ -66,9 +66,9 @@ public class SkinwalkerNightmareInstance : NightmareInstance
     public override void OnAbilityKeyTapped(Handedness handedness)
     {
         if (_isDisguised)
-            PlayerStatManager.SetAvatarAndStats(GetConfig<NightmareConfig>().AvatarOverride ?? NightmareAvatarBarcode, Descriptor.Stats);
+            AvatarStatManager.SetAvatarAndStats(GetConfig<NightmareConfig>().AvatarOverride ?? NightmareAvatarBarcode, Descriptor.Stats);
         else
-            PlayerStatManager.SetAvatarAndStats(_disguiseAvatarBarcode, Descriptor.GetStats());
+            AvatarStatManager.SetAvatarAndStats(_disguiseAvatarBarcode, Descriptor.GetStats());
 
         _isDisguised = !_isDisguised;
     }
@@ -92,7 +92,7 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
         AbilityCooldown = 10f
     };
 
-    public override PlayerStats Stats => new()
+    public override AvatarStats Stats => new()
     {
         Vitality = 8f,
         UpperStrength = 5f,
@@ -101,7 +101,7 @@ public class SkinwalkerNightmareDescriptor : NightmareDescriptor
         LowerStrength = 5f
     };
 
-    public override PlayerStats GetStats()
+    public override AvatarStats GetStats()
     {
         return Clockhunt.Config.DefaultStats;
     }

@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using MashGamemodeLibrary.Entities.ECS.Data;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.Queries;
 
-public interface ICachedQuery
+public interface ICachedQuery : IGuaranteeStaticConstructor
 {
     CacheKey? TryAdd(object instance);
     void Remove(CacheKey key);
@@ -11,7 +12,7 @@ public interface ICachedQuery
 
 public class CachedQuery<T> : ICachedQuery, IEnumerable<T>
 {
-    private Dictionary<Guid, T> _components = new();
+    private readonly Dictionary<Guid, T> _components = new();
 
     /// <summary>
     /// FOR INTERNAL USE ONLY

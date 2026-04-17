@@ -6,11 +6,12 @@ using LabFusion.Player;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.Networking.Remote;
 
-public abstract class GenericRemoteEvent<TData>
+public abstract class GenericRemoteEvent<TData> : IGuaranteeStaticConstructor
 {
     private readonly ulong _assignedId;
     private readonly string _name;

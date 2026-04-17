@@ -2,10 +2,11 @@
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-#if DEBUG
 namespace MashGamemodeLibrary.Debug;
 
-public class DebugRenderer
+
+#if DEBUG
+public static class DebugRenderer
 {
     public static bool IsEnabled { get; set; } = false;
     private static readonly Texture2D LitmasTexture = CreateColorTexture(new Color(0, 255, 59));
@@ -113,6 +114,39 @@ public class DebugRenderer
     {
         LineRenderers.ForEach(Object.Destroy);
         LineRenderers.Clear();
+    }
+}
+#else
+/// <summary>
+/// Shim version when compiling Release builds
+/// </summary>
+public static class DebugRenderer
+{
+    private static Texture2D CreateColorTexture(Color color)
+    {
+        var tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, color);
+        tex.Apply();
+        return tex;
+    }
+
+    private static void RenderLine(Vector3[] positions, Color color)
+    {
+    }
+
+    [Conditional("DEBUG")]
+    public static void RenderLine(Vector3 start, Vector3 end, Color? color = null)
+    {
+    }
+
+    [Conditional("DEBUG")]
+    public static void RenderCube(Vector3 center, Vector3 size, Color? color = null)
+    {
+    }
+
+    [Conditional("DEBUG")]
+    public static void Clear()
+    {
     }
 }
 #endif

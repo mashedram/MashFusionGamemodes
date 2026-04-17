@@ -1,4 +1,4 @@
-﻿using BoneStrike.Tags;
+﻿using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
@@ -7,6 +7,7 @@ using MashGamemodeLibrary.Player;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using TheHunt.Components;
 using TheHunt.Phase;
 
 namespace TheHunt.Teams;
@@ -14,6 +15,7 @@ namespace TheHunt.Teams;
 public class HiderTeam : LogicTeam
 {
     public override string Name => "Hiders";
+    private string? _originalAvatarBarcode;
 
     public override void OnPhaseChanged(GamePhase phase)
     {
@@ -21,20 +23,30 @@ public class HiderTeam : LogicTeam
         {
             Owner.ToggleComponent(phase is not HidePhase, () => new LimitedRespawnComponent(0));
         });
+        
+        // Run for all
+        if (LogicTeamManager.IsLocalTeam<NightmareTeam>())
+            Owner.ToggleComponent(phase is FinallyPhase, () => new HiderFinallyMarker());
     }
 
     protected override void OnAssigned()
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            Owner.AddComponents(new PlayerHandTimerTag());
-
-            PlayerStatManager.SetStats(new PlayerStats
+            Owner.AddComponent(new PlayerHandTimerComponent());
+            
+            if (Gamemode.TheHunt.Config.LockHiderAvatars)
             {
-                Agility = 1.2f,
+                _originalAvatarBarcode = LocalAvatar.AvatarBarcode;
+                LocalAvatar.AvatarOverride = _originalAvatarBarcode;
+            }
+
+            AvatarStatManager.SetStats(new AvatarStats
+            {
+                Agility = 1.35f,
                 LowerStrength = 1.1f,
                 UpperStrength = 1.1f,
-                Speed = 1.32f,
+                Speed = 1.30f,
                 Vitality = 1f
             });
 
@@ -47,6 +59,15 @@ public class HiderTeam : LogicTeam
                 ShowPopup = true,
                 Type = NotificationType.INFORMATION
             });
+        });
+    }
+
+    protected override void OnRemoved()
+    {
+        Executor.RunIfMe(Owner.PlayerID, () =>
+        {
+            if (_originalAvatarBarcode != null)
+                LocalAvatar.SwapAvatarCrate(_originalAvatarBarcode);
         });
     }
 }

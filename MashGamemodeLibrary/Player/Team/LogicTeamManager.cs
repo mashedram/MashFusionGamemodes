@@ -234,6 +234,12 @@ public static class LogicTeamManager
         }
 
         team.Assign(player);
+
+        var phase = GamePhaseManager.ActivePhase;
+        if (phase != null)
+        {
+            team.Try(t => t.OnPhaseChanged(phase));
+        }
     }
 
     private static void OnRemoved(byte platformId, LogicTeam team)

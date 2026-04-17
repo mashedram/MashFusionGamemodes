@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Entities.ECS.Caches;
+﻿using MashGamemodeLibrary.Entities.Behaviour.Cache;
+using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Util;
 

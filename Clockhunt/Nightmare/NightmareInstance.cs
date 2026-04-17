@@ -153,7 +153,7 @@ public class NightmareInstance
         if (Descriptor.Avatar != null)
             LocalAvatar.AvatarOverride = GetConfig<NightmareConfig>().AvatarOverride ?? Descriptor.Avatar;
 
-        PlayerStatManager.SetStats(Descriptor.GetStats().MultiplyHealth(Clockhunt.Config.NightmareHealthMult));
+        AvatarStatManager.SetStats(Descriptor.GetStats().MultiplyHealth(Clockhunt.Config.NightmareHealthMult));
 
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, CanGrab);
     }
@@ -164,7 +164,7 @@ public class NightmareInstance
 
         if (!Owner.PlayerID.IsMe) return;
 
-        PlayerStatManager.ResetStats();
+        AvatarStatManager.ResetStats();
         PlayerGrabManager.SetOverwrite(NightmareGrabKey, null);
     }
 }

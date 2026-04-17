@@ -31,9 +31,9 @@ public class TerroristTeam : LogicTeam
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            Owner.AddComponents(new PlayerHandTimerTag());
+            Owner.AddComponent(new PlayerHandTimerTag());
 
-            PlayerStatManager.SetStats(new PlayerStats
+            AvatarStatManager.SetStats(new AvatarStats
             {
                 Agility = 1.2f,
                 LowerStrength = 1.2f,

@@ -11,9 +11,9 @@ using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Stats;
 
-public static class PlayerStatManager
+public static class AvatarStatManager
 {
-    private static PlayerStats? LocalStatOverride;
+    private static AvatarStats? _localStatOverride;
 
     public static bool BalanceStats { get; set; } = false;
 
@@ -44,23 +44,23 @@ public static class PlayerStatManager
         SetVitality(stats?.Vitality);
     }
 
-    public static void SetAvatarAndStats(string barcode, PlayerStats stats)
+    public static void SetAvatarAndStats(string barcode, AvatarStats stats)
     {
-        LocalStatOverride = stats;
+        _localStatOverride = stats;
         SetVitality(stats.Vitality);
         LocalAvatar.AvatarOverride = barcode;
     }
 
-    public static void SetStats(PlayerStats stats)
+    public static void SetStats(AvatarStats stats)
     {
-        LocalStatOverride = stats;
+        _localStatOverride = stats;
         SetVitality(stats.Vitality);
         LocalAvatar.RefreshAvatar();
     }
 
     public static void ResetStats()
     {
-        LocalStatOverride = null;
+        _localStatOverride = null;
         SetVitality(null);
         LocalAvatar.RefreshAvatar();
     }
@@ -107,7 +107,7 @@ public static class PlayerStatManager
         return 1f + factor * TeamUnbalancedMultiplier;
     }
 
-    public static PlayerStats? GetLocalStats(Avatar? avatar)
+    public static AvatarStats? GetLocalStats(Avatar? avatar)
     {
         if (!TryGetLocalStats(avatar, out var stats))
             return null;
@@ -115,9 +115,9 @@ public static class PlayerStatManager
         return stats;
     }
 
-    public static bool TryGetLocalStats(Avatar? avatar, out PlayerStats stats)
+    public static bool TryGetLocalStats(Avatar? avatar, out AvatarStats stats)
     {
-        if (!LocalStatOverride.HasValue)
+        if (!_localStatOverride.HasValue)
         {
             stats = default;
             return false;
@@ -127,11 +127,11 @@ public static class PlayerStatManager
         {
             var heightModifier = avatar != null ? GetBalancedModifier(avatar) : 1f;
             var teamBalanceModifier = GetTeamBalanceModifier();
-            stats = LocalStatOverride.Value.MultiplyHealth(heightModifier * teamBalanceModifier);
+            stats = _localStatOverride.Value.MultiplyHealth(heightModifier * teamBalanceModifier);
         }
         else
         {
-            stats = LocalStatOverride.Value;
+            stats = _localStatOverride.Value;
         }
         return true;
     }

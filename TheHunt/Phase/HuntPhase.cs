@@ -17,7 +17,7 @@ public class HuntPhase : GamePhase
             return PhaseIdentifier.Of<HuntPhase>();
         
         if (Gamemode.TheHunt.Config.FinallyEnabled)
-            PhaseIdentifier.Of<FinallyPhase>();
+            return PhaseIdentifier.Of<FinallyPhase>();
 
         WinManager.Win<HiderTeam>();
         

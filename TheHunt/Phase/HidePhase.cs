@@ -21,12 +21,4 @@ public class HidePhase : GamePhase
 
         return PhaseIdentifier.Of<HuntPhase>();
     }
-
-    protected override void OnPhaseEnter()
-    {
-        foreach (var playerID in NetworkPlayer.Players)
-        {
-            playerID.AddComponents(new HiderFinallyMarker());
-        }
-    }
 }

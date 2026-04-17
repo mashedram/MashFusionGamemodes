@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Entities.ECS.Declerations;
+﻿using MashGamemodeLibrary.Entities.Behaviour.Cache;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Phase;
 
 namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;

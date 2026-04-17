@@ -1,4 +1,5 @@
 ﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.Behaviour.Helpers;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
@@ -9,7 +10,7 @@ namespace MashGamemodeLibrary.Entities.Behaviour;
 public delegate void OnAddedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
 public delegate void OnRemovedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
 
-public interface IBehaviourCache
+public interface IBehaviourCache : IGuaranteeStaticConstructor
 {
     Type Target { get; }
     BehaviourMember? TryAdd(IBehaviourHolder holder, IBehaviour behaviour);
