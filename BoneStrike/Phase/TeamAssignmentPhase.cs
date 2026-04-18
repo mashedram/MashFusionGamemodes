@@ -31,7 +31,6 @@ public record SpawnTeamWallPacket : INetSerializable
 
 internal record struct PlayerWallSide(PlayerID PlayerID, bool IsInFront);
 
-// TODO: The clock should be on the arm in this phase, but due to the way this phase gets skipped except for the first round, I haven't done it yet
 public class TeamAssignmentPhase : GamePhase
 {
     private static readonly RemoteEvent<SpawnTeamWallPacket> SpawnTeamWallEvent = new(SpawnTeamWallHandler, CommonNetworkRoutes.HostToAll);

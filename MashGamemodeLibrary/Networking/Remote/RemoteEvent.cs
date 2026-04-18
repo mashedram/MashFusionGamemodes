@@ -30,7 +30,6 @@ public class RemoteEvent<T> : GenericRemoteEvent<T> where T : class, INetSeriali
 
     private void OnEvent(byte sender, T data)
     {
-        // TODO: Ensure this works
         if (data is IKnownSenderPacket knownSenderPacket)
         {
             knownSenderPacket.SenderSmallId = sender;

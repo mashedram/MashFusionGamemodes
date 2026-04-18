@@ -170,14 +170,6 @@ public static class PlayerGrabManager
         if (!grab.IsHoldingItem(out var heldItem)) return;
         if (!heldItem.IsNetworked(out var networkEntity)) return;
 
-        // Callbacks to internal systems
-
-        // TODO: Maybe not needed
-        // PlayerHider.OnGrab(grab);
-        // PlayerColliderManager.OnGrab(grab);
-
-        // Callbacks to external systems
-
         var interactableHost = heldItem.InteractableHost;
         if (interactableHost == null)
             return;
@@ -191,14 +183,6 @@ public static class PlayerGrabManager
     {
         if (!grab.IsHoldingItem(out var heldItem)) return;
         if (!heldItem.IsNetworked(out var networkEntity)) return;
-
-        // Callbacks to internal systems
-
-        // TODO: Maybe not needed
-        // PlayerHider.OnDrop(grab);
-        // PlayerColliderManager.OnDrop(grab);
-
-        // Callback to external systems
 
         var interactableHost = heldItem.InteractableHost;
         if (interactableHost == null)
