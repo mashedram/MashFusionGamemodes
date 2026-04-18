@@ -15,7 +15,7 @@ public class NetEventCarrier
     public EcsIndex EcsIndex;
     public byte EventIndex;
     public int Size;
-    public Action<NetWriter> Writer;
+    public Action<NetWriter> Writer = null!;
 }
 
 public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>

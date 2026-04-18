@@ -47,7 +47,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
     public virtual int RoundCount => 1;
     public new static bool IsStarted { get; private set; }
-    public new static bool IsInRound { get; private set; }
+    public static bool IsInRound { get; private set; }
 
     public static event ConfigChangedHandler? OnConfigChanged;
 

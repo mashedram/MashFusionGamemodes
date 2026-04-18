@@ -1,4 +1,5 @@
-﻿using LabFusion.Player;
+﻿#if DEBUG
+using LabFusion.Player;
 using MashGamemodeLibrary.Player.Spawning;
 using UnityEngine;
 
@@ -18,3 +19,4 @@ public class ToSpawnPointKeybind : DebugKeybind
             LocalPlayer.TeleportToPosition(target.Value);
     };
 }
+#endif

@@ -4,7 +4,7 @@ namespace MashGamemodeLibrary.Registry.Typed;
 
 public interface ITypedRegistry<TValue> : IKeyable<TValue> where TValue : notnull
 {
-    public ulong CreateID(Type type);
+    public new ulong CreateID(Type type);
     public void Register<T>() where T : TValue, new();
     public void RegisterAll<T>();
     public Type? GetType(ulong id);

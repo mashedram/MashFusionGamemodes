@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using BoneLib;
 using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -9,13 +8,12 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
-using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Validation.Routes;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 
-namespace MashGamemodeLibrary.networking;
+namespace MashGamemodeLibrary.Networking.Remote;
 
 #if DEBUG
 internal class InvalidRemoteEventPacket : INetSerializable
@@ -103,11 +101,13 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
     // Due to the order in which static fields initialize, this NEEDS to be the lowest one.
     private static readonly Dictionary<ulong, string> EventNames = new();
 
+#if DEBUG
     private static readonly RemoteEvent<InvalidRemoteEventPacket> OnInvalidEventPacket =
         new("RML_InvalidRemoteEventPacket", OnInvalidRemoteEvent, CommonNetworkRoutes.AllToHost);
+#endif
 
     private static readonly RemoteEvent<RemoteSceneLoadedPacket> LevelLoadedEvent =
-        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, new RemoteToHostNetworkRoute());
+        new("RML_LevelLoadedEvent", OnRemoteLevelLoader, CommonNetworkRoutes.RemoteToHost);
 
     static RemoteEventMessageHandler()
     {

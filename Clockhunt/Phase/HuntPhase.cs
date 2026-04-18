@@ -1,8 +1,6 @@
-﻿using Clockhunt.Config;
-using Clockhunt.Entities;
+﻿using Clockhunt.Entities;
 using Clockhunt.Entities.Tags;
 using Clockhunt.Game;
-using Clockhunt.Game.Player;
 using Clockhunt.Game.Teams;
 using Clockhunt.Joke;
 using Clockhunt.Nightmare;
@@ -18,8 +16,6 @@ using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Data.Random;
-using MashGamemodeLibrary.Entities.Tagging;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -158,7 +154,7 @@ public class HuntPhase : GamePhase, ITimedPhase
 #if DEBUG
             if (!Clockhunt.Config.DebugSkipNightmare) LogicTeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #else
-            TeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
+            LogicTeamManager.AssignRandom<NightmareTeam>(NightmarePlayerProvider);
 #endif
             _teleportToSpawnEvent.Call(new DummySerializable());
 

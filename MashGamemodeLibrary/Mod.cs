@@ -14,6 +14,7 @@ using MashGamemodeLibrary.Integrations;
 using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.networking.Control;
+using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Data;

@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Util;
+﻿#if DEBUG
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Debug;
@@ -11,6 +12,7 @@ public class ShowDebugKeybind : DebugKeybind
     {
         DebugRenderer.IsEnabled = !DebugRenderer.IsEnabled;
 
-        InternalLogger.Debug("Debug Renderer " + (DebugRenderer.IsEnabled ? "Enabled" : "Disabled"));
+        InternalLogger.Debug("Debgug Renderer " + (DebugRenderer.IsEnabled ? "Enabled" : "Disabled"));
     };
 }
+#endif

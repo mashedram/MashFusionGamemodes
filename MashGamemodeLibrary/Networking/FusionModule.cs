@@ -1,5 +1,6 @@
 ﻿using LabFusion.SDK.Gamemodes;
 using LabFusion.SDK.Modules;
+using MashGamemodeLibrary.Networking.Remote;
 using MelonLoader;
 
 namespace MashGamemodeLibrary.networking;
