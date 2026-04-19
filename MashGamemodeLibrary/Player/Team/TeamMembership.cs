@@ -1,4 +1,5 @@
 ﻿using LabFusion.Entities;
+using LabFusion.Network;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;
@@ -32,8 +33,11 @@ public abstract class LogicTeam
     {
         InternalLogger.Debug($"Player: {player.Username} joined team: {Name}");
 
-        player.Icon.Texture = Icon;
-        player.Icon.Visible = Icon != null;
+        if (LobbyInfoManager.LobbyInfo.NameTags)
+        {
+            player.Icon.Texture = Icon;
+            player.Icon.Visible = Icon != null;
+        }
 
         _owner = player;
         Executor.RunChecked(OnAssigned);

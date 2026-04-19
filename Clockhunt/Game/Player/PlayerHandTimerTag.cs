@@ -43,7 +43,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
 
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         _timerObject?.Despawn();
     }

@@ -171,7 +171,7 @@ public class PlayerEscapeTag : IComponentPlayerReady, IComponentUpdate, ICompone
         _owner = networkPlayer;
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         MarkerManager.ClearMarker();
     }

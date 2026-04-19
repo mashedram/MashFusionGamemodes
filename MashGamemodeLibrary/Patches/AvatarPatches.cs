@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Diagnostics.CodeAnalysis;
+using HarmonyLib;
+using Il2CppInterop.Runtime.Injection;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
 using MashGamemodeLibrary.Player;
@@ -11,28 +13,39 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch(typeof(Avatar))]
 public static class AvatarPatches
 {
+    private static bool TryGetStatistics(Avatar instance, out AvatarStats avatarStats)
+    {
+        avatarStats = default!;
+        if (instance == null)
+            return false;
+        
+        if (instance == null || instance.name == "[RealHeptaRig (Marrow1)]")
+            return false;
+        
+        var rigManager = instance.GetComponentInParent<RigManager>();
+        if (rigManager == null)
+            return false;
+
+        if (rigManager != BoneLib.Player.RigManager)
+            return false;
+
+        if (!AvatarStatManager.TryGetLocalStats(instance, out avatarStats))
+            return false;
+
+        return true;
+    }
+    
     [HarmonyPatch(nameof(Avatar.ComputeBaseStats))]
     [HarmonyPostfix]
     public static void ComputeBaseStatsPostfix(Avatar __instance)
     {
-        if (__instance == null)
-            return;
-
-        if (!AvatarStatManager.TryGetLocalStats(__instance, out var stats))
-            return;
-
-        if (__instance == null || __instance.name == "[RealHeptaRig (Marrow1)]")
-            return;
-
-        var rigManager = __instance.GetComponentInParent<RigManager>();
-        if (rigManager == null) return;
-
-        if (rigManager != BoneLib.Player.RigManager)
+        if (!TryGetStatistics(__instance, out var stats))
             return;
 
         __instance._speed = stats.Speed;
         __instance._agility = stats.Agility;
         __instance._strengthUpper = stats.UpperStrength;
         __instance._strengthGrip = stats.UpperStrength;
+        __instance._strengthLower = stats.LowerStrength;
     }
 }

@@ -32,7 +32,7 @@ public class PlayerHandTimerComponent : IComponentPlayerReady, IComponentUpdate,
         SpawnTimer();
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         _timerObject?.Despawn();
         _timerObject = null;
@@ -65,7 +65,7 @@ public class PlayerHandTimerComponent : IComponentPlayerReady, IComponentUpdate,
         var time = activePhase.Duration - activePhase.ElapsedTime;
         
         // Little edge case
-        if (GamePhaseManager.ActivePhase is HuntPhase)
+        if (Gamemode.TheHunt.Config.FinallyAlwaysPlays && GamePhaseManager.ActivePhase is HuntPhase)
             time += Gamemode.TheHunt.Config.FinallyDuration;
         
         var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);

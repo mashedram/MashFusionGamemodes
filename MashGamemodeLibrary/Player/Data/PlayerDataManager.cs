@@ -4,6 +4,8 @@ using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Util;
 

@@ -97,7 +97,7 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         _clockText = marrowEntity.GetComponentInChildren<TextMeshPro>();
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         _timerObject?.Despawn();
     }

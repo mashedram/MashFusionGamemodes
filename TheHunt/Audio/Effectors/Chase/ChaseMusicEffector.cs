@@ -9,11 +9,11 @@ public class ChaseMusicEffector : AudioEffector<EnvironmentContext>
 {
     public ChaseMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
-        "Sylvie.SignalisMonodiscs.MonoDisc.RiotControl",
-        "Sylvie.SignalisMonodiscs.MonoDisc.Kolibri",
-        "Sylvie.SignalisMonodiscs.MonoDisc.IntensiveCare",
-        "Sylvie.SignalisMonodiscs.MonoDisc.BecameWholeAgain",
-        "Sylvie.SignalisMonodiscs.MonoDisc.Blockwart"
+        "Mash.SignalisMonodiscs.MonoDisc.RiotControl",
+        "Mash.SignalisMonodiscs.MonoDisc.Kolibri",
+        "Mash.SignalisMonodiscs.MonoDisc.IntensiveCare",
+        "Mash.SignalisMonodiscs.MonoDisc.BecameWholeAgain",
+        "Mash.SignalisMonodiscs.MonoDisc.Blockwart"
     }))))
     {
     }

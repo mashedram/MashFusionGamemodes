@@ -7,11 +7,13 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Registry.Typed;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Player.Team;
 
+[RequireStaticConstructor]
 public static class LogicTeamManager
 {
     private static readonly HashSet<ulong> EnabledTeams = new();

@@ -49,7 +49,7 @@ internal class ScreamMarker : IComponent, IComponentPlayerReady, IComponentRemov
         });
     }
     
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         if (_poolee == null) return;
 
@@ -64,10 +64,7 @@ internal class ScreamMarker : IComponent, IComponentPlayerReady, IComponentRemov
         if (_timer > 0f)
             return;
         
-        Executor.RunIfHost(() =>
-        {
-            _target?.RemoveComponent<ScreamMarker>();
-        });
+        _target?.RemoveComponent<ScreamMarker>();
     }
 }
 
@@ -98,14 +95,12 @@ public class ScreamAbility : IActiveAbility
         
         if (!networkPlayer.PlayerID.IsMe)
             return;
-        
-        var hiders = NetworkPlayer.Players
-            .Where(p => p.PlayerID.IsValid && p.PlayerID.IsTeam<HiderTeam>());
 
-        foreach (var player in hiders)
-        {
-            player.TryAddComponent(() => new ScreamMarker());
-        }
+        var targetHider = NetworkPlayer.Players
+            .Where(p => p.PlayerID.IsValid && !p.IsSpectating() && p.PlayerID.IsTeam<HiderTeam>())
+            .MaxBy(p => p.DistanceSqr);
+        
+        targetHider?.TryAddComponent(() => new ScreamMarker());
 
         var position = networkPlayer.RigRefs.Head.position;
         TheHuntContext.RoarAudioPlayer.PlayRandom(position);

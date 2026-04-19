@@ -10,12 +10,14 @@ using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using TheHunt.Nightmare.Ability;
+using TheHunt.Phase;
 
 namespace TheHunt.Nightmare;
 
@@ -76,7 +78,7 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         CheckNightmare();
     }
     
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         if (_player == null || _player?.PlayerID?.IsValid != true)
             return;
@@ -118,6 +120,9 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
             return;
         
         if (!_player.PlayerID.IsMe)
+            return;
+        
+        if (GamePhaseManager.ActivePhase is HidePhase)
             return;
 
         if (type != PlayerInputType.Ability) 

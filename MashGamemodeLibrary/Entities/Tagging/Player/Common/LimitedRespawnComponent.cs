@@ -85,7 +85,7 @@ public class LimitedRespawnComponent : IComponentRemoved, IComponentPlayerReady,
         });
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         Executor.RunIfHost(() =>
         {

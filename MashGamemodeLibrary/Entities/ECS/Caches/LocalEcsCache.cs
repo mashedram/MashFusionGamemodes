@@ -6,6 +6,7 @@ using LabFusion.Network;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.Behaviour.Helpers;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
@@ -124,12 +125,12 @@ internal static class LocalEcsCache
         Remove(instance.Index);
     }
 
-    public static void Clear(ushort entityId)
+    public static void RemoveAll(ushort entityId)
     {
-        if (!ComponentLookup.TryGetValue(entityId, out var cache))
+        if (!ComponentLookup.TryGetValue(entityId, out var caches))
             return;
 
-        foreach (var componentInstance in cache.Values)
+        foreach (var componentInstance in caches.Values)
         {
             Remove(componentInstance.Index);
         }
@@ -137,6 +138,11 @@ internal static class LocalEcsCache
 
     public static void Clear()
     {
+        foreach (var index in LocalComponents.Keys)
+        {
+            RemoveAll(index.EntityID.ID);
+        }
+        
         LocalComponents.Clear();
         ComponentLookup.Clear();
         NetworkEntityLookup.Clear();

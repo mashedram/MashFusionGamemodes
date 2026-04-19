@@ -3,6 +3,8 @@ using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.Player.Data.Components;
@@ -28,8 +30,12 @@ internal record NetworkRulePacket(PlayerID PlayerID, ulong RuleHash)
 
 }
 
+[RequireStaticConstructor]
 public class PlayerData : IEventReceiver
 {
+    // Caches
+    private static readonly IBehaviourCache<IPlayerRuleChanged> PlayerRuleChangedCache = BehaviourManager.CreateCache<IPlayerRuleChanged>();
+    
     // Registries
     private static readonly FactoryTypedRegistry<IPlayerExtender> ExtenderRegistry = new();
     private static readonly FactoryTypedRegistry<IPlayerRule> RuleRegistry = new();
@@ -45,6 +51,7 @@ public class PlayerData : IEventReceiver
     // Instance Data
 
     public PlayerID PlayerID { get; init; }
+    public NetworkPlayer? NetworkPlayer { get; private set; }
 
     private readonly Dictionary<Type, IPlayerExtender> _extenderCache = new();
     private readonly Dictionary<Type, IPlayerRuleInstance> _ruleInstanceCache = new();
@@ -101,7 +108,9 @@ public class PlayerData : IEventReceiver
     {
         var rule = ruleInstance.GetBaseRule();
         Extenders.ForEach(e => e.OnRuleChanged(rule));
-        PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
+        PlayerDataManager.CallEventOnAll(new OtherPlayerRuleChangedEvent(PlayerID, rule));
+        if (NetworkPlayer != null)
+            PlayerRuleChangedCache.ForEach(e => e.OnPlayerRuleChanged(NetworkPlayer, rule));
 
         Executor.RunIfHost(() =>
         {
@@ -111,6 +120,8 @@ public class PlayerData : IEventReceiver
 
     public void OnRigCreated(NetworkPlayer player, RigManager rigManager)
     {
+        NetworkPlayer = player;
+        
         Extenders.ForEach(e => e.OnPlayerChanged(player, rigManager));
         EventCallers.ForEach(e => e.OnEnable(this, player));
     }

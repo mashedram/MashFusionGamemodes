@@ -18,7 +18,7 @@ namespace BoneStrike.Teams;
 public class CounterTerroristTeam : LogicTeam
 {
     public override string Name => "Counter Terrorists";
-    public override Texture Icon { get; } = MenuResources.GetLogoIcon("SabreLake");
+    public override Texture Icon { get; } = MenuResources.GetLogoIcon("Sabrelake");
 
     public override void OnPhaseChanged(GamePhase phase)
     {

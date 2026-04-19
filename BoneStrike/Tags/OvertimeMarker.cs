@@ -40,7 +40,7 @@ public class OvertimeMarker : IComponent, IComponentReady, IComponentRemoved, IC
         });
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         if (_poolee == null) return;
 

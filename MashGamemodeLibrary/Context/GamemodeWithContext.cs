@@ -155,12 +155,12 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         LogicTeamManager.Disable();
 
         GameObjectExtender.DestroyAll();
-
+        LocalEcsCache.Clear();
+        
         // PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
             PlayerComponentExtender.ClearPlayerComponents();
-            LocalEcsCache.Clear();
             SpectatorExtender.StopSpectatingAll();
             // SpectatorManager.StopSpectatingAll();
         });
@@ -199,6 +199,10 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     public override void OnLevelReady()
     {
         base.OnLevelReady();
+        
+        // Zoning makes OnLevelReady get called multiple times
+        if (IsStarted)
+            return;
 
         // Reset everything on start
         Reset();
@@ -226,7 +230,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         GamemodeCompatibilityChecker.SetActiveGamemode(null);
         GlobalStatisticsManager.SaveStatistics(this);
 
-        OnEnd();
+        Executor.RunChecked(OnEnd);
         Reset();
     }
 

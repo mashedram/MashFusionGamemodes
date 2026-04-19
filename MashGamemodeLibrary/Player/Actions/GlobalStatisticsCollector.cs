@@ -1,6 +1,7 @@
 ﻿using LabFusion.Entities;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -86,35 +87,7 @@ internal class StatisticChangePacket : INetSerializable, IKnownSenderPacket
     }
 }
 
-internal class StatisticsBroadcastPacket : INetSerializable
-{
-    public List<PlayerStatistics> PlayerStatistics = new();
-
-    public void Serialize(INetSerializer serializer)
-    {
-        if (serializer.IsReader)
-        {
-            var reader = (NetReader)serializer;
-            var size = reader.ReadInt32();
-            PlayerStatistics = new List<PlayerStatistics>(size);
-            for (var i = 0; i < size; i++)
-            {
-                var stats = new PlayerStatistics();
-                stats.Serialize(serializer);
-                PlayerStatistics.Add(stats);
-            }
-            return;
-        }
-
-        var writer = (NetWriter)serializer;
-        writer.Write(PlayerStatistics.Count);
-        foreach (var stats in PlayerStatistics)
-        {
-            stats.Serialize(serializer);
-        }
-    }
-}
-
+[RequireStaticConstructor]
 public static class GlobalStatisticsCollector
 {
     internal static readonly KeyedRegistry<Enum, ulong> StatisticKeyIds = new();
@@ -147,7 +120,10 @@ public static class GlobalStatisticsCollector
 
     internal static void Clear()
     {
-        PlayerStatistics.Clear();
+        Executor.RunIfHost(() =>
+        {
+            PlayerStatistics.Clear();
+        });
     }
 
     private static void OnStatisticChangeEvent(StatisticChangePacket packet)

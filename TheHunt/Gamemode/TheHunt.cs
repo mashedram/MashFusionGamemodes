@@ -14,6 +14,8 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -64,10 +66,10 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
 
     protected override void OnStart()
     {
-        ResetPoint.Value = RigData.RigSpawn;
-
         Executor.RunIfHost(() =>
         {
+            ResetPoint.Value = RigData.RigSpawn;
+            
             _nightmareQueue.Clear();
             // Add all players to the queue, shuffled so a player doesn't get biased
             foreach (var playerID in PlayerIDManager.PlayerIDs.Shuffle())
@@ -89,6 +91,10 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
         
         LogicTeamManager.Enable<HiderTeam>();
         LogicTeamManager.Enable<NightmareTeam>();
+        
+        PlayerDataManager.GetLocalPlayerData()
+            ?.GetRuleInstance<SpectatorNightvisionRule>()
+            .Modify(v => v.IsEnabled = Config.SpectatorNightVision);
 
         Executor.RunIfHost(() =>
         {

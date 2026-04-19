@@ -12,7 +12,7 @@ public class EntityAbilityDescriptor : INightmareDescriptor
     {
         Vitality = 3f,
         UpperStrength = 8f,
-        Speed = 1.25f,
+        Speed = 1.35f,
         Agility = 2f,
         LowerStrength = 8f
     };

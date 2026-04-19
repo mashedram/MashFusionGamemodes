@@ -97,7 +97,7 @@ public class Mod : MelonMod
     {
         EcsManager.RegisterAll<T>();
         RemoteEventMessageHandler.RegisterMod<T>();
-        AutoRegistery.Register<T>();
+        AutoRegistry.Register<T>();
         PlayerData.Register<T>();
     }
 

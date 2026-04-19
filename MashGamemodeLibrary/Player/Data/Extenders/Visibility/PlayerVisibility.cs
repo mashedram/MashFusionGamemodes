@@ -17,6 +17,8 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 public class PlayerVisibility : IPlayerExtender
 {
     public NetworkPlayer? Player { get; set; }
+    private bool _hasNightVision = false;
+    private bool _nightVisionEnabled = false;
     private bool _isVisible = true;
 
     private readonly IPlayerVisibility[] _playerVisibilities =
@@ -47,6 +49,24 @@ public class PlayerVisibility : IPlayerExtender
             playerVisibility.SetVisible(_isVisible);
         }
     }
+    
+    private void ToggleNightVision(bool enabled)
+    {
+        _hasNightVision = enabled;
+        // Only toggle when its from us
+        if (Player?.PlayerID is not { IsMe: true })
+            return;
+        
+        // Check if we aren't fucking with other things
+        if (_hasNightVision == _nightVisionEnabled)
+            return;
+
+        var shouldBeEnabled = _hasNightVision && !_isVisible;
+        if (shouldBeEnabled == _nightVisionEnabled)
+            return;
+        _nightVisionEnabled = shouldBeEnabled;
+        NightVisionHelper.Enabled = shouldBeEnabled;
+    }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
@@ -60,8 +80,16 @@ public class PlayerVisibility : IPlayerExtender
 
     public void OnRuleChanged(IPlayerRule rule)
     {
-        if (rule is not PlayerSpectatingRule spectatingRule) return;
-        SetVisibility(!spectatingRule.IsSpectating);
+        if (rule is PlayerSpectatingRule spectatingRule)
+        {
+            SetVisibility(!spectatingRule.IsSpectating);
+            ToggleNightVision(_hasNightVision);
+        }
+        if (rule is SpectatorNightvisionRule spectatorNightvisionRule)
+        {
+            _hasNightVision = spectatorNightvisionRule.IsEnabled;
+            ToggleNightVision(_hasNightVision);
+        }
     }
 
     public void OnEvent(IPlayerEvent playerEvent)
@@ -69,7 +97,7 @@ public class PlayerVisibility : IPlayerExtender
         switch (playerEvent)
         {
             case AvatarChangedEvent:
-            case PlayerRuleChangedEvent { Rule: PlayerSpectatingRule }:
+            case OtherPlayerRuleChangedEvent { Rule: PlayerSpectatingRule }:
                 SetVisibility(_isVisible);
                 break;
         }

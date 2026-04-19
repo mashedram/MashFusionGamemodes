@@ -6,5 +6,5 @@ namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 public interface IComponentRemoved : IBehaviour, IComponent
 {
-    void OnRemoved(NetworkEntity networkEntity);
+    void OnRemoved();
 }

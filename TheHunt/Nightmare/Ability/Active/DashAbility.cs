@@ -18,7 +18,7 @@ public class DashAbility : IActiveAbility
         var forward = networkPlayer.RigRefs.Head.forward;
         forward.Normalize();
         
-        feet.AddForce(forward * 400f, ForceMode.VelocityChange);
+        feet.AddForce(forward * 250f, ForceMode.VelocityChange);
     }
     
     public float Cooldown => 8f;

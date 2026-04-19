@@ -36,7 +36,7 @@ public static class EcsManager
 
         ComponentRemovedCache.OnRemoved += (instance, component) =>
         {
-            component.OnRemoved(instance.NetworkEntity);
+            component.OnRemoved();
         };
     }
 
@@ -73,7 +73,7 @@ public static class EcsManager
 
     public static void ClearComponents(this NetworkEntity networkEntity)
     {
-        LocalEcsCache.Clear(networkEntity.ID);
+        LocalEcsCache.RemoveAll(networkEntity.ID);
     }
 
     public static T? GetComponent<T>(this NetworkEntity entity) where T : class, IComponent

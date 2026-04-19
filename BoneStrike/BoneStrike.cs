@@ -60,10 +60,10 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnStart()
     {
-        ResetPoint.Value = RigData.RigSpawn;
-
         Executor.RunIfHost(() =>
         {
+            ResetPoint.Value = RigData.RigSpawn;
+            
             Context.PersistentTeams.Clear();
             Context.PersistentTeams.AddTeam<TerroristTeam>();
             Context.PersistentTeams.AddTeam<CounterTerroristTeam>();

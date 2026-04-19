@@ -6,15 +6,23 @@ using MelonLoader;
 
 namespace MashGamemodeLibrary.Util;
 
+[AttributeUsage(AttributeTargets.Class)]
+public class RequireStaticConstructor : Attribute
+{
+}
+
 public interface IGuaranteeStaticConstructor
 {
 }
 
-public static class AutoRegistery
+public static class AutoRegistry
 {
 
     private static bool HasField(Type type)
     {
+        if (type.GetCustomAttribute<RequireStaticConstructor>() != null)
+            return true;
+        
         var fields = type.GetFields();
         return fields.Select(fieldInfo => fieldInfo.FieldType).Any(fieldType => typeof(IGuaranteeStaticConstructor).IsAssignableFrom(fieldType));
     }

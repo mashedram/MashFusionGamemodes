@@ -44,7 +44,7 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
         }
     }
 
-    public void OnRemoved(NetworkEntity networkEntity)
+    public void OnRemoved()
     {
         Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }

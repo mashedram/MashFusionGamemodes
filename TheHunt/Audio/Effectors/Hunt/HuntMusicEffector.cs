@@ -9,9 +9,9 @@ public class HuntMusicEffector : AudioEffector<EnvironmentContext>
 {
     public HuntMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
     {
-        "Sylvie.TheHuntAssets.MonoDisc.TurnedAround",
-        "Sylvie.TheHuntAssets.MonoDisc.Misremembered",
-        "Sylvie.TheHuntAssets.MonoDisc.NearDarkbythePond"
+        "Mash.TheHuntAssets.MonoDisc.TurnedAround",
+        "Mash.TheHuntAssets.MonoDisc.Misremembered",
+        "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
     }))))
     {
     }

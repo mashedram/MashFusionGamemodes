@@ -35,8 +35,8 @@ internal class MinuteElementProvider : IConfigElementProvider
             Increment = 1,
             MaxValue = 30,
             MinValue = 1,
-            Value = Convert.ToInt32(entry.Value) / 60,
-            OnValueChanged = f => setter(entry, Convert.ToInt32(f) * 60)
+            Value = (int)(Convert.ToSingle(entry.Value) / 60f),
+            OnValueChanged = f => setter(entry, (float)(Convert.ToInt32(f) * 60))
         };
     }
 }
@@ -48,13 +48,13 @@ public class TheHuntConfig : IConfig
     public float HideDuration = 90f;
     
     [ConfigMenuEntry("Hunt Phase Duration", "Time")] 
-    [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
+    [ConfigElementProvider(typeof(MinuteElementProvider))] 
     [JsonInclude]
     public float HuntDuration = 360f;
     
-    [ConfigMenuEntry("Finally Enabled", "Time")]
+    [ConfigMenuEntry("Finally Always Plays", "Time")]
     [JsonInclude]
-    public bool FinallyEnabled = true;
+    public bool FinallyAlwaysPlays = true;
     
     [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [JsonInclude]
@@ -77,6 +77,9 @@ public class TheHuntConfig : IConfig
 
     [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     public bool NightVision = true;
+    
+    [ConfigMenuEntry("Spectator Night Vision", "Environment")]
+    public bool SpectatorNightVision = true;
 
     [ConfigMenuEntry("Night Vision Brightness", "Environment")]
     [ConfigRangeConstraint(0.2f, 3f)]
@@ -104,6 +107,7 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref BlindNightmare);
         serializer.SerializeValue(ref WeatherType);
         serializer.SerializeValue(ref MusicEnabled);
+        serializer.SerializeValue(ref SpectatorNightVision);
         serializer.SerializeValue(ref NightVision);
         serializer.SerializeValue(ref NightVisionBrightness);
         serializer.SerializeValue(ref LockHiderAvatars);
@@ -124,6 +128,7 @@ public class TheHuntConfig : IConfig
             WeatherType = WeatherType,
             MusicEnabled = MusicEnabled,
             NightVision = NightVision,
+            SpectatorNightVision = SpectatorNightVision,
             NightVisionBrightness = NightVisionBrightness,
             LockHiderAvatars = LockHiderAvatars,
             SetNightmareAvatars = SetNightmareAvatars,
