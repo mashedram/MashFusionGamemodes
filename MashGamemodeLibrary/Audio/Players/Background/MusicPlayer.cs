@@ -62,7 +62,7 @@ public class MusicPlayer : IContinuousPlayer, IUpdating
 #endif
 
             var audio2dManager = Audio2dPlugin.Audio2dManager;
-            const float musicVolume = 0.8f;
+            const float musicVolume = 1f;
             audio2dManager.CueOverrideMusic(clip, musicVolume, 2.0f, 2.0f, false, false);
         });
     }
