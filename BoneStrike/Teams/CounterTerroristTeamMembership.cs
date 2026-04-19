@@ -46,7 +46,7 @@ public class CounterTerroristTeam : LogicTeam
                 Agility = 1.2f,
                 LowerStrength = 1.2f,
                 UpperStrength = 1.2f,
-                Speed = 1.5f,
+                Speed = 1.35f,
                 Vitality = 1f
             }.MultiplyHealth(BoneStrike.Config.AttackerHealthMultiplier));
 

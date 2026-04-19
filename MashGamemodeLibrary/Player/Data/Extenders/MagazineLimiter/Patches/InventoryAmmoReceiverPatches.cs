@@ -3,7 +3,7 @@ using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Network;
 
-namespace TheHunt.Player.Inventory.Patches;
+namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter.Patches;
 
 [HarmonyPatch(typeof(LabFusion.Marrow.Patching.InventoryAmmoReceiverPatches))]
 public class InventoryAmmoReceiverPatches
@@ -19,10 +19,15 @@ public class InventoryAmmoReceiverPatches
         if (!NetworkPlayerManager.TryGetPlayer(instance._parentRigManager, out var player) || !player.PlayerID.IsMe)
             return true;
 
-        if (!LocalAmmoManager.HasAmmo()) 
+        // Get the local ammo limiter
+        var ammoLimiter = PlayerDataManager.GetLocalPlayerData()?.GetExtender<MagazineLimiterExtender>();
+        if (ammoLimiter == null)
+            return true;
+
+        if (!ammoLimiter.CanUseMagazine())
             return false;
         
-        LocalAmmoManager.IncrementAmmo();
+        ammoLimiter.UseMagazine();    
         return true;
     }
 }

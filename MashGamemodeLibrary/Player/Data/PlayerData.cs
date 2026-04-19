@@ -152,6 +152,14 @@ public class PlayerData : IEventReceiver
 
         return (ruleInstance as PlayerRuleInstance<TRule>)!;
     }
+    
+    public T GetExtender<T>() where T : class, IPlayerExtender
+    {
+        if (!_extenderCache.TryGetValue(typeof(T), out var extender))
+            throw new KeyNotFoundException($"Extender of type {typeof(T)} not found for player {PlayerID}");
+
+        return (extender as T)!;
+    }
 
     public void Reset()
     {

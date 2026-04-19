@@ -159,10 +159,10 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Mark Bomb in last 30 seconds", "Time")] [JsonInclude]
     public bool MarkBombNearEnd = true;
 
-    [ConfigMenuEntry("Balance Weapon Damage", "Health")] [JsonInclude]
+    [ConfigMenuEntry("Balance Weapon Damage", "Balancing")] [JsonInclude]
     public bool BalanceDamage = true;
 
-    [ConfigMenuEntry("Balance Avatar Health", "Health")] [JsonInclude]
+    [ConfigMenuEntry("Balance Avatar Health", "Balancing")] [JsonInclude]
     public bool BalanceStats = true;
 
     [ConfigMenuEntry("Blind Attackers During Planting", "Health")] [JsonInclude]
