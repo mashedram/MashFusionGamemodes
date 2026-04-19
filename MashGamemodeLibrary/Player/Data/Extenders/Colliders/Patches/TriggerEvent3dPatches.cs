@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppUltEvents;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Patches;
@@ -16,6 +17,10 @@ public class TriggerEvent3dPatches
             return true;
 
         if (collider == null)
+            return true;
+        
+        // INVALID MEMORY TIME BABY
+        if (!GameObjectMemoryChecker.IsPointerAccessible(collider.m_CachedPtr))
             return true;
 
         if (collider.gameObject == null)
@@ -35,6 +40,10 @@ public class TriggerEvent3dPatches
             return true;
 
         if (collider == null)
+            return true;
+        
+        // INVALID MEMORY TIME BABY
+        if (!GameObjectMemoryChecker.IsPointerAccessible(collider.m_CachedPtr))
             return true;
 
         if (collider.gameObject == null)
@@ -56,6 +65,10 @@ public class TriggerEvent3dPatches
         if (collider == null)
             return true;
 
+        // INVALID MEMORY TIME BABY
+        if (!GameObjectMemoryChecker.IsPointerAccessible(collider.m_CachedPtr))
+            return true;
+        
         if (collider.gameObject == null)
             return true;
 

@@ -156,13 +156,13 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
 
         GameObjectExtender.DestroyAll();
         LocalEcsCache.Clear();
+        NightVisionHelper.Enabled = false;
         
         // PlayerHider.Reset();
         Executor.RunIfHost(() =>
         {
             PlayerComponentExtender.ClearPlayerComponents();
             SpectatorExtender.StopSpectatingAll();
-            // SpectatorManager.StopSpectatingAll();
         });
     }
 

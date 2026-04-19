@@ -46,7 +46,7 @@ public class HiderTeam : LogicTeam
                 Agility = 1.35f,
                 LowerStrength = 1.1f,
                 UpperStrength = 1.1f,
-                Speed = 1.30f,
+                Speed = Gamemode.TheHunt.Config.HiderSpeed,
                 Vitality = 1f
             });
 

@@ -6,11 +6,6 @@ namespace MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 
 public class InstanceEncoder<TValue> : IRefEncoder<TValue> where TValue : class, INetSerializable, new()
 {
-    public InstanceEncoder()
-    {
-
-    }
-
     public int GetSize(TValue value)
     {
         var selfSize = sizeof(ulong);
@@ -33,6 +28,6 @@ public class InstanceEncoder<TValue> : IRefEncoder<TValue> where TValue : class,
 
     public void Serialize(INetSerializer serializer, TValue value)
     {
-        serializer.SerializeValue(ref value);
+        value.Serialize(serializer);
     }
 }

@@ -93,6 +93,18 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Set Nightmare Avatars", "Avatars")]
     [JsonInclude]
     public bool SetNightmareAvatars = false;
+    
+    [ConfigMenuEntry("Nightmare Speed", "Speed")]
+    [ConfigRangeConstraint(0.5f, 2f)]
+    [ConfigStepSize(0.05f)]
+    [JsonInclude]
+    public float NightmareSpeed = 1.4f;
+    
+    [ConfigMenuEntry("Hider Speed", "Speed")]
+    [ConfigRangeConstraint(0.5f, 2f)]
+    [ConfigStepSize(0.05f)]
+    [JsonInclude]
+    public float HiderSpeed = 1.45f;
 
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")] 
     [JsonInclude]
@@ -113,6 +125,8 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref LockHiderAvatars);
         serializer.SerializeValue(ref SetNightmareAvatars);
         serializer.SerializeValue(ref BalanceStats);
+        serializer.SerializeValue(ref NightmareSpeed);
+        serializer.SerializeValue(ref HiderSpeed);
         serializer.SerializeValue(ref DevToolsDisabled);
     }
     
@@ -133,6 +147,8 @@ public class TheHuntConfig : IConfig
             LockHiderAvatars = LockHiderAvatars,
             SetNightmareAvatars = SetNightmareAvatars,
             BalanceStats = BalanceStats,
+            NightmareSpeed = NightmareSpeed,
+            HiderSpeed = HiderSpeed,
             DevToolsDisabled = DevToolsDisabled
         };
     }

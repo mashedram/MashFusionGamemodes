@@ -40,13 +40,12 @@ public class PlayerVisibility : IPlayerExtender
         if (Player.PlayerID.IsMe)
             return;
 
-        // If the local player is spectating, and this is not the local player, we want to keep them visible so they can see other spectators
-        if (SpectatorExtender.IsLocalPlayerSpectating())
-            return;
-
+        // If the local player is spectating, nobody should be hidden
+        var visibleForLocalPlayer = isVisible || SpectatorExtender.IsLocalPlayerSpectating();
+        
         foreach (var playerVisibility in _playerVisibilities)
         {
-            playerVisibility.SetVisible(_isVisible);
+            playerVisibility.SetVisible(visibleForLocalPlayer);
         }
     }
     
@@ -64,6 +63,7 @@ public class PlayerVisibility : IPlayerExtender
         var shouldBeEnabled = _hasNightVision && !_isVisible;
         if (shouldBeEnabled == _nightVisionEnabled)
             return;
+        
         _nightVisionEnabled = shouldBeEnabled;
         NightVisionHelper.Enabled = shouldBeEnabled;
     }

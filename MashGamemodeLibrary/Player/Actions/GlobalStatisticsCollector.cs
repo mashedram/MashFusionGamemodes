@@ -36,13 +36,11 @@ public class PlayerStatistics : INetSerializable
 
     public int GetValue(Enum key)
     {
-        if (!GlobalStatisticsCollector.StatisticKeyIds.TryGet(key, out var hash))
-        {
-            InternalLogger.Debug($"Getting statistic for {key} with hash {hash} failed, key not registered");
-            return 0;
-        }
-
-        return Statistics.GetValueOrDefault(hash, 0);
+        if (GlobalStatisticsCollector.StatisticKeyIds.TryGet(key, out var hash)) 
+            return Statistics.GetValueOrDefault(hash, 0);
+        
+        InternalLogger.Debug($"Getting statistic for {key} with hash {hash} failed, key not registered");
+        return 0;
 
     }
 
@@ -100,7 +98,7 @@ public static class GlobalStatisticsCollector
         new("statisticChange", OnStatisticChangeEvent, CommonNetworkRoutes.AllToHost);
 
     public static IEnumerable<PlayerStatistics> Statistics =>
-        PlayerIDManager.PlayerIDs.Select(playerID => PlayerStatistics.GetValueOrCreate(playerID.SmallID, () => new PlayerStatistics(playerID.SmallID)));
+        PlayerIDManager.PlayerIDs.Select(playerID => PlayerStatistics.GetValueOrDefault(playerID.SmallID) ?? new PlayerStatistics(playerID));
 
     internal static void RegisterStatisticKey<T>(T key) where T : Enum
     {
