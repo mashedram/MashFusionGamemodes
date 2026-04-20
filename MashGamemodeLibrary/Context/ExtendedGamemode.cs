@@ -14,14 +14,16 @@ using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Compatiblity;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
+using MashGamemodeLibrary.Player.Data;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Context;
 
-public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gamemodes.Gamemode, IGamemode
+public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemodes.Gamemode, IGamemode
     where TContext : GameModeContext<TContext>, new()
     where TConfig : class, IConfig, new()
 {
@@ -37,11 +39,17 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
                                           "Gamemode context is null. Did you forget to call base.OnGamemodeRegistered()?");
 
     public static TConfig Config => ConfigManager.Get<TConfig>();
+    
+    // Formal Settings
+    
+    public virtual string? LogoResource => null;
+    private Texture? _logo;
+    public override Texture Logo => _logo!;
 
     // Extra Settings
 
-    public virtual bool KnockoutAllowed => false;
-    public virtual bool SlowMotionAllowed => false;
+    public virtual bool KnockoutDisabled => true;
+    public virtual bool SlowMotionDisabled => true;
 
     // Round settings
 
@@ -128,6 +136,13 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
     {
         IsInRound = true;
         Context.OnStart();
+        
+        // Apply settings
+        LocalHealth.MortalityOverride = KnockoutDisabled ? true : null;
+        LocalControls.DisableSlowMo = SlowMotionDisabled;
+        
+        // Start the round
+        
         Executor.RunChecked(OnRoundStart);
     }
 
@@ -162,7 +177,7 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         Executor.RunIfHost(() =>
         {
             PlayerComponentExtender.ClearPlayerComponents();
-            SpectatorExtender.StopSpectatingAll();
+            PlayerDataManager.ResetRules();
         });
     }
 
@@ -178,6 +193,8 @@ public abstract class GamemodeWithContext<TContext, TConfig> : LabFusion.SDK.Gam
         };
 
         _configMenu = new ConfigMenu(Config);
+
+        _logo = LogoResource != null ? ImageHelper.LoadEmbeddedImage<TContext>(LogoResource) : null;
 
         OnRegistered();
         base.OnGamemodeRegistered();

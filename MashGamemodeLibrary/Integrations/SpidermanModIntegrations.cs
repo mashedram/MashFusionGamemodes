@@ -6,9 +6,9 @@ namespace MashGamemodeLibrary.Integrations;
 
 public static class SpidermanModIntegrations
 {
+    [HarmonyPatch]
     private static class SpidermanModPatches
     {
-
         [HarmonyPatch(typeof(WebShooter), "CheckGestureInput")]
         [HarmonyPrefix]
         public static bool WebShooter_CanShootWeb_Prefix(WebShooter __instance)

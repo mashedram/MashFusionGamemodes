@@ -5,7 +5,7 @@ using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Data.Random;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
@@ -30,7 +30,7 @@ using UnityEngine;
 
 namespace TheHunt.Gamemode;
 
-public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
+public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 {
     public override string Title => "The Hunt";
     public override string Author => "Mash";

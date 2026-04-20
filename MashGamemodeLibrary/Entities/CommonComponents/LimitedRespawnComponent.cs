@@ -5,16 +5,14 @@ using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.Senders;
 using LabFusion.UI.Popups;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 
-namespace MashGamemodeLibrary.Entities.Tagging.Player.Common;
+namespace MashGamemodeLibrary.Entities.CommonComponents;
 
 internal class RespawnCountPacket : INetSerializable
 {

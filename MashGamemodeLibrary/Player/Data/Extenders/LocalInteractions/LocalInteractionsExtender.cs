@@ -72,7 +72,11 @@ public class LocalInteractionsExtender : IPlayerExtender
         SetInteractions(_areInteractionsEnabled);
     }
 
-    public void OnRuleChanged(IPlayerRule rule)
+    public IEnumerable<Type> RuleTypes => new[]
+    {
+        typeof(PlayerSpectatingRule)
+    };
+    public void OnRuleChanged(PlayerData data)
     {
         if (_player == null)
             return;
@@ -80,10 +84,8 @@ public class LocalInteractionsExtender : IPlayerExtender
         if (!_player.PlayerID.IsMe)
             return;
 
-        if (rule is not PlayerSpectatingRule spectatingRule)
-            return;
-
-        SetInteractions(!spectatingRule.IsSpectating);
+        var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);
+        SetInteractions(!isSpectating);
     }
 
     public void OnEvent(IPlayerEvent playerEvent)

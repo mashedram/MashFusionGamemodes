@@ -57,6 +57,10 @@ public class PlayerData : IEventReceiver
     private readonly Dictionary<Type, IPlayerRuleInstance> _ruleInstanceCache = new();
     private readonly Dictionary<ulong, IPlayerRuleInstance> _ruleHashCache = new();
     private readonly Dictionary<Type, IEventCaller> _eventCallerCache = new();
+    
+    // Callbacks
+    private readonly Dictionary<Type, List<IPlayerExtender>> _ruleChangeCallbacks = new();
+    private readonly Dictionary<Type, List<IPlayerExtender>> _eventCallbacks = new();
 
     public IEnumerable<IPlayerExtender> Extenders => _extenderCache.Values;
     public IEnumerable<IPlayerRuleInstance> RuleInstances => _ruleInstanceCache.Values;
@@ -64,7 +68,7 @@ public class PlayerData : IEventReceiver
 
     // Networking
     private static readonly NetworkRuleChangeEvent NetworkRuleChangeEvent = new("PlayerData.RuleChange");
-    private static readonly NetworkRuleCatchupEvent NetworkRuleCatchupEvent = new("PlayerData.RuleCatchup");
+    private static readonly NetworkRuleBulkChangeEvent NetworkRuleBulkChangeEvent = new("PlayerData.RuleBulkChange");
 
     public PlayerData(PlayerID playerID)
     {
@@ -83,6 +87,16 @@ public class PlayerData : IEventReceiver
     private void AddExtender(IPlayerExtender playerExtender)
     {
         _extenderCache.Add(playerExtender.GetType(), playerExtender);
+
+        foreach (var playerExtenderRuleType in playerExtender.RuleTypes)
+        {
+            _ruleChangeCallbacks.GetValueOrCreate(playerExtenderRuleType).Add(playerExtender);
+        }
+        
+        foreach (var playerExtenderEventType in playerExtender.EventTypes)
+        {
+            _eventCallbacks.GetValueOrCreate(playerExtenderEventType).Add(playerExtender);
+        }
     }
 
     private void AddRule<TRule>() where TRule : class, IPlayerRule, new()
@@ -107,14 +121,45 @@ public class PlayerData : IEventReceiver
     internal void NotifyRuleChanged(IPlayerRuleInstance ruleInstance)
     {
         var rule = ruleInstance.GetBaseRule();
-        Extenders.ForEach(e => e.OnRuleChanged(rule));
+        // Call rule changes
+        _ruleChangeCallbacks.GetValueOrDefault(rule.GetType())?.ForEach(e => e.OnRuleChanged(this));
+        // Emit event
         PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
+        
+        // Call external components that might be interested in rule changes, such as the network component
         if (NetworkPlayer != null)
             PlayerRuleChangedCache.ForEach(e => e.OnPlayerRuleChanged(NetworkPlayer, rule));
 
         Executor.RunIfHost(() =>
         {
+            // Send network event
             NetworkRuleChangeEvent.Send(PlayerID, ruleInstance);
+        });
+    }
+    
+    internal void NotifyAllRules()
+    {
+        // Call rule changes
+        foreach (var extenderCacheValue in _extenderCache.Values)
+        {
+            extenderCacheValue.OnRuleChanged(this);
+        }
+        // Emit events
+        foreach (var playerRuleInstance in RuleInstances)
+        {
+            var rule = playerRuleInstance.GetBaseRule();
+            // Emit events
+            PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
+            
+            // Call external components that might be interested in rule changes, such as the network component
+            if (NetworkPlayer != null)
+                PlayerRuleChangedCache.ForEach(e => e.OnPlayerRuleChanged(NetworkPlayer, rule));
+        }
+        
+        Executor.RunIfHost(() =>
+        {
+            // Send network event
+            NetworkRuleBulkChangeEvent.Send(this);
         });
     }
 
@@ -139,7 +184,7 @@ public class PlayerData : IEventReceiver
         return predicate(typedRuleInstance.GetRule());
     }
     
-    public void ModifyRule<TRule>(Action<TRule> modifier) where TRule : class, IPlayerRule, new()
+    public TRule GetRule<TRule>() where TRule : class, IPlayerRule, new()
     {
         if (!_ruleInstanceCache.TryGetValue(typeof(TRule), out var ruleInstance))
             throw new KeyNotFoundException($"Rule of type {typeof(TRule)} not found for player {PlayerID}");
@@ -147,8 +192,18 @@ public class PlayerData : IEventReceiver
         if (ruleInstance is not PlayerRuleInstance<TRule> typedRuleInstance)
             throw new InvalidCastException($"Rule instance of type {ruleInstance.GetType()} cannot be cast to PlayerRuleInstance<{typeof(TRule)}> for player {PlayerID}");
 
-        modifier(typedRuleInstance.GetRule());
-        NotifyRuleChanged(typedRuleInstance);
+        return typedRuleInstance.GetRule();
+    }
+    
+    public void ModifyRule<TRule>(PlayerRuleInstance<TRule>.ModifyRuleDelegate modifier) where TRule : class, IPlayerRule, new()
+    {
+        if (!_ruleInstanceCache.TryGetValue(typeof(TRule), out var ruleInstance))
+            throw new KeyNotFoundException($"Rule of type {typeof(TRule)} not found for player {PlayerID}");
+
+        if (ruleInstance is not PlayerRuleInstance<TRule> typedRuleInstance)
+            throw new InvalidCastException($"Rule instance of type {ruleInstance.GetType()} cannot be cast to PlayerRuleInstance<{typeof(TRule)}> for player {PlayerID}");
+
+        typedRuleInstance.Modify(modifier);
     }
 
     public IPlayerRuleInstance? GetRuleByHash(ulong hash)
@@ -173,17 +228,18 @@ public class PlayerData : IEventReceiver
         return (extender as T)!;
     }
 
-    public void Reset()
+    public void ResetRules()
     {
         foreach (var playerRuleInstance in RuleInstances)
         {
-            playerRuleInstance.Reset();
+            playerRuleInstance.Reset(false);
         }
+        NotifyAllRules();
     }
 
     public void SendCatchup(PlayerID playerID)
     {
-        NetworkRuleCatchupEvent.SendCatchup(playerID, this);
+        NetworkRuleBulkChangeEvent.SendTo(playerID, this);
     }
 
     public void ReceiveEvent(IPlayerEvent playerEvent)

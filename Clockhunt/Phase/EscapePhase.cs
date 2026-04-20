@@ -8,7 +8,7 @@ using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;

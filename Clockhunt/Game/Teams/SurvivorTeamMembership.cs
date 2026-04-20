@@ -2,7 +2,7 @@
 using Clockhunt.Game.Player;
 using Clockhunt.Phase;
 using LabFusion.Player;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Helpers;

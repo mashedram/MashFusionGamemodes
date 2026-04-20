@@ -2,6 +2,7 @@
 using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;

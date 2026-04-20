@@ -16,7 +16,7 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
     private TRule _localRule = new();
 
     // The rule to use when we are the client
-    private TRule _networkedRule = new();
+    private readonly TRule _networkedRule = new();
 
     // The hash of the rule type, used for networking
     public ulong Hash { get; }
@@ -56,15 +56,17 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
         return GetRule();
     }
 
-    public void Reset()
+    public void Reset(bool notifyChange = true)
     {
         _localRule = new TRule();
-        NotifyChange();
+        if (notifyChange)
+            NotifyChange();
     }
 
-    public void Deserialize(NetReader reader)
+    public void Deserialize(NetReader reader, bool notifyChange = true)
     {
         _networkedRule.Serialize(reader);
-        NotifyChange();
+        if (notifyChange)
+            NotifyChange();
     }
 }

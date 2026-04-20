@@ -6,8 +6,8 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Control;
@@ -76,7 +76,7 @@ public class PlantPhase : GamePhase
                 
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
-            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new IsImportantTag());
+            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new ImportantEntityMarker());
 
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });

@@ -94,8 +94,16 @@ public static class PlayerDataManager
             action(playerData);
         }
     }
+    
+    public static void ResetRules()
+    {
+        foreach (var playerRuleInstance in PlayerData.Values)
+        {
+            playerRuleInstance.ResetRules();
+        }
+    }
 
-    public static void Reset()
+    public static void Clear()
     {
         PlayerData.Clear();
     }

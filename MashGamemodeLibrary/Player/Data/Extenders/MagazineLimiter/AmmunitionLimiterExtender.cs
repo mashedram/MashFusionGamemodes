@@ -29,11 +29,13 @@ public class AmmunitionLimiterExtender : IPlayerExtender
         // No-Op
     }
     
-    public void OnRuleChanged(IPlayerRule rule)
+    public IEnumerable<Type> RuleTypes => new[]
     {
-        if (rule is not PlayerAmmunitionLimitRule ammunitionLimitRule)
-            return;
-        
+        typeof(PlayerAmmunitionLimitRule)
+    };
+    public void OnRuleChanged(PlayerData data)
+    {
+        var ammunitionLimitRule = data.GetRule<PlayerAmmunitionLimitRule>();
         _ammunitionLimit = ammunitionLimitRule.AmmunitionLimit;
         AmmunitionUsed = 0;
     }

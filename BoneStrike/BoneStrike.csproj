@@ -464,6 +464,10 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
+    
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\BombIcon.png" />
+    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\MashGamemodeLibrary\MashGamemodeLibrary.csproj"/>

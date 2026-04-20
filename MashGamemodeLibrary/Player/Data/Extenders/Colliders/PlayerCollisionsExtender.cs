@@ -31,11 +31,14 @@ public class PlayerCollisionsExtender : IPlayerExtender
         SetColliding(_isColliding);
     }
 
-    public void OnRuleChanged(IPlayerRule rule)
+    public IEnumerable<Type> RuleTypes => new[]
     {
-        if (rule is not PlayerSpectatingRule spectatingRule) return;
-
-        _isColliding = !spectatingRule.IsSpectating;
+        typeof(PlayerSpectatingRule)
+    };
+    public void OnRuleChanged(PlayerData data)
+    {
+        var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);
+        _isColliding = !isSpectating;
         SetColliding(_isColliding);
     }
 

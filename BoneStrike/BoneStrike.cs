@@ -10,8 +10,8 @@ using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.Interaction;
-using MashGamemodeLibrary.Entities.Tagging.Player.Common;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
@@ -24,15 +24,17 @@ using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
+using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace BoneStrike;
 
-public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfig>
+public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 {
     private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
+    public override string LogoResource => "BoneStrike.Resources.BombIcon.png";
 
     public override bool AutoHolsterOnDeath => true;
     public override bool DisableDevTools => Config.DevToolsDisabled;
@@ -109,7 +111,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
     {
         Notifier.CancelAll();
         LeaderboardTag.Despawn();
-        LocalHealth.MortalityOverride = true;
         
         SpawnPointHelper.SetSpawnPoint(ResetPoint);
 

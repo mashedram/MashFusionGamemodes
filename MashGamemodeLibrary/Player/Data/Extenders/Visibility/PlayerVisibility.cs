@@ -67,7 +67,7 @@ public class PlayerVisibility : IPlayerExtender
         _nightVisionEnabled = shouldBeEnabled;
         NightVisionHelper.Enabled = shouldBeEnabled;
     }
-
+    
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         Player = networkPlayer;
@@ -78,21 +78,25 @@ public class PlayerVisibility : IPlayerExtender
         });
     }
 
-    public void OnRuleChanged(IPlayerRule rule)
+    public IEnumerable<Type> RuleTypes => new[]
     {
-        switch (rule)
-        {
-            case PlayerSpectatingRule spectatingRule:
-                SetVisibility(!spectatingRule.IsSpectating);
-                ToggleNightVision(_hasNightVision);
-                break;
-            case SpectatorNightvisionRule spectatorNightvisionRule:
-                _hasNightVision = spectatorNightvisionRule.IsEnabled;
-                ToggleNightVision(_hasNightVision);
-                break;
-        }
+        typeof(PlayerSpectatingRule),
+        typeof(SpectatorNightvisionRule)
+    };
+    public void OnRuleChanged(PlayerData data)
+    {
+        var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);
+        var hasNightVision = data.CheckRule<SpectatorNightvisionRule>(p => p.IsEnabled);
+        
+        SetVisibility(!isSpectating);
+        ToggleNightVision(hasNightVision);
     }
 
+    public IEnumerable<Type> EventTypes => new[]
+    {
+        typeof(AvatarChangedEvent),
+        typeof(PlayerRuleChangedEvent)
+    };
     public void OnEvent(IPlayerEvent playerEvent)
     {
         switch (playerEvent)

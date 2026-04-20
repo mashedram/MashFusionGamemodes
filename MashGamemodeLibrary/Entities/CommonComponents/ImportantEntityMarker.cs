@@ -3,9 +3,9 @@ using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 
-namespace BoneStrike.Tags;
+namespace MashGamemodeLibrary.Entities.CommonComponents;
 
-public class IsImportantTag : IComponent, IComponentReady
+public class ImportantEntityMarker : IComponent, IComponentReady
 {
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {
