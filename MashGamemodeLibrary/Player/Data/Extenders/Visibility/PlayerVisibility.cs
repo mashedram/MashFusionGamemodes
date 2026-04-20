@@ -80,15 +80,16 @@ public class PlayerVisibility : IPlayerExtender
 
     public void OnRuleChanged(IPlayerRule rule)
     {
-        if (rule is PlayerSpectatingRule spectatingRule)
+        switch (rule)
         {
-            SetVisibility(!spectatingRule.IsSpectating);
-            ToggleNightVision(_hasNightVision);
-        }
-        if (rule is SpectatorNightvisionRule spectatorNightvisionRule)
-        {
-            _hasNightVision = spectatorNightvisionRule.IsEnabled;
-            ToggleNightVision(_hasNightVision);
+            case PlayerSpectatingRule spectatingRule:
+                SetVisibility(!spectatingRule.IsSpectating);
+                ToggleNightVision(_hasNightVision);
+                break;
+            case SpectatorNightvisionRule spectatorNightvisionRule:
+                _hasNightVision = spectatorNightvisionRule.IsEnabled;
+                ToggleNightVision(_hasNightVision);
+                break;
         }
     }
 
