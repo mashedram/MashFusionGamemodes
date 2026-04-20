@@ -1,6 +1,7 @@
 ﻿using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.State;
 using TheHunt.Audio.Effectors.Chase;
+using TheHunt.Audio.Effectors.Stinger;
 
 namespace TheHunt.Audio;
 
@@ -8,7 +9,8 @@ public class ChaseEnvironmentState : EnvironmentState<EnvironmentContext>
 {
     public ChaseEnvironmentState() : base(new EnvironmentEffector<EnvironmentContext>[]
     {
-        new ChaseMusicEffector()
+        new ChaseMusicEffector(),
+        new StingerAudioEffector()
     })
     {
     }

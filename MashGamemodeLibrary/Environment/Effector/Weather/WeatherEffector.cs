@@ -1,7 +1,6 @@
 using LabFusion.Extensions;
-using MashGamemodeLibrary.Environment.Effector.Weather;
 
-namespace MashGamemodeLibrary.Environment.Effector;
+namespace MashGamemodeLibrary.Environment.Effector.Weather;
 
 public abstract class WeatherEffector<TContext> : EnvironmentEffector<TContext>
 {

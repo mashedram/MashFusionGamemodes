@@ -26,6 +26,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
 
     public ulong? GetAudioHash(string name)
     {
+        CheckHashes();
         return _nameToHash.GetValueOrDefault(name);
     }
 
@@ -50,6 +51,25 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         });
     }
 
+    private void CheckHashes()
+    {
+        if (_nameToHash.Count == AudioNames.Count)
+            return;
+        
+        CacheHashes();
+    }
+
+    private void CacheHashes()
+    {
+        var names = _loader.AudioNames;
+        foreach (var name in names)
+        {
+            var hash = name.GetStableHash();
+            _nameToHash[name] = hash;
+            _hashToName[hash] = name;
+        }
+    }
+
     private void PreloadAll()
     {
         IsLoading = true;
@@ -65,12 +85,6 @@ public class SyncedAudioContainer : ISyncedAudioContainer
 
         _clipCache.Clear();
 
-        var names = _loader.AudioNames;
-        foreach (var name in names)
-        {
-            var hash = name.GetStableHash();
-            _nameToHash[name] = hash;
-            _hashToName[hash] = name;
-        }
+        CacheHashes();
     }
 }

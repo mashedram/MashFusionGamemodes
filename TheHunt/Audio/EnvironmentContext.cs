@@ -41,7 +41,24 @@ public class EnvironmentContext
         if (!nightmare.HasRig)
             return false;
 
-        var otherPosition = nightmare.RigRefs.Head.position;
+        var nightmareHead = nightmare.RigRefs.Head;
+        if (nightmareHead == null)
+            return false;
+        
+        var nightmarePosition = nightmareHead.position;
+        
+        // Check if we can actually see the entity, head angle wise
+        // We only do this check if the chase just started, to avoid the nightmare "losing" the player if they look away for a second
+        if (_chaseTimer < 0f)
+        {
+            var toEntity = nightmarePosition - localPosition;
+            var forward = nightmareHead.forward;
+            var angle = Vector3.Angle(forward, toEntity);
+            if (angle > 100f)
+                return false;
+        }
+
+        var otherPosition = nightmarePosition;
         var line = otherPosition - localPosition;
         var distance = line.magnitude;
 
@@ -58,25 +75,22 @@ public class EnvironmentContext
         _spookTimer = TensionSpookDelay;
     }
 
-    public static EnvironmentContext GetContext(TheHuntContext context)
+    private static bool ShouldBeChasing(TheHuntContext context, float delta)
     {
-        var delta = Time.deltaTime;
-
-        // Chasing
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
-        var shouldBeChasing = !IsLocalNightmare &&
-                              NetworkPlayer.Players.Any(player => player.PlayerID.IsTeam<NightmareTeam>() &&
+        var shouldBeChasing = NetworkPlayer.Players.Any(player => player.PlayerID.IsTeam<NightmareTeam>() &&
                                                                   IsNightmareChasing(player, localPosition));
         _chaseTimer = shouldBeChasing ? ChaseDuration : Mathf.Max(0, _chaseTimer - delta);
-        var isChasing = _chaseTimer > 0.5f;
+        return _chaseTimer > 0.5f;
+    }
 
-        // Tension
+    private static bool ShouldBeTension(float delta)
+    {
         var shouldBeTension = !IsLocalNightmare &&
                               (NetworkPlayer.Players.Any(player => player.PlayerID.IsTeam<NightmareTeam>() &&
                                                                    player.DistanceSqr <= TensionDistance) ||
                                _spookTimer <= 1f
                               );
-
         if (shouldBeTension && !_inTension)
         {
             _inTension = true;
@@ -88,11 +102,29 @@ public class EnvironmentContext
         }
         var isTension = _tensionTimer > 0.5f;
         // Quit tension
-        if (!isTension)
-        {
-            _inTension = false;
-            _spookTimer = TensionSpookDelay;
-        }
+        if (isTension) 
+            return isTension;
+        
+        _inTension = false;
+        _spookTimer = TensionSpookDelay;
+
+        return isTension;
+    }
+    
+    public static EnvironmentContext GetContext(TheHuntContext context)
+    {
+        var delta = Time.deltaTime;
+        
+        if (IsLocalNightmare)
+            return new EnvironmentContext
+            {
+                IsChasing = false,
+                IsTension = false
+            };
+
+        // Chasing
+        var isChasing = ShouldBeChasing(context, delta);
+        var isTension = ShouldBeTension(delta);
 
         return new EnvironmentContext
         {

@@ -3,5 +3,6 @@
 public enum EffectorTracks
 {
     Weather,
-    Music
+    Music,
+    Stinger
 }

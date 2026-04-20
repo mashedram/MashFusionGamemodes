@@ -23,4 +23,14 @@ public class HuntPhase : GamePhase
         
         return PhaseIdentifier.Empty();
     }
+
+    protected override void OnPhaseEnter()
+    {
+        Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Start();
+    }
+
+    protected override void OnPhaseExit()
+    {
+        Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Stop();
+    }
 }
