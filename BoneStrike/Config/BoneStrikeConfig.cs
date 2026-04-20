@@ -164,6 +164,18 @@ public class BoneStrikeConfig : IConfig
 
     [ConfigMenuEntry("Balance Avatar Health", "Balancing")] [JsonInclude]
     public bool BalanceStats = true;
+    [ConfigMenuEntry("Limit Player Magazines", "Balancing")] [JsonInclude]
+    public bool LimitMags = true;
+    [ConfigMenuEntry("Max magazines", "Balancing")] 
+    [ConfigRangeConstraint(30, 300)]
+    [ConfigStepSize(30)]
+    [JsonInclude]
+    public int MagazineCapacity = 120;
+    [ConfigMenuEntry("Movement Speed", "Balancing")] 
+    [ConfigRangeConstraint(1f, 2f)] 
+    [ConfigStepSize(0.05f)]
+    [JsonInclude]
+    public float MovementSpeedMultiplier = 1.35f;
 
     [ConfigMenuEntry("Blind Attackers During Planting", "Health")] [JsonInclude]
     public bool BlindAttackersDuringPlanting;
@@ -202,6 +214,9 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref AttackerHealthMultiplier);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
+        serializer.SerializeValue(ref LimitMags);
+        serializer.SerializeValue(ref MagazineCapacity);
+        serializer.SerializeValue(ref MovementSpeedMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
         serializer.SerializeValue(ref AllowUnbalancedTeams);
@@ -218,6 +233,9 @@ public class BoneStrikeConfig : IConfig
             BlindAttackersDuringPlanting = BlindAttackersDuringPlanting,
             BalanceStats = BalanceStats,
             BalanceDamage = BalanceDamage,
+            LimitMags = LimitMags,
+            MagazineCapacity = MagazineCapacity,
+            MovementSpeedMultiplier = MovementSpeedMultiplier,
             DefenderHealthMultiplier = DefenderHealthMultiplier,
             AttackerHealthMultiplier = AttackerHealthMultiplier,
             PalletBarcodes = new List<string>(PalletBarcodes),

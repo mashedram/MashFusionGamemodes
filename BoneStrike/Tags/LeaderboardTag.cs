@@ -90,7 +90,7 @@ public class LeaderboardTag : IComponent, IComponentReady
         entry.DefusesText.text = data.Defuses.ToString();
         entry.ScoreText.text = data.Score.ToString();
 
-        entry.Background.color = data.PlayerId.IsTeam<TerroristTeam>() ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
+        entry.Background.color = PersistentTeams.LocalTeamIndex == 0 ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
     }
 
     public void SetContent()

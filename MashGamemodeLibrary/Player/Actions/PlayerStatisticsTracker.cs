@@ -44,7 +44,7 @@ public static class PlayerStatisticsTracker
         return Statistics.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
     }
 
-    public static void SendNotificationAndAwardBits(int extraBits, params Enum[] keys)
+    public static void AwardBits(int extraBits, params Enum[] keys)
     {
         var bits = GetTotalBits(extraBits);
 

@@ -60,11 +60,26 @@ internal class WinMessagePacket : INetSerializable
     }
 }
 
+internal class TeamIndexPacket : INetSerializable
+{
+    public int TeamIndex;
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref TeamIndex);
+    }
+}
+
 public class PersistentTeams
 {
     private static readonly RemoteEvent<WinMessagePacket> WinMessageEvent =
         new("PersistentTeams_WinMessage", OnWinMessage,
             CommonNetworkRoutes.HostToAll);
+    private static readonly RemoteEvent<TeamIndexPacket> TeamIndexEvent =
+        new("PersistentTeams_TeamIndex", (p => LocalTeamIndex = p.TeamIndex),
+            CommonNetworkRoutes.HostToAll);
+    
+    public static int LocalTeamIndex { get; private set; } = 0;
 
     private readonly HashSet<PlayerID> _lateJoinerQueue = new();
     private readonly HashSet<PlayerID> _playerIds = new();
@@ -127,6 +142,19 @@ public class PersistentTeams
         AddTeamID(id);
     }
 
+    private void Assign(PlayerID playerID, int index)
+    {
+        // Avoid double adding
+        if (!_playerIds.Add(playerID))
+            return;
+        
+        _playerSets[index].Add(playerID);
+        TeamIndexEvent.CallFor(playerID, new TeamIndexPacket
+        {
+            TeamIndex = index
+        });
+    }
+
     public void AddPlayers(IEnumerable<PlayerID> playerIds)
     {
         _playerSets.ForEach(set => set.Clear());
@@ -135,8 +163,7 @@ public class PersistentTeams
         var index = 0;
         foreach (var playerID in playerIds.Shuffle())
         {
-            _playerIds.Add(playerID);
-            _playerSets[index].Add(playerID);
+            Assign(playerID, index);
             index = (index + 1) % _playerSets.Count;
         }
     }
@@ -149,11 +176,9 @@ public class PersistentTeams
         var index = 0;
         foreach (var playerSet in playerSets)
         {
-            var targetSet = _playerSets[index];
             foreach (var playerID in playerSet)
             {
-                _playerIds.Add(playerID);
-                targetSet.Add(playerID);
+                Assign(playerID, index);
             }
 
             index = (index + 1) % _playerSets.Count;
@@ -196,11 +221,7 @@ public class PersistentTeams
 
             _lateJoinerQueue.Remove(playerID);
 
-            // Avoid double adding
-            if (!_playerIds.Add(playerID))
-                continue;
-
-            _playerSets[index].Add(playerID);
+            Assign(playerID, index);
 
             index = (index + 1) % _playerSets.Count;
         }
@@ -298,7 +319,7 @@ public class PersistentTeams
         var winCount = teamScores[localTeamID].score;
         var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
 
-        PlayerStatisticsTracker.SendNotificationAndAwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
+        PlayerStatisticsTracker.AwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
             PlayerDamageStatistics.Deaths);
     }
 }

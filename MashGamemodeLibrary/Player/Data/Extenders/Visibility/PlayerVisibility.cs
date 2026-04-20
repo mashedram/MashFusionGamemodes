@@ -96,8 +96,10 @@ public class PlayerVisibility : IPlayerExtender
     {
         switch (playerEvent)
         {
+            // When the avatar changes, we need to update the visibility of the new avatar
+            // If the spectator state of the local player changes, we need to update the visibility of all players
             case AvatarChangedEvent:
-            case OtherPlayerRuleChangedEvent { Rule: PlayerSpectatingRule }:
+            case PlayerRuleChangedEvent { Rule: PlayerSpectatingRule, Player: var playerID } when playerID.Equals(PlayerIDManager.LocalID):
                 SetVisibility(_isVisible);
                 break;
         }

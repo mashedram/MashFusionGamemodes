@@ -2,6 +2,9 @@
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Actions;
 
@@ -12,8 +15,10 @@ public enum PlayerDamageStatistics
     Deaths
 }
 
+[RequireStaticConstructor]
 public static class PlayerDamageTracker
 {
+    private static readonly IBehaviourCache<IPlayerTakeDamageCallback> DamageCallbacks = BehaviourManager.CreateCache<IPlayerTakeDamageCallback>();
     private static readonly Dictionary<byte, HashSet<byte>> DamageMarks = new();
 
     static PlayerDamageTracker()
@@ -44,7 +49,11 @@ public static class PlayerDamageTracker
     private static void OnDamage(PlayerID damager, PlayerID damaged)
     {
         if (damaged.IsMe)
+        {
+            // Call Damage behavior
+            DamageCallbacks.ForEach(p => p.OnDamageTaken(damager));
             return;
+        }
         if (damaged.Equals(damager))
             return;
 

@@ -1,18 +1,22 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 
 namespace TheHunt.Player.Speed;
 
-// TODO: I want to play the game now thank you
-// [HarmonyPatch(typeof(OpenController))]
-// public static class HandControllerPatches
-// {
-//     public static float Speed => 0.5f;
-//     
-//     [HarmonyPatch(nameof(OpenController.GetThumbStickAxis))]
-//     [HarmonyPostfix]
-//     public static void GetThumbStickAxisPostfix(OpenController __instance, ref UnityEngine.Vector2 __result)
-//     { 
-//         __result *= Speed;
-//     }
-// }
+[HarmonyPatch(typeof(OpenController))]
+public static class HandControllerPatches
+{
+    [HarmonyPatch(nameof(OpenController.GetThumbStickAxis))]
+    [HarmonyPostfix]
+    public static void GetThumbStickAxisPostfix(OpenController __instance, ref UnityEngine.Vector2 __result)
+    { 
+        if (__instance == null)
+            return;
+        
+        if (__instance.handedness != Handedness.LEFT)
+            return;
+            
+        __result *= LocalSpeed.SpeedModifier;
+    }
+}

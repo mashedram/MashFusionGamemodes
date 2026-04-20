@@ -38,7 +38,7 @@ public class TerroristTeam : LogicTeam
                 Agility = 1.2f,
                 LowerStrength = 1.2f,
                 UpperStrength = 1.2f,
-                Speed = 1.35f,
+                Speed = BoneStrike.Config.MovementSpeedMultiplier,
                 Vitality = 1f
             }.MultiplyHealth(BoneStrike.Config.DefenderHealthMultiplier));
 

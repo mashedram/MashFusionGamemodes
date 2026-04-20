@@ -25,6 +25,22 @@ internal class SecondsToMinutesElementProvider : IConfigElementProvider
     }
 }
 
+internal class TimeAdditionElementProvider : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        return new FloatElementData
+        {
+            Title = entry.Name,
+            Increment = 0.5f,
+            MaxValue = 3f,
+            MinValue = 0f,
+            Value = Convert.ToSingle(entry.Value) / 60f,
+            OnValueChanged = f => setter(entry, Convert.ToSingle(f) * 60f)
+        };
+    }
+}
+
 internal class MinuteElementProvider : IConfigElementProvider
 {
     public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
@@ -50,7 +66,7 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Hunt Phase Duration", "Time")] 
     [ConfigElementProvider(typeof(MinuteElementProvider))] 
     [JsonInclude]
-    public float HuntDuration = 360f;
+    public float HuntDuration = 180f;
     
     [ConfigMenuEntry("Finally Always Plays", "Time")]
     [JsonInclude]
@@ -59,6 +75,11 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [JsonInclude]
     public float FinallyDuration = 60f;
+    
+    [ConfigMenuEntry("Time Gain on Kill", "Time")]
+    [ConfigElementProvider(typeof(TimeAdditionElementProvider))]
+    [JsonInclude]
+    public float TimeGainOnKill = 60f;
 
     [ConfigMenuEntry("Lock Nightmare on Start", "Health")] [JsonInclude]
     public bool LockNightmare = true;
@@ -69,11 +90,20 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Balance Avatar Health", "Health")] [JsonInclude]
     public bool BalanceStats = true;
     
+    [ConfigMenuEntry("Slow nightmare on damage", "Balancing")] 
+    [JsonInclude]
+    public bool SlowNightmareOnDamage = true;
+    
+    [ConfigMenuEntry("Limit Player Magazines", "Balancing")] [JsonInclude]
+    public bool LimitMags = true;
+    [ConfigMenuEntry("Max ammunition", "Balancing")] 
+    [ConfigRangeConstraint(10, 60)]
+    [ConfigStepSize(10)]
+    [JsonInclude]
+    public int MagazineCapacity = 20;
+    
     [ConfigMenuEntry("Weather Type", "Environment")]
     public WeatherType WeatherType = WeatherType.None;
-
-    [ConfigMenuEntry("Music", "Environment")]
-    public bool MusicEnabled = true;
 
     [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     public bool NightVision = true;
@@ -117,8 +147,9 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref FinallyDuration);
         serializer.SerializeValue(ref LockNightmare);
         serializer.SerializeValue(ref BlindNightmare);
+        serializer.SerializeValue(ref LimitMags);
+        serializer.SerializeValue(ref MagazineCapacity);
         serializer.SerializeValue(ref WeatherType);
-        serializer.SerializeValue(ref MusicEnabled);
         serializer.SerializeValue(ref SpectatorNightVision);
         serializer.SerializeValue(ref NightVision);
         serializer.SerializeValue(ref NightVisionBrightness);
@@ -139,8 +170,9 @@ public class TheHuntConfig : IConfig
             FinallyDuration = FinallyDuration,
             LockNightmare = LockNightmare,
             BlindNightmare = BlindNightmare,
+            LimitMags = LimitMags,
+            MagazineCapacity = MagazineCapacity,
             WeatherType = WeatherType,
-            MusicEnabled = MusicEnabled,
             NightVision = NightVision,
             SpectatorNightVision = SpectatorNightVision,
             NightVisionBrightness = NightVisionBrightness,

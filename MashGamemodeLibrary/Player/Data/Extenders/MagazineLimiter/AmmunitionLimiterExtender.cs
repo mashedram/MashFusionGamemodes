@@ -6,22 +6,22 @@ using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter;
 
-public class MagazineLimiterExtender : IPlayerExtender
+public class AmmunitionLimiterExtender : IPlayerExtender
 {
-    private int? _magazineLimit;
-    public int MagazinesUsed { get; private set; }
+    private int? _ammunitionLimit;
+    public int AmmunitionUsed { get; private set; }
     
-    public void UseMagazine()
+    public void UseMagazine(int amount)
     {
-        MagazinesUsed++;
+        AmmunitionUsed += amount;
     }
 
     public bool CanUseMagazine()
     {
-        if (_magazineLimit == null)
+        if (_ammunitionLimit == null)
             return true;
         
-        return MagazinesUsed < _magazineLimit;
+        return AmmunitionUsed < _ammunitionLimit;
     }
     
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
@@ -31,8 +31,11 @@ public class MagazineLimiterExtender : IPlayerExtender
     
     public void OnRuleChanged(IPlayerRule rule)
     {
-        if (rule is PlayerMagazineLimitRule magazineLimitRule)
-            _magazineLimit = magazineLimitRule.MagazineLimit;
+        if (rule is not PlayerAmmunitionLimitRule ammunitionLimitRule)
+            return;
+        
+        _ammunitionLimit = ammunitionLimitRule.AmmunitionLimit;
+        AmmunitionUsed = 0;
     }
     
     public void OnEvent(IPlayerEvent playerEvent)

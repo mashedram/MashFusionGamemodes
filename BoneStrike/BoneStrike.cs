@@ -45,6 +45,14 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnRegistered()
     {
+        ResetPoint.OnValueChanged += point =>
+        {
+            if (!IsReady)
+                return;
+            
+            SpawnPointHelper.SetSpawnPoint(point);
+        };
+        
         LimitedRespawnComponent.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
             if (AnyDefusers())
@@ -93,6 +101,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
             LeaderboardTag.Spawn(ResetPoint);
         });
+        
+        FusionPlayer.ResetSpawnPoints();
     }
 
     protected override void OnRoundStart()
@@ -100,6 +110,8 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         Notifier.CancelAll();
         LeaderboardTag.Despawn();
         LocalHealth.MortalityOverride = true;
+        
+        SpawnPointHelper.SetSpawnPoint(ResetPoint);
 
         LogicTeamManager.Enable<TerroristTeam>();
         LogicTeamManager.Enable<CounterTerroristTeam>();
@@ -134,7 +146,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
-        FusionPlayer.ResetSpawnPoints();
         LocalPlayer.TeleportToPosition(ResetPoint);
 
         Executor.RunIfHost(() =>
@@ -159,8 +170,6 @@ public class BoneStrike : GamemodeWithContext<BoneStrikeContext, BoneStrikeConfi
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
         LocalHealth.MortalityOverride = false;
-
-        FusionPlayer.ResetSpawnPoints();
 
         Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }

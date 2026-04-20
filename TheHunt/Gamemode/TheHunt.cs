@@ -24,6 +24,7 @@ using TheHunt.Audio.Hunt;
 using TheHunt.Config;
 using TheHunt.Nightmare;
 using TheHunt.Phase;
+using TheHunt.Player.Speed;
 using TheHunt.Teams;
 using UnityEngine;
 
@@ -47,6 +48,14 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
     
     protected override void OnRegistered()
     {
+        ResetPoint.OnValueChanged += point =>
+        {
+            if (!IsReady)
+                return;
+            
+            SpawnPointHelper.SetSpawnPoint(point);
+        };
+        
         NightmareComponent.RegisterAll<TheHunt>();
         
         LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(_ =>
@@ -68,7 +77,7 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
     {
         Executor.RunIfHost(() =>
         {
-            ResetPoint.Value = RigData.RigSpawn;
+            ResetPoint.Value = RigData.Refs.RigManager.transform.position;
             
             _nightmareQueue.Clear();
             // Add all players to the queue, shuffled so a player doesn't get biased
@@ -81,13 +90,15 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
 
     protected override void OnEnd()
     {
-        
+        FusionPlayer.ResetSpawnPoints();
     }
 
     protected override void OnRoundStart()
     {
         Notifier.CancelAll();
         LocalHealth.MortalityOverride = true;
+        
+        SpawnPointHelper.SetSpawnPoint(ResetPoint.Value);
         
         LogicTeamManager.Enable<HiderTeam>();
         LogicTeamManager.Enable<NightmareTeam>();
@@ -144,7 +155,6 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
-        FusionPlayer.ResetSpawnPoints();
         LocalPlayer.TeleportToPosition(ResetPoint);
     }
 
@@ -153,6 +163,8 @@ public class TheHunt : GamemodeWithContext<TheHuntContext, TheHuntConfig>
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
         LocalHealth.MortalityOverride = false;
+        
+        LocalSpeed.SpeedModifier = 1f;
     }
 
     public override void OnLateJoin(PlayerID playerID)

@@ -15,19 +15,27 @@ public class InventoryAmmoReceiverPatches
         if (!NetworkInfo.HasServer)
             return true;
         
+        // Check the magazine first
+        if (instance._activeMagazines.Count == 0)
+            return true;
+
+        var magazine = instance._activeMagazines[0];
+        if (magazine?.magazineState == null)
+            return true;
+        
         // Only act on the local player
         if (!NetworkPlayerManager.TryGetPlayer(instance._parentRigManager, out var player) || !player.PlayerID.IsMe)
             return true;
 
         // Get the local ammo limiter
-        var ammoLimiter = PlayerDataManager.GetLocalPlayerData()?.GetExtender<MagazineLimiterExtender>();
+        var ammoLimiter = PlayerDataManager.GetLocalPlayerData()?.GetExtender<AmmunitionLimiterExtender>();
         if (ammoLimiter == null)
             return true;
 
         if (!ammoLimiter.CanUseMagazine())
             return false;
         
-        ammoLimiter.UseMagazine();    
+        ammoLimiter.UseMagazine(magazine.magazineState.AmmoCount);    
         return true;
     }
 }

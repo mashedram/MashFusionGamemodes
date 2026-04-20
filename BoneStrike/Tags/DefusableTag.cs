@@ -158,6 +158,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
         }
         else
         {
+            PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
+            
             MelonLogger.Msg("Sent defuse request.");
             DefuseEvent.CallFor(PlayerIDManager.GetHostID());
         }
@@ -216,7 +218,6 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             MelonLogger.Warning($"Player {playerID} attempted to defuse but is not on the Counter-Terrorist team.");
         }
 
-        PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
         Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
     }
 }

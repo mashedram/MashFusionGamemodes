@@ -14,10 +14,13 @@ using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
+using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using TheHunt.Nightmare.Ability;
 using TheHunt.Phase;
+using TheHunt.Player.Speed;
+using TheHunt.Teams;
 
 namespace TheHunt.Nightmare;
 
@@ -34,7 +37,7 @@ internal class AbilityCooldownTimer
     }
 }
 
-public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentRemoved, IComponentUpdate, IPlayerInputCallback, INetSerializable
+public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentRemoved, IComponentUpdate, IPlayerInputCallback, IPlayerTakeDamageCallback, INetSerializable
 {
     private static readonly FactoryTypedRegistry<INightmareDescriptor> NightmareRegistry = new FactoryTypedRegistry<INightmareDescriptor>();
     private ulong _networkedNightmare;
@@ -48,6 +51,10 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
     // Loaded abilities
     private readonly List<IAbility> _abilities = new List<IAbility>();
     private readonly Dictionary<IAbility, AbilityCooldownTimer> _abilityCooldowns = new Dictionary<IAbility, AbilityCooldownTimer>();
+    
+    // Speed penalty
+    private float _speedModifier = 1f;
+    private float _speedHealDelay = 0f;
     
     // Default Constructor for Serialization
     public NightmareComponent() {}
@@ -89,6 +96,7 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
                 LocalAvatar.AvatarOverride = null;
             
             AvatarStatManager.ResetStats();
+            LocalSpeed.SpeedModifier = 1f;
 
             NightVisionHelper.Enabled = false;
         }
@@ -105,6 +113,9 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         if (_player == null || _player?.PlayerID?.IsValid != true)
             return;
         
+        if (!_activeNightmare.HasValue)
+            return;
+        
         if (!_player.PlayerID.IsMe)
             return;
 
@@ -112,6 +123,36 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         {
             abilityCooldownsValue.Timer -= delta;
         }
+        
+        if (_speedHealDelay > 0f)
+        {
+            _speedHealDelay -= delta;
+            return;
+        }
+
+        // Heal speed penalty over time
+        if (_speedModifier >= 1f)
+            return;
+        
+        _speedModifier += delta / _activeNightmare.Value.NightmareDescriptor.SpeedPenaltyDuration;
+        LocalSpeed.SpeedModifier = _speedModifier;
+    }
+    
+    public void OnDamageTaken(PlayerID? source)
+    {
+        if (source == null)
+            return;
+        
+        if (!_activeNightmare.HasValue)
+            return;
+        
+        if (!source.IsTeam<HiderTeam>())
+            return;
+
+        var descriptor = _activeNightmare.Value.NightmareDescriptor;
+        _speedModifier = descriptor.SpeedPenaltyPerShot;
+        _speedHealDelay = descriptor.SpeedPenaltyHealDelay;
+        LocalSpeed.SpeedModifier = _speedModifier;
     }
 
     public void OnInput(PlayerInputType type, bool state, Handedness handedness)

@@ -34,7 +34,7 @@ internal record NetworkRulePacket(PlayerID PlayerID, ulong RuleHash)
 public class PlayerData : IEventReceiver
 {
     // Caches
-    private static readonly IBehaviourCache<IPlayerRuleChanged> PlayerRuleChangedCache = BehaviourManager.CreateCache<IPlayerRuleChanged>();
+    private static readonly IBehaviourCache<IPlayerRuleChangedCallback> PlayerRuleChangedCache = BehaviourManager.CreateCache<IPlayerRuleChangedCallback>();
     
     // Registries
     private static readonly FactoryTypedRegistry<IPlayerExtender> ExtenderRegistry = new();
@@ -108,7 +108,7 @@ public class PlayerData : IEventReceiver
     {
         var rule = ruleInstance.GetBaseRule();
         Extenders.ForEach(e => e.OnRuleChanged(rule));
-        PlayerDataManager.CallEventOnAll(new OtherPlayerRuleChangedEvent(PlayerID, rule));
+        PlayerDataManager.CallEventOnAll(new PlayerRuleChangedEvent(PlayerID, rule));
         if (NetworkPlayer != null)
             PlayerRuleChangedCache.ForEach(e => e.OnPlayerRuleChanged(NetworkPlayer, rule));
 
@@ -137,6 +137,18 @@ public class PlayerData : IEventReceiver
             return false;
 
         return predicate(typedRuleInstance.GetRule());
+    }
+    
+    public void ModifyRule<TRule>(Action<TRule> modifier) where TRule : class, IPlayerRule, new()
+    {
+        if (!_ruleInstanceCache.TryGetValue(typeof(TRule), out var ruleInstance))
+            throw new KeyNotFoundException($"Rule of type {typeof(TRule)} not found for player {PlayerID}");
+
+        if (ruleInstance is not PlayerRuleInstance<TRule> typedRuleInstance)
+            throw new InvalidCastException($"Rule instance of type {ruleInstance.GetType()} cannot be cast to PlayerRuleInstance<{typeof(TRule)}> for player {PlayerID}");
+
+        modifier(typedRuleInstance.GetRule());
+        NotifyRuleChanged(typedRuleInstance);
     }
 
     public IPlayerRuleInstance? GetRuleByHash(ulong hash)
