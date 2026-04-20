@@ -39,7 +39,7 @@ internal class LeaderboardPlayerEntry
     }
 }
 
-public class LeaderboardPlayerData
+internal class LeaderboardPlayerData
 {
     public PlayerID PlayerId { get; init; }
     public int Kills { get; init; }
@@ -60,7 +60,7 @@ public class LeaderboardPlayerData
     }
 }
 
-public class LeaderboardInstance
+internal class LeaderboardInstance
 {
     private const string Barcode = "Mash.BoneStrike.Spawnable.Leaderboard";
     private Poolee? _poolee;
@@ -72,6 +72,7 @@ public class LeaderboardInstance
         {
             _poolee = poolee;
             LoadEntries();
+            SetContent();
         });
     }
     
@@ -87,11 +88,14 @@ public class LeaderboardInstance
         entry.DefusesText.text = data.Defuses.ToString();
         entry.ScoreText.text = data.Score.ToString();
 
-        entry.Background.color = PersistentTeams.LocalTeamIndex == 0 ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
+        entry.Background.color = PersistentTeams.GetTeamIndex(data.PlayerId) == 0 ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
     }
 
     public void SetContent()
     {
+        if (_poolee == null)
+            return;
+        
         var statistics = GlobalStatisticsCollector.Statistics
             .Select(v => new LeaderboardPlayerData(v))
             .Where(v => v.PlayerId.IsValid)
@@ -124,6 +128,25 @@ public class LeaderboardInstance
         var localPlayerData = statistics[localPlayerPosition];
         var localEntry = _entries[localPlayerPosition + 1];
         SetEntryData(localEntry, localPlayerData, localPlayerPosition + 1);
+    }
+    
+    public void Show(Vector3 position)
+    {
+        if (_poolee == null)
+            return;
+
+        _poolee.gameObject.SetActive(true);
+        _poolee.transform.position = position;
+        
+        SetContent();
+    }
+    
+    public void Hide()
+    {
+        if (_poolee == null)
+            return;
+
+        _poolee.gameObject.SetActive(false);
     }
 
     private void LoadEntries()
@@ -167,6 +190,11 @@ public static class LeaderboardManager
     public static void ShowLeaderboard(Vector3 position)
     {
         var leaderboard = GetLeaderboard(position);
-        leaderboard.SetContent();
+        leaderboard.Show(position);
+    }
+    
+    public static void HideLeaderboard()
+    {
+        _instance?.Hide();
     }
 }

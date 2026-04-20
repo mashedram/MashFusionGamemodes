@@ -86,6 +86,8 @@ public class SyncedDictionary<TKey, TValue> : GenericRemoteEvent<DictionaryEdit<
 
     public Dictionary<TKey, TValue>.KeyCollection Keys => _dictionary.Keys;
     public Dictionary<TKey, TValue>.ValueCollection Values => _dictionary.Values;
+    
+    public int Count => _dictionary.Count;
 
     public void OnCatchup(PlayerID playerId)
     {

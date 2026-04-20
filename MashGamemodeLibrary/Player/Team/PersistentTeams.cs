@@ -6,6 +6,8 @@ using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Player.Actions;
 using MelonLoader;
 using Random = UnityEngine.Random;
@@ -17,199 +19,102 @@ public enum TeamStatisticKeys
     RoundsWon
 }
 
-internal class WinMessagePacket : INetSerializable
+public static class PersistentTeams
 {
-    public List<(int, byte)> PlayerIds = new();
-    public List<int> Scores = new();
-
-    public void Serialize(INetSerializer serializer)
-    {
-        if (serializer.IsReader)
-        {
-            var reader = (NetReader)serializer;
-            var size = reader.ReadInt32();
-            Scores = new List<int>(size);
-            for (var i = 0; i < size; i++)
-            {
-                Scores.Add(reader.ReadInt32());
-            }
-
-            size = reader.ReadInt32();
-            PlayerIds = new List<(int, byte)>(size);
-            for (var i = 0; i < size; i++)
-            {
-                var score = reader.ReadInt32();
-                var playerID = reader.ReadByte();
-                PlayerIds.Add((score, playerID));
-            }
-            return;
-        }
-
-        var writer = (NetWriter)serializer;
-        writer.Write(Scores.Count);
-        foreach (var score in Scores)
-        {
-            writer.Write(score);
-        }
-        writer.Write(PlayerIds.Count);
-        foreach (var (score, playerID) in PlayerIds)
-        {
-            writer.Write(score);
-            writer.Write(playerID);
-        }
-    }
-}
-
-internal class TeamIndexPacket : INetSerializable
-{
-    public int TeamIndex;
-    
-    public void Serialize(INetSerializer serializer)
-    {
-        serializer.SerializeValue(ref TeamIndex);
-    }
-}
-
-public class PersistentTeams
-{
-    private static readonly RemoteEvent<WinMessagePacket> WinMessageEvent =
+    private static readonly RemoteEvent WinMessageEvent =
         new("PersistentTeams_WinMessage", OnWinMessage,
             CommonNetworkRoutes.HostToAll);
-    private static readonly RemoteEvent<TeamIndexPacket> TeamIndexEvent =
-        new("PersistentTeams_TeamIndex", (p => LocalTeamIndex = p.TeamIndex),
-            CommonNetworkRoutes.HostToAll);
-    
-    public static int LocalTeamIndex { get; private set; } = 0;
+    private static readonly SyncedDictionary<byte, int> PlayerTeamIndices = 
+        new("PersistentTeams_PlayerTeamIndices", new ByteEncoder(), new IntEncoder());
+    private static readonly SyncedDictionary<int, int> TeamScores = 
+        new("PersistentTeams_TeamScores", new IntEncoder(), new IntEncoder());
 
-    private readonly HashSet<PlayerID> _lateJoinerQueue = new();
-    private readonly HashSet<PlayerID> _playerIds = new();
-    private readonly List<HashSet<PlayerID>> _playerSets = new();
-    private readonly List<int> _scores = new();
-    private readonly List<ulong> _teamIds = new();
+    private static readonly HashSet<PlayerID> LateJoinerQueue = new();
+    private static readonly List<ulong> TeamIds = new();
 
-    private int _shift = Random.RandomRangeInt(0, 2);
+    private static int _shift = Random.RandomRangeInt(0, 2);
 
-    private ulong GetTeamId(int setIndex)
+    private static ulong GetTeamId(int setIndex)
     {
-        var index = (setIndex + _shift) % _teamIds.Count;
-        return _teamIds[index];
+        var index = (setIndex + _shift) % TeamIds.Count;
+        return TeamIds[index];
     }
 
-    private void AutoBalance()
+    public static void AddTeamID(ulong id)
     {
-        var emptyTeams = _playerSets.Where(set => set.Count == 0).ToList();
-        if (emptyTeams.Count <= 0)
-            return;
-
-        var totalPlayers = _playerSets.Select(s => s.Count).Sum();
-
-        if (totalPlayers < _playerSets.Count)
-            return;
-
-        var targetSize = totalPlayers / _playerSets.Count;
-
-        foreach (var emptySet in emptyTeams)
-        {
-            while (emptySet.Count < targetSize)
-            {
-                var largestSet = _playerSets
-                    .Where(set => set.Count > targetSize && set != emptySet)
-                    .MaxBy(set => set.Count);
-
-                if (largestSet == null || largestSet.Count == 0)
-                    break;
-
-                var player = largestSet.GetRandom();
-                if (player == null)
-                    break;
-
-                largestSet.Remove(player);
-                emptySet.Add(player);
-            }
-        }
+        TeamIds.Add(id);
     }
 
-    public void AddTeamID(ulong id)
-    {
-        _teamIds.Add(id);
-        _playerSets.Add(new HashSet<PlayerID>());
-        _scores.Add(0);
-    }
-
-    public void AddTeam<T>() where T : LogicTeam
+    public static void AddTeam<T>() where T : LogicTeam
     {
         var id = LogicTeamManager.Registry.CreateID<T>();
         AddTeamID(id);
     }
 
-    private void Assign(PlayerID playerID, int index)
+    private static void Assign(PlayerID playerID, int index)
     {
         // Avoid double adding
-        if (!_playerIds.Add(playerID))
+        if (PlayerTeamIndices.ContainsKey(playerID))
             return;
-        
-        _playerSets[index].Add(playerID);
-        TeamIndexEvent.CallFor(playerID, new TeamIndexPacket
-        {
-            TeamIndex = index
-        });
+
+        PlayerTeamIndices[playerID] = index;
     }
 
-    public void AddPlayers(IEnumerable<PlayerID> playerIds)
+    public static void AddPlayers(IEnumerable<PlayerID> playerIds)
     {
-        _playerSets.ForEach(set => set.Clear());
-        _playerIds.Clear();
-
         var index = 0;
         foreach (var playerID in playerIds.Shuffle())
         {
             Assign(playerID, index);
-            index = (index + 1) % _playerSets.Count;
+            index = (index + 1) % TeamIds.Count;
         }
     }
-
-    public void OverwritePlayerSets(IEnumerable<IEnumerable<PlayerID>> playerSets)
+    
+    public static void OverwritePlayers(IEnumerable<PlayerID> playerIds)
     {
-        _playerSets.ForEach(set => set.Clear());
-        _playerIds.Clear();
-
+        PlayerTeamIndices.Clear();
+        AddPlayers(playerIds);
+    }
+    
+    public static void OverwritePlayers(IEnumerable<IEnumerable<PlayerID>> teamPlayerIds)
+    {
+        PlayerTeamIndices.Clear();
         var index = 0;
-        foreach (var playerSet in playerSets)
+        foreach (var playerId in teamPlayerIds.SelectMany(t => t))
         {
-            foreach (var playerID in playerSet)
-            {
-                Assign(playerID, index);
-            }
-
-            index = (index + 1) % _playerSets.Count;
+            Assign(playerId, index);
+            index = (index + 1) % TeamIds.Count;
         }
     }
 
-    public void RandomizeShift()
+    public static void RandomizeShift()
     {
-        _shift += Random.RandomRangeInt(0, _teamIds.Count);
+        _shift += Random.RandomRangeInt(0, TeamIds.Count);
     }
 
-    public void QueueLateJoiner(PlayerID playerID)
+    public static void QueueLateJoiner(PlayerID playerID)
     {
-        _lateJoinerQueue.Add(playerID);
+        LateJoinerQueue.Add(playerID);
     }
 
-    public void AssignAll()
+    public static void AssignAll()
     {
-        if (_playerSets.Count == 0)
+        if (PlayerTeamIndices.Count == 0)
         {
             MelonLogger.Error("No valid set found.");
             return;
         }
 
         // Resolve queue
-        var index = _playerSets.Select((set, index) => (index, set)).MinBy(set => set.set.Count).index;
-        foreach (var playerID in _lateJoinerQueue)
+        var teamSizes = PlayerTeamIndices
+            .Select(p => p.Value)
+            .GroupBy(i => i)
+            .ToDictionary(g => g.Key, g => g.Count());
+        foreach (var playerID in LateJoinerQueue)
         {
             if (!playerID.IsValid)
             {
-                _lateJoinerQueue.Remove(playerID);
+                LateJoinerQueue.Remove(playerID);
                 continue;
             }
 
@@ -219,70 +124,76 @@ public class PersistentTeams
             if (!player.HasRig)
                 continue;
 
-            _lateJoinerQueue.Remove(playerID);
+            LateJoinerQueue.Remove(playerID);
 
-            Assign(playerID, index);
-
-            index = (index + 1) % _playerSets.Count;
+            var smallestTeamIndex = teamSizes.MinBy(t => t.Value).Key;
+            Assign(playerID, smallestTeamIndex);
+            teamSizes[smallestTeamIndex] += 1;
         }
-
-        // Autobalance if needed
-        AutoBalance();
 
         // Assign teams
         _shift += 1;
-
-        for (var i = 0; i < _playerSets.Count; i++)
+        
+        foreach (var (smallId, teamIndex) in PlayerTeamIndices)
         {
-            var teamID = GetTeamId(i);
-            foreach (var playerID in _playerSets[i])
-            {
-                playerID.Assign(teamID);
-            }
+            var playerId = PlayerIDManager.GetPlayerID(smallId);
+            
+            if (!playerId.IsValid)
+                return;
+            
+            playerId.Assign(GetTeamId(teamIndex));
         }
     }
 
-    public void AddScore(ulong teamId, int score)
+    public static void AddScore(ulong teamId, int score)
     {
-        var index = _teamIds.IndexOf(teamId);
-        var setIndex = (index - _shift) % _teamIds.Count;
-        if (setIndex < 0)
-            setIndex += _teamIds.Count;
+        var index = TeamIds.IndexOf(teamId);
+        var teamIndex = (index - _shift) % TeamIds.Count;
+        if (teamIndex < 0)
+            teamIndex += TeamIds.Count;
 
-        _scores[setIndex] += score;
+        TeamScores[teamIndex] += score;
     }
-
-    public void SendMessage()
-    {
-        var playerIds = _playerSets
-            .SelectMany((set, index) => set.Where(id => id.IsValid).Select(id => (index, id.SmallID))).ToList();
-
-        if (playerIds.Count == 0)
-            return;
-
-        var packet = new WinMessagePacket
-        {
-            Scores = _scores,
-            PlayerIds = playerIds
-        };
-
-        WinMessageEvent.Call(packet);
-    }
-
-    public void Clear()
+    
+    public static void Clear()
     {
         _shift = 0;
-        _teamIds.Clear();
-        _playerSets.Clear();
-        _scores.Clear();
+        TeamIds.Clear();
+        PlayerTeamIndices.Clear();
+        TeamScores.Clear();
+    }
+    
+    public static int GetTeamIndex(PlayerID playerID)
+    {
+        return PlayerTeamIndices.TryGetValue(playerID, out var index) ? index : -1;
+    }
+    
+    public static int GetTeamScore(int teamIndex)
+    {
+        return TeamScores.TryGetValue(teamIndex, out var score) ? score : 0;
+    }
+    
+    public static int GetPlayerTeamScore(PlayerID playerID)
+    {
+        var teamIndex = GetTeamIndex(playerID);
+        return GetTeamScore(teamIndex);
     }
 
+    public static void SendMessage()
+    {
+        if (PlayerTeamIndices.Count == 0)
+            return;
+
+        WinMessageEvent.Call();
+    }
+    
+
     // events 
-    private static void OnWinMessage(WinMessagePacket packet)
+    private static void OnWinMessage(byte senderId)
     {
         var finals = new List<(string, int)>(2);
-        var teamScores = packet.Scores
-            .Select((score, teamID) => (teamID, score))
+        var teamScores = TeamScores
+            .Select(kvp => (TeamId: kvp.Key, score: kvp.Value))
             .OrderByDescending(p => p.score)
             .Take(2)
             .ToList();
@@ -292,7 +203,7 @@ public class PersistentTeams
 
         foreach (var (teamID, score) in teamScores)
         {
-            var playerID = packet.PlayerIds.FirstOrDefault(p => p.Item1 == teamID).Item2;
+            var playerID = PlayerTeamIndices.FirstOrDefault(p => p.Value == teamID).Key;
             var name = NetworkPlayerManager.TryGetPlayer(playerID, out var player)
                 ? player.Username
                 : "Unknown";
@@ -300,8 +211,8 @@ public class PersistentTeams
             finals.Add((name, score));
         }
 
-        var localTeamID = packet.PlayerIds.Where(p => p.Item2 == PlayerIDManager.LocalSmallID).Select(p => p.Item1).FirstOrDefault(-1);
-        var localWinner = teamScores.First().teamID == localTeamID;
+        var localTeamID = PlayerTeamIndices[PlayerIDManager.LocalSmallID];
+        var localWinner = teamScores.First().TeamId == localTeamID;
 
         var message = localWinner ? "Victory!" : "Defeat!";
         var detail = string.Join("\n", finals.Select(f => $"{f.Item1}'s Team: {f.Item2} points"));

@@ -48,6 +48,4 @@ public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
 
     public readonly EnvironmentManager<BoneStrikeContext, EnvironmentContext> EnvironmentPlayer =
         new(EnvironmentContext.GetContext);
-
-    public readonly PersistentTeams PersistentTeams = new();
 }

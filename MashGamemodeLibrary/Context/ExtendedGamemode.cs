@@ -223,7 +223,10 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
 
         // Reset everything on start
         Reset();
-
+        
+        // We only want to do this on the start, not round reset and round start
+        Executor.RunIfHost(PersistentTeams.Clear);
+        
         InternalGamemodeManager.RoundCount = RoundCount;
 
         // Death Shenanigans
@@ -243,12 +246,14 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
     {
         IsStarted = false;
         IsInRound = false;
-
+        
         GamemodeCompatibilityChecker.SetActiveGamemode(null);
         GlobalStatisticsManager.SaveStatistics(this);
 
         Executor.RunChecked(OnEnd);
         Reset();
+        // We only want to do this on the start, not round reset and round start
+        Executor.RunIfHost(PersistentTeams.Clear);
     }
 
     protected override void OnUpdate()

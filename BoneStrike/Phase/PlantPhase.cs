@@ -65,7 +65,7 @@ public class PlantPhase : GamePhase
         LocalInventory.SetAmmo(2000);
         Executor.RunIfHost(() =>
         {
-            BoneStrike.Context.PersistentTeams.AssignAll();
+            PersistentTeams.AssignAll();
             PalletLoadoutManager.AssignAll();
             if (BoneStrike.Config.LimitMags)
                 PlayerDataManager.ForEachPlayerData(p => 

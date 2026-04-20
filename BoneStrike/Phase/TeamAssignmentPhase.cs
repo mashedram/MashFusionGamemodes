@@ -131,7 +131,7 @@ public class TeamAssignmentPhase : GamePhase
                 sets[teamIndex].Add(player.PlayerID);
             }
 
-            BoneStrike.Context.PersistentTeams.OverwritePlayerSets(sets);
+            PersistentTeams.OverwritePlayers(sets);
         });
 
         if (_poolee == null)

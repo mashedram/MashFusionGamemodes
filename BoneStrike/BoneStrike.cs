@@ -1,5 +1,6 @@
 ﻿using BoneStrike.Audio;
 using BoneStrike.Config;
+using BoneStrike.Manager;
 using BoneStrike.Phase;
 using BoneStrike.Tags;
 using BoneStrike.Teams;
@@ -24,7 +25,6 @@ using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
-using MashGamemodeLibrary.Util;
 using UnityEngine;
 
 namespace BoneStrike;
@@ -74,9 +74,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         {
             ResetPoint.Value = RigData.RigSpawn;
             
-            Context.PersistentTeams.Clear();
-            Context.PersistentTeams.AddTeam<TerroristTeam>();
-            Context.PersistentTeams.AddTeam<CounterTerroristTeam>();
+            PersistentTeams.Clear();
+            PersistentTeams.AddTeam<TerroristTeam>();
+            PersistentTeams.AddTeam<CounterTerroristTeam>();
 
             if (Config.ManualTeamAssignment)
             {
@@ -84,12 +84,12 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             }
             else
             {
-                Context.PersistentTeams.AddPlayers(
+                PersistentTeams.AddPlayers(
                     NetworkPlayer.Players
                         .Where(p => p.HasRig)
                         .Select(p => p.PlayerID)
                 );
-                Context.PersistentTeams.RandomizeShift();
+                PersistentTeams.RandomizeShift();
                 _hasAssignedTeams = true;
             }
         });
@@ -99,9 +99,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         Executor.RunIfHost(() =>
         {
-            Context.PersistentTeams.SendMessage();
+            PersistentTeams.SendMessage();
 
-            LeaderboardTag.Spawn(ResetPoint);
+            LeaderboardManager.ShowLeaderboard(ResetPoint);
         });
         
         FusionPlayer.ResetSpawnPoints();
@@ -110,7 +110,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnRoundStart()
     {
         Notifier.CancelAll();
-        LeaderboardTag.Despawn();
+        LeaderboardManager.HideLeaderboard();
         
         SpawnPointHelper.SetSpawnPoint(ResetPoint);
 
@@ -151,7 +151,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         Executor.RunIfHost(() =>
         {
-            Context.PersistentTeams.AddScore(winnerTeamId, 1);
+            PersistentTeams.AddScore(winnerTeamId, 1);
 
             if (winnerTeamId == LogicTeamManager.GetTeamID<CounterTerroristTeam>())
             {
@@ -162,7 +162,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
 
-            LeaderboardTag.Spawn(ResetPoint);
+            LeaderboardManager.ShowLeaderboard(ResetPoint);
         });
     }
 
@@ -185,7 +185,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
                 return;
 
             playerID.SetSpectating(true);
-            Context.PersistentTeams.QueueLateJoiner(playerID);
+            PersistentTeams.QueueLateJoiner(playerID);
         });
     }
 
