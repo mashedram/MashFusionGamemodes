@@ -195,8 +195,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         return activePhase switch
         {
             null => true,
+            TeamAssignmentPhase => false,
             PlantPhase => false,
-            DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>(),
+            DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>() && !LogicTeamManager.IsTeamMember(player),
             _ => !LogicTeamManager.IsTeamMember(player)
         };
     }

@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow.Data;
+using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
 using LabFusion.Player;
@@ -19,7 +20,6 @@ public static class GameAssetSpawner
         LocalAssetSpawner.Register(spawnable);
         return spawnable;
     }
-
 
     public static void SpawnNetworkAsset(string barcode, Vector3 position, params IComponent[] components)
     {
@@ -88,5 +88,13 @@ public static class GameAssetSpawner
                 });
             }
         });
+    }
+    
+    // Local
+    public static void SpawnLocalAsset(string barcode, Vector3 position, Action<Poolee> callback)
+    {
+        var spawnable = LocalAssetSpawner.CreateSpawnable(barcode);
+        LocalAssetSpawner.Register(spawnable);
+        LocalAssetSpawner.Spawn(spawnable, position, Quaternion.identity, callback);
     }
 }
