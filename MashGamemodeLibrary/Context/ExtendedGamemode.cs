@@ -126,6 +126,15 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
     public virtual void OnLateJoin(PlayerID playerID)
     {
     }
+    
+    /// <summary>
+    ///    Called on the host when a player disconnects after the gamemode has started.
+    /// </summary>
+    /// <param name="playerID">The ID of the player that left.</param>
+    public virtual void OnPlayerDisconnect(PlayerID playerID)
+    {
+        
+    }
 
     public virtual bool CanAttackPlayer(PlayerID player)
     {

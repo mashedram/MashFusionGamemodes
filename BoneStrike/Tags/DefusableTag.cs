@@ -153,13 +153,10 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
 
         if (NetworkInfo.IsHost)
         {
-            PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
             WinManager.Win<CounterTerroristTeam>();
         }
         else
         {
-            PlayerStatisticsTracker.Increment(BonestrikeStatisticsKeys.Defusals);
-            
             MelonLogger.Msg("Sent defuse request.");
             DefuseEvent.CallFor(PlayerIDManager.GetHostID());
         }

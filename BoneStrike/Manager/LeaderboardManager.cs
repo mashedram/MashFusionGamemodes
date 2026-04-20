@@ -20,7 +20,7 @@ internal class LeaderboardPlayerEntry
     public TextMeshPro KillsText;
     public TextMeshPro DeathsText;
     public TextMeshPro AssistsText;
-    public TextMeshPro DefusesText;
+    public TextMeshPro WinsText;
     public TextMeshPro ScoreText;
 
     public LeaderboardPlayerEntry(GameObject root)
@@ -34,7 +34,7 @@ internal class LeaderboardPlayerEntry
         KillsText = root.transform.Find("Content/Stats/Kills").GetComponent<TextMeshPro>();
         DeathsText = root.transform.Find("Content/Stats/Deaths").GetComponent<TextMeshPro>();
         AssistsText = root.transform.Find("Content/Stats/Assists").GetComponent<TextMeshPro>();
-        DefusesText = root.transform.Find("Content/Stats/Defuses").GetComponent<TextMeshPro>();
+        WinsText = root.transform.Find("Content/Stats/Wins").GetComponent<TextMeshPro>();
         ScoreText = root.transform.Find("Content/Stats/Score").GetComponent<TextMeshPro>();
     }
 }
@@ -45,7 +45,7 @@ internal class LeaderboardPlayerData
     public int Kills { get; init; }
     public int Deaths { get; init; }
     public int Assists { get; init; }
-    public int Defuses { get; init; }
+    public int Wins { get; init; }
     public int Score { get; init; }
 
     public LeaderboardPlayerData(PlayerStatistics statistics)
@@ -54,9 +54,9 @@ internal class LeaderboardPlayerData
         Kills = statistics.GetValue(PlayerDamageStatistics.Kills);
         Deaths = statistics.GetValue(PlayerDamageStatistics.Deaths);
         Assists = statistics.GetValue(PlayerDamageStatistics.Assists);
-        Defuses = statistics.GetValue(BonestrikeStatisticsKeys.Defusals);
+        Wins = statistics.GetValue(TeamStatisticKeys.RoundsWon);
 
-        Score = (Kills + Assists / 2 + Defuses * 2 - Deaths) * 125;
+        Score = (Kills + Assists / 2 + Wins * 2 - Deaths) * 125;
     }
 }
 
@@ -85,7 +85,7 @@ internal class LeaderboardInstance
         entry.KillsText.text = data.Kills.ToString();
         entry.DeathsText.text = data.Deaths.ToString();
         entry.AssistsText.text = data.Assists.ToString();
-        entry.DefusesText.text = data.Defuses.ToString();
+        entry.WinsText.text = data.Wins.ToString();
         entry.ScoreText.text = data.Score.ToString();
 
         entry.Background.color = PersistentTeams.GetTeamIndex(data.PlayerId) == 0 ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);

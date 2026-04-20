@@ -67,8 +67,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             WinManager.Win<TerroristTeam>();
             return false;
         });
-
-        PlayerStatisticsTracker.Register(BonestrikeStatisticsKeys.Defusals, v => v * 50);
     }
 
     protected override void OnStart()
@@ -191,6 +189,21 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
             playerID.SetSpectating(true);
             PersistentTeams.QueueLateJoiner(playerID);
+        });
+    }
+
+    protected override void OnPlayerLeft(PlayerID playerId)
+    {
+        Executor.RunIfHost(() =>
+        {
+            if (GamePhaseManager.ActivePhase is not DefusePhase)
+                return;
+
+            if (AnyDefusers()) 
+                return;
+            
+            ExplodeAllBombs();
+            WinManager.Win<TerroristTeam>();
         });
     }
 

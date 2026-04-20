@@ -4,7 +4,9 @@ using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
+using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Team;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Phase;
 
@@ -23,9 +25,15 @@ internal class WinPacket : INetSerializable
     }
 }
 
+[RequireStaticConstructor]
 public static class WinManager
 {
     private static readonly RemoteEvent<WinPacket> WinEvent = new(OnWinEvent, CommonNetworkRoutes.HostToAll);
+
+    static WinManager()
+    {
+        PlayerStatisticsTracker.Register(TeamStatisticKeys.RoundsWon, v => v * 50);
+    }
 
     public static void Win<T>() where T : LogicTeam
     {
@@ -50,6 +58,9 @@ public static class WinManager
     {
         var localTeam = LogicTeamManager.GetLocalTeamID();
         if (localTeam == packet.TeamID)
+        {
+            PlayerStatisticsTracker.Increment(TeamStatisticKeys.RoundsWon);
+
             Notifier.Send(new Notification
             {
                 Title = "You won!",
@@ -59,7 +70,9 @@ public static class WinManager
                 Type = NotificationType.SUCCESS,
                 PopupLength = 5f
             });
+        }
         else
+        {
             Notifier.Send(new Notification
             {
                 Title = "You lost!",
@@ -69,5 +82,6 @@ public static class WinManager
                 Type = NotificationType.ERROR,
                 PopupLength = 5f
             });
+        }
     }
 }

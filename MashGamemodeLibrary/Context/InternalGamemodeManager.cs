@@ -5,6 +5,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.SDK.Gamemodes;
 using LabFusion.UI.Popups;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Compatiblity;
@@ -60,6 +61,11 @@ public static class InternalGamemodeManager
     public static float TimeBetweenRounds => GamemodeRoundManager.Settings.TimeBetweenRounds;
 
     public static bool InRound { get; private set; }
+
+    static InternalGamemodeManager()
+    {
+        MultiplayerHooking.OnPlayerLeft += OnPlayerLeft;
+    }
 
     private static bool TryGetGamemode([MaybeNullWhen(false)] out IGamemode gamemode)
     {
@@ -132,6 +138,14 @@ public static class InternalGamemodeManager
 
         GamemodeCompatibilityChecker.ValidatePlayer(id);
         gamemode.Try(g => g.OnLateJoin(id));
+    }
+    
+    private static void OnPlayerLeft(PlayerID playerId)
+    {
+        if (!TryGetGamemode(out var gamemode))
+            return;
+        
+        gamemode.OnPlayerDisconnect(playerId);
     }
 
     // Events
