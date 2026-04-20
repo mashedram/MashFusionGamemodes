@@ -2,18 +2,13 @@
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Background;
 using MashGamemodeLibrary.Environment.Effector;
+using TheHunt.Gamemode;
 
 namespace TheHunt.Audio.Effectors.Hide;
 
 public class HideMusicEffector : AudioEffector<EnvironmentContext>
 {
-    public HideMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
-    {
-        "Mash.TheHuntAssets.MonoDisc.3000Cycles",
-        "Mash.TheHuntAssets.MonoDisc.FalkesTheme",
-        "Mash.TheHuntAssets.MonoDisc.TrainRide",
-        "Mash.TheHuntAssets.MonoDisc.Home"
-    }))))
+    public HideMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new AudioBinLoader(TheHuntContext.HideAudioBin))))
     {
     }
 

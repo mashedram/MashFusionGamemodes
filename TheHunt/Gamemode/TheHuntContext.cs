@@ -14,14 +14,39 @@ namespace TheHunt.Gamemode;
 
 public class TheHuntContext : GameModeContext<TheHuntContext>
 {
-    public static readonly AudioBin FinallyAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.FinallyMusic", "Mash.TheHuntAssets.MonoDisc.TheFinallySong");
-    public static readonly AudioBin TensionAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.TensionMusic", "Mash.TheHuntAssets.MonoDisc.Silence");
-    
+    public static readonly AudioBin HideAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HideMusic",
+        "Mash.TheHuntAssets.MonoDisc.3000Cycles",
+        "Mash.TheHuntAssets.MonoDisc.FalkesTheme",
+        "Mash.TheHuntAssets.MonoDisc.TrainRide",
+        "Mash.TheHuntAssets.MonoDisc.Home"
+    );
+
+    public static readonly AudioBin HuntAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HuntMusic",
+        "Mash.TheHuntAssets.MonoDisc.TurnedAround",
+        "Mash.TheHuntAssets.MonoDisc.Misremembered",
+        "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
+    );
+
+    public static readonly AudioBin ChaseAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.ChaseMusic",
+        "Mash.SignalisMonodiscs.MonoDisc.RiotControl",
+        "Mash.SignalisMonodiscs.MonoDisc.Kolibri",
+        "Mash.SignalisMonodiscs.MonoDisc.IntensiveCare",
+        "Mash.SignalisMonodiscs.MonoDisc.BecameWholeAgain",
+        "Mash.SignalisMonodiscs.MonoDisc.Blockwart"
+    );
+
+    public static readonly AudioBin FinallyAudioBin =
+        AudioRegistry.CreateBin("MashTags.Music.TheHunt.FinallyMusic", "Mash.TheHuntAssets.MonoDisc.TheFinallySong");
+
+    public static readonly AudioBin TensionAudioBin =
+        AudioRegistry.CreateBin("MashTags.Music.TheHunt.TensionMusic", "Mash.TheHuntAssets.MonoDisc.Silence");
+
     public readonly EnvironmentManager<TheHuntContext, EnvironmentContext> EnvironmentPlayer =
         new(EnvironmentContext.GetContext);
-    
+
     // Abilities
     private static readonly AudioBin RoarAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.Roar", "Mash.TheHuntAssets.MonoDisc.Roar");
+
     public static readonly ClientCallableAudioPlayer<Vector3, RoarRequest> RoarAudioPlayer = new(new PositionalAudioPlayer("EntityRoar",
         new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(RoarAudioBin))),
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>

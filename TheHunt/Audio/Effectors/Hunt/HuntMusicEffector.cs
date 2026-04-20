@@ -2,17 +2,13 @@
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Players.Background;
 using MashGamemodeLibrary.Environment.Effector;
+using TheHunt.Gamemode;
 
 namespace TheHunt.Audio.Effectors.Hunt;
 
 public class HuntMusicEffector : AudioEffector<EnvironmentContext>
 {
-    public HuntMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new MonoDiscLoader(new[]
-    {
-        "Mash.TheHuntAssets.MonoDisc.TurnedAround",
-        "Mash.TheHuntAssets.MonoDisc.Misremembered",
-        "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
-    }))))
+    public HuntMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new AudioBinLoader(TheHuntContext.HuntAudioBin))))
     {
     }
 
