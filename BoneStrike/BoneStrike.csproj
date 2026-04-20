@@ -5,6 +5,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <EmbeddedResource Include="Resources\Icon.png" />
+    </ItemGroup>
 
     <ItemGroup>
         <Reference Include="0Harmony">
@@ -466,10 +470,6 @@
     </ItemGroup>
     
     <ItemGroup>
-        <EmbeddedResource Include="Resources\BombIcon.png" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\MashGamemodeLibrary\MashGamemodeLibrary.csproj"/>
+        <ProjectReference Include="..\MashGamemodeLibrary\MashGamemodeLibrary.csproj" />
     </ItemGroup>
 </Project>

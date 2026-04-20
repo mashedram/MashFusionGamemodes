@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using MashGamemodeLibrary.Player.Helpers;
 using Spiderman;
+using Spiderman.Module;
 
 namespace MashGamemodeLibrary.Integrations;
 
@@ -19,7 +20,7 @@ public static class SpidermanModIntegrations
                 return true;
 
             // Only gets called locally
-            if (SpectatorExtender.IsLocalPlayerSpectating())
+            if (CrippleHelper.IsCrippled)
                 return false;
 
             return true;

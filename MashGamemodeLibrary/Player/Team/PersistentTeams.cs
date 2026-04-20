@@ -152,7 +152,8 @@ public static class PersistentTeams
         if (teamIndex < 0)
             teamIndex += TeamIds.Count;
 
-        TeamScores[teamIndex] += score;
+        var currentScore = TeamScores.GetValueOrDefault(teamIndex, 0);
+        TeamScores[teamIndex] = currentScore + score;
     }
     
     public static void Clear()

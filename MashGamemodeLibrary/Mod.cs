@@ -55,6 +55,8 @@ public class Mod : MelonMod
 
         MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
+        Hooking.OnLevelLoaded += _ => Cleanup();
+        Hooking.OnLevelUnloaded += Cleanup;
     }
 
     public override void OnUpdate()
@@ -67,17 +69,6 @@ public class Mod : MelonMod
 #endif
     }
 
-    public override void OnSceneWasInitialized(int buildIndex, string sceneName)
-    {
-        Cleanup();
-    }
-
-    public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
-    {
-        // Stop gamemode
-        InternalGamemodeManager.Reset();
-    }
-
     private void OnWarehouseReady()
     {
         AudioRegistry.RegisterAll();
@@ -85,6 +76,8 @@ public class Mod : MelonMod
 
     private static void Cleanup()
     {
+        InternalGamemodeManager.Reset();
+        
         LocalEcsCache.Clear();
         PlayerGrabManager.Reset();
         PlayerDataManager.Clear();

@@ -7,6 +7,8 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Player.Data.Events.Data;
+using MashGamemodeLibrary.Player.Data.Rules;
+using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data;
@@ -93,6 +95,14 @@ public static class PlayerDataManager
         {
             action(playerData);
         }
+    }
+
+    public static void ModifyAll<TRule>(PlayerRuleInstance<TRule>.ModifyRuleDelegate modifier) where TRule : class, IPlayerRule, new()
+    {
+        ForEachPlayerData(playerData =>
+        {
+            playerData.ModifyRule(modifier);
+        });
     }
     
     public static void ResetRules()

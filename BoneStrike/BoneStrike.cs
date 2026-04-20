@@ -22,6 +22,8 @@ using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
@@ -34,12 +36,13 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
-    public override string LogoResource => "BoneStrike.Resources.BombIcon.png";
+    public override string LogoResource => "BoneStrike.Resources.Icon.png";
 
     public override bool AutoHolsterOnDeath => true;
     public override bool DisableDevTools => Config.DevToolsDisabled;
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
     public override bool DisableManualUnragdoll => true;
+    public override bool SlowMotionDisabled => false;
 
     public override int RoundCount => 5;
 
@@ -119,6 +122,8 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         Executor.RunIfHost(() =>
         {
+            PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
+            
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
 
