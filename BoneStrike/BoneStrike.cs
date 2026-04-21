@@ -105,6 +105,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             LeaderboardManager.ShowLeaderboard(ResetPoint);
         });
         
+        Context.IntermissionMusicPlayer.Stop();
         FusionPlayer.ResetSpawnPoints();
     }
 
@@ -139,18 +140,22 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         AvatarStatManager.BalanceStats = Config.BalanceStats;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-
+        
+        Context.IntermissionMusicPlayer.Stop();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]
             {
                 new PlantState(),
-                new DefuseState()
+                new DefuseState(),
+                new IntermissionState()
             }, LocalWeatherManager.ClearLocalWeather));
     }
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         LocalPlayer.TeleportToPosition(ResetPoint);
+        
+        Context.IntermissionMusicPlayer.Start();
 
         Executor.RunIfHost(() =>
         {
@@ -215,7 +220,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             null => true,
             TeamAssignmentPhase => false,
             PlantPhase => false,
-            DefusePhase defusePhase => defusePhase.ElapsedTime > 10f || player.IsTeam<TerroristTeam>() && !LogicTeamManager.IsTeamMember(player),
+            DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > 10f && LogicTeamManager.IsLocalTeam<TerroristTeam>(),
             _ => !LogicTeamManager.IsTeamMember(player)
         };
     }

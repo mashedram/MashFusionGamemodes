@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Data;
+using LabFusion.Marrow;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -77,7 +78,9 @@ internal class CrateBarcodeListElement : IConfigElementProvider
             Title = "Add Held Item Pallet",
             OnSetSpawnable = barcode =>
             {
-                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
+                var barcodeInstance = new Barcode(barcode);
+                
+                if (!AssetWarehouse.Instance.TryGetCrate(barcodeInstance, out var crate))
                     return;
 
                 var list = (List<string>)entry.Value;

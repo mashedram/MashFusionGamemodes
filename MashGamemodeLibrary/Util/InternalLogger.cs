@@ -15,4 +15,9 @@ internal static class InternalLogger
     {
         MelonLogger.Error($"[Mash's Gamemode Library - ERROR] {error}");
     }
+    
+    public static void Warn(string warning)
+    {
+        MelonLogger.Warning($"[Mash's Gamemode Library - WARNING] {warning}");
+    }
 }

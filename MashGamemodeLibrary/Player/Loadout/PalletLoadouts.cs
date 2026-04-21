@@ -1,6 +1,12 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
+using LabFusion.Data;
+using LabFusion.Downloading;
 using LabFusion.Extensions;
 using LabFusion.Network.Serialization;
+using LabFusion.Player;
+using LabFusion.Preferences.Client;
+using LabFusion.RPC;
+using LabFusion.Safety;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Util;
@@ -103,12 +109,54 @@ public static class PalletLoadoutManager
         foreach (var barcode in barcodes)
         {
             var barcode1 = new Barcode(barcode);
-            if (!AssetWarehouse.Instance.TryGetPallet(barcode1, out var pallet))
+            
+            if (ModBlacklist.IsBlacklisted(barcode) || GlobalModBlacklistManager.IsBarcodeBlacklisted(barcode))
             {
-                MelonLogger.Error($"Failed to load pallet with barcode: {barcode}: Pallet not found");
+                MelonLogger.Error($"Failed to load pallet with barcode: {barcode}: Mod is blacklisted");
+                continue;
+            }
+            
+            if (AssetWarehouse.Instance.TryGetPallet(barcode1, out var pallet))
+            {
+                AddPallet(pallet);
                 continue;
             }
 
+            MelonLogger.Error($"Failed to load pallet with barcode: {barcode}: Pallet not found");
+            var shouldDownload = ClientSettings.Downloading.DownloadSpawnables.Value;
+            
+            // Check if we should download the mod (it's not blacklisted, mod downloading disabled, etc.)
+            if (!shouldDownload)
+            {
+                return;
+            }
+            
+            var maxBytes = DataConversions.ConvertMegabytesToBytes(ClientSettings.Downloading.MaxFileSize.Value);
+
+            NetworkModRequester.RequestAndInstallMod(new NetworkModRequester.ModInstallInfo()
+            { 
+                Target = PlayerIDManager.HostSmallID,
+                Barcode = barcode,
+                FinishDownloadCallback = OnModDownloaded,
+                MaxBytes = maxBytes,
+            });
+        }
+        
+        return;
+
+        static void OnModDownloaded(DownloadCallbackInfo info)
+        {
+            if (info.Result != ModResult.SUCCEEDED)
+            {
+                InternalLogger.Warn($"Failed downloading spawnable!");
+                return;
+            }
+            
+            AddPallet(info.Pallet);
+        }
+
+        static void AddPallet(Pallet pallet)
+        {
             foreach (var crate in pallet.Crates)
             {
                 if (crate._redacted)
@@ -128,6 +176,7 @@ public static class PalletLoadoutManager
         var list = GetCrateList(WeaponType.Utility);
         list.Clear();
 
+        // TODO: Add utility loading too
         foreach (var barcode in barcodes)
         {
             if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))

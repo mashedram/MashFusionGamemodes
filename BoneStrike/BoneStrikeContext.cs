@@ -3,6 +3,8 @@ using BoneStrike.Tags;
 using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
+using MashGamemodeLibrary.Audio.Music;
+using MashGamemodeLibrary.Audio.Players.Background;
 using MashGamemodeLibrary.Audio.Players.Background.Timed;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Object;
@@ -59,4 +61,6 @@ public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
 
     public readonly EnvironmentManager<BoneStrikeContext, EnvironmentContext> EnvironmentPlayer =
         new(EnvironmentContext.GetContext);
+    
+    public readonly MusicPlayer IntermissionMusicPlayer = new(new LoadOnDemandContainer(new MusicPackLoader(MusicPackTags.Intermission)));
 }

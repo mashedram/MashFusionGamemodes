@@ -26,9 +26,14 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
     private NetworkPlayer _owner = null!;
 
     // TODO: Make tags a target and get the closest one
-    public GameObject? Target = null;
+    private Func<IEnumerable<Vector3>>? _getTargetTransform;
     private TextMeshPro? _text;
     private Poolee? _timerObject;
+    
+    public void SetTarget(Func<IEnumerable<Vector3>> getter)
+    {
+        _getTargetTransform = getter;
+    }
 
     public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
     {
@@ -65,12 +70,12 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
 
         if (_compasPointer != null)
         {
-            var hasTarget = Target != null;
-
-            _compasPointer.gameObject.SetActive(hasTarget);
-            if (hasTarget)
+            var targetPosition = _getTargetTransform?.Invoke().DefaultIfEmpty().MinBy(t => (t - position).sqrMagnitude);
+            _compasPointer.gameObject.SetActive(targetPosition.HasValue);
+            
+            if (targetPosition.HasValue)
             {
-                var direction = (Target!.transform.position - position).normalized;
+                var direction = (targetPosition.Value - position).normalized;
                 var projectedDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
                 var directionAngle = Mathf.Atan2(projectedDirection.x, projectedDirection.z) * Mathf.Rad2Deg;
 

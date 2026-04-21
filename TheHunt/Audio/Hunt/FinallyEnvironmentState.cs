@@ -17,7 +17,6 @@ public class FinallyEnvironmentState : EnvironmentState<EnvironmentContext>
     }
 
     public override int Priority => 1000;
-    public override int Layer => 2;
 
     public override bool CanPlay(EnvironmentContext context)
     {

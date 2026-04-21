@@ -60,14 +60,21 @@ internal class LeaderboardPlayerData
     }
 }
 
-internal class LeaderboardInstance
+// This components can't handle lol
+public static class LeaderboardManager
 {
     private const string Barcode = "Mash.BoneStrike.Spawnable.Leaderboard";
-    private Poolee? _poolee;
-    private readonly List<LeaderboardPlayerEntry> _entries = new();
-    
-    public LeaderboardInstance(Vector3 position)
+    private static Poolee? _poolee;
+    private static readonly List<LeaderboardPlayerEntry> Entries = new();
+
+    private static void Spawn(Vector3 position)
     {
+        if (_poolee != null)
+        {
+            SetContent();
+            return;
+        }
+        
         GameAssetSpawner.SpawnLocalAsset(Barcode, position, poolee =>
         {
             _poolee = poolee;
@@ -91,7 +98,7 @@ internal class LeaderboardInstance
         entry.Background.color = PersistentTeams.GetTeamIndex(data.PlayerId) == 0 ? new Color(1f, 0.2f, 0.2f) : new Color(0.2f, 0.2f, 1f);
     }
 
-    public void SetContent()
+    public static void SetContent()
     {
         if (_poolee == null)
             return;
@@ -104,9 +111,9 @@ internal class LeaderboardInstance
 
         var hasAssignedLocalPlayer = false;
         // We need to skip the header, thus the -1
-        for (var i = 0; i < _entries.Count - 1; i++)
+        for (var i = 0; i < Entries.Count - 1; i++)
         {
-            var entry = _entries[i + 1];
+            var entry = Entries[i + 1];
 
             // Check visibility
             var isVisible = i < statistics.Count;
@@ -126,35 +133,16 @@ internal class LeaderboardInstance
             return;
 
         var localPlayerData = statistics[localPlayerPosition];
-        var localEntry = _entries[localPlayerPosition + 1];
+        var localEntry = Entries[localPlayerPosition + 1];
         SetEntryData(localEntry, localPlayerData, localPlayerPosition + 1);
     }
     
-    public void Show(Vector3 position)
-    {
-        if (_poolee == null)
-            return;
-
-        _poolee.gameObject.SetActive(true);
-        _poolee.transform.position = position;
-        
-        SetContent();
-    }
-    
-    public void Hide()
-    {
-        if (_poolee == null)
-            return;
-
-        _poolee.gameObject.SetActive(false);
-    }
-
-    private void LoadEntries()
+    private static void LoadEntries()
     {
         if (_poolee == null)
             return;
         
-        _entries.Clear();
+        Entries.Clear();
         var playerList = _poolee.transform.Find("Center/Players");
         if (playerList == null)
         {
@@ -168,33 +156,20 @@ internal class LeaderboardInstance
             if (child == null)
                 continue;
 
-            _entries.Add(new LeaderboardPlayerEntry(child.gameObject));
+            Entries.Add(new LeaderboardPlayerEntry(child.gameObject));
         }
-    }
-}
-
-// This components can't handle lol
-public static class LeaderboardManager
-{
-    private static LeaderboardInstance? _instance;
-    
-    private static LeaderboardInstance GetLeaderboard(Vector3 position)
-    {
-        if (_instance != null)
-            return _instance;
-
-        _instance = new LeaderboardInstance(position);
-        return _instance;
     }
     
     public static void ShowLeaderboard(Vector3 position)
     {
-        var leaderboard = GetLeaderboard(position);
-        leaderboard.Show(position);
+        Spawn(position);
     }
     
     public static void HideLeaderboard()
     {
-        _instance?.Hide();
+        if (_poolee == null)
+            return;
+
+        _poolee.gameObject.SetActive(false);
     }
 }

@@ -9,7 +9,8 @@ namespace MashGamemodeLibrary.Audio.Music;
 public enum MusicPackTags
 {
     Combat,
-    Ambient
+    Ambient,
+    Intermission
 }
 
 public static class MusicPackManager
@@ -36,6 +37,12 @@ public static class MusicPackManager
                 "SLZ.BONELAB.Content.MonoDisc.UnsolvedSciences",
                 "SLZ.BONELAB.Content.MonoDisc.EverydayCastle",
                 "SLZ.BONELAB.Content.MonoDisc.BonelightSonata"
+            })
+        },
+        {
+            MusicPackTags.Intermission, AudioRegistry.CreateBin("MashTags.MusicPack.Intermission", new[]
+            {
+                "SLZ.BONELAB.Content.MonoDisc.EverydayCastle"
             })
         }
     };

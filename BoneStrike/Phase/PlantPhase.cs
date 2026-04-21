@@ -141,6 +141,7 @@ public class PlantPhase : GamePhase
 
             NetworkEntityManager.TakeOwnership(networkEntity);
             marrow.EnableColliders(false);
+            marrow._anchorBody._rigidbody.velocity = Vector3.zero;
             marrow.Teleport(position, Quaternion.identity, true);
             marrow.EnableColliders();
         }

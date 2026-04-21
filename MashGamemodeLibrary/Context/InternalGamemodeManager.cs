@@ -32,7 +32,7 @@ public class RoundStartPacket : INetSerializable
 
 public class RoundEndPacket : INetSerializable
 {
-    public bool HasNextRound;
+    public bool IsLastRound;
     public float TimeUntilNextRound;
     public ulong WinningTeamID;
 
@@ -44,7 +44,7 @@ public class RoundEndPacket : INetSerializable
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref WinningTeamID);
-        serializer.SerializeValue(ref HasNextRound);
+        serializer.SerializeValue(ref IsLastRound);
         serializer.SerializeValue(ref TimeUntilNextRound);
     }
 }
@@ -114,18 +114,18 @@ public static class InternalGamemodeManager
         InRound = false;
 
         // Reduce by 1 to see if this is the last round
-        var hasNextRound = _roundIndex >= RoundCount - 1;
+        var isLastRound = _roundIndex >= RoundCount - 1;
 
         // Make sure the round gets ended and scores get count
         RoundEndEvent.Call(new RoundEndPacket
         {
             WinningTeamID = winningTeamId,
-            HasNextRound = hasNextRound,
+            IsLastRound = isLastRound,
             TimeUntilNextRound = TimeBetweenRounds
         });
 
         // End it if we need too
-        if (hasNextRound)
+        if (isLastRound)
         {
             GamemodeManager.StopGamemode();
         }
@@ -186,7 +186,7 @@ public static class InternalGamemodeManager
         InRound = false;
         _roundCooldown = packet.TimeUntilNextRound;
 
-        if (packet.HasNextRound)
+        if (!packet.IsLastRound)
         {
             Notifier.Send(new Notification
             {
@@ -224,9 +224,12 @@ public static class InternalGamemodeManager
 
     public static void Reset()
     {
-        if (GamemodeManager.ActiveGamemode is not IGamemode)
-            return;
+        Executor.RunIfHost(() =>
+        {
+            if (GamemodeManager.ActiveGamemode is not IGamemode)
+                return;
 
-        GamemodeManager.StopGamemode();
+            GamemodeManager.StopGamemode();
+        });
     }
 }

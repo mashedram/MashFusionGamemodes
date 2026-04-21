@@ -1,4 +1,5 @@
 ﻿using MashGamemodeLibrary.Audio.Loaders;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -23,7 +24,8 @@ public class PreloadAudioContainer : IAudioContainer
 
     public void RequestClip(string name, Action<AudioClip?> onClipReady)
     {
-        if (IsLoading) MelonLogger.Warning("AudioContainer is not fully loaded, clips may be missing.");
+        if (IsLoading) 
+            InternalLogger.Warn("AudioContainer is not fully loaded, clips may be missing.");
 
         onClipReady.Invoke(_clips.GetValueOrDefault(name));
     }

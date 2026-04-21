@@ -17,7 +17,7 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
 {
     public static readonly CachedQuery<BombMarker> Query = CachedQueryManager.Create<BombMarker>();
 
-    private const float MaxVelocitySquared = 1000f;
+    private const float MaxVelocitySquared = 400f;
 
     public NetworkEntity? NetworkEntity;
     public MarrowEntity? MarrowEntity;
@@ -51,20 +51,25 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
 
     public void Update(float delta)
     {
+        if (MarrowEntity == null)
+            return;
+        
         if (_rigidbodies == null)
             return;
 
         if (_isGrabbed)
+        {
+            _returnPosition = MarrowEntity.transform.position;
             return;
+        }
 
         var squaredVelocity = _rigidbodies.Average(r => r.velocity.sqrMagnitude);
         if (squaredVelocity < MaxVelocitySquared)
             return;
 
-        _rigidbodies.ForEach(r => r.velocity = Vector3.zero);
+        _rigidbodies.ForEach(r => r.velocity = Math.Max(r.velocity.magnitude, 20f) * r.velocity.normalized);
         if (_returnPosition.HasValue)
-            // We can be sure marrowentity exists because otherwise rigidbodies would be null
-            MarrowEntity!.transform.position = _returnPosition.Value;
+            MarrowEntity.transform.position = _returnPosition.Value;
     }
 
     public void OnGrabbed(GrabData grab)

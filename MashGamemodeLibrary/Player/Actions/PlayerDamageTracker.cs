@@ -1,4 +1,6 @@
 ﻿using System.Runtime.InteropServices;
+using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Combat;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
@@ -28,6 +30,12 @@ public static class PlayerDamageTracker
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Kills, v => v * 10);
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Assists, v => v * 5);
         PlayerStatisticsTracker.Register(PlayerDamageStatistics.Deaths, v => v * -5);
+
+        LocalHealth.OnAttackedByPlayer += OnDamagedSelf;
+    }
+    private static void OnDamagedSelf(Attack attack, PlayerDamageReceiver.BodyPart bodyPart, PlayerID damager)
+    {
+        DamageCallbacks.ForEach(PlayerIDManager.LocalSmallID, p => p.OnDamageTaken(damager));
     }
 
     public static void Reset()
@@ -49,11 +57,7 @@ public static class PlayerDamageTracker
     private static void OnDamage(PlayerID damager, PlayerID damaged)
     {
         if (damaged.IsMe)
-        {
-            // Call Damage behavior
-            DamageCallbacks.ForEach(p => p.OnDamageTaken(damager));
             return;
-        }
         if (damaged.Equals(damager))
             return;
 

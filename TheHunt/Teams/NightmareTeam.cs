@@ -22,6 +22,8 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase;
+            LocalControls.DisableInteraction = playerLocked;
+            LocalControls.DisableInventory = playerLocked;
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
         });

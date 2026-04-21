@@ -80,9 +80,12 @@ public static class PersistentTeams
     {
         PlayerTeamIndices.Clear();
         var index = 0;
-        foreach (var playerId in teamPlayerIds.SelectMany(t => t))
+        foreach (var playerSet in teamPlayerIds)
         {
-            Assign(playerId, index);
+            foreach (var playerID in playerSet)
+            {
+                Assign(playerID, index);
+            }
             index = (index + 1) % TeamIds.Count;
         }
     }

@@ -10,6 +10,7 @@ using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
@@ -39,6 +40,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     public override bool DisableDevTools => Config.DevToolsDisabled;
     public override bool DisableSpawnGun => Config.DevToolsDisabled;
     public override bool DisableManualUnragdoll => true;
+    public override bool SlowMotionDisabled => false;
 
     private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
     private readonly Queue<PlayerID> _nightmareQueue = new Queue<PlayerID>();
@@ -60,6 +62,9 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         
         LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(_ =>
         {
+            if (Config.TimeGainOnKill > 0f && GamePhaseManager.ActivePhase is IExtendablePhase extendablePhase)
+                extendablePhase.ExtendTime(Config.TimeGainOnKill);
+            
             var hiders = CountHiders();
             if (hiders > 0)
             {
@@ -102,13 +107,13 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         
         LogicTeamManager.Enable<HiderTeam>();
         LogicTeamManager.Enable<NightmareTeam>();
-        
-        PlayerDataManager.GetLocalPlayerData()
-            ?.GetRuleInstance<SpectatorNightvisionRule>()
-            .Modify(v => v.IsEnabled = Config.SpectatorNightVision);
 
         Executor.RunIfHost(() =>
         {
+            PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
+            PlayerDataManager.ModifyAll<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
+            PalletLoadoutManager.LoadUtility(Config.WeaponItemCrates);
+            
             GamePhaseManager.Enable<HidePhase>();
             
             // Assign nightmare

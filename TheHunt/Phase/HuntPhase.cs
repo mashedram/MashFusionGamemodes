@@ -6,15 +6,17 @@ namespace TheHunt.Phase;
 /// <summary>
 /// The hunt begins
 /// </summary>
-public class HuntPhase : GamePhase
+public class HuntPhase : GamePhase, IExtendablePhase
 {
     public override string Name => "Hunt";
-    public override float Duration => Gamemode.TheHunt.Config.HuntDuration;
+    
+    private float _extendedTime;
+    public override float Duration => Gamemode.TheHunt.Config.HuntDuration + _extendedTime;
     
     public override PhaseIdentifier GetNextPhase()
     {
         if (!HasReachedDuration())
-            return PhaseIdentifier.Of<HuntPhase>();
+            return PhaseIdentifier.Empty();
         
         if (Gamemode.TheHunt.Config.FinallyAlwaysPlays)
             return PhaseIdentifier.Of<FinallyPhase>();
@@ -32,5 +34,10 @@ public class HuntPhase : GamePhase
     protected override void OnPhaseExit()
     {
         Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Stop();
+    }
+    
+    public void ExtendTime(float seconds)
+    {
+        _extendedTime += seconds;
     }
 }

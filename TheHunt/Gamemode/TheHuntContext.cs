@@ -46,15 +46,6 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
 
     public readonly EnvironmentManager<TheHuntContext, EnvironmentContext> EnvironmentPlayer =
         new(EnvironmentContext.GetContext);
-
-    // SFX
-    
-    private static readonly AudioBin StingerAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.Stinger", "Mash.TheHuntAssets.MonoDisc.Stinger1");
-    
-    public readonly AnnouncementAudioPlayer StingerAudioPlayer = new("Stinger",
-        new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(StingerAudioBin))),
-        new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
-            modifier.SetSpatialBlend(0f)));
     
     private static readonly AudioBin RandomAmbienceAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.RandomAmbience");
     

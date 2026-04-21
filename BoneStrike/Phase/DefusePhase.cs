@@ -57,22 +57,14 @@ public class DefusePhase : GamePhase
 
         Executor.RunCheckedInFuture(DropClock, TimeSpan.FromSeconds(5));
 
-        var bomb = BombMarker.Query.FirstOrDefault();
-        if (bomb != null)
+        
+        foreach (var entry in PlayerHandTimerTag.Query)
         {
-            foreach (var entry in PlayerHandTimerTag.Query)
-            {
-                if (bomb.MarrowEntity == null)
-                    continue;
-
-                entry.Target = bomb.MarrowEntity.gameObject;
-            }
+            entry.SetTarget(() => BombMarker.Query
+                .Where(p => p.MarrowEntity != null)
+                .Select(p => p.MarrowEntity!.transform.position)
+            );
         }
-        else
-        {
-            MelonLogger.Msg("Failed to find a bomb. This is a bug.");
-        }
-
         Executor.RunIfHost(() =>
         {
             BoneStrike.Context.BombAudioPlayer.Start();

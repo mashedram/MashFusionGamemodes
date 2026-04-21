@@ -1,9 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
+using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.Util;
 using TheHunt.Audio.Effectors.Weather;
 
@@ -54,6 +56,67 @@ internal class MinuteElementProvider : IConfigElementProvider
             Value = (int)(Convert.ToSingle(entry.Value) / 60f),
             OnValueChanged = f => setter(entry, (float)(Convert.ToInt32(f) * 60))
         };
+    }
+}
+
+internal class CrateBarcodeElement : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        return new SpawnableElementData
+        {
+            Title = entry.Name,
+            OnSetSpawnable = barcode =>
+            {
+                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
+                    return;
+
+                setter.Invoke(entry, crate._pallet._barcode._id);
+            }
+        };
+    }
+}
+
+internal class CrateBarcodeListElement : IConfigElementProvider
+{
+    public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
+    {
+        var group = new GroupElementData(entry.Name);
+
+        var add = new SpawnableElementData
+        {
+            Title = "Add Held Item Pallet",
+            OnSetSpawnable = barcode =>
+            {
+                var barcodeInstance = new Barcode(barcode);
+                
+                if (!AssetWarehouse.Instance.TryGetCrate(barcodeInstance, out var crate))
+                    return;
+
+                var list = (List<string>)entry.Value;
+
+                var id = crate._pallet._barcode._id;
+                if (list.Contains(id))
+                    return;
+
+                list.Add(id);
+                setter.Invoke(entry, list);
+            }
+        };
+
+        var clear = new FunctionElementData
+        {
+            Title = "Clear",
+            OnPressed = () =>
+            {
+                setter.Invoke(entry, new List<string>());
+            }
+        };
+
+        group.AddElement(add);
+        group.AddElement(clear);
+
+        return group;
     }
 }
 
@@ -135,6 +198,16 @@ public class TheHuntConfig : IConfig
     [ConfigStepSize(0.05f)]
     [JsonInclude]
     public float HiderSpeed = 1.45f;
+    
+    [ConfigMenuEntry("Light Item")]
+    [ConfigElementProvider(typeof(CrateBarcodeElement))]
+    [JsonInclude]
+    public string LightItemCrate = string.Empty;
+    
+    [ConfigMenuEntry("Weapon Items")]
+    [ConfigElementProvider(typeof(CrateBarcodeListElement))]
+    [JsonInclude]
+    public List<string> WeaponItemCrates = new List<string>();
 
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")] 
     [JsonInclude]
@@ -144,7 +217,9 @@ public class TheHuntConfig : IConfig
     {
         serializer.SerializeValue(ref HideDuration);
         serializer.SerializeValue(ref HuntDuration);
+        serializer.SerializeValue(ref FinallyAlwaysPlays);
         serializer.SerializeValue(ref FinallyDuration);
+        serializer.SerializeValue(ref TimeGainOnKill);
         serializer.SerializeValue(ref LockNightmare);
         serializer.SerializeValue(ref BlindNightmare);
         serializer.SerializeValue(ref LimitMags);
@@ -154,10 +229,13 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref NightVision);
         serializer.SerializeValue(ref NightVisionBrightness);
         serializer.SerializeValue(ref LockHiderAvatars);
+        serializer.SerializeValue(ref SlowNightmareOnDamage);
         serializer.SerializeValue(ref SetNightmareAvatars);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref NightmareSpeed);
         serializer.SerializeValue(ref HiderSpeed);
+        serializer.SerializeValue(ref LightItemCrate);
+        serializer.SerializeValue(ref WeaponItemCrates);
         serializer.SerializeValue(ref DevToolsDisabled);
     }
     
@@ -167,7 +245,9 @@ public class TheHuntConfig : IConfig
         {
             HideDuration = HideDuration,
             HuntDuration = HuntDuration,
+            FinallyAlwaysPlays = FinallyAlwaysPlays,
             FinallyDuration = FinallyDuration,
+            TimeGainOnKill = TimeGainOnKill,
             LockNightmare = LockNightmare,
             BlindNightmare = BlindNightmare,
             LimitMags = LimitMags,
@@ -177,10 +257,13 @@ public class TheHuntConfig : IConfig
             SpectatorNightVision = SpectatorNightVision,
             NightVisionBrightness = NightVisionBrightness,
             LockHiderAvatars = LockHiderAvatars,
+            SlowNightmareOnDamage = SlowNightmareOnDamage,
             SetNightmareAvatars = SetNightmareAvatars,
             BalanceStats = BalanceStats,
             NightmareSpeed = NightmareSpeed,
             HiderSpeed = HiderSpeed,
+            LightItemCrate = LightItemCrate,
+            WeaponItemCrates = new List<string>(WeaponItemCrates),
             DevToolsDisabled = DevToolsDisabled
         };
     }

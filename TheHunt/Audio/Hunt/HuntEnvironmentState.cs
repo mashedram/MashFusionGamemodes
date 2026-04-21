@@ -10,7 +10,7 @@ public class HuntEnvironmentState : EnvironmentState<EnvironmentContext>
 {
     public HuntEnvironmentState() : base(new EnvironmentEffector<EnvironmentContext>[]
     {
-        // new HuntMusicEffector(),
+        new HuntMusicEffector(),
         new WeatherEffector()
     })
     {
