@@ -81,9 +81,12 @@ public class TeamAssignmentPhase : GamePhase
 
         if (BoneStrike.Config.AllowUnbalancedTeams)
             return true;
+        
+        // If the total number of players is odd, allow one player to be on the larger team
+        var allowedImbalance = (team1Count + team2Count) % 2 == 0 ? 0 : 1;
 
         var imbalance = Mathf.Abs(team1Count - team2Count);
-        if (imbalance > 2)
+        if (imbalance > allowedImbalance)
             return false;
 
         return true;

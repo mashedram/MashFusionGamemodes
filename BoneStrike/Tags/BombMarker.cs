@@ -67,7 +67,7 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
         if (squaredVelocity < MaxVelocitySquared)
             return;
 
-        _rigidbodies.ForEach(r => r.velocity = Math.Max(r.velocity.magnitude, 20f) * r.velocity.normalized);
+        _rigidbodies.ForEach(r => r.velocity = Vector3.zero);
         if (_returnPosition.HasValue)
             MarrowEntity.transform.position = _returnPosition.Value;
     }

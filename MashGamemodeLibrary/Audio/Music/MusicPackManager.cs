@@ -47,8 +47,6 @@ public static class MusicPackManager
         }
     };
 
-    private static readonly Dictionary<MusicPackTags, List<string>> TagToDiscs = new();
-
     public static IReadOnlyList<string> GetTracks(MusicPackTags tag)
     {
         return AudioBins.GetValueOrDefault(tag)?.GetAll() ?? Array.Empty<string>();

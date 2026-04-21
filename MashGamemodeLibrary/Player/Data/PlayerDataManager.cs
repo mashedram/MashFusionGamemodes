@@ -82,6 +82,7 @@ public static class PlayerDataManager
     {
         if (!NetworkInfo.HasServer)
             return null;
+        
         var localPlayer = LocalPlayer.GetNetworkPlayer();
         if (localPlayer == null)
             return null;

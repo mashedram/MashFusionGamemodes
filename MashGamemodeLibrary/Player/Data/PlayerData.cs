@@ -198,13 +198,6 @@ public class PlayerData : IEventReceiver
     
     public void ModifyRule<TRule>(PlayerRuleInstance<TRule>.ModifyRuleDelegate modifier) where TRule : class, IPlayerRule, new()
     {
-        if (NetworkInfo.IsHost)
-        {
-            InternalLogger.Error("Player Rules can't be edited on the client");
-            return;
-        }
-            
-        
         if (!_ruleInstanceCache.TryGetValue(typeof(TRule), out var ruleInstance))
             throw new KeyNotFoundException($"Rule of type {typeof(TRule)} not found for player {PlayerID}");
 

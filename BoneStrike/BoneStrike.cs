@@ -33,7 +33,6 @@ namespace BoneStrike;
 
 public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 {
-    private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
     public override string Title => "Bone Strike";
     public override string Author => "Mash";
     public override string LogoResource => "BoneStrike.Resources.Icon.png";
@@ -47,17 +46,10 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     public override int RoundCount => 5;
 
     private bool _hasAssignedTeams;
+    private Vector3 _resetPoint = Vector3.zero;
 
     protected override void OnRegistered()
     {
-        ResetPoint.OnValueChanged += point =>
-        {
-            if (!IsReady)
-                return;
-            
-            SpawnPointHelper.SetSpawnPoint(point);
-        };
-        
         LimitedRespawnComponent.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
             if (AnyDefusers())
@@ -71,10 +63,10 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
     protected override void OnStart()
     {
+        _resetPoint = RigData.RigSpawn;
+        
         Executor.RunIfHost(() =>
         {
-            ResetPoint.Value = RigData.RigSpawn;
-            
             PersistentTeams.Clear();
             PersistentTeams.AddTeam<TerroristTeam>();
             PersistentTeams.AddTeam<CounterTerroristTeam>();
@@ -102,7 +94,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         {
             PersistentTeams.SendMessage();
 
-            LeaderboardManager.ShowLeaderboard(ResetPoint);
+            LeaderboardManager.ShowLeaderboard(_resetPoint);
         });
         
         Context.IntermissionMusicPlayer.Stop();
@@ -114,7 +106,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         Notifier.CancelAll();
         LeaderboardManager.HideLeaderboard();
         
-        SpawnPointHelper.SetSpawnPoint(ResetPoint);
+        SpawnPointHelper.SetSpawnPoint(_resetPoint);
 
         LogicTeamManager.Enable<TerroristTeam>();
         LogicTeamManager.Enable<CounterTerroristTeam>();
@@ -153,7 +145,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
-        LocalPlayer.TeleportToPosition(ResetPoint);
+        LocalPlayer.TeleportToPosition(_resetPoint);
         
         Context.IntermissionMusicPlayer.Start();
 
@@ -170,7 +162,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
 
-            LeaderboardManager.ShowLeaderboard(ResetPoint);
+            LeaderboardManager.ShowLeaderboard(_resetPoint);
         });
     }
 
@@ -220,7 +212,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             null => true,
             TeamAssignmentPhase => false,
             PlantPhase => false,
-            DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > 10f && LogicTeamManager.IsLocalTeam<TerroristTeam>(),
+            DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > Config.DefuserSpawnProtection && !LogicTeamManager.IsTeamMember(player),
             _ => !LogicTeamManager.IsTeamMember(player)
         };
     }

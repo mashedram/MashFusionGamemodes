@@ -67,13 +67,6 @@ public class PlantPhase : GamePhase
         {
             PersistentTeams.AssignAll();
             PalletLoadoutManager.AssignAll();
-            if (BoneStrike.Config.LimitMags)
-                PlayerDataManager.ForEachPlayerData(p => 
-                    p.ModifyRule<PlayerAmmunitionLimitRule>(r => 
-                        r.AmmunitionLimit = BoneStrike.Config.MagazineCapacity
-                    )
-                );
-                
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
             GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new ImportantEntityMarker());
@@ -140,10 +133,12 @@ public class PlantPhase : GamePhase
                 continue;
 
             NetworkEntityManager.TakeOwnership(networkEntity);
+            networkEntity.LockOwner();
             marrow.EnableColliders(false);
             marrow._anchorBody._rigidbody.velocity = Vector3.zero;
             marrow.Teleport(position, Quaternion.identity, true);
             marrow.EnableColliders();
+            networkEntity.UnlockOwner();
         }
     }
 }

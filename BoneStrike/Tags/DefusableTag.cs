@@ -62,6 +62,8 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
             return;
         if (GamePhaseManager.IsPhase<PlantPhase>())
             return;
+        if (!grab.NetworkPlayer.PlayerID.IsTeam<CounterTerroristTeam>())
+            return;
 
         Executor.RunIfMe(grab.NetworkPlayer.PlayerID, () =>
         {

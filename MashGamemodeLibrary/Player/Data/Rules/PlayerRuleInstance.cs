@@ -29,8 +29,11 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
 
     public void Modify(ModifyRuleDelegate modifier)
     {
-        if (NetworkInfo.IsClient)
+        if (!NetworkInfo.IsHost)
+        {
+            InternalLogger.Error("Player Rules can't be edited on the client");
             return;
+        }
 
         modifier(_localRule);
         NotifyChange();

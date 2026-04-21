@@ -5,6 +5,7 @@ using LabFusion.Senders;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Execution;
 
 namespace BoneStrike.Tags;
 
@@ -22,15 +23,18 @@ public class KillEffectComponent : IComponent, IComponentPlayerReady, IPlayerAct
     
     public void OnAction(PlayerActionType action, PlayerID otherPlayer)
     {
-        if (_owner == null)
-            return;
-        if (action != PlayerActionType.DYING)
-            return;
+        Executor.RunIfHost(() =>
+        {
+            if (_owner == null)
+                return;
+            if (action != PlayerActionType.DYING)
+                return;
         
-        if (!_owner.HasRig)
-            return;
+            if (!_owner.HasRig)
+                return;
 
-        var position = _owner.RigRefs.Head.position;
-        BoneStrike.Context.KillAudioPlayer.PlayRandom(position);
+            var position = _owner.RigRefs.Head.position;
+            BoneStrike.Context.KillAudioPlayer.PlayRandom(position);
+        });
     }
 }

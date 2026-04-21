@@ -53,7 +53,6 @@ public class Mod : MelonMod
 
         NetworkEventsExtender.Register();
 
-        MultiplayerHooking.OnDisconnected += Cleanup;
         Hooking.OnWarehouseReady += OnWarehouseReady;
         Hooking.OnLevelLoaded += _ => Cleanup();
         Hooking.OnLevelUnloaded += Cleanup;

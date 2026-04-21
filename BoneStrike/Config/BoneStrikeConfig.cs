@@ -151,10 +151,10 @@ internal class BarcodeListElement : IConfigElementProvider
 public class BoneStrikeConfig : IConfig
 {
     [ConfigMenuEntry("Plant Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] [JsonInclude]
-    public float PlantDuration = 60f;
+    public float PlantDuration = 90f;
 
     [ConfigMenuEntry("Defuse Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] [JsonInclude]
-    public float DefuseDuration = 60f;
+    public float DefuseDuration = 150f;
 
     [ConfigMenuEntry("Defuse timer", "Time")] [ConfigRangeConstraint(2f, 20f)] [JsonInclude]
     public float DefuseTime = 7f;
@@ -162,18 +162,15 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Mark Bomb in last 30 seconds", "Time")] [JsonInclude]
     public bool MarkBombNearEnd = true;
 
-    [ConfigMenuEntry("Balance Weapon Damage", "Balancing")] [JsonInclude]
-    public bool BalanceDamage = true;
-
+    [ConfigMenuEntry("Balance Weapon Damage (EXPERIMENTAL)", "Balancing")] [JsonInclude]
+    public bool BalanceDamage = false;
     [ConfigMenuEntry("Balance Avatar Health", "Balancing")] [JsonInclude]
     public bool BalanceStats = true;
-    [ConfigMenuEntry("Limit Player Magazines", "Balancing")] [JsonInclude]
-    public bool LimitMags = true;
-    [ConfigMenuEntry("Max magazines", "Balancing")] 
-    [ConfigRangeConstraint(30, 300)]
-    [ConfigStepSize(30)]
+    [ConfigMenuEntry("Defuser Spawn Protection", "Balancing")] 
+    [ConfigRangeConstraint(0f, 15f)]
+    [ConfigStepSize(1f)]
     [JsonInclude]
-    public int MagazineCapacity = 120;
+    public float DefuserSpawnProtection = 5f;
     [ConfigMenuEntry("Movement Speed", "Balancing")] 
     [ConfigRangeConstraint(1f, 2f)] 
     [ConfigStepSize(0.05f)]
@@ -217,8 +214,7 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref AttackerHealthMultiplier);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
-        serializer.SerializeValue(ref LimitMags);
-        serializer.SerializeValue(ref MagazineCapacity);
+        serializer.SerializeValue(ref DefuserSpawnProtection);
         serializer.SerializeValue(ref MovementSpeedMultiplier);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
@@ -236,8 +232,7 @@ public class BoneStrikeConfig : IConfig
             BlindAttackersDuringPlanting = BlindAttackersDuringPlanting,
             BalanceStats = BalanceStats,
             BalanceDamage = BalanceDamage,
-            LimitMags = LimitMags,
-            MagazineCapacity = MagazineCapacity,
+            DefuserSpawnProtection = DefuserSpawnProtection,
             MovementSpeedMultiplier = MovementSpeedMultiplier,
             DefenderHealthMultiplier = DefenderHealthMultiplier,
             AttackerHealthMultiplier = AttackerHealthMultiplier,

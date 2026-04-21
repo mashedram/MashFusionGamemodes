@@ -40,10 +40,7 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
 
     public static readonly AudioBin FinallyAudioBin =
         AudioRegistry.CreateBin("MashTags.Music.TheHunt.FinallyMusic", "Mash.TheHuntAssets.MonoDisc.TheFinallySong");
-
-    public static readonly AudioBin TensionAudioBin =
-        AudioRegistry.CreateBin("MashTags.Music.TheHunt.TensionMusic", "Mash.TheHuntAssets.MonoDisc.Silence");
-
+    
     public readonly EnvironmentManager<TheHuntContext, EnvironmentContext> EnvironmentPlayer =
         new(EnvironmentContext.GetContext);
     

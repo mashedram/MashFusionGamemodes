@@ -17,8 +17,8 @@ namespace BoneStrike.Teams;
 
 public class CounterTerroristTeam : LogicTeam
 {
-    public override string Name => "Counter Terrorists";
-    public override Texture Icon { get; } = MenuResources.GetLogoIcon("Sabrelake");
+    public override string Name => "LavaGang";
+    public override Texture Icon { get; } = MenuResources.GetLogoIcon("LavaGang");
 
     public override void OnPhaseChanged(GamePhase phase)
     {
@@ -53,8 +53,8 @@ public class CounterTerroristTeam : LogicTeam
 
             Notifier.Send(new Notification
             {
-                Title = "Counter Terrorists",
-                Message = $"Once the bomb has been planted, disarm it by holding it.",
+                Title = "LavaGang",
+                Message = $"Stop Sabrelake from ending the simulation by disabling the alarm!",
                 PopupLength = 10f,
                 SaveToMenu = false,
                 ShowPopup = true,
