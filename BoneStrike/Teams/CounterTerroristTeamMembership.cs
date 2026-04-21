@@ -40,6 +40,7 @@ public class CounterTerroristTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerTag());
+            Owner.AddComponent(new KillEffectComponent());
 
             AvatarStatManager.SetStats(new AvatarStats
             {

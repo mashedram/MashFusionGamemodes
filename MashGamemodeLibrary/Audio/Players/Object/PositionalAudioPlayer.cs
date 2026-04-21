@@ -29,6 +29,11 @@ public class PositionalAudioPlayer : SyncedAudioPlayer<PositionalAudioPlayReques
         name, container, new SingleAudioSourceProvider(factory))
     {
     }
+    
+    public PositionalAudioPlayer(string name, ISyncedAudioContainer container, AudioSourceProvider sourceProvider) : base(
+        name, container, sourceProvider)
+    {
+    }
 
     public void PlayRandom(Vector3 position)
     {

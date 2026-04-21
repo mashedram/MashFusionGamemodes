@@ -4,6 +4,7 @@ using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Background.Timed;
+using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Context;
@@ -15,7 +16,8 @@ namespace BoneStrike;
 public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
 {
     private static readonly AudioBin ClockAudioBin = AudioRegistry.CreateBin("MashTags.SFX.Bonestrike.BombBeep", "Mash.BoneStrike.MonoDisc.ClockBeep");
-
+    private static readonly AudioBin KillAudioBin = AudioRegistry.CreateBin("MashTags.SFX.Bonestrike.Kill", "Mash.BoneStrike.MonoDisc.Kill");
+    
     private static readonly AudioBin PlantPhaseStartAudioBin =
         AudioRegistry.CreateBin("MashTags.SFX.Bonestrike.PlantPhaseStart", "Mash.BoneStrike.MonoDisc.PlantPhaseStart");
 
@@ -33,6 +35,15 @@ public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
                 settings.SetVolume(1f).SetMaxDistance(200f))),
         5, 6);
+    
+    public readonly PositionalAudioPlayer KillAudioPlayer = new("KillSound",
+        new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(KillAudioBin))),
+        new PooledAudioSourceProvider(5,
+            new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
+                settings.SetVolume(1f).SetMaxDistance(200f)
+            )
+        )
+    );
 
     public readonly AnnouncementAudioPlayer PlantPhaseStartAudioPlayer = new("PlantPhaseStart",
         new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(PlantPhaseStartAudioBin))));
