@@ -89,7 +89,7 @@ public class PlayerVisibility : IPlayerExtender
         var hasNightVision = data.CheckRule<SpectatorNightvisionRule>(p => p.IsEnabled);
         
         SetVisibility(!isSpectating);
-        ToggleNightVision(hasNightVision);
+        ToggleNightVision(hasNightVision && isSpectating);
     }
 
     public IEnumerable<Type> EventTypes => new[]

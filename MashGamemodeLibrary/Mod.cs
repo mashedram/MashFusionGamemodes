@@ -54,8 +54,7 @@ public class Mod : MelonMod
         NetworkEventsExtender.Register();
 
         Hooking.OnWarehouseReady += OnWarehouseReady;
-        Hooking.OnLevelLoaded += _ => Cleanup();
-        Hooking.OnLevelUnloaded += Cleanup;
+        MultiplayerHooking.OnTargetLevelLoaded += Cleanup;
     }
 
     public override void OnUpdate()

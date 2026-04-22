@@ -14,13 +14,9 @@ public class InventoryAmmoReceiverPatches
     {
         if (!NetworkInfo.HasServer)
             return true;
-        
-        // Check the magazine first
-        if (instance._activeMagazines.Count == 0)
-            return true;
 
-        var magazine = instance._activeMagazines[0];
-        if (magazine?.magazineState == null)
+        var magazine = instance._selectedMagazineData;
+        if (magazine == null)
             return true;
         
         // Only act on the local player
@@ -35,7 +31,7 @@ public class InventoryAmmoReceiverPatches
         if (!ammoLimiter.CanUseMagazine())
             return false;
         
-        ammoLimiter.UseMagazine(magazine.magazineState.AmmoCount);    
+        ammoLimiter.UseMagazine(magazine.rounds);    
         return true;
     }
 }

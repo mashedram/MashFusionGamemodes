@@ -35,7 +35,7 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
             return;
         }
 
-        modifier(_localRule);
+        modifier.Try(m => m(_localRule));
         NotifyChange();
     }
 

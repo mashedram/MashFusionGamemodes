@@ -6,9 +6,9 @@ using TheHunt.Gamemode;
 
 namespace TheHunt.Audio.Effectors.Hunt;
 
-public class HuntMusicEffector : AudioEffector<EnvironmentContext>
+public class HuntNightmareMusicEffector : AudioEffector<EnvironmentContext>
 {
-    public HuntMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new AudioBinLoader(TheHuntContext.HuntAudioBin))))
+    public HuntNightmareMusicEffector() : base(new MusicPlayer(new LoadOnDemandContainer(new AudioBinLoader(TheHuntContext.HuntNightmareAudioBin))))
     {
     }
 

@@ -25,7 +25,7 @@ public class EntityAbilityDescriptor : INightmareDescriptor
     };
     
     public float MinimumSpeed => 0.5f;
-    public float SpeedPenaltyPerShot => 0.05f;
+    public float SpeedPenaltyPerShot => 0.1f;
     public float SpeedPenaltyDuration => 5f;
     public float SpeedPenaltyHealDelay => 2f;
 

@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow.Warehouse;
+using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.CommonComponents;
@@ -38,9 +39,13 @@ public class HiderTeam : LogicTeam
         {
             Owner.AddComponent(new PlayerHandTimerComponent());
 
-            PalletLoadoutManager
-                .GetLoadout()
-                .SetSlotBarcode(SlotType.RightBack, new Barcode(Gamemode.TheHunt.Config.LightItemCrate))
+            var weaponCrates = Gamemode.TheHunt.Config.WeaponItemCrates;
+            var weaponBarcode = weaponCrates.Count > 0 ? new Barcode(weaponCrates.GetRandom()) : null;
+            var flashlightBarcode = Gamemode.TheHunt.Config.LightItemCrate;
+            var flashlightCrate = string.IsNullOrEmpty(flashlightBarcode) ? null : new Barcode(flashlightBarcode);
+            new Loadout()
+                .SetSlotBarcode(SlotType.RightBack, weaponBarcode)
+                .SetSlotBarcode(SlotType.LeftBack, flashlightCrate)
                 .Assign();
             
             if (Gamemode.TheHunt.Config.LockHiderAvatars)

@@ -1,6 +1,8 @@
-﻿using LabFusion.Player;
+﻿using LabFusion.Entities;
+using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.CommonComponents;
+using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player;
@@ -22,10 +24,11 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase;
-            LocalControls.DisableInteraction = playerLocked;
             LocalControls.DisableInventory = playerLocked;
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
+            
+            PlayerGrabManager.SetOverwrite(Name, CanGrab);
         });
     }
 
@@ -40,6 +43,7 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerComponent());
+            LocalHealth.MortalityOverride = false;
             
             Notifier.Send(new Notification
             {
@@ -58,6 +62,13 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             LocalControls.LockedMovement = false;
+            
+            PlayerGrabManager.SetOverwrite(Name, null);
         });
+    }
+    
+    public bool CanGrab(GrabData grabData)
+    {
+        return !grabData.IsHoldingItem(out var item) || NetworkPlayerManager.TryGetPlayer(item.MarrowEntity, out _);
     }
 }

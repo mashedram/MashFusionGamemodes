@@ -12,7 +12,8 @@ namespace TheHunt.Audio;
 public class EnvironmentContext
 {
     private const float MaxChaseTime = 15f;
-    private const float ChaseThreshold = 6f;
+    private const float ChaseIncreaseRate = 1f;
+    private const float ChaseThreshold = 8f;
     private const float UnChaseThreshold = 2f;
     private static readonly LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
 
@@ -76,7 +77,9 @@ public class EnvironmentContext
                                                                   IsNightmareChasing(player, localPosition));
         
         // Increase or decrease the timer based on whether we should be chasing
-        _chaseTimer = shouldBeChasing ? MathF.Min(_chaseTimer + delta, MaxChaseTime) : MathF.Max(_chaseTimer - delta, 0f);
+        _chaseTimer = shouldBeChasing ? 
+            MathF.Min(_chaseTimer + delta * ChaseIncreaseRate, MaxChaseTime) : 
+            MathF.Max(_chaseTimer - delta, 0f);
         
         if (_isChasing && _chaseTimer <= UnChaseThreshold)
         {

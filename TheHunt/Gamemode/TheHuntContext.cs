@@ -9,6 +9,7 @@ using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Environment;
 using TheHunt.Audio;
+using TheHunt.Nightmare;
 using TheHunt.Nightmare.Ability.Active;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -24,7 +25,13 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
         "Mash.TheHuntAssets.MonoDisc.Home"
     );
 
-    public static readonly AudioBin HuntAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HuntMusic",
+    public static readonly AudioBin HuntHiderAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HuntMusic",
+        "Mash.TheHuntAssets.MonoDisc.TurnedAround",
+        "Mash.TheHuntAssets.MonoDisc.Misremembered",
+        "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
+    );
+    
+    public static readonly AudioBin HuntNightmareAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HuntingMusic",
         "Mash.TheHuntAssets.MonoDisc.TurnedAround",
         "Mash.TheHuntAssets.MonoDisc.Misremembered",
         "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
@@ -46,15 +53,22 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
     
     private static readonly AudioBin RandomAmbienceAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.RandomAmbience");
     
-    public readonly TimedPositionalPlayer RandomAmbienceAudioPlayer = new (new PositionalAudioPlayer("RandomAmbience",
-        new SyncedAudioContainer(new AudioBinLoader(RandomAmbienceAudioBin)),
-        new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
-            modifier.SetMaxDistance(400f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.9f)))), () =>
-    {
-        var center = RigData.Refs.Head.position;
-        var randomPos = center + Random.insideUnitSphere * 200f;
-        return center + randomPos;
-    }, 120f, 360f);
+    public readonly TimedComponentPlayer<NightmareComponent> RandomAmbienceAudioPlayer = new(new ObjectAudioPlayer("NightmareSound",
+            new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(RandomAmbienceAudioBin))), 1,
+            new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
+                    settings.SetVolume(1f).SetMaxDistance(4700f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 0f, 0.65f)))
+                .AddModifier<MuffleAudioModifier>()),
+        45, 150);
+    
+    // Bell
+    
+    private static readonly AudioBin BellAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.Bell", "Mash.TheHuntAssets.MonoDisc.BellToll");
+    
+    public readonly PositionalAudioPlayer BellAudioPlayer = new("Bell",
+        new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(BellAudioBin))),
+        new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier => 
+            modifier.SetMaxDistance(1000f).SetCustomRolloff(AnimationCurve.Constant(0f, 1f, 1f)))
+    );
     
     // Abilities
     private static readonly AudioBin RoarAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.Roar", "Mash.TheHuntAssets.MonoDisc.Roar");
@@ -62,6 +76,6 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
     public static readonly ClientCallableAudioPlayer<Vector3, RoarRequest> RoarAudioPlayer = new(new PositionalAudioPlayer("EntityRoar",
         new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(RoarAudioBin))),
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
-            modifier.SetMaxDistance(160f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.2f)))));
+            modifier.SetMaxDistance(800f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.65f))).AddModifier<MuffleAudioModifier>()));
 
 }

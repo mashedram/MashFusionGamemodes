@@ -42,7 +42,8 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     public override bool DisableManualUnragdoll => true;
     public override bool SlowMotionDisabled => false;
 
-    private static readonly SyncedVariable<Vector3> ResetPoint = new SyncedVariable<Vector3>("_reset.position", new Vector3Encoder(), Vector3.zero);
+
+    private Vector3 _resetPoint = Vector3.zero;
     private readonly Queue<PlayerID> _nightmareQueue = new Queue<PlayerID>();
     
     public override int RoundCount => 5;
@@ -50,20 +51,15 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     
     protected override void OnRegistered()
     {
-        ResetPoint.OnValueChanged += point =>
-        {
-            if (!IsReady)
-                return;
-            
-            SpawnPointHelper.SetSpawnPoint(point);
-        };
-        
         NightmareComponent.RegisterAll<TheHunt>();
         
-        LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(_ =>
+        LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(player =>
         {
-            if (Config.TimeGainOnKill > 0f && GamePhaseManager.ActivePhase is IExtendablePhase extendablePhase)
-                extendablePhase.ExtendTime(Config.TimeGainOnKill);
+            if (Config.TimeGainOnKill > 0f && GamePhaseManager.IsPhase<HuntPhase>())
+                HuntPhase.Extend(Config.TimeGainOnKill);
+            
+            if (player.HasRig)
+                Context.BellAudioPlayer.PlayRandom(player.RigRefs.Head.transform.position);
             
             var hiders = CountHiders();
             if (hiders > 0)
@@ -80,10 +76,10 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 
     protected override void OnStart()
     {
+        _resetPoint = RigData.RigSpawn;
+        
         Executor.RunIfHost(() =>
         {
-            ResetPoint.Value = RigData.Refs.RigManager.transform.position;
-            
             _nightmareQueue.Clear();
             // Add all players to the queue, shuffled so a player doesn't get biased
             foreach (var playerID in PlayerIDManager.PlayerIDs.Shuffle())
@@ -103,7 +99,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         Notifier.CancelAll();
         LocalHealth.MortalityOverride = true;
         
-        SpawnPointHelper.SetSpawnPoint(ResetPoint.Value);
+        SpawnPointHelper.SetSpawnPoint(_resetPoint);
         
         LogicTeamManager.Enable<HiderTeam>();
         LogicTeamManager.Enable<NightmareTeam>();
@@ -112,7 +108,10 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         {
             PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
             PlayerDataManager.ModifyAll<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
-            PalletLoadoutManager.LoadUtility(Config.WeaponItemCrates);
+            PlayerDataManager.ModifyAll<PlayerAmmunitionLimitRule>(rule =>
+            {
+                rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
+            });
             
             GamePhaseManager.Enable<HidePhase>();
             
@@ -152,7 +151,8 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
             new EnvironmentState<EnvironmentContext>[]
             {
                 new ChaseEnvironmentState(),
-                new HuntEnvironmentState(),
+                new HuntHiderEnvironmentState(),
+                new HuntNightmareEnvironmentState(),
                 new HidePhaseEnvironmentState(),
                 new FinallyEnvironmentState()
             }, LocalWeatherManager.ClearLocalWeather));
@@ -160,14 +160,16 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
-        LocalPlayer.TeleportToPosition(ResetPoint);
+        LocalPlayer.TeleportToPosition(_resetPoint);
     }
 
     protected override void OnCleanup()
     {
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
-        LocalHealth.MortalityOverride = false;
+        LocalControls.DisableInteraction = false;
+        LocalControls.DisableInventory = false;
+        LocalHealth.MortalityOverride = null;
         
         LocalSpeed.SpeedModifier = 1f;
     }
@@ -179,20 +181,56 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
             // Players joining during manual assignment should be assignable, since the game won't start without them anyway
             var activePhase = GamePhaseManager.ActivePhase;
             if (activePhase is HidePhase)
+            {
+                // TODO: Allow me to define rule defaults instead of this
+                playerID.Assign<HiderTeam>();
+                var data = PlayerDataManager.GetPlayerData(playerID);
+                if (data == null)
+                    return;
+                
+                data.ModifyRule<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
+                data.ModifyRule<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
+                data.ModifyRule<PlayerAmmunitionLimitRule>(rule =>
+                {
+                    rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
+                });
                 return;
+            }
 
             playerID.SetSpectating(true);
         });
     }
-    
-    public override bool CanAttackPlayer(PlayerID player)
-    {
-        if (LogicTeamManager.IsLocalTeam<NightmareTeam>())
-            return true;
 
-        return false;
+    protected override void OnPlayerLeft(PlayerID playerId)
+    {
+        Executor.RunIfHost(() =>
+        {
+            var nightmareCount = NetworkPlayer.Players.Count(p => p.HasRig && p.PlayerID.IsTeam<NightmareTeam>());
+            if (nightmareCount == 0)
+            {
+                WinManager.Win<HiderTeam>();
+                return;
+            }
+
+            var hiderCount = CountHiders();
+            
+            switch (hiderCount)
+            {
+                case 1:
+                    GamePhaseManager.Enable<FinallyPhase>();
+                    break;
+                case 0:
+                    WinManager.Win<NightmareTeam>();
+                    break;
+            }
+        });
     }
 
+    public override bool CanAttackPlayer(PlayerID player)
+    {
+        // Nightmare invincibility is handled in the team
+        return !LogicTeamManager.IsTeamMember(player);
+    }
 
     private static int CountHiders()
     {

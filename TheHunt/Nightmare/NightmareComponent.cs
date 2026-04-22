@@ -150,7 +150,7 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
             return;
 
         var descriptor = _activeNightmare.Value.NightmareDescriptor;
-        _speedModifier = descriptor.SpeedPenaltyPerShot;
+        _speedModifier = MathF.Max(_speedModifier - descriptor.SpeedPenaltyPerShot, descriptor.MinimumSpeed);
         _speedHealDelay = descriptor.SpeedPenaltyHealDelay;
         LocalSpeed.SpeedModifier = _speedModifier;
     }

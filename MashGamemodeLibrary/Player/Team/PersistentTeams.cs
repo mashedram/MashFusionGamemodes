@@ -9,6 +9,7 @@ using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Player.Actions;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using Random = UnityEngine.Random;
 
@@ -19,6 +20,7 @@ public enum TeamStatisticKeys
     RoundsWon
 }
 
+[RequireStaticConstructor]
 public static class PersistentTeams
 {
     private static readonly RemoteEvent WinMessageEvent =

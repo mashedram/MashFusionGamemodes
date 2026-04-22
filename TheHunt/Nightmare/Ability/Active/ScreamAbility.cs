@@ -19,6 +19,7 @@ using MashGamemodeLibrary.Player.Team;
 using TheHunt.Gamemode;
 using TheHunt.Teams;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace TheHunt.Nightmare.Ability.Active;
 
@@ -45,7 +46,8 @@ internal class ScreamMarker : IComponent, IComponentPlayerReady, IComponentRemov
                 return;
 
             var head = networkPlayer.RigRefs.RigManager.physicsRig.m_head;
-            _poolee.transform.position = head.position;
+            var offset = Random.insideUnitSphere *10f;
+            _poolee.transform.position = head.position + offset;
         });
     }
     

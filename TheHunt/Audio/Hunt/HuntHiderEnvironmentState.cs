@@ -6,11 +6,11 @@ using TheHunt.Phase;
 
 namespace TheHunt.Audio.Hunt;
 
-public class HuntEnvironmentState : EnvironmentState<EnvironmentContext>
+internal class HuntHiderEnvironmentState : EnvironmentState<EnvironmentContext>
 {
-    public HuntEnvironmentState() : base(new EnvironmentEffector<EnvironmentContext>[]
+    public HuntHiderEnvironmentState() : base(new EnvironmentEffector<EnvironmentContext>[]
     {
-        new HuntMusicEffector(),
+        new HuntHiderMusicEffector(),
         new WeatherEffector()
     })
     {

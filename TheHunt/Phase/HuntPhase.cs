@@ -1,4 +1,7 @@
-﻿using MashGamemodeLibrary.Phase;
+﻿using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Phase;
 using TheHunt.Teams;
 
 namespace TheHunt.Phase;
@@ -6,12 +9,11 @@ namespace TheHunt.Phase;
 /// <summary>
 /// The hunt begins
 /// </summary>
-public class HuntPhase : GamePhase, IExtendablePhase
+public class HuntPhase : GamePhase
 {
+    private static readonly SyncedVariable<float> ExtendTime = new("HuntPhase.ExtendTime", new FloatEncoder(), 0f);
     public override string Name => "Hunt";
-    
-    private float _extendedTime;
-    public override float Duration => Gamemode.TheHunt.Config.HuntDuration + _extendedTime;
+    public override float Duration => Gamemode.TheHunt.Config.HuntDuration + ExtendTime;
     
     public override PhaseIdentifier GetNextPhase()
     {
@@ -28,6 +30,11 @@ public class HuntPhase : GamePhase, IExtendablePhase
 
     protected override void OnPhaseEnter()
     {
+        Executor.RunIfHost(() =>
+        {
+            ExtendTime.Value = 0f;
+        });
+        
         Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Start();
     }
 
@@ -36,8 +43,11 @@ public class HuntPhase : GamePhase, IExtendablePhase
         Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Stop();
     }
     
-    public void ExtendTime(float seconds)
+    public static void Extend(float time)
     {
-        _extendedTime += seconds;
+        Executor.RunIfHost(() =>
+        {
+            ExtendTime.Value += time;
+        });
     }
 }

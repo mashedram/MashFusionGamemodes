@@ -59,7 +59,7 @@ internal class MinuteElementProvider : IConfigElementProvider
     }
 }
 
-internal class CrateBarcodeElement : IConfigElementProvider
+internal class BarcodeElement : IConfigElementProvider
 {
     public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
@@ -68,16 +68,13 @@ internal class CrateBarcodeElement : IConfigElementProvider
             Title = entry.Name,
             OnSetSpawnable = barcode =>
             {
-                if (!AssetWarehouse.Instance.TryGetCrate(new Barcode(barcode), out var crate))
-                    return;
-
-                setter.Invoke(entry, crate._pallet._barcode._id);
+                setter.Invoke(entry, barcode._id);
             }
         };
     }
 }
 
-internal class CrateBarcodeListElement : IConfigElementProvider
+internal class BarcodeListElement : IConfigElementProvider
 {
     public ElementData GetElementData(ConfigEntryData entry, Action<ConfigEntryData, object> setter)
     {
@@ -85,17 +82,12 @@ internal class CrateBarcodeListElement : IConfigElementProvider
 
         var add = new SpawnableElementData
         {
-            Title = "Add Held Item Pallet",
+            Title = "Add Held Item",
             OnSetSpawnable = barcode =>
             {
-                var barcodeInstance = new Barcode(barcode);
-                
-                if (!AssetWarehouse.Instance.TryGetCrate(barcodeInstance, out var crate))
-                    return;
-
                 var list = (List<string>)entry.Value;
 
-                var id = crate._pallet._barcode._id;
+                var id = barcode._id;
                 if (list.Contains(id))
                     return;
 
@@ -120,6 +112,7 @@ internal class CrateBarcodeListElement : IConfigElementProvider
     }
 }
 
+
 public class TheHuntConfig : IConfig
 {
     [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
@@ -135,7 +128,7 @@ public class TheHuntConfig : IConfig
     [JsonInclude]
     public bool FinallyAlwaysPlays = true;
     
-    [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
+    [ConfigMenuEntry("Finally Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))]
     [JsonInclude]
     public float FinallyDuration = 60f;
     
@@ -199,13 +192,13 @@ public class TheHuntConfig : IConfig
     [JsonInclude]
     public float HiderSpeed = 1.45f;
     
-    [ConfigMenuEntry("Light Item")]
-    [ConfigElementProvider(typeof(CrateBarcodeElement))]
+    [ConfigMenuEntry("Flashlight Item")]
+    [ConfigElementProvider(typeof(BarcodeElement))]
     [JsonInclude]
     public string LightItemCrate = string.Empty;
     
     [ConfigMenuEntry("Weapon Items")]
-    [ConfigElementProvider(typeof(CrateBarcodeListElement))]
+    [ConfigElementProvider(typeof(BarcodeListElement))]
     [JsonInclude]
     public List<string> WeaponItemCrates = new List<string>();
 
