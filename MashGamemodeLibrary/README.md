@@ -6,8 +6,9 @@
 Am extensive library with a lot of features related to gamemode creation. My goal was to cut down the time I spent on making things for the game and not the game.
 <h2 align="center">Features</h2>
 - A spectator system that prevents interaction with the current game while still being around it.
-- A system to choice who can grab what and when.
+- A system to chose who can grab what and when.
 - A system for defining rules player characters must abide by during the gamemode.
+- A system for defining phases of a game.
 - A system for attaching behaviors to spawned network entities, and running code based on events on that behavior.
 - A layer over fusion networking, primarily aimed at defining resources that should be the same for everyone, including registries for interface based instances.
 - An extendable audio system that allows your gamemode players to make their own audio packs.

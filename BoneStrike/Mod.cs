@@ -5,7 +5,7 @@ using MashGamemodeLibrary.networking;
 using MashGamemodeLibrary.networking.Control;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(Mod), "Bonestrike", "0.2.0", "Mash")]
+[assembly: MelonInfo(typeof(Mod), "Bonestrike", "1.0.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 
 [assembly: NetworkIdentifiable("bonestrike")]

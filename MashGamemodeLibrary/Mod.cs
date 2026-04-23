@@ -27,7 +27,7 @@ using MelonLoader.Utils;
 using MashGamemodeLibrary.Debug;
 #endif
 
-[assembly: MelonInfo(typeof(Mod), "Mash's Gamemode Library", "0.1.0", "Mash")]
+[assembly: MelonInfo(typeof(Mod), "Mash's Gamemode Library", "1.0.0", "Mash")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 [assembly: MelonAdditionalDependencies("LabFusion")]
 [assembly: MelonOptionalDependencies("Spiderman")]

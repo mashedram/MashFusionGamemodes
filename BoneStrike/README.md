@@ -20,6 +20,7 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 - You can tap the menu button to teleport the clock to you if you lost it, as long as nobody is holding it.
 - While holding the alarm clock, you can skip the preparation phase by tapping the menu button.
 - You WILL lose automatically if you throw the clock out of bounds.
+- You can manually assign teams with a option in the settings 
 
 <h2 align="center">Credits</h2>
 [**Lakatrazz**](https://github.com/Lakatrazz) - For the multiplayer mod, Fusion. \
