@@ -147,6 +147,9 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Slow nightmare on damage", "Balancing")] 
     [JsonInclude]
     public bool SlowNightmareOnDamage = true;
+    [ConfigMenuEntry("Drop nightmare on max damage", "Balancing")] 
+    [JsonInclude]
+    public bool DropPlayer = true;
     
     [ConfigMenuEntry("Limit Player Magazines", "Balancing")] [JsonInclude]
     public bool LimitMags = true;
@@ -221,6 +224,7 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref NightVisionBrightness);
         serializer.SerializeValue(ref LockHiderAvatars);
         serializer.SerializeValue(ref SlowNightmareOnDamage);
+        serializer.SerializeValue(ref DropPlayer);
         serializer.SerializeValue(ref SetNightmareAvatars);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref NightmareSpeed);
@@ -249,6 +253,7 @@ public class TheHuntConfig : IConfig
             NightVisionBrightness = NightVisionBrightness,
             LockHiderAvatars = LockHiderAvatars,
             SlowNightmareOnDamage = SlowNightmareOnDamage,
+            DropPlayer = DropPlayer,
             SetNightmareAvatars = SetNightmareAvatars,
             BalanceStats = BalanceStats,
             NightmareSpeed = NightmareSpeed,

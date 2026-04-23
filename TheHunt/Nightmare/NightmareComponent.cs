@@ -1,11 +1,16 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
+﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Helpers;
@@ -133,22 +138,54 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         _speedModifier += delta / _activeNightmare.Value.NightmareDescriptor.SpeedPenaltyDuration;
         LocalSpeed.SpeedModifier = _speedModifier;
     }
+
+    private void DropIfHoldingPlayer(Hand hand)
+    {
+        var attached = hand.AttachedReceiver;
+        var rb = attached?.Host?.Rb;
+        if (rb == null) return;
+
+        if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return;
+        if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return;
+
+        var networkPlayer = entity.GetExtender<NetworkPlayer>();
+        if (networkPlayer == null)
+            return;
+        
+        hand.DetachObject();
+    }
     
     public void OnDamageTaken(PlayerID? source)
     {
-        if (source == null)
+        if (_player == null || _player?.PlayerID?.IsValid != true)
             return;
         
-        if (!_activeNightmare.HasValue)
-            return;
+        Executor.RunIfMe(_player.PlayerID, () =>
+        {
+            if (source == null)
+                return;
         
-        if (!source.IsTeam<HiderTeam>())
-            return;
+            if (!_activeNightmare.HasValue)
+                return;
+        
+            if (!source.IsTeam<HiderTeam>())
+                return;
 
-        var descriptor = _activeNightmare.Value.NightmareDescriptor;
-        _speedModifier = MathF.Max(_speedModifier - descriptor.SpeedPenaltyPerShot, descriptor.MinimumSpeed);
-        _speedHealDelay = descriptor.SpeedPenaltyHealDelay;
-        LocalSpeed.SpeedModifier = _speedModifier;
+            var descriptor = _activeNightmare.Value.NightmareDescriptor;
+            _speedModifier = MathF.Max(_speedModifier - descriptor.SpeedPenaltyPerShot, descriptor.MinimumSpeed);
+            _speedHealDelay = descriptor.SpeedPenaltyHealDelay;
+            LocalSpeed.SpeedModifier = _speedModifier;
+
+            // If we can drop players on max damage
+            if (!Gamemode.TheHunt.Config.DropPlayer)
+                return;
+        
+            if (_speedModifier > descriptor.MinimumSpeed) 
+                return;
+        
+            DropIfHoldingPlayer(RigData.Refs.LeftHand);
+            DropIfHoldingPlayer(RigData.Refs.RightHand);
+        });
     }
 
     public void OnInput(PlayerInputType type, bool state, Handedness handedness)

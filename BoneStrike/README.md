@@ -23,9 +23,12 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 <h2 align="center">Good to know!</h2>
 
 - You can tap the menu button to teleport the clock to you if you lost it, as long as nobody is holding it.
-- While holding the alarm clock, you can skip the preparation phase by tapping the menu button.
+- While holding the clock, you can skip the preparation phase by tapping the menu button.
 - You WILL lose automatically if you throw the clock out of bounds.
-- You can manually assign teams with a option in the settings
+- You can manually assign teams with an option in the settings
+- Follow the arrow on your arm to find the clock.
+- Defuse the clock by grabbing it!
+- The spectator system may react incorrectly with some Mods.
 
 <h2 align="center">Credits</h2>
 

@@ -35,7 +35,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         var type = typeof(T);
         if (type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, Type.EmptyTypes) == null)
         {
-            MelonLogger.Error($"Type: {type.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
+            InternalLogger.Error($"Type: {type.Name} has no default constructor. Ensure it satisfiers the \"new()\" clause.");
             return;
         }
 #endif
@@ -163,7 +163,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
         _stableHashCache[type] = id;
         _typeCache[id] = type;
 #if DEBUG
-        MelonLogger.Msg($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
+        InternalLogger.Debug($"Registering type: {type.Name} with id: {id} to registry of: {typeof(TValue).Name}");
 #endif
         return id;
     }

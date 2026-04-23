@@ -1,5 +1,6 @@
 ﻿#if DEBUG
 namespace MashGamemodeLibrary.Debug;
+using UnityEngine;
 
 public abstract class DebugKeybind
 {

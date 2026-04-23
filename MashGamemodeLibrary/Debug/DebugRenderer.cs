@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MashGamemodeLibrary.Debug;
 

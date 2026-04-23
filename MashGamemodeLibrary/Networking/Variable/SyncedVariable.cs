@@ -4,6 +4,7 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Encoder;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.networking.Variable;
 
@@ -77,7 +78,7 @@ public class SyncedVariable<TValue> : GenericRemoteEvent<TValue>, ICatchup, IRes
         if (!isValid)
         {
 #if DEBUG
-            MelonLogger.Warning($"[SyncedVariable<{typeof(TValue)}>] Attempted to set invalid value for variable '{_name}'");
+            InternalLogger.Warn($"[SyncedVariable<{typeof(TValue)}>] Attempted to set invalid value for variable '{_name}'");
 #endif
             return;
         }

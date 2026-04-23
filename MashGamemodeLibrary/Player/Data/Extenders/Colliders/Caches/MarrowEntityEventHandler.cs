@@ -42,17 +42,28 @@ public static class MarrowEntityEventHandler
         collider.gameObject.layer = BonelabLayers.Dynamic;
     }
 
-    public static void FixColliderLayers(ImpactProperties impactProperties)
+    public static void FixColliderLayers(Transform transform, int maxRecursion = 0)
     {
-        if (impactProperties == null)
+        if (transform == null)
+            return;
+        
+        if (!transform.TryGetComponent<Collider>(out var collider))
+            return;
+        
+        FixColliderLayer(collider);
+        
+        if (maxRecursion <= 0)
             return;
 
-        if (impactProperties.gameObject == null)
-            return;
-
-        foreach (var collider in impactProperties.GetComponents<Collider>())
+        // While this may seem like a lot of iteration, it only really gets called during level loading and adds less than 1ms in total on most maps.
+        for (var i = 0; i < transform.childCount; i++)
         {
-            FixColliderLayer(collider);
+            var child = transform.GetChild(i);
+            
+            if (child == null)
+                continue;
+
+            FixColliderLayers(child, maxRecursion - 1);
         }
     }
 

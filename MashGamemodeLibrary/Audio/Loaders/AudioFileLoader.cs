@@ -1,4 +1,5 @@
 ﻿using AudioImportLib;
+using MashGamemodeLibrary.Util;
 using MelonLoader.Utils;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ public class AudioFileLoader : IAudioLoader
     public void RefreshNames()
     {
 #if DEBUG
-        MelonLogger.Msg($"Fetching audio list from directory: {_audioDirectoryPath}");
+        InternalLogger.Debug($"Fetching audio list from directory: {_audioDirectoryPath}");
 #endif
         var files = Directory.GetFiles(_audioDirectoryPath);
         foreach (var file in files)
@@ -31,7 +32,7 @@ public class AudioFileLoader : IAudioLoader
             _nameToPath.TryAdd(name, file);
 
 #if DEBUG
-            MelonLogger.Msg($"Found audio file: {name} at path: {file}");
+            InternalLogger.Debug($"Found audio file: {name} at path: {file}");
 #endif
         }
     }
@@ -52,7 +53,7 @@ public class AudioFileLoader : IAudioLoader
         }
 
 #if DEBUG
-        MelonLogger.Msg($"Loading audio clip from path: {path}");
+        InternalLogger.Debug($"Loading audio clip from path: {path}");
 #endif
         var clip = API.LoadAudioClip(path);
 

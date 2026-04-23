@@ -3,6 +3,7 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Context.Control;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Context;
 
@@ -20,7 +21,7 @@ public abstract class GameModeContext<TContext> where TContext : GameModeContext
             return;
 
 #if DEBUG
-        if (!field.IsInitOnly) MelonLogger.Warning($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
+        if (!field.IsInitOnly) InternalLogger.Warn($"Field: {field.Name} on context: {GetType().Name} is not read only. Updating may fail.");
 #endif
 
         if (field.GetValue(this) is not T value)

@@ -36,7 +36,7 @@ public class PlantPhase : GamePhase
 {
     private static readonly string ClockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
 
-    public static readonly SyncedVariable<bool> PhaseShouldQuit = new("SkipPlantPhase", new BoolEncoder(), false, CommonNetworkRoutes.AllToAll);
+    private static readonly SyncedVariable<bool> PhaseShouldQuit = new("SkipPlantPhase", new BoolEncoder(), false, CommonNetworkRoutes.AllToAll);
 
     private static readonly RemoteEvent<FetchClockPacket> FetchClockEvent = new("FetchClockEvent", OnFetchClock, CommonNetworkRoutes.AllToHost);
 
@@ -58,10 +58,12 @@ public class PlantPhase : GamePhase
 
     protected override void OnPhaseEnter()
     {
-        PhaseShouldQuit.Value = false;
         LocalInventory.SetAmmo(2000);
+        
         Executor.RunIfHost(() =>
         {
+            // Only broadcast on the host to prevent spamming packages
+            PhaseShouldQuit.Value = false;
             PersistentTeams.AssignAll();
             PalletLoadoutManager.AssignAll();
 
@@ -70,6 +72,11 @@ public class PlantPhase : GamePhase
 
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });
+    }
+
+    protected override void OnPhaseExit()
+    {
+        PlayerGrabManager.SetOverwrite("PlantPhase", null);
     }
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)

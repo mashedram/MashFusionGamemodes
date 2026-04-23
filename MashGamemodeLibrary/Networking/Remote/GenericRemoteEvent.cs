@@ -6,6 +6,9 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
+#if DEBUG
+using System.Diagnostics;
+#endif
 
 namespace MashGamemodeLibrary.Networking.Remote;
 

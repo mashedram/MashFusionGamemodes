@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using System.Diagnostics;
+using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 
@@ -13,7 +14,10 @@ public class ImpactPropertiesPatches
     {
         if (__instance == null)
             return;
+        
+        if (__instance.transform == null)
+            return;
 
-        MarrowEntityEventHandler.FixColliderLayers(__instance);
+        MarrowEntityEventHandler.FixColliderLayers(__instance.transform, 2);
     }
 }
