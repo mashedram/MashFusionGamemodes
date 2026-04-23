@@ -1,0 +1,10 @@
+    {
+    "name": "Mash's Gamemode Library",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/mashedram/MashFusionGamemodes",
+    "description": "An extensive library with features related to gamemode creation.",
+    "dependencies": [
+        "bonelib-BoneLib-3.2.1",
+        "Lakatrazz-Fusion-1.14.1"
+    ]
+}

@@ -1,0 +1,11 @@
+    {
+    "name": "BoneStrike",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/mashedram/MashFusionGamemodes/tree/master/BoneStrike",
+    "description": "A team based Fusion gamemode where one team (Sabrelake) has to hide and plant an alarm clock, the other team (Lavagang) has to find and defuse the alarm clock before it is too late.",
+    "dependencies": [
+        "bonelib-BoneLib-3.2.1",
+        "Lakatrazz-Fusion-1.14.1",
+        "Mash-MashGamemodeLibrary-1.0.0"
+    ]
+}
