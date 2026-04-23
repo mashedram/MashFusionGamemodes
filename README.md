@@ -3,7 +3,7 @@
     <h1>Mash's Gamemode Library</h1>
 </div>
 
-Am extensive library with features related to gamemode creation. My goal was to cut down the time I spent on making boilerplate for the gamemode and not the gamemode.
+An extensive library with features related to gamemode creation. My goal was to cut down the time I spent on making boilerplate for the gamemode and not the gamemode.
 
 <h2 align="center">Features</h2>
 
