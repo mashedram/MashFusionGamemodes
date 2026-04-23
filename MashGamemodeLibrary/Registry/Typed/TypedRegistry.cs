@@ -3,7 +3,6 @@ using System.Reflection;
 using LabFusion.Extensions;
 using MashGamemodeLibrary.Registry.Keyed;
 using MashGamemodeLibrary.Util;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Registry.Typed;
 

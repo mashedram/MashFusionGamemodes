@@ -1,5 +1,4 @@
-﻿using LabFusion.Extensions;
-using LabFusion.Network;
+﻿using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;

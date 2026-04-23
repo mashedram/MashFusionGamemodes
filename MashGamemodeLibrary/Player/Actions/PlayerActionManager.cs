@@ -5,7 +5,6 @@ using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Behaviour;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 namespace MashGamemodeLibrary.Player.Actions;

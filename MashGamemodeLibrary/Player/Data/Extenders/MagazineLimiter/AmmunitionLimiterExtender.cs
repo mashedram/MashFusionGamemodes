@@ -2,7 +2,6 @@
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter;
 

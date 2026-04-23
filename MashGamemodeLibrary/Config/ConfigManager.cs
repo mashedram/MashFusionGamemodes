@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using LabFusion.Network;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;

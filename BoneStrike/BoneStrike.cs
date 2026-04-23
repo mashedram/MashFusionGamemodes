@@ -18,10 +18,7 @@ using MashGamemodeLibrary.Environment.Effector.Weather;
 using MashGamemodeLibrary.Environment.State;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
-using MashGamemodeLibrary.networking.Variable;
-using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
-using MashGamemodeLibrary.Player.Actions;
 using MashGamemodeLibrary.Player.Data;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
@@ -64,7 +61,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnStart()
     {
         _resetPoint = RigData.RigSpawn;
-        
+
         Executor.RunIfHost(() =>
         {
             PersistentTeams.Clear();
@@ -96,7 +93,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
             LeaderboardManager.ShowLeaderboard(_resetPoint);
         });
-        
+
         Context.IntermissionMusicPlayer.Stop();
         FusionPlayer.ResetSpawnPoints();
     }
@@ -105,7 +102,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         Notifier.CancelAll();
         LeaderboardManager.HideLeaderboard();
-        
+
         SpawnPointHelper.SetSpawnPoint(_resetPoint);
 
         LogicTeamManager.Enable<TerroristTeam>();
@@ -114,7 +111,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         Executor.RunIfHost(() =>
         {
             PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
-            
+
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
 
@@ -132,7 +129,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         AvatarStatManager.BalanceStats = Config.BalanceStats;
         PlayerGunManager.NormalizePlayerDamage = Config.BalanceDamage;
-        
+
         Context.IntermissionMusicPlayer.Stop();
         Context.EnvironmentPlayer.StartPlaying(new EnvironmentProfile<EnvironmentContext>("all",
             new EnvironmentState<EnvironmentContext>[]
@@ -146,7 +143,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         LocalPlayer.TeleportToPosition(_resetPoint);
-        
+
         Context.IntermissionMusicPlayer.Start();
 
         Executor.RunIfHost(() =>
@@ -196,9 +193,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             if (GamePhaseManager.ActivePhase is not DefusePhase)
                 return;
 
-            if (AnyDefusers()) 
+            if (AnyDefusers())
                 return;
-            
+
             ExplodeAllBombs();
             WinManager.Win<TerroristTeam>();
         });
@@ -212,7 +209,8 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             null => true,
             TeamAssignmentPhase => false,
             PlantPhase => false,
-            DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > Config.DefuserSpawnProtection && !LogicTeamManager.IsTeamMember(player),
+            DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > Config.DefuserSpawnProtection &&
+                                                                                  !LogicTeamManager.IsTeamMember(player),
             _ => !LogicTeamManager.IsTeamMember(player)
         };
     }

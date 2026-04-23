@@ -1,5 +1,4 @@
-﻿using MashGamemodeLibrary.Environment.Effector;
-using MashGamemodeLibrary.Environment.Effector.Weather;
+﻿using MashGamemodeLibrary.Environment.Effector.Weather;
 
 namespace TheHunt.Audio.Effectors.Weather;
 

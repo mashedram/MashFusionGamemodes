@@ -20,7 +20,7 @@ public class KillEffectComponent : IComponent, IComponentPlayerReady, IPlayerAct
     {
         _owner = networkPlayer;
     }
-    
+
     public void OnAction(PlayerActionType action, PlayerID otherPlayer)
     {
         Executor.RunIfHost(() =>
@@ -29,7 +29,7 @@ public class KillEffectComponent : IComponent, IComponentPlayerReady, IPlayerAct
                 return;
             if (action != PlayerActionType.DYING)
                 return;
-        
+
             if (!_owner.HasRig)
                 return;
 

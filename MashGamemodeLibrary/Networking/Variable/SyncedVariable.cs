@@ -4,7 +4,6 @@ using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable.Encoder;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable;
 

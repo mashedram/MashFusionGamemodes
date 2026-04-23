@@ -1,7 +1,6 @@
 ﻿using BoneStrike.Phase;
 using BoneStrike.Tags;
 using LabFusion.Menu;
-using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Execution;
@@ -29,12 +28,12 @@ public class TerroristTeam : LogicTeam
 
     protected override void OnAssigned()
     {
-        
+
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerTag());
             Owner.AddComponent(new KillEffectComponent());
-            
+
             AvatarStatManager.SetStats(new AvatarStats
             {
                 Agility = 1.2f,

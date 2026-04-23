@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
-using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Patches;
 

@@ -1,10 +1,6 @@
-﻿using Il2CppSLZ.Marrow;
-using LabFusion.Entities;
-using LabFusion.Network;
+﻿using LabFusion.Entities;
 using LabFusion.Player;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
-using MashGamemodeLibrary.Player.Spectating.data;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;

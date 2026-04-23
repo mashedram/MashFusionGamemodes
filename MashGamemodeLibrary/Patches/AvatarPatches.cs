@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using HarmonyLib;
-using Il2CppInterop.Runtime.Injection;
+﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
 using MashGamemodeLibrary.Player;

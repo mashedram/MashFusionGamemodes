@@ -1,6 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Registry.Typed;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 

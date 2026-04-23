@@ -1,5 +1,4 @@
-﻿using LabFusion.Data;
-using MashGamemodeLibrary.Audio.Containers;
+﻿using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Background.Timed;
@@ -12,7 +11,6 @@ using TheHunt.Audio;
 using TheHunt.Nightmare;
 using TheHunt.Nightmare.Ability.Active;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace TheHunt.Gamemode;
 

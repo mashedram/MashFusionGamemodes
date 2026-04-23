@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
-using MashGamemodeLibrary.Entities.ECS.Caches;
-using MashGamemodeLibrary.Util;
+﻿using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.Queries;
 

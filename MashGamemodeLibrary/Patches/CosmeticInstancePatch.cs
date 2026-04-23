@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using LabFusion.SDK.Cosmetics;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 
 namespace MashGamemodeLibrary.Patches;
 

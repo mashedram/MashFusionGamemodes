@@ -1,6 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
@@ -12,7 +11,6 @@ using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Networking.Variable.Encoder.Util;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Registry.Typed;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Phase;
 

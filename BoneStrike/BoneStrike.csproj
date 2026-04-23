@@ -5,9 +5,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <EmbeddedResource Include="Resources\Icon.png" />
+        <EmbeddedResource Include="Resources\Icon.png"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -468,8 +468,8 @@
             <Private>false</Private>
         </Reference>
     </ItemGroup>
-    
+
     <ItemGroup>
-        <ProjectReference Include="..\MashGamemodeLibrary\MashGamemodeLibrary.csproj" />
+        <ProjectReference Include="..\MashGamemodeLibrary\MashGamemodeLibrary.csproj"/>
     </ItemGroup>
 </Project>

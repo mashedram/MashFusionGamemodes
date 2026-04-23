@@ -1,12 +1,10 @@
 ﻿using HarmonyLib;
-using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Audio;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Patches;

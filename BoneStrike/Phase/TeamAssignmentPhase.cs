@@ -1,10 +1,6 @@
-﻿using BoneStrike.Teams;
-using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow.Pool;
-using Il2CppSLZ.Marrow.Warehouse;
+﻿using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using LabFusion.Marrow.Pool;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -81,7 +77,7 @@ public class TeamAssignmentPhase : GamePhase
 
         if (BoneStrike.Config.AllowUnbalancedTeams)
             return true;
-        
+
         // If the total number of players is odd, allow one player to be on the larger team
         var allowedImbalance = (team1Count + team2Count) % 2 == 0 ? 0 : 1;
 

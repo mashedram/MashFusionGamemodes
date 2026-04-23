@@ -8,7 +8,6 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util.Timer;
-using MelonLoader;
 
 namespace BoneStrike.Phase;
 
@@ -57,7 +56,7 @@ public class DefusePhase : GamePhase
 
         Executor.RunCheckedInFuture(DropClock, TimeSpan.FromSeconds(5));
 
-        
+
         foreach (var entry in PlayerHandTimerTag.Query)
         {
             entry.SetTarget(() => BombMarker.Query

@@ -1,7 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 using Il2CppSLZ.Marrow.Warehouse;
-using LabFusion.Data;
-using LabFusion.Marrow;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
@@ -9,7 +7,6 @@ using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
-using UnityEngine;
 
 namespace BoneStrike.Config;
 
@@ -79,7 +76,7 @@ internal class CrateBarcodeListElement : IConfigElementProvider
             OnSetSpawnable = barcode =>
             {
                 var barcodeInstance = new Barcode(barcode);
-                
+
                 if (!AssetWarehouse.Instance.TryGetCrate(barcodeInstance, out var crate))
                     return;
 
@@ -164,17 +161,14 @@ public class BoneStrikeConfig : IConfig
 
     [ConfigMenuEntry("Balance Weapon Damage (EXPERIMENTAL)", "Balancing")] [JsonInclude]
     public bool BalanceDamage = false;
+
     [ConfigMenuEntry("Balance Avatar Health", "Balancing")] [JsonInclude]
     public bool BalanceStats = true;
-    [ConfigMenuEntry("Defuser Spawn Protection", "Balancing")] 
-    [ConfigRangeConstraint(0f, 15f)]
-    [ConfigStepSize(1f)]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Defuser Spawn Protection", "Balancing")] [ConfigRangeConstraint(0f, 15f)] [ConfigStepSize(1f)] [JsonInclude]
     public float DefuserSpawnProtection = 5f;
-    [ConfigMenuEntry("Movement Speed", "Balancing")] 
-    [ConfigRangeConstraint(1f, 2f)] 
-    [ConfigStepSize(0.05f)]
-    [JsonInclude]
+
+    [ConfigMenuEntry("Movement Speed", "Balancing")] [ConfigRangeConstraint(1f, 2f)] [ConfigStepSize(0.05f)] [JsonInclude]
     public float MovementSpeedMultiplier = 1.35f;
 
     [ConfigMenuEntry("Blind Attackers During Planting", "Health")] [JsonInclude]

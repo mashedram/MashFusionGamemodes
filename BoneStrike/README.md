@@ -14,8 +14,10 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 <h2 align="center">How to play?</h2>
 
 1. Get your friends together.
-2. Download this mod, the accompanying library and the [SDK mod on MOD.IO](https://mod.io/g/bonelab/m/bonestrike-assets).
-3. Configure your wanted weaponry. Hold a weapon and click on the "Add weapon" button to add the crate it belongs to the weapon pool.
+2. Download this mod, the accompanying library and
+   the [SDK mod on MOD.IO](https://mod.io/g/bonelab/m/bonestrike-assets).
+3. Configure your wanted weaponry. Hold a weapon and click on the "Add weapon" button to add the crate it belongs to the
+   weapon pool.
 4. Configure the rest of your settings and have fun!
 
 <h2 align="center">Good to know!</h2>
@@ -23,19 +25,21 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 - You can tap the menu button to teleport the clock to you if you lost it, as long as nobody is holding it.
 - While holding the alarm clock, you can skip the preparation phase by tapping the menu button.
 - You WILL lose automatically if you throw the clock out of bounds.
-- You can manually assign teams with a option in the settings 
+- You can manually assign teams with a option in the settings
 
 <h2 align="center">Credits</h2>
 
 [**Lakatrazz**](https://github.com/Lakatrazz) - For the multiplayer mod, Fusion. \
 [**BaBaCorp**](https://mod.io/g/bonelab/u/alexthebaba) - I use one of his explosion assets for the clock explosion. \
-[**HAHOOS**](https://github.com/HAHOOS) - Inspired me to start making code mods, and his mod saved me time when it came to avatar stat patching. \
+[**HAHOOS**](https://github.com/HAHOOS) - Inspired me to start making code mods, and his mod saved me time when it came
+to avatar stat patching. \
 [**notnotnotswipez**](https://github.com/notnotnotswipez) - Based my grip patches of the ones in his gamemode SDK.\
 [**Guy Games**](https://mod.io/g/bonelab/u/guygames0809) - Made the icon!
 
 <h3 align="center">Testers</h3>
 
-[**Random**](https://mod.io/g/bonelab/u/bmarcel2007) - Genuine lifesaver, way to many hours just having bonelab open to test stuff. \
+[**Random**](https://mod.io/g/bonelab/u/bmarcel2007) - Genuine lifesaver, way to many hours just having bonelab open to
+test stuff. \
 [**Lime**](https://mod.io/g/bonelab/u/limesattimes) - Provided so many good ideas for things to add. \
 [**Crayon**](https://mod.io/g/bonelab/u/acrayonplayingvr) \
 [**Raging Cricket 20**](https://mod.io/g/bonelab/u/raggingcricket20) \

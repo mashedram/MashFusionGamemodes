@@ -2,15 +2,12 @@
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
-using MashGamemodeLibrary.Player.Data.Components;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
-using MashGamemodeLibrary.Player.Data.Events;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 

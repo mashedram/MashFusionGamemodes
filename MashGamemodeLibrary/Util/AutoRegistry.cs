@@ -1,8 +1,5 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using MashGamemodeLibrary.Entities.Behaviour;
-using MashGamemodeLibrary.Entities.Queries;
-using MelonLoader;
 
 namespace MashGamemodeLibrary.Util;
 

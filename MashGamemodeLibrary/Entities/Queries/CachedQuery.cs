@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using MashGamemodeLibrary.Entities.ECS.Data;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.Queries;

@@ -2,16 +2,12 @@
 using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
-using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Player.Data;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Player.Spectating.data.Rules;
-using MashGamemodeLibrary.Player.Team;
-using TheHunt.Teams;
 using UnityEngine;
 
 namespace TheHunt.Components;

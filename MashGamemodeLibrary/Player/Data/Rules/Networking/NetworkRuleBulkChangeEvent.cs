@@ -3,7 +3,6 @@ using LabFusion.Player;
 using MashGamemodeLibrary.networking.Control;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Rules.Networking;
 

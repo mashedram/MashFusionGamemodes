@@ -2,7 +2,6 @@
 using System.Reflection;
 using MashGamemodeLibrary.Player.Helpers;
 using Spiderman;
-using Spiderman.Module;
 
 namespace MashGamemodeLibrary.Integrations;
 

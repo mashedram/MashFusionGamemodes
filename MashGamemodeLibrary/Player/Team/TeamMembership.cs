@@ -3,7 +3,6 @@ using LabFusion.Network;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Util;
-using MelonLoader;
 using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Team;

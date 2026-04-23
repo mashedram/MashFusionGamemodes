@@ -2,7 +2,6 @@
 using BoneStrike.Teams;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Interaction;
@@ -53,7 +52,7 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
     {
         if (MarrowEntity == null)
             return;
-        
+
         if (_rigidbodies == null)
             return;
 

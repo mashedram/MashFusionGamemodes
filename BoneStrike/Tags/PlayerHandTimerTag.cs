@@ -3,14 +3,11 @@ using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
-using LabFusion.Player;
-using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 using UnityEngine;
 
 namespace BoneStrike.Tags;
@@ -29,7 +26,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
     private Func<IEnumerable<Vector3>>? _getTargetTransform;
     private TextMeshPro? _text;
     private Poolee? _timerObject;
-    
+
     public void SetTarget(Func<IEnumerable<Vector3>> getter)
     {
         _getTargetTransform = getter;
@@ -72,7 +69,7 @@ public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComp
         {
             var targetPosition = _getTargetTransform?.Invoke().DefaultIfEmpty().MinBy(t => (t - position).sqrMagnitude);
             _compasPointer.gameObject.SetActive(targetPosition.HasValue);
-            
+
             if (targetPosition.HasValue)
             {
                 var direction = (targetPosition.Value - position).normalized;

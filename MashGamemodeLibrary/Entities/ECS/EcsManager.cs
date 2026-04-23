@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using LabFusion.Entities;
-using LabFusion.Extensions;
 using MashGamemodeLibrary.Entities.Behaviour;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Caches;

@@ -1,11 +1,9 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow.Pool;
-using Il2CppTMPro;
 using LabFusion.Entities;
 using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
-using MashGamemodeLibrary.Entities.Interaction;
 using UnityEngine;
 
 namespace BoneStrike.Tags;

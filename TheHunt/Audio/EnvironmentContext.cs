@@ -5,7 +5,6 @@ using TheHunt.Gamemode;
 using TheHunt.Phase;
 using TheHunt.Teams;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace TheHunt.Audio;
 

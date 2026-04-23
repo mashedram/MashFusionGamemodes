@@ -1,6 +1,4 @@
 using LabFusion.Entities;
-using LabFusion.Extensions;
-using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;

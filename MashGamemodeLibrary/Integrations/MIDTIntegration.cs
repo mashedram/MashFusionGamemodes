@@ -2,7 +2,6 @@
 using HarmonyLib;
 using LabFusion.Network;
 using LabFusion.Utilities;
-using UnityEngine.Rendering;
 
 namespace MashGamemodeLibrary.Integrations;
 

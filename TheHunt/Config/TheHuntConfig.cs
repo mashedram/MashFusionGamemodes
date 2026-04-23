@@ -1,12 +1,10 @@
 ﻿using System.Text.Json.Serialization;
-using Il2CppSLZ.Marrow.Warehouse;
 using LabFusion.Menu.Data;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Config.Menu.Attributes;
 using MashGamemodeLibrary.Loadout;
-using MashGamemodeLibrary.Util;
 using TheHunt.Audio.Effectors.Weather;
 
 namespace TheHunt.Config;

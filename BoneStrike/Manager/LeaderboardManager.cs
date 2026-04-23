@@ -1,5 +1,4 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow.Pool;
+﻿using Il2CppSLZ.Marrow.Pool;
 using Il2CppTMPro;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities;
@@ -74,7 +73,7 @@ public static class LeaderboardManager
             SetContent();
             return;
         }
-        
+
         GameAssetSpawner.SpawnLocalAsset(Barcode, position, poolee =>
         {
             _poolee = poolee;
@@ -82,7 +81,7 @@ public static class LeaderboardManager
             SetContent();
         });
     }
-    
+
     private static void SetEntryData(LeaderboardPlayerEntry entry, LeaderboardPlayerData data, int position)
     {
         entry.PositionText.text = position.ToString();
@@ -102,7 +101,7 @@ public static class LeaderboardManager
     {
         if (_poolee == null)
             return;
-        
+
         var statistics = GlobalStatisticsCollector.Statistics
             .Select(v => new LeaderboardPlayerData(v))
             .Where(v => v.PlayerId.IsValid)
@@ -136,12 +135,12 @@ public static class LeaderboardManager
         var localEntry = Entries[localPlayerPosition + 1];
         SetEntryData(localEntry, localPlayerData, localPlayerPosition + 1);
     }
-    
+
     private static void LoadEntries()
     {
         if (_poolee == null)
             return;
-        
+
         Entries.Clear();
         var playerList = _poolee.transform.Find("Center/Players");
         if (playerList == null)
@@ -159,12 +158,12 @@ public static class LeaderboardManager
             Entries.Add(new LeaderboardPlayerEntry(child.gameObject));
         }
     }
-    
+
     public static void ShowLeaderboard(Vector3 position)
     {
         Spawn(position);
     }
-    
+
     public static void HideLeaderboard()
     {
         if (_poolee == null)
