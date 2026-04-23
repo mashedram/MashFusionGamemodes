@@ -231,10 +231,7 @@ public static class PersistentTeams
             Type = localWinner ? NotificationType.SUCCESS : NotificationType.ERROR
         });
 
-        var winCount = teamScores[localTeamID].score;
-        var bits = (localWinner && teamScores[localTeamID].score > 0 ? 100 : 0) + winCount * 20;
-
-        PlayerStatisticsTracker.AwardBits(bits, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
+        PlayerStatisticsTracker.AwardBits(TeamStatisticKeys.RoundsWon, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
             PlayerDamageStatistics.Deaths);
     }
 }

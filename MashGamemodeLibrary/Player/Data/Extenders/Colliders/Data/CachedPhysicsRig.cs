@@ -195,7 +195,6 @@ public class CachedPhysicsRig
 
     // Instance
     public ImmutableArray<CachedCollider> Colliders;
-    public ImmutableArray<CollisionSFX> CollisionSFXs;
 
     public CachedPhysicsRig(PhysicsRig physicsRig)
     {
@@ -206,19 +205,20 @@ public class CachedPhysicsRig
             .Select(c => PhysicsRigLayout.TryGetValue(c.name, out var sourceLayer) ? new CachedCollider(c, sourceLayer) : null)
             .OfType<CachedCollider>()
             .ToImmutableArray();
-
-        CollisionSFXs = physicsRig
-            .GetComponentsInChildren<CollisionSFX>()
-            .ToImmutableArray();
     }
 
     public PhysicsRig PhysicsRig { get; init; }
 
     public bool IsColliding { get; private set; }
 
+    public bool IsValid => PhysicsRig != null;
+
     public void SetColliding(bool isColliding)
     {
         IsColliding = isColliding;
+        
+        if (!IsValid)
+            return;
 
         // Set avatar layers
         foreach (var collider in Colliders)

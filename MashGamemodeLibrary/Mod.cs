@@ -79,7 +79,6 @@ public class Mod : MelonMod
         LocalEcsCache.Clear();
         PlayerGrabManager.Reset();
         PlayerDataManager.Clear();
-        PhysicsRigCache.Reset();
         PlayerGunManager.Reset();
         GamemodeCompatibilityChecker.ClearRemoteHashes();
     }

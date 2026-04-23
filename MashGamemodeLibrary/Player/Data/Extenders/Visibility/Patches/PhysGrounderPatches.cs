@@ -3,7 +3,7 @@ using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Helpers;
 
-namespace MashGamemodeLibrary.Patches;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Patches;
 
 [HarmonyPatch(typeof(PhysGrounder))]
 public class PhysGrounderPatches
@@ -22,6 +22,7 @@ public class PhysGrounderPatches
         if (!NetworkPlayerManager.TryGetPlayer(rig, out var player))
             return true;
 
+        // TODO: Change to IsHidden
         if (player.PlayerID.IsSpectating())
             return false;
 

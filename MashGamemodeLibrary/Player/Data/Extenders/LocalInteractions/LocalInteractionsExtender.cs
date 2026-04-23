@@ -41,12 +41,8 @@ public class LocalInteractionsExtender : IPlayerExtender
     {
         _areInteractionsEnabled = areInteractionsEnabled;
 
-        if (_player?.PlayerID == null)
-            return;
         // Local Only extender
-        if (!_player.PlayerID.IsMe)
-            return;
-        if (!_player.HasRig)
+        if (_player?.PlayerID is not { IsMe: true })
             return;
 
         GetOverlayObject().SetActive(!_areInteractionsEnabled);
@@ -76,10 +72,7 @@ public class LocalInteractionsExtender : IPlayerExtender
     };
     public void OnRuleChanged(PlayerData data)
     {
-        if (_player == null)
-            return;
-
-        if (!_player.PlayerID.IsMe)
+        if (_player?.PlayerID is not { IsMe: true})
             return;
 
         var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);

@@ -71,6 +71,9 @@ public class EnvironmentContext
         if (GamePhaseManager.ActivePhase is HidePhase)
             return false;
         
+        if (!context.LocalPlayer.HasRig)
+            return false;
+        
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
         var shouldBeChasing = NetworkPlayer.Players.Any(player => player.PlayerID.IsTeam<NightmareTeam>() &&
                                                                   IsNightmareChasing(player, localPosition));

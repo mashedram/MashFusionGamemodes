@@ -14,8 +14,6 @@ public static class Executor
 
     private static void Run(Runnable runnable)
     {
-#if DEBUG
-        // Make sure the debugger catches the error
         try
         {
             runnable();
@@ -25,9 +23,6 @@ public static class Executor
             MelonLogger.Error($"[Mash Gamemode Library] An error occurred during execution: {e}");
             MelonLogger.Error("Stack Trace: " + new StackTrace());
         }
-#else
-        runnable();
-#endif
     }
 
     public static void RunIfHost(Runnable runnable, string? error = null)

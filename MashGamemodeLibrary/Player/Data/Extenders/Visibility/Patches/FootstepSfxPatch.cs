@@ -7,7 +7,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Player.Helpers;
 using MashGamemodeLibrary.Util;
 
-namespace MashGamemodeLibrary.Patches;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Patches;
 
 [HarmonyPatch(typeof(FootstepSFX))]
 public static class FootstepSfxPatch
@@ -68,6 +68,7 @@ public static class FootstepSfxPatch
         if (playerId == null)
             return true;
 
+        // TODO: Change to IsHidden
         if (!playerId.IsSpectating())
             return true;
 

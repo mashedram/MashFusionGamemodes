@@ -87,13 +87,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
     protected override void OnEnd()
     {
-        Executor.RunIfHost(() =>
-        {
-            PersistentTeams.SendMessage();
+        Executor.RunIfHost(PersistentTeams.SendMessage);
 
-            LeaderboardManager.ShowLeaderboard(_resetPoint);
-        });
-
+        LeaderboardManager.ShowLeaderboard(_resetPoint);
         Context.IntermissionMusicPlayer.Stop();
         FusionPlayer.ResetSpawnPoints();
     }
@@ -143,6 +139,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         LocalPlayer.TeleportToPosition(_resetPoint);
+        LeaderboardManager.ShowLeaderboard(_resetPoint);
 
         Context.IntermissionMusicPlayer.Start();
 
@@ -158,8 +155,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             {
                 Context.TerroristsWinAudioPlayer.PlayRandom();
             }
-
-            LeaderboardManager.ShowLeaderboard(_resetPoint);
         });
     }
 

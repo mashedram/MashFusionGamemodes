@@ -3,7 +3,7 @@ using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using MashGamemodeLibrary.Player.Helpers;
 
-namespace MashGamemodeLibrary.Patches;
+namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Patches;
 
 [HarmonyPatch(typeof(RigArt))]
 public class RigArtPatches

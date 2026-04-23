@@ -109,15 +109,4 @@ public static class MarrowEntityEventHandler
 
         FixColliderLayers(entity);
     }
-
-    public static void OnMarrowEntityDestroyed(MarrowEntity entity)
-    {
-        if (entity == null)
-            return;
-
-        if (entity.name != "PhysicsRig")
-            return;
-
-        PhysicsRigCache.OnPhysicsRigDestroyed(entity);
-    }
 }

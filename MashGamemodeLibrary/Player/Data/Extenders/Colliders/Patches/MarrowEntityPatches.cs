@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow.Interaction;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Patches;
 
@@ -11,29 +12,16 @@ public class MarrowEntityPatches
     [HarmonyPostfix]
     private static void Awake_Postfix(MarrowEntity __instance)
     {
-        if (__instance == null)
-            return;
+        try
+        {
+            if (__instance == null)
+                return;
 
-        MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
-    }
-
-    [HarmonyPatch(nameof(MarrowEntity.OnPoolSpawn))]
-    [HarmonyPostfix]
-    private static void OnPoolSpawn_Postfix(MarrowEntity __instance)
-    {
-        if (__instance == null)
-            return;
-
-        MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
-    }
-
-    [HarmonyPatch(nameof(MarrowEntity.Despawn))]
-    [HarmonyPostfix]
-    private static void Despawn_Postfix(MarrowEntity __instance)
-    {
-        if (__instance == null)
-            return;
-
-        MarrowEntityEventHandler.OnMarrowEntityDestroyed(__instance);
+            MarrowEntityEventHandler.OnMarrowEntityCreated(__instance);
+        }
+        catch (Exception e)
+        {
+            InternalLogger.Error($"An error occurred in MarrowEntityPatches.Awake_Postfix: {e}");
+        }
     }
 }
