@@ -28,7 +28,7 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 - You can manually assign teams with an option in the settings
 - Follow the arrow on your arm to find the clock.
 - Defuse the clock by grabbing it!
-- The spectator system may react incorrectly with some Mods.
+- The spectator system may react incorrectly with some maps and avatars.
 
 <h2 align="center">Credits</h2>
 
