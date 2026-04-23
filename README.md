@@ -18,7 +18,7 @@ Am extensive library with features related to gamemode creation. My goal was to 
 
 <h2 align="center">Gamemodes</h2>
 
-- [Bonestrike](https://github.com/mashedram/MashFusionGamemodes/tree/master/BoneStrike)
+- [Bonestrike](https://github.com/mashedram/MashFusionGamemodes/tree/master/BoneStrike) - A Counter-Strike inspired gamemode
 
 <h2 align="center">Credits</h2>
 
