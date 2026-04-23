@@ -4,7 +4,9 @@
 </div>
 
 Am extensive library with features related to gamemode creation. My goal was to cut down the time I spent on making boilerplate for the gamemode and not the gamemode.
+
 <h2 align="center">Features</h2>
+
 - A spectator system that prevents interaction with the current game while still being around it.
 - A system to chose who can grab what and when.
 - A system for defining rules player characters must abide by during the gamemode.
@@ -15,18 +17,23 @@ Am extensive library with features related to gamemode creation. My goal was to 
 - And much more.
 
 <h2 align="center">Gamemodes</h2>
+
 - [Bonestrike](https://github.com/mashedram/MashFusionGamemodes/tree/master/BoneStrike)
 
 <h2 align="center">Credits</h2>
+
 [**Lakatrazz**](https://github.com/Lakatrazz) - For the multiplayer mod, Fusion. \
 [**HAHOOS**](https://github.com/HAHOOS) - Inspired me to start making code mods, and his mod saved me time when it came to avatar stat patching. \
-[**notnotnotswipez**](https://github.com/notnotnotswipez) - Based my grip patches of the ones in his gamemode SDK.\
+[**notnotnotswipez**](https://github.com/notnotnotswipez) - Based my grip patches of the ones in his gamemode SDK.
+
 <h3 align="center">Testers</h3>
+
 [**Guy Games**](https://mod.io/g/bonelab/u/guygames0809) - Will probably end up making the icon! \
 [**Random**](https://mod.io/g/bonelab/u/bmarcel2007) - Genuine lifesaver, way to many hours just having bonelab open to test stuff. \
 [**Lime**](https://mod.io/g/bonelab/u/limesattimes) - Provided so many good ideas for things to add. \
 [**Crayon**](https://mod.io/g/bonelab/u/acrayonplayingvr) \
 [**Raging Cricket 20**](https://mod.io/g/bonelab/u/raggingcricket20) \
 [**TESCO**](https://mod.io/g/bonelab/u/t3sc0) \
-[**Renji**]() \
+[**Renji**]()
+
 And whomever I may have missed (Tell me)
