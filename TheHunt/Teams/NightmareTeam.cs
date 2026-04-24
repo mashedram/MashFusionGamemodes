@@ -22,11 +22,8 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase;
-            LocalControls.DisableInventory = playerLocked;
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
-            
-            PlayerGrabManager.SetOverwrite(Name, CanGrab);
         });
     }
 
@@ -42,6 +39,7 @@ public class NightmareTeam : LogicTeam
         {
             Owner.AddComponent(new PlayerHandTimerComponent());
             LocalHealth.MortalityOverride = false;
+            PlayerGrabManager.SetOverwrite(Name, CanGrab);
             
             Notifier.Send(new Notification
             {
@@ -67,6 +65,6 @@ public class NightmareTeam : LogicTeam
     
     public bool CanGrab(GrabData grabData)
     {
-        return !grabData.IsHoldingItem(out var item) || NetworkPlayerManager.TryGetPlayer(item.MarrowEntity, out _);
+        return !grabData.IsHoldingItem(out var item) || NetworkPlayerManager.TryGetPlayer(item.MarrowEntity, out var player) && !player.PlayerID.IsMe;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
@@ -11,9 +10,9 @@ public class PlayerWindbuffetVisibility : IPlayerVisibility
     private bool _isVisible = true;
     private GameObject? _holder;
 
-    public void SetVisible(bool isVisible)
+    public void SetVisible(PlayerVisibility visibility)
     {
-        _isVisible = isVisible;
+        _isVisible = visibility.VisibleForLocalPlayer;
         if (_holder == null)
             return;
         _holder.SetActive(_isVisible);

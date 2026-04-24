@@ -62,13 +62,9 @@ public class MusicPlayer : IContinuousPlayer
         
             var audio2dManager = Audio2dPlugin.Audio2dManager;
             
-            if (_audioContainer.AudioNames.Count == 1)
-            {
-                audio2dManager.StopOverrideMusic();
-            }
-            
+            var shouldLoop = _audioContainer.AudioNames.Count == 1;
             const float musicVolume = 0.8f;
-            audio2dManager.CueOverrideMusic(clip, musicVolume, 2.0f, 2.0f, false, false);
+            audio2dManager.CueOverrideMusic(clip, musicVolume, 2.0f, 2.0f, shouldLoop, false);
         });
     }
 

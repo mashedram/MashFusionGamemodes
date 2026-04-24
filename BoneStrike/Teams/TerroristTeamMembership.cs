@@ -28,11 +28,11 @@ public class TerroristTeam : LogicTeam
 
     protected override void OnAssigned()
     {
+        Owner.AddComponent(new KillEffectComponent());
 
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerTag());
-            Owner.AddComponent(new KillEffectComponent());
 
             AvatarStatManager.SetStats(new AvatarStats
             {

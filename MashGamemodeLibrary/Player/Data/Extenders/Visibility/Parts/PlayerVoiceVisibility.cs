@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
@@ -23,12 +22,12 @@ public class PlayerVoiceVisibility : IPlayerVisibility
         return audioSource != null;
     }
 
-    public void SetVisible(bool isVisible)
+    public void SetVisible(PlayerVisibility visibility)
     {
         if (!TryGetAudioSource(out var audioSource))
             return;
 
-        audioSource.mute = !isVisible;
+        audioSource.mute = !visibility.VisibleForLocalPlayer;
     }
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {

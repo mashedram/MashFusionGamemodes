@@ -71,6 +71,7 @@ public static class LeaderboardManager
         if (_poolee != null)
         {
             SetContent();
+            _poolee.gameObject.SetActive(true);
             return;
         }
 

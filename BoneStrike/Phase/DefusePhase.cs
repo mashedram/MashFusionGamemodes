@@ -6,6 +6,8 @@ using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util.Timer;
 
@@ -56,7 +58,6 @@ public class DefusePhase : GamePhase
 
         Executor.RunCheckedInFuture(DropClock, TimeSpan.FromSeconds(5));
 
-
         foreach (var entry in PlayerHandTimerTag.Query)
         {
             entry.SetTarget(() => BombMarker.Query
@@ -68,6 +69,8 @@ public class DefusePhase : GamePhase
         {
             BoneStrike.Context.BombAudioPlayer.Start();
             BoneStrike.Context.DefusePhaseStartAudioPlayer.PlayRandom();
+            
+            PlayerDataManager.ModifyAll<HideEnemyNametagsRule>(rule => rule.IsEnabled = true);
         });
     }
 

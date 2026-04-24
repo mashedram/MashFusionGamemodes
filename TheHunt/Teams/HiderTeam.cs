@@ -38,6 +38,7 @@ public class HiderTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerComponent());
+            LocalInventory.SetAmmo(2000);
 
             var weaponCrates = Gamemode.TheHunt.Config.WeaponItemCrates;
             var weaponBarcode = weaponCrates.Count > 0 ? new Barcode(weaponCrates.GetRandom()) : null;
@@ -57,8 +58,8 @@ public class HiderTeam : LogicTeam
             AvatarStatManager.SetStats(new AvatarStats
             {
                 Agility = 1.35f,
-                LowerStrength = 1.1f,
-                UpperStrength = 1.1f,
+                LowerStrength = 0.93f,
+                UpperStrength = 0.93f,
                 Speed = Gamemode.TheHunt.Config.HiderSpeed,
                 Vitality = 1f
             });

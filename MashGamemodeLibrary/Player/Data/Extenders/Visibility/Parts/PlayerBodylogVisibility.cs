@@ -1,6 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
@@ -20,14 +19,19 @@ public class PlayerBodylogVisibility : IPlayerVisibility
     private bool _isVisible = true;
     private List<GameObject> _bodylogObjects = new();
 
-    public void SetVisible(bool isVisible)
+    private void UpdateVisiblity()
     {
-        _isVisible = isVisible;
         foreach (var bodylogObject in _bodylogObjects)
         {
             if (bodylogObject != null)
-                bodylogObject.SetActive(isVisible);
+                bodylogObject.SetActive(_isVisible);
         }
+    }
+    
+    public void SetVisible(PlayerVisibility visibility)
+    {
+        _isVisible = visibility.VisibleForLocalPlayer;
+        UpdateVisiblity();
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
@@ -51,7 +55,7 @@ public class PlayerBodylogVisibility : IPlayerVisibility
 
             _bodylogObjects.Add(bodylogObject);
         }
-        SetVisible(_isVisible);
+        UpdateVisiblity();
     }
 
     public void OnAvatarChanged(Avatar avatar)

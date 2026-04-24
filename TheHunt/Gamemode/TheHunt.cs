@@ -94,7 +94,6 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     {
         Notifier.CancelAll();
         LocalHealth.MortalityOverride = true;
-        LocalInventory.SetAmmo(2000);
         
         SpawnPointHelper.SetSpawnPoint(_resetPoint);
         

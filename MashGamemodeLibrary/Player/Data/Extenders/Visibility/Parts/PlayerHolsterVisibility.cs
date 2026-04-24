@@ -1,7 +1,6 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
@@ -63,10 +62,10 @@ public class PlayerHolsterVisibility : IPlayerVisibility
     private bool _isVisible = true;
     private readonly Dictionary<string, SlotContainerHider> _holsterHiders = new();
 
-    public void SetVisible(bool isVisible)
+    public void SetVisible(PlayerVisibility visibility)
     {
-        _isVisible = isVisible;
-        _holsterHiders.Values.ForEach(hider => hider.SetVisible(isVisible));
+        _isVisible = visibility.VisibleForLocalPlayer;
+        _holsterHiders.Values.ForEach(hider => hider.SetVisible(_isVisible));
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)

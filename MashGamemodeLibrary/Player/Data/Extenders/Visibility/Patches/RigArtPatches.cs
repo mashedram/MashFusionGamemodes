@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Player.Helpers;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Patches;
@@ -11,21 +12,23 @@ public class RigArtPatches
     // TODO: Make this a postfix where we overwrite the end value
     [HarmonyPatch("ToggleAvatar")]
     [HarmonyPrefix]
-    private static bool ToggleAvatar_Prefix(RigArt __instance)
+    private static void ToggleAvatar_Prefix(RigArt __instance, ref bool enabled)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance == null)
-            return true;
+            return;
 
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
-            return true;
+            return;
 
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
-            return true;
+            return;
 
-        // TODO: Turn back to ishidden at some point
-        return !player.PlayerID.IsSpectating();
+        if (player.IsSpectating())
+        {
+            enabled = false;
+        }
     }
 
     [HarmonyPatch("ToggleAmmoPouch")]

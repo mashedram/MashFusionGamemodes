@@ -1,7 +1,7 @@
 ﻿using Il2CppSLZ.Marrow;
 using Il2CppSLZ.VRMK;
 using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
+using MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 
 namespace MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 
@@ -9,11 +9,9 @@ public class PlayerAvatarVisibility : IPlayerVisibility
 {
     private RigManager? _rigManager;
     private bool _isVisible = true;
-
-    public void SetVisible(bool isVisible)
+    
+    private void UpdateAvatarVisibility()
     {
-        _isVisible = isVisible;
-
         if (_rigManager == null)
             return;
 
@@ -21,18 +19,24 @@ public class PlayerAvatarVisibility : IPlayerVisibility
         if (avatar == null)
             return;
 
-        avatar.gameObject.SetActive(isVisible);
+        avatar.gameObject.SetActive(_isVisible);
+    }
+
+    public void SetVisible(PlayerVisibility visibility)
+    {
+        _isVisible = visibility.VisibleForLocalPlayer;
+        UpdateAvatarVisibility();
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         _rigManager = rigManager;
-        SetVisible(_isVisible);
+        UpdateAvatarVisibility();
     }
 
     public void OnAvatarChanged(Avatar avatar)
     {
         // Reload avatar visibility
-        SetVisible(_isVisible);
+        UpdateAvatarVisibility();
     }
 }

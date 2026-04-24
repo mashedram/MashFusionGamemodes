@@ -7,7 +7,7 @@ using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating.Data.Components.Visibility;
+using MashGamemodeLibrary.Player.Team;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility;
 
@@ -16,7 +16,13 @@ public class PlayerVisibility : IPlayerExtender
     public NetworkPlayer? Player { get; set; }
     private bool _hasNightVision = false;
     private bool _nightVisionEnabled = false;
+    private bool _hideNametagForEnemies = false;
     private bool _isVisible = true;
+    
+    private bool _visibleForLocalPlayerCache;   
+    public bool VisibleForLocalPlayer => _visibleForLocalPlayerCache;
+    private bool _nametagVisibleCache;
+    public bool NametagVisible => _nametagVisibleCache;
 
     private readonly IPlayerVisibility[] _playerVisibilities =
     {
@@ -38,11 +44,19 @@ public class PlayerVisibility : IPlayerExtender
             return;
 
         // If the local player is spectating, nobody should be hidden
-        var visibleForLocalPlayer = isVisible || SpectatorExtender.IsLocalPlayerSpectating();
+        _visibleForLocalPlayerCache = isVisible || SpectatorExtender.IsLocalPlayerSpectating();
+        if (_hideNametagForEnemies && Player is { HasRig: true })
+        {
+            _nametagVisibleCache = _visibleForLocalPlayerCache && LogicTeamManager.IsTeamMember(Player.PlayerID);
+        }
+        else
+        {
+            _nametagVisibleCache = _visibleForLocalPlayerCache;
+        }
         
         foreach (var playerVisibility in _playerVisibilities)
         {
-            playerVisibility.SetVisible(visibleForLocalPlayer);
+            playerVisibility.SetVisible(this);
         }
     }
     
@@ -68,22 +82,28 @@ public class PlayerVisibility : IPlayerExtender
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)
     {
         Player = networkPlayer;
+        
+        if (Player.PlayerID.IsMe)
+            return;
+        
         _playerVisibilities.ForEach(p =>
         {
             p.OnPlayerChanged(networkPlayer, rigManager);
-            p.SetVisible(_isVisible);
+            p.SetVisible(this);
         });
     }
 
     public IEnumerable<Type> RuleTypes => new[]
     {
         typeof(PlayerSpectatingRule),
-        typeof(SpectatorNightvisionRule)
+        typeof(SpectatorNightvisionRule),
+        typeof(HideEnemyNametagsRule)
     };
     public void OnRuleChanged(PlayerData data)
     {
         var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);
         var hasNightVision = data.CheckRule<SpectatorNightvisionRule>(p => p.IsEnabled);
+        _hideNametagForEnemies = data.CheckRule<HideEnemyNametagsRule>(p => p.IsEnabled);
         
         SetVisibility(!isSpectating);
         ToggleNightVision(hasNightVision && isSpectating);
@@ -92,7 +112,8 @@ public class PlayerVisibility : IPlayerExtender
     public IEnumerable<Type> EventTypes => new[]
     {
         typeof(AvatarChangedEvent),
-        typeof(PlayerRuleChangedEvent)
+        typeof(PlayerRuleChangedEvent),
+        typeof(TeamChangedEvent)
     };
     public void OnEvent(IPlayerEvent playerEvent)
     {
@@ -101,7 +122,8 @@ public class PlayerVisibility : IPlayerExtender
             // When the avatar changes, we need to update the visibility of the new avatar
             // If the spectator state of the local player changes, we need to update the visibility of all players
             case AvatarChangedEvent:
-            case PlayerRuleChangedEvent { Rule: PlayerSpectatingRule, Player: var playerID } when playerID.Equals(PlayerIDManager.LocalID):
+            case TeamChangedEvent { PlayerID: var playerID1 } when playerID1.Equals(PlayerIDManager.LocalID):
+            case PlayerRuleChangedEvent { Rule: PlayerSpectatingRule, Player: var playerID2 } when playerID2.Equals(PlayerIDManager.LocalID):
                 SetVisibility(_isVisible);
                 break;
         }

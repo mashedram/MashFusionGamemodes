@@ -42,7 +42,7 @@ public class BoneStrikeContext : GameModeContext<BoneStrikeContext>
         new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(KillAudioBin))),
         new PooledAudioSourceProvider(5,
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
-                settings.SetVolume(1f).SetMaxDistance(800f).SetSpatialBlend(0.45f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.45f))
+                settings.SetVolume(1f).SetMaxDistance(800f).SetSpatialBlend(0.45f).SetCustomRolloff(AnimationCurve.Constant(0f, 1f, 1f))
             )
         )
     );

@@ -6,6 +6,8 @@ using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
@@ -236,6 +238,7 @@ public static class LogicTeamManager
         }
 
         team.Assign(player);
+        PlayerDataManager.CallEventOnAll(new TeamChangedEvent(player.PlayerID, team));
 
         var phase = GamePhaseManager.ActivePhase;
         if (phase != null)
@@ -244,9 +247,13 @@ public static class LogicTeamManager
         }
     }
 
-    private static void OnRemoved(byte platformId, LogicTeam team)
+    private static void OnRemoved(byte smallID, LogicTeam team)
     {
         team.Remove();
+        
+        if (NetworkPlayerManager.TryGetPlayer(smallID, out var player))
+            PlayerDataManager.CallEventOnAll(new TeamChangedEvent(player.PlayerID, null));
+        
     }
 
     public static void OnPhaseChanged(GamePhase activePhase)
