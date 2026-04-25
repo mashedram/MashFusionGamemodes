@@ -1,10 +1,13 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Interaction;
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Grabbables;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Player.Helpers;
+using MashGamemodeLibrary.Util;
 using MelonLoader;
 using UnityEngine;
 
@@ -13,66 +16,110 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch]
 public class GripPatches
 {
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
-    [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverEnd))]
-    [HarmonyPriority(10000)]
-    public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
-    {
-        if (!__instance || !hand) return true;
-
-        var grab = new GrabData(hand, __instance);
-        return PlayerGrabManager.CanGrabEntity(grab);
-    }
-
     // Fix for spectator grabbing shenangians
     // TODO : This should technically, along with the one for force pull, be the only one we need
     [HarmonyPatch(typeof(InventoryHand), nameof(InventoryHand.OnOverlapEnter))]
     [HarmonyPrefix]
     public static bool OnOverlapEnter(InventoryHand __instance, GameObject other)
     {
-        if (!__instance || !other)
+        if (__instance == null || other == null)
             return true;
         
         if (!Grip.Cache.TryGet(other, out var grip))
             return true;
-
+        
         if (SpectatorExtender.IsLocalPlayerSpectating())
+            return false;
+        
+        var request = new GrabRequest(__instance, grip);
+        if (!request.CanGrab())
             return false;
 
         return true;
     }
 
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachJoint))]
+    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachIgnoreBodyJoints))]
+    [HarmonyPrefix]
+    public static bool AttachObject_Prefix(Hand __instance, GameObject objectToAttach)
+    {
+        if (__instance == null || objectToAttach == null)
+            return true;
+        
+        if (!Grip.Cache.TryGet(objectToAttach, out var grip))
+            return true;
+        
+        if (SpectatorExtender.IsLocalPlayerSpectating())
+            return false;
+        
+        var request = new GrabRequest(__instance, grip);
+        if (!request.CanGrab())
+            return false;
+
+        return true;
+    }
+    
+    // Inventory
+    
+    [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
+    [HarmonyPrefix]
+    [HarmonyPriority(10000)]
+    public static bool HandHoverBegin_Prefix(InventorySlotReceiver __instance, Hand hand)
+    {
+        if (__instance == null || hand == null) 
+            return true;
+
+        var host = __instance._weaponHost?.TryCast<InteractableHost>();
+        if (host == null) 
+            return true;
+        
+        if (host._grips.Count == 0)
+            return true;
+        
+        var grab = new GrabRequest(hand, host._grips[0]);
+
+        return grab.CanGrab();
+    }
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
     [HarmonyPriority(10000)]
-    public static bool InventoryGrabAttempt2(InventorySlotReceiver __instance, Hand hand)
+    public static bool InventoryGrabAttempt(InventorySlotReceiver __instance, Hand hand)
     {
-        if (!__instance || !hand) return true;
-
-        var grab = new GrabData(hand, __instance);
-
-        if (PlayerGrabManager.CanGrabEntity(grab))
+        if (__instance == null || hand == null) 
             return true;
 
-        __instance.DropWeapon();
-        return false;
+        var host = __instance._weaponHost?.TryCast<InteractableHost>();
+        if (host == null) 
+            return true;
+        
+        if (host._grips.Count == 0)
+            return true;
+        
+        var grab = new GrabRequest(hand, host._grips[0]);
+
+        return grab.CanGrab();
     }
 
+    // Forcepull
+    
     [HarmonyPrefix]
     [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyFarHandHoverBegin))]
     [HarmonyPatch(typeof(InteractableIcon), nameof(InteractableIcon.MyHandHoverBegin))]
     [HarmonyPriority(10000)]
     public static bool IconAttempt(InteractableIcon __instance, Hand hand)
     {
-        if (!__instance || !hand)
-            return true;
-        if (!__instance.m_Grip)
+        if (__instance == null || hand == null)
             return true;
 
-        var grab = new GrabData(hand, __instance.m_Grip);
+        var grip = __instance.m_Grip;
+        if (grip == null)
+            return true;
 
-        return PlayerGrabManager.CanGrabEntity(grab);
+        var grab = new GrabRequest(hand, grip);
+
+        return grab.CanGrab();
     }
 
     [HarmonyPrefix]
@@ -83,111 +130,56 @@ public class GripPatches
     [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnFarHandHoverEnd))]
     [HarmonyPatch(typeof(ForcePullGrip), nameof(ForcePullGrip.OnForcePullComplete))]
     [HarmonyPriority(10000)]
-    public static bool ForceGrabAttempt(Hand hand, ForcePullGrip __instance)
+    public static bool ForceGrabAttempt(ForcePullGrip __instance, Hand hand)
     {
-        if (!__instance || !hand)
+        if (__instance == null || hand == null)
             return true;
 
-        if (!__instance._grip)
+        var grip = __instance._grip;
+        if (grip == null)
             return true;
 
-        var grab = new GrabData(hand, __instance._grip);
+        var grab = new GrabRequest(hand, grip);
 
-        return PlayerGrabManager.CanGrabEntity(grab);
+        return grab.CanGrab();
     }
 
-    private static bool DropIfNeeded(GrabData grab)
-    {
-        if (!grab.IsHoldingItem(out var item)) return false;
-        if (item.Grip == null) return false;
-
-        if (PlayerGrabManager.CanGrabEntity(grab)) return false;
-
-        item.Grip.ForceDetach();
-        return true;
-    }
-
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachObject))]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachJoint))]
-    [HarmonyPatch(typeof(Hand), nameof(Hand.AttachIgnoreBodyJoints))]
-    [HarmonyPriority(10000)]
-    public static bool GrabAttempt(Hand __instance, GameObject objectToAttach)
-    {
-        if (!__instance || !objectToAttach)
-            return true;
-
-        if (!objectToAttach)
-            return true;
-
-        var grab = new GrabData(__instance, objectToAttach);
-        return PlayerGrabManager.CanGrabEntity(grab);
-    }
-
-    [HarmonyPostfix]
+    // Events
+    
     [HarmonyPatch(typeof(Grip), nameof(Grip.OnAttachedToHand))]
-    public static void AttachObject_Postfix(Grip __instance, Hand hand)
+    [HarmonyPostfix]
+    public static void OnAttachedToHand_Postfix(Grip __instance, Hand hand)
     {
         if (__instance == null || hand == null)
             return;
-
-        var grab = new GrabData(hand, __instance);
-
-        if (DropIfNeeded(grab))
-            return;
-
-        PlayerGrabManager.OnGrab(grab);
-    }
-
-    // We need a prefix here,
-    // because otherwise the grip will not contain the held item anymore and we can't check what it was
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
-    public static void DetachObject(Grip __instance)
-    {
-        if (__instance == null)
-            return;
-
-        var hand = __instance.GetHand();
-        if (hand == null)
-            return;
-
+        
         try
         {
-            var grab = new GrabData(hand, __instance);
+            var grab = new GrabRequest(hand, __instance);
+            PlayerGrabManager.OnGrab(grab);
+        }
+        catch (Exception e)
+        {
+            MelonLogger.Error("Failed to postfix grab", e);
+        }
+    }
+    
+    
+    [HarmonyPatch(typeof(Grip), nameof(Grip.OnDetachedFromHand))]
+    [HarmonyPostfix]
+    public static void OnDetachFromHand(Grip __instance, Hand hand)
+    {
+        if (__instance == null || hand == null)
+            return;
+    
+        try
+        {
+            var grab = new GrabRequest(hand, __instance);
             PlayerGrabManager.OnDrop(grab);
         }
         catch (Exception e)
         {
             MelonLogger.Error("Failed to prefix drop", e);
         }
-    }
-
-    // Other
-    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectAttach))]
-    [HarmonyPrefix]
-    public static bool SendObjectAttach_Prefix(Hand hand, Grip grip)
-    {
-        if (!hand || !grip)
-            return true;
-
-        var grab = new GrabData(hand, grip);
-        return PlayerGrabManager.CanGrabEntity(grab);
-    }
-
-    [HarmonyPatch(typeof(NetworkEntityManager), nameof(NetworkEntityManager.TakeOwnership))]
-    [HarmonyPrefix]
-    public static bool TakeOwnership_Prefix(NetworkEntity entity)
-    {
-        return !SpectatorExtender.IsLocalPlayerSpectating();
-    }
-
-
-    [HarmonyPatch(typeof(GrabHelper), nameof(GrabHelper.SendObjectForcePull))]
-    [HarmonyPrefix]
-    public static bool SendObjectForcePull_Prefix(Hand hand, Grip grip)
-    {
-        var grab = new GrabData(hand, grip);
-        return PlayerGrabManager.CanGrabEntity(grab);
     }
 }

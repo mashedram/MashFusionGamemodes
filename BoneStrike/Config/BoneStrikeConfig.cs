@@ -175,10 +175,6 @@ public class BoneStrikeConfig : IConfig
     [ConfigStepSize(50)]
     [JsonInclude]
     public int MagazineCapacity = 150;
-    
-    [ConfigMenuEntry("Force Pull clock when no defenders alive", "Balancing")] 
-    [JsonInclude]
-    public bool ForcePullWhenNoDefendersAlive = true;
 
     [ConfigMenuEntry("Movement Speed", "Balancing")] [ConfigRangeConstraint(1f, 2f)] [ConfigStepSize(0.05f)] [JsonInclude]
     public float MovementSpeedMultiplier = 1.35f;
@@ -227,7 +223,6 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DefuserSpawnProtection);
         serializer.SerializeValue(ref MovementSpeedMultiplier);
-        serializer.SerializeValue(ref ForcePullWhenNoDefendersAlive);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
         serializer.SerializeValue(ref AllowUnbalancedTeams);
@@ -251,7 +246,6 @@ public class BoneStrikeConfig : IConfig
             AttackerHealthMultiplier = AttackerHealthMultiplier,
             LimitMags = LimitMags,
             MagazineCapacity = MagazineCapacity,
-            ForcePullWhenNoDefendersAlive = ForcePullWhenNoDefendersAlive,
             PalletBarcodes = new List<string>(PalletBarcodes),
             UtilityBarcodes = new List<string>(UtilityBarcodes),
             BombExplosion = BombExplosion,

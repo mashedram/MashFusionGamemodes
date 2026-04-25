@@ -77,7 +77,7 @@ public class Mod : MelonMod
         InternalGamemodeManager.Reset();
         
         LocalEcsCache.Clear();
-        PlayerGrabManager.Reset();
+        // PlayerGrabManagerDepricated.Reset();
         PlayerDataManager.Clear();
         PlayerGunManager.Reset();
         GamemodeCompatibilityChecker.ClearRemoteHashes();

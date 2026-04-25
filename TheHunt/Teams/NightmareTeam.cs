@@ -24,9 +24,6 @@ public class NightmareTeam : LogicTeam
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase && (NightmareComponent.LocalNightmare?.LockedDuringHide ?? true);
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
-           
-            // BUGGED: TO BE FIXED
-            // PlayerGrabManager.SetOverwrite(Name, playerLocked ? CanGrab : null);
         });
     }
 
@@ -60,13 +57,6 @@ public class NightmareTeam : LogicTeam
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             LocalControls.LockedMovement = false;
-            
-            // PlayerGrabManager.SetOverwrite(Name, null);
         });
-    }
-    
-    public bool CanGrab(GrabData grabData)
-    {
-        return !grabData.IsHoldingItem(out var item) || NetworkPlayerManager.TryGetPlayer(item.MarrowEntity, out var player) && player.PlayerID.IsMe;
     }
 }

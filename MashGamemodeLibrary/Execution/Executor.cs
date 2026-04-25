@@ -185,6 +185,20 @@ public static class Executor
     }
 
     // Event Invocation
+    
+    public static TReturn Try<TReturn>(Func<TReturn> action, TReturn defaultValue)
+    {
+        try
+        {
+            return action();
+        }
+        catch (Exception exception)
+        {
+            MelonLogger.Error("Failed to execute executor call", exception);
+        }
+        
+        return defaultValue;
+    }
 
     public static void Try<T>(this T value, Action<T> action)
     {

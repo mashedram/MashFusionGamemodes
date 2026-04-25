@@ -10,10 +10,10 @@ namespace TheHunt.Audio;
 
 public class EnvironmentContext
 {
-    private const float MaxChaseTime = 15f;
-    private const float ChaseEnterTimeBoost = 5f;
-    private const float ChaseThreshold = 3f;
-    private const float UnChaseThreshold = 2f;
+    private const float MaxChaseTime = 20f;
+    private const float ChaseEnterTimeBoost = 12f;
+    private const float ChaseThreshold = 2f;
+    private const float UnChaseThreshold = 1f;
     private static readonly LayerMask PlayerLayerMask = Physics.DefaultRaycastLayers & ~(1 << 8);
 
     private static bool _isChasing;

@@ -54,11 +54,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             if (AnyDefusers())
                 return true;
 
-            if (Config.ForcePullWhenNoDefendersAlive && !AnyDefenders())
-            {
-                BombMarker.Query.ForEach(bomb => bomb.NetworkEntity?.AddComponent(new ForcePullComponent()));
-            }
-
             ExplodeAllBombs();
             WinManager.Win<TerroristTeam>();
             return false;

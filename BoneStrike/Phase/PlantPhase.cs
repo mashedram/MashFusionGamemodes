@@ -7,6 +7,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Loadout;
 using MashGamemodeLibrary.networking.Control;
@@ -68,7 +69,7 @@ public class PlantPhase : GamePhase
             PalletLoadoutManager.AssignAll();
 
             var position = BoneStrike.Context.LocalPlayer.RigRefs.RightHand.transform.position;
-            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new ImportantEntityMarker());
+            GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, position, new BombMarker(), new DefusableTag(), new ImportantEntityMarker(), new ForcePullComponent());
 
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });
@@ -76,7 +77,7 @@ public class PlantPhase : GamePhase
 
     protected override void OnPhaseExit()
     {
-        PlayerGrabManager.SetOverwrite("PlantPhase", null);
+        // PlayerGrabManagerDepricated.SetOverwrite("PlantPhase", null);
     }
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
@@ -93,7 +94,7 @@ public class PlantPhase : GamePhase
         if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
             return;
 
-        if (PlayerGrabManager.IsHolding<BombMarker>(player.RigRefs.GetHand(handedness)))
+        if (player.IsHolding<BombMarker>(handedness))
         {
             PhaseShouldQuit.Value = true;
         }

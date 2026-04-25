@@ -12,6 +12,7 @@ using LabFusion.Player;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Networking;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
@@ -38,44 +39,42 @@ public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, 
     private bool _isDefused;
     private float _timer;
 
-    public void OnDropped(GrabData grab)
+    public void OnDropped(GrabRequest grabRequest)
     {
         _grabber = null;
         _timerObject?.gameObject.SetActive(false);
 
         // We just enable locomotion here for all, to prevent any funny desyncs
-        if (grab.NetworkPlayer != null && GamePhaseManager.IsPhase<DefusePhase>())
+        if (GamePhaseManager.IsPhase<DefusePhase>())
         {
             LocalControls.LockedMovement = false;
         }
 
-        if (grab.NetworkPlayer != null && grab.NetworkPlayer.PlayerID.IsMe)
+        if (grabRequest.NetworkPlayer.PlayerID.IsMe)
             this.SendEvent(SyncTimeEventIndex, sizeof(float), writer => writer.Write(_timer));
 
     }
 
-    public void OnGrabbed(GrabData grab)
+    public void OnGrabbed(GrabRequest grabRequest)
     {
-        if (grab.NetworkPlayer == null)
-            return;
         if (GamePhaseManager.IsPhase<PlantPhase>())
             return;
-        if (!grab.NetworkPlayer.PlayerID.IsTeam<CounterTerroristTeam>())
+        if (!grabRequest.NetworkPlayer.PlayerID.IsTeam<CounterTerroristTeam>())
             return;
 
-        Executor.RunIfMe(grab.NetworkPlayer.PlayerID, () =>
+        Executor.RunIfMe(grabRequest.NetworkPlayer.PlayerID, () =>
         {
             LocalControls.LockedMovement = true;
         });
 
-        _grabber = grab.NetworkPlayer!.PlayerID;
+        _grabber = grabRequest.NetworkPlayer!.PlayerID;
         _timerObject?.gameObject.SetActive(true);
 
-        if (grab.NetworkPlayer != null && grab.NetworkPlayer.PlayerID.IsMe)
+        if (grabRequest.NetworkPlayer.PlayerID.IsMe)
             this.SendEvent(SyncTimeEventIndex, sizeof(float), writer => writer.Write(_timer));
     }
 
-    public bool CanGrab(GrabData grab)
+    public bool CanGrab(GrabRequest grabRequest)
     {
         if (GamePhaseManager.IsPhase<PlantPhase>())
         {

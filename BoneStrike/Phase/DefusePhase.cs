@@ -1,10 +1,14 @@
 ﻿using BoneStrike.Tags;
 using BoneStrike.Teams;
+using LabFusion.Data;
+using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Data;
@@ -80,9 +84,12 @@ public class DefusePhase : GamePhase
         if (!LogicTeamManager.IsLocalTeam<TerroristTeam>())
             return;
 
-        foreach (var gripWithHand in PlayerGrabManager.GetLocalHandsHoldingTag<BombMarker>())
+        if (!RigData.HasPlayer)
+            return;
+        
+        foreach (var hand in RigData.Refs.GetHandsHoldingTag<BombMarker>())
         {
-            gripWithHand.Hand.TryDetach();
+            hand.TryDetach();
         }
     }
 }

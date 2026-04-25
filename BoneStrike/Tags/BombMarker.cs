@@ -5,6 +5,7 @@ using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
@@ -71,12 +72,12 @@ public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhase
             MarrowEntity.transform.position = _returnPosition.Value;
     }
 
-    public void OnGrabbed(GrabData grab)
+    public void OnGrabbed(GrabRequest grabRequest)
     {
         _isGrabbed = true;
     }
 
-    public void OnDropped(GrabData grab)
+    public void OnDropped(GrabRequest grabRequest)
     {
         _isGrabbed = false;
     }
