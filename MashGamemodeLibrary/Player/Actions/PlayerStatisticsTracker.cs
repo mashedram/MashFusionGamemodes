@@ -44,28 +44,10 @@ public static class PlayerStatisticsTracker
         return Statistics.ToDictionary(kvp => kvp.Key.ToString(), kvp => kvp.Value);
     }
 
-    public static void AwardBits(params Enum[] keys)
+    public static void AwardBits()
     {
         var bits = GetTotalBits();
-
-        var message = "";
-        foreach (var key in keys)
-        {
-            var value = Statistics.GetValueOrDefault(key, 0);
-            var name = key.ToString();
-
-            message += $"{name}: {value}\n";
-        }
-
-        Notifier.Send(new Notification
-        {
-            Title = $"You've been awarded {bits} bits",
-            Message = message,
-            ShowPopup = true,
-            PopupLength = 5f,
-            SaveToMenu = false,
-            Type = NotificationType.SUCCESS
-        });
+        
         PointItemManager.RewardBits(bits);
     }
 }

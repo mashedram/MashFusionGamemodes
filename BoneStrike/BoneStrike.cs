@@ -6,12 +6,14 @@ using BoneStrike.Tags;
 using BoneStrike.Teams;
 using LabFusion.Data;
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.CommonComponents;
+using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.Effector.Weather;
@@ -51,6 +53,11 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         {
             if (AnyDefusers())
                 return true;
+
+            if (Config.ForcePullWhenNoDefendersAlive && !AnyDefenders())
+            {
+                BombMarker.Query.ForEach(bomb => bomb.NetworkEntity?.AddComponent(new ForcePullComponent()));
+            }
 
             ExplodeAllBombs();
             WinManager.Win<TerroristTeam>();
@@ -106,8 +113,11 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         Executor.RunIfHost(() =>
         {
-            PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
-            
+            PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = Config.RemoveMovementMods);
+            PlayerDataManager.ModifyAll<PlayerAmmunitionLimitRule>(rule =>
+            {
+                rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
+            });
 
             PalletLoadoutManager.Load(Config.PalletBarcodes);
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
@@ -163,7 +173,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
-        LocalHealth.MortalityOverride = false;
 
         Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
     }
@@ -234,6 +243,14 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         return NetworkPlayer.Players
             .Any(player =>
                 player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
+            );
+    }
+    
+    internal static bool AnyDefenders()
+    {
+        return NetworkPlayer.Players
+            .Any(player =>
+                player.HasRig && player.PlayerID.IsTeam<TerroristTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
             );
     }
 }

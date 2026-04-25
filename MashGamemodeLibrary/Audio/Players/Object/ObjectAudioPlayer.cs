@@ -43,10 +43,11 @@ public class ObjectAudioPlayer : SyncedAudioPlayer<ObjectAudioPlayRequest>, IRan
 
     protected override bool Modifier(ObjectAudioPlayRequest data, AudioSource source)
     {
-        if (!new NetworkEntityReference(data.NetworkEntityId).TryGetEntity(out var networkEntity)) return false;
+        if (!new NetworkEntityReference(data.NetworkEntityId).TryGetEntity(out var networkEntity)) 
+            return false;
 
         var entity = networkEntity.GetExtender<IMarrowEntityExtender>().MarrowEntity;
-
+        
         var gameObject = source.gameObject;
         gameObject.transform.SetParent(entity.gameObject.transform);
         gameObject.transform.localPosition = Vector3.zero;

@@ -231,7 +231,6 @@ public static class PersistentTeams
             Type = localWinner ? NotificationType.SUCCESS : NotificationType.ERROR
         });
 
-        PlayerStatisticsTracker.AwardBits(TeamStatisticKeys.RoundsWon, PlayerDamageStatistics.Kills, PlayerDamageStatistics.Assists,
-            PlayerDamageStatistics.Deaths);
+        PlayerStatisticsTracker.AwardBits();
     }
 }

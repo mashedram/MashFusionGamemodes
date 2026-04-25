@@ -26,11 +26,15 @@ public class GripPatches
     }
 
     // Fix for spectator grabbing shenangians
+    // TODO : This should technically, along with the one for force pull, be the only one we need
     [HarmonyPatch(typeof(InventoryHand), nameof(InventoryHand.OnOverlapEnter))]
     [HarmonyPrefix]
-    public static bool InteractableHostAttachHand(InventoryHand __instance, GameObject other)
+    public static bool OnOverlapEnter(InventoryHand __instance, GameObject other)
     {
         if (!__instance || !other)
+            return true;
+        
+        if (!Grip.Cache.TryGet(other, out var grip))
             return true;
 
         if (SpectatorExtender.IsLocalPlayerSpectating())

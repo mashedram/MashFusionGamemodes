@@ -23,7 +23,7 @@ public class EntityAbilityDescriptor : INightmareDescriptor
         new DashAbility(),
         new FaintGlowAbility()
     };
-    
+
     public float MinimumSpeed => 0.5f;
     public float SpeedPenaltyPerShot => 0.2f;
     public float SpeedPenaltyDuration => 5f;

@@ -2,6 +2,7 @@
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using LabFusion.Preferences;
 using MashGamemodeLibrary.Player.Data.Components.Visibility.Parts;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
@@ -45,7 +46,10 @@ public class PlayerVisibility : IPlayerExtender
 
         // If the local player is spectating, nobody should be hidden
         _visibleForLocalPlayerCache = isVisible || SpectatorExtender.IsLocalPlayerSpectating();
-        if (_hideNametagForEnemies && Player is { HasRig: true })
+        if (!CommonPreferences.NameTags)
+        {
+            _nametagVisibleCache = false;
+        } else if (_hideNametagForEnemies && Player is { HasRig: true })
         {
             _nametagVisibleCache = _visibleForLocalPlayerCache && LogicTeamManager.IsTeamMember(Player.PlayerID);
         }

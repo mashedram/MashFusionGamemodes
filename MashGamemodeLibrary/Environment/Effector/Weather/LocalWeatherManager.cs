@@ -1,3 +1,4 @@
+using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow.Pool;
 using LabFusion.Marrow.Pool;
 using UnityEngine;
@@ -10,8 +11,9 @@ public static class LocalWeatherManager
 
     public static void ClearLocalWeather()
     {
-        foreach (var entity in WeatherEntities) AssetSpawner.Despawn(entity);
-
+        foreach (var entity in WeatherEntities.OfType<Poolee>())
+            AssetSpawner.Despawn(entity);
+        
         WeatherEntities.Clear();
     }
 
@@ -22,6 +24,13 @@ public static class LocalWeatherManager
         LocalAssetSpawner.Register(spawnable);
 
         LocalAssetSpawner.Spawn(spawnable, Vector3.zero, Quaternion.identity,
-            poolee => { WeatherEntities.Add(poolee); });
+            poolee =>
+            {
+                var entity = poolee.GetComponent<MarrowEntity>();
+                if (entity != null)
+                    entity.PreventDisableOnCull();
+                
+                WeatherEntities.Add(poolee); 
+            });
     }
 }

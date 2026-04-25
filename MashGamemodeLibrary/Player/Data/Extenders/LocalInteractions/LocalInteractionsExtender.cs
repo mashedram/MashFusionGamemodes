@@ -7,6 +7,7 @@ using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using Object = UnityEngine.Object;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.LocalInteractions;
 
@@ -62,6 +63,13 @@ public class LocalInteractionsExtender : IPlayerExtender
         if (!networkPlayer.PlayerID.IsMe)
             return;
 
+        // Prevents it pointing to the wrong scene and being permanent on late joining
+        if (_overlayObject != null)
+        {
+            Object.Destroy(_overlayObject);
+            _overlayObject = null;
+        }
+
         _player = networkPlayer;
         SetInteractions(_areInteractionsEnabled);
     }
@@ -70,6 +78,7 @@ public class LocalInteractionsExtender : IPlayerExtender
     {
         typeof(PlayerSpectatingRule)
     };
+    
     public void OnRuleChanged(PlayerData data)
     {
         if (_player?.PlayerID is not { IsMe: true})

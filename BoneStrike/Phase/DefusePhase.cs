@@ -2,6 +2,7 @@
 using BoneStrike.Teams;
 using LabFusion.Extensions;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;

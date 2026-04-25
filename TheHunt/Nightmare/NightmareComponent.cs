@@ -41,6 +41,7 @@ internal class AbilityCooldownTimer
 public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentRemoved, IComponentUpdate, IPlayerInputCallback, IPlayerTakeDamageCallback, INetSerializable
 {
     private static readonly FactoryTypedRegistry<INightmareDescriptor> NightmareRegistry = new FactoryTypedRegistry<INightmareDescriptor>();
+    public static INightmareDescriptor? LocalNightmare { get; private set; }
     private ulong _networkedNightmare;
     
     // Player component
@@ -93,6 +94,8 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         
         if (_player.PlayerID.IsMe)
         {
+            LocalNightmare = null;
+            
             if (Gamemode.TheHunt.Config.SetNightmareAvatars)
                 LocalAvatar.AvatarOverride = null;
             
@@ -242,6 +245,8 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
         var nightmare = _activeNightmare.Value.NightmareDescriptor;
         if (_player.PlayerID.IsMe)
         {
+            LocalNightmare = nightmare;
+            
             if (Gamemode.TheHunt.Config.SetNightmareAvatars)
             {
                 LocalAvatar.AvatarOverride = nightmare.AvatarBarcode;

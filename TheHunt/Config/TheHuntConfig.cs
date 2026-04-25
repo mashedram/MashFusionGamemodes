@@ -206,6 +206,11 @@ public class TheHuntConfig : IConfig
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")] 
     [JsonInclude]
     public bool DevToolsDisabled = true;
+    
+    // For testing purposes, allows skipping the nightmare assignment and becoming a hider even if alone
+    [ConfigMenuEntry("Skip Nightmare Assignment", "Utility")] 
+    [JsonInclude]
+    public bool SkipNightmare;
 
     public void Serialize(INetSerializer serializer)
     {
@@ -260,7 +265,8 @@ public class TheHuntConfig : IConfig
             HiderSpeed = HiderSpeed,
             LightItemCrate = LightItemCrate,
             WeaponItemCrates = new List<string>(WeaponItemCrates),
-            DevToolsDisabled = DevToolsDisabled
+            DevToolsDisabled = DevToolsDisabled,
+            SkipNightmare = SkipNightmare
         };
     }
 }

@@ -167,6 +167,18 @@ public class BoneStrikeConfig : IConfig
 
     [ConfigMenuEntry("Defuser Spawn Protection", "Balancing")] [ConfigRangeConstraint(0f, 15f)] [ConfigStepSize(1f)] [JsonInclude]
     public float DefuserSpawnProtection = 5f;
+    
+    [ConfigMenuEntry("Limit Player Magazines", "Balancing")] [JsonInclude]
+    public bool LimitMags = true;
+    [ConfigMenuEntry("Max ammunition", "Balancing")] 
+    [ConfigRangeConstraint(50, 300)]
+    [ConfigStepSize(50)]
+    [JsonInclude]
+    public int MagazineCapacity = 150;
+    
+    [ConfigMenuEntry("Force Pull clock when no defenders alive", "Balancing")] 
+    [JsonInclude]
+    public bool ForcePullWhenNoDefendersAlive = true;
 
     [ConfigMenuEntry("Movement Speed", "Balancing")] [ConfigRangeConstraint(1f, 2f)] [ConfigStepSize(0.05f)] [JsonInclude]
     public float MovementSpeedMultiplier = 1.35f;
@@ -192,6 +204,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Dev Tools Disabled", "Utility")] [JsonInclude]
     public bool DevToolsDisabled = true;
 
+    [ConfigMenuEntry("Mitigate Movement Mods", "Utility")] [JsonInclude]
+    public bool RemoveMovementMods = true;
+    
     [ConfigMenuEntry("Manual Team Assignment", "Teams")] [JsonInclude]
     public bool ManualTeamAssignment = true;
 
@@ -206,14 +221,18 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref BlindAttackersDuringPlanting);
         serializer.SerializeValue(ref DefenderHealthMultiplier);
         serializer.SerializeValue(ref AttackerHealthMultiplier);
+        serializer.SerializeValue(ref LimitMags);
+        serializer.SerializeValue(ref MagazineCapacity);
         serializer.SerializeValue(ref BalanceStats);
         serializer.SerializeValue(ref BalanceDamage);
         serializer.SerializeValue(ref DefuserSpawnProtection);
         serializer.SerializeValue(ref MovementSpeedMultiplier);
+        serializer.SerializeValue(ref ForcePullWhenNoDefendersAlive);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref ManualTeamAssignment);
         serializer.SerializeValue(ref AllowUnbalancedTeams);
         serializer.SerializeValue(ref MarkBombNearEnd);
+        serializer.SerializeValue(ref RemoveMovementMods);
     }
 
     public object Clone()
@@ -230,13 +249,17 @@ public class BoneStrikeConfig : IConfig
             MovementSpeedMultiplier = MovementSpeedMultiplier,
             DefenderHealthMultiplier = DefenderHealthMultiplier,
             AttackerHealthMultiplier = AttackerHealthMultiplier,
+            LimitMags = LimitMags,
+            MagazineCapacity = MagazineCapacity,
+            ForcePullWhenNoDefendersAlive = ForcePullWhenNoDefendersAlive,
             PalletBarcodes = new List<string>(PalletBarcodes),
             UtilityBarcodes = new List<string>(UtilityBarcodes),
             BombExplosion = BombExplosion,
             DevToolsDisabled = DevToolsDisabled,
             ManualTeamAssignment = ManualTeamAssignment,
             AllowUnbalancedTeams = AllowUnbalancedTeams,
-            MarkBombNearEnd = MarkBombNearEnd
+            MarkBombNearEnd = MarkBombNearEnd,
+            RemoveMovementMods = RemoveMovementMods
         };
     }
 }

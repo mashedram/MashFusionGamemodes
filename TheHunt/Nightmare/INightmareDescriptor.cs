@@ -10,6 +10,9 @@ public interface INightmareDescriptor
     // These create new instances on every call
     public IEnumerable<IAbility> Abilities { get; }
     
+    // Hide Stage
+    public bool LockedDuringHide => true;
+    
     // Speed config
     public float MinimumSpeed { get; }
     public float SpeedPenaltyPerShot { get; }

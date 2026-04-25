@@ -123,13 +123,14 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
                 // Always has a value, due to PlayerIDs never being empty
                 nightmareID = _nightmareQueue.Dequeue();
             }
-        
+
+            var skipNightmare = Config.SkipNightmare;
             foreach (var playerID in PlayerIDManager.PlayerIDs)
             {
                 if (!playerID.IsValid)
                     return;
                 
-                if (playerID.Equals(nightmareID))
+                if (playerID.Equals(nightmareID) && !skipNightmare)
                 {
                     playerID.Assign<NightmareTeam>();
                 }
@@ -165,7 +166,6 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         LocalControls.LockedMovement = false;
         LocalControls.DisableInteraction = false;
         LocalControls.DisableInventory = false;
-        LocalHealth.MortalityOverride = null;
         
         LocalSpeed.SpeedModifier = 1f;
     }
@@ -224,8 +224,11 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 
     public override bool CanAttackPlayer(PlayerID player)
     {
+        if (GamePhaseManager.ActivePhase is HidePhase)
+            return false;
+        
         // Nightmare invincibility is handled in the team
-        return !LogicTeamManager.IsTeamMember(player);
+        return true;
     }
 
     private static int CountHiders()

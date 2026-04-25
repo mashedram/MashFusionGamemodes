@@ -4,6 +4,8 @@ using LabFusion.Entities;
 using LabFusion.Marrow.Extenders;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
+using LabFusion.Utilities;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter.Patches;
 
@@ -14,7 +16,7 @@ public class InventoryAmmoReceiverPatches
     [HarmonyPrefix]
     public static bool OnHandGrab([HarmonyArgument(0)] InventoryAmmoReceiver instance)
     {
-        if (!NetworkInfo.HasServer)
+        if (!NetworkSceneManager.IsLevelNetworked || !instance._parentRigManager.IsLocalPlayer())
             return true;
 
         var magazine = instance._selectedMagazineData;
@@ -46,14 +48,8 @@ public class InventoryAmmoReceiverPatches
     [HarmonyPostfix]
     public static void OnHandDrop([HarmonyArgument(0)] InventoryAmmoReceiver instance, IGrippable host, bool __result)
     {
-        // If the drop didn't pass fusion checks, don't do anything
-        if (__result)
+        if (!NetworkSceneManager.IsLevelNetworked || !instance._parentRigManager.IsLocalPlayer())
             return;
-        
-        // At this point we know we are:
-        // 1. On a server
-        // 2. Local player is trying to drop a magazine
-        // 3. The magazine was dropped 
 
         var source = host.TryCast<InteractableHost>();
         if (source == null || !InteractableHostExtender.Cache.TryGet(source, out var networkEntity) || networkEntity.IsRegistered)
