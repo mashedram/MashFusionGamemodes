@@ -12,6 +12,8 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter.Patches;
 [HarmonyPatch(typeof(LabFusion.Marrow.Patching.InventoryAmmoReceiverPatches))]
 public class InventoryAmmoReceiverPatches
 {
+    const int MinimumAmmoConsumption = 4;
+    
     [HarmonyPatch(nameof(LabFusion.Marrow.Patching.InventoryAmmoReceiverPatches.OnHandGrabPrefix))]
     [HarmonyPrefix]
     public static bool OnHandGrab([HarmonyArgument(0)] InventoryAmmoReceiver instance)
@@ -40,7 +42,8 @@ public class InventoryAmmoReceiverPatches
         if (!ammoLimiter.CanUseMagazine())
             return false;
         
-        ammoLimiter.UseMagazine(magazine.rounds);    
+        // Consume the ammo with the minimum takes per mag, accounts for shotguns with a lot of ammo
+        ammoLimiter.UseMagazine(Math.Max(magazine.rounds, MinimumAmmoConsumption));    
         return true;
     }
 
@@ -52,7 +55,13 @@ public class InventoryAmmoReceiverPatches
             return;
 
         var source = host.TryCast<InteractableHost>();
-        if (source == null || !InteractableHostExtender.Cache.TryGet(source, out var networkEntity) || networkEntity.IsRegistered)
+        if (source == null)
+            return;
+        
+        if (!InteractableHostExtender.Cache.TryGet(source, out var networkEntity)) 
+            return;
+        
+        if (!networkEntity.IsRegistered)
             return;
         
         var extender = networkEntity.GetExtender<MagazineExtender>();
@@ -70,7 +79,19 @@ public class InventoryAmmoReceiverPatches
         // Get the local ammo limiter
         var ammoLimiter = PlayerDataManager.GetLocalPlayerData()?.GetExtender<AmmunitionLimiterExtender>();
 
-        // Refund the unconsumed ammo
-        ammoLimiter?.UseMagazine(-extender.Component.magazineState.AmmoCount);
+        var fullMagazineCount = extender.Component.magazineState.magazineData.rounds;
+        var magazineContent = extender.Component.magazineState.AmmoCount;
+        // If the max magazine size is below the minimum ammo consumption, we need to refund the difference to prevent infinite ammo exploits with small magazines
+        if (fullMagazineCount < MinimumAmmoConsumption)
+        {
+            // Refund the minimum ammo consumption, minus the actual used ammo
+            var usedAmmo = fullMagazineCount - magazineContent;
+            ammoLimiter?.UseMagazine(-(MinimumAmmoConsumption - usedAmmo));
+        }
+        else
+        {
+            // Refund the unconsumed ammo
+            ammoLimiter?.UseMagazine(-magazineContent);
+        }
     }
 }

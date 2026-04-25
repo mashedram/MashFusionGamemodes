@@ -1,6 +1,9 @@
 ﻿using LabFusion.Entities;
 using MashGamemodeLibrary.Entities.Interaction.Grabbing;
+using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Data;
+using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Team;
 using TheHunt.Teams;
 
@@ -28,16 +31,18 @@ public class HidePhase : GamePhase
         {
             PlayerGrabManager.GrabPredicate = d =>
             {
-                if (d.GrabbedNetworkEntity == null)
-                    return true;
-
-                var player = d.GrabbedNetworkEntity.GetExtender<NetworkPlayer>();
+                var player = d.GrabbedNetworkEntity?.GetExtender<NetworkPlayer>();
                 if (player == null)
                     return true;
 
                 return player.PlayerID.IsMe;
             };
         }
+        
+        Executor.RunIfHost(() =>
+        {
+            PlayerDataManager.ModifyAll<HideEnemyNametagsRule>(rule => rule.IsEnabled = true);
+        });
     }
 
     protected override void OnPhaseExit()

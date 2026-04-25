@@ -12,7 +12,7 @@ public class AmmunitionLimiterExtender : IPlayerExtender
     
     public void UseMagazine(int amount)
     {
-        AmmunitionUsed += amount;
+        AmmunitionUsed = Math.Max(0, AmmunitionUsed + amount);
     }
 
     public bool CanUseMagazine()

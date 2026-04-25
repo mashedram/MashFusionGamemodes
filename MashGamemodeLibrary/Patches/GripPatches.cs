@@ -16,8 +16,6 @@ namespace MashGamemodeLibrary.Patches;
 [HarmonyPatch]
 public class GripPatches
 {
-    // Fix for spectator grabbing shenangians
-    // TODO : This should technically, along with the one for force pull, be the only one we need
     [HarmonyPatch(typeof(InventoryHand), nameof(InventoryHand.OnOverlapEnter))]
     [HarmonyPrefix]
     public static bool OnOverlapEnter(InventoryHand __instance, GameObject other)
@@ -63,6 +61,7 @@ public class GripPatches
     // Inventory
     
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandHoverBegin))]
+    [HarmonyPatch(typeof(InventoryHandReceiver), nameof(InventoryHandReceiver.OnHandHoverBegin))]
     [HarmonyPrefix]
     [HarmonyPriority(10000)]
     public static bool HandHoverBegin_Prefix(InventorySlotReceiver __instance, Hand hand)
@@ -102,6 +101,17 @@ public class GripPatches
         return grab.CanGrab();
     }
 
+    [HarmonyPatch(typeof(InventoryAmmoReceiver), nameof(InventoryAmmoReceiver.OnHandGrab))]
+    [HarmonyPrefix]
+    [HarmonyPriority(10000)]
+    public static bool InventoryHandGrabAttempt(InventoryHandReceiver __instance, Hand hand)
+    {
+        if (__instance == null || hand == null) 
+            return true;
+
+        return InteractionExtender.HasLocalInteractions();
+    }
+    
     // Forcepull
     
     [HarmonyPrefix]

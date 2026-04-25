@@ -117,7 +117,7 @@ public static class ConfigManager
         {
             return instance;
         }
-        MelonLogger.Error("Active config is of an invalid type.");
+        InternalLogger.Debug("Active config is of an invalid type.");
 
         if (!LocalConfigTypedRegistry.TryGet<T>(out var config))
         {

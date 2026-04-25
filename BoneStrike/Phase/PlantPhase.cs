@@ -1,7 +1,9 @@
 ﻿using BoneStrike.Tags;
 using BoneStrike.Teams;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities;
@@ -60,6 +62,8 @@ public class PlantPhase : GamePhase
     protected override void OnPhaseEnter()
     {
         LocalInventory.SetAmmo(2000);
+        // Assign grip check
+        PlayerGrabManager.GrabPredicate = GrabPredicate;
         
         Executor.RunIfHost(() =>
         {
@@ -74,10 +78,9 @@ public class PlantPhase : GamePhase
             BoneStrike.Context.PlantPhaseStartAudioPlayer.PlayRandom();
         });
     }
-
     protected override void OnPhaseExit()
     {
-        // PlayerGrabManagerDepricated.SetOverwrite("PlantPhase", null);
+        PlayerGrabManager.GrabPredicate = null;
     }
 
     public override void OnPlayerAction(PlayerID playerId, PlayerGameActions action, Handedness handedness)
@@ -105,6 +108,30 @@ public class PlantPhase : GamePhase
                 Hand = handedness
             });
         }
+    }
+    
+    private bool GrabPredicate(GrabRequest request)
+    {
+        var entity = request.GrabbedNetworkEntity;
+        if (entity == null)
+            return true;
+
+        // Always allow grabbing your own items, even if interactions are disabled. This allows players to grab their own bomb.
+        if (entity.OwnerID.IsMe)
+            return true;
+        
+        var host = request.GrabbedHost;
+        if (host == null)
+            return true;
+
+        // If the interactions aren't disabled, allow grabbing the item.
+        // Holstered items have this on true
+        // This also ensures that the clock can always be grabbed
+        if (!host.IsInteractionDisabled)
+            return true;
+
+        // Holstered weapon of another player, don't allow grabbing
+        return false;
     }
 
     // Events

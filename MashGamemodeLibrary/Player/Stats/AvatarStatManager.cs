@@ -103,14 +103,6 @@ public static class AvatarStatManager
         return 1f + factor * TeamUnbalancedMultiplier;
     }
 
-    public static AvatarStats? GetLocalStats(Avatar? avatar)
-    {
-        if (!TryGetLocalStats(avatar, out var stats))
-            return null;
-
-        return stats;
-    }
-
     public static bool TryGetLocalStats(Avatar? avatar, out AvatarStats stats)
     {
         if (!_localStatOverride.HasValue)
@@ -130,5 +122,13 @@ public static class AvatarStatManager
             stats = _localStatOverride.Value;
         }
         return true;
+    }
+    
+    public static AvatarStats? GetLocalStats(Avatar? avatar)
+    {
+        if (!TryGetLocalStats(avatar, out var stats))
+            return null;
+
+        return stats;
     }
 }
