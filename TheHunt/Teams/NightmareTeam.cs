@@ -24,6 +24,8 @@ public class NightmareTeam : LogicTeam
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase && (NightmareComponent.LocalNightmare?.LockedDuringHide ?? true);
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
+            
+            
         });
     }
 

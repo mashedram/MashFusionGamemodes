@@ -1,4 +1,8 @@
-﻿using MashGamemodeLibrary.Phase;
+﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
+using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Team;
+using TheHunt.Teams;
 
 namespace TheHunt.Phase;
 
@@ -16,5 +20,28 @@ public class HidePhase : GamePhase
             return PhaseIdentifier.Empty();
 
         return PhaseIdentifier.Of<HuntPhase>();
+    }
+
+    protected override void OnPhaseEnter()
+    {
+        if (LogicTeamManager.IsLocalTeam<NightmareTeam>())
+        {
+            PlayerGrabManager.GrabPredicate = d =>
+            {
+                if (d.GrabbedNetworkEntity == null)
+                    return true;
+
+                var player = d.GrabbedNetworkEntity.GetExtender<NetworkPlayer>();
+                if (player == null)
+                    return true;
+
+                return player.PlayerID.IsMe;
+            };
+        }
+    }
+
+    protected override void OnPhaseExit()
+    {
+        PlayerGrabManager.GrabPredicate = null;
     }
 }

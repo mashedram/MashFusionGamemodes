@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Entities.Interaction.Grabbing;
+﻿#if DEBUG
+using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Integrations;
 using UnityEngine;
 
@@ -16,3 +17,4 @@ public class GrapPredicateKeybind : DebugKeybind
             PlayerGrabManager.GrabPredicate = _ => false;
     };
 }
+#endif

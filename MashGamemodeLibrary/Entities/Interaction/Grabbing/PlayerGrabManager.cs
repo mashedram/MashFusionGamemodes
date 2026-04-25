@@ -65,7 +65,7 @@ public static class PlayerGrabManager
         if (grab.GrabbedHost.HandCount() > 0)
             return;
         
-        DropCallbackCache.ForEach(grab.GrabbedNetworkEntity.ID, callback => callback.OnDropped(grab));
+        DropCallbackCache.ForEach(grab.GrabbedNetworkEntity.ID, callback => callback.Try(c => c.OnDropped(grab)));
     }
     
     public static void OnGrab(GrabRequest grab)
@@ -79,6 +79,6 @@ public static class PlayerGrabManager
         if (grab.GrabbedHost.HandCount() > 1)
             return;
         
-        GrabCallbackCache.ForEach(grab.GrabbedNetworkEntity.ID, callback => callback.OnGrabbed(grab));
+        GrabCallbackCache.ForEach(grab.GrabbedNetworkEntity.ID, callback => callback.Try(c => c.OnGrabbed(grab)));
     }
 }

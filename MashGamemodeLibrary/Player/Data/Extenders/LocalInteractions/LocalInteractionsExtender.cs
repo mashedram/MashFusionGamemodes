@@ -26,7 +26,7 @@ public class LocalInteractionsExtender : IPlayerExtender
 
         var volume = _overlayObject.AddComponent<Volume>();
         volume.isGlobal = true;
-        volume.priority = 10;
+        volume.priority = 50000;
         volume.weight = 1f;
 
         var profile = ScriptableObject.CreateInstance<VolumeProfile>();
