@@ -44,7 +44,7 @@ public struct EcsIndex : INetSerializable, IEquatable<EcsIndex>
     public static EcsIndex Create(NetworkEntity networkEntity, IComponent component)
     {
         var networkId = networkEntity.ID;
-        var componentId = LocalEcsCache.Registry.GetID(component);
+        var componentId = LocalEcsCache.ComponentRegistry.GetID(component);
 
         return new EcsIndex(networkId, componentId);
     }

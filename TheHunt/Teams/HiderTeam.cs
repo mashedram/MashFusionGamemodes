@@ -25,7 +25,7 @@ public class HiderTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleComponent(phase is not HidePhase, () => new LimitedRespawnComponent(0));
+            Owner.ToggleComponent(phase is not HidePhase, () => new LimitedRespawn(0));
         });
         
         // Run for all
@@ -37,7 +37,7 @@ public class HiderTeam : LogicTeam
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            Owner.AddComponent(new PlayerHandTimerComponent());
+            Owner.AddComponent(new PlayerHandTimer());
             LocalInventory.SetAmmo(2000);
 
             var weaponCrates = Gamemode.TheHunt.Config.WeaponItemCrates;

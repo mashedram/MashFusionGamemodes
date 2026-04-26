@@ -13,7 +13,7 @@ namespace BoneStrike.Tags;
 /// Local only component for the host to detect and broadcast death audio
 /// </summary>
 [LocalOnly]
-public class KillEffectComponent : IComponent, IComponentPlayerReady, IPlayerActionCallback
+public class KillEffect : IComponent, IPlayerAttached, IPlayerActionCallback
 {
     private NetworkPlayer? _owner;
     public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)

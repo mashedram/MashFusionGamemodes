@@ -13,7 +13,7 @@ using UnityEngine;
 namespace TheHunt.Components;
 
 [LocalOnly]
-public class HiderFinallyMarker : IComponent, IComponentPlayerReady, IComponentRemoved, IPlayerRuleChangedCallback
+public class HiderFinallyMarker : IComponent, IPlayerAttached, IRemoved, IPlayerRuleChangedCallback
 {
     private const string MarkerBarcode = "Mash.TheHuntAssets.Spawnable.PlayerMarker";
 

@@ -47,9 +47,9 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     
     protected override void OnRegistered()
     {
-        NightmareComponent.RegisterAll<TheHunt>();
+        Nightmare.Nightmare.RegisterAll<TheHunt>();
         
-        LimitedRespawnComponent.RegisterSpectatePredicate<TheHunt>(player =>
+        LimitedRespawn.RegisterSpectatePredicate<TheHunt>(player =>
         {
             if (Config.TimeGainOnKill > 0f && GamePhaseManager.IsPhase<HuntPhase>())
                 HuntPhase.Extend(Config.TimeGainOnKill);
@@ -237,7 +237,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
     {
         return NetworkPlayer.Players
             .Count(player =>
-                player.HasRig && player.PlayerID.IsTeam<HiderTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<HiderTeam>() && player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated)
             );
     }
 }

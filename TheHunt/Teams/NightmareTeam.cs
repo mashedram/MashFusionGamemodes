@@ -21,7 +21,7 @@ public class NightmareTeam : LogicTeam
     {
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase && (NightmareComponent.LocalNightmare?.LockedDuringHide ?? true);
+            var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase && (Nightmare.Nightmare.LocalNightmare?.LockedDuringHide ?? true);
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
             
@@ -33,13 +33,13 @@ public class NightmareTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.AddComponents(NightmareComponent.AsRandomNightmare());
-            Owner.RemoveComponent<LimitedRespawnComponent>();
+            Owner.AddComponents(Nightmare.Nightmare.AsRandomNightmare());
+            Owner.RemoveComponent<LimitedRespawn>();
         });
         
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            Owner.AddComponent(new PlayerHandTimerComponent());
+            Owner.AddComponent(new PlayerHandTimer());
             LocalHealth.MortalityOverride = false;
             
             Notifier.Send(new Notification

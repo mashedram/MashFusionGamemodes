@@ -15,9 +15,9 @@ namespace TheHunt.Components;
 
 
 [LocalOnly]
-public class PlayerHandTimerComponent : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
+public class PlayerHandTimer : IPlayerAttached, IUpdate, IRemoved
 {
-    public static readonly CachedQuery<PlayerHandTimerComponent> Query = CachedQueryManager.Create<PlayerHandTimerComponent>();
+    public static readonly CachedQuery<PlayerHandTimer> Query = CachedQueryManager.Create<PlayerHandTimer>();
 
     private Transform? _compasPointer;
     private bool _isSpawning;

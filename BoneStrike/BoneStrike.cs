@@ -49,7 +49,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
     protected override void OnRegistered()
     {
-        LimitedRespawnComponent.RegisterSpectatePredicate<BoneStrike>(_ =>
+        LimitedRespawn.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
             if (AnyDefusers())
                 return true;
@@ -245,7 +245,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         return NetworkPlayer.Players
             .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated)
             );
     }
     
@@ -253,7 +253,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         return NetworkPlayer.Players
             .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<TerroristTeam>() && player.HasComponent<LimitedRespawnComponent>(tag => !tag.IsEliminated)
+                player.HasRig && player.PlayerID.IsTeam<TerroristTeam>() && player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated)
             );
     }
 }

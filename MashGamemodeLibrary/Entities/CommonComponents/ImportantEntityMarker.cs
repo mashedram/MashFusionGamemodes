@@ -5,7 +5,7 @@ using MashGamemodeLibrary.Entities.ECS.Declerations;
 
 namespace MashGamemodeLibrary.Entities.CommonComponents;
 
-public class ImportantEntityMarker : IComponent, IComponentReady
+public class ImportantEntityMarker : IComponent, IEntityAttached
 {
     public void OnReady(NetworkEntity networkEntity, MarrowEntity marrowEntity)
     {

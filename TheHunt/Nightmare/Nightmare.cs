@@ -38,7 +38,7 @@ internal class AbilityCooldownTimer
     }
 }
 
-public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentRemoved, IComponentUpdate, IPlayerInputCallback, IPlayerTakeDamageCallback, INetSerializable
+public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayerInputCallback, IPlayerTakeDamageCallback, INetSerializable
 {
     private static readonly FactoryTypedRegistry<INightmareDescriptor> NightmareRegistry = new FactoryTypedRegistry<INightmareDescriptor>();
     public static INightmareDescriptor? LocalNightmare { get; private set; }
@@ -59,21 +59,21 @@ public class NightmareComponent : IComponent, IComponentPlayerReady, IComponentR
     private float _speedHealDelay = 0f;
     
     // Default Constructor for Serialization
-    public NightmareComponent() {}
+    public Nightmare() {}
 
-    public NightmareComponent(INightmareDescriptor nightmareDescriptor)
+    public Nightmare(INightmareDescriptor nightmareDescriptor)
     {
         _networkedNightmare = NightmareRegistry.GetID(nightmareDescriptor);
         ApplyNightmare(nightmareDescriptor);
     }
 
-    public static NightmareComponent AsRandomNightmare()
+    public static Nightmare AsRandomNightmare()
     {
         if (NightmareRegistry.Count == 0)
             throw new InvalidOperationException("No nightmares registered in the registry.");
         
         var nightmare = NightmareRegistry.GetAllTypes().GetRandom();
-        return new NightmareComponent(NightmareRegistry.Get(nightmare)!);
+        return new Nightmare(NightmareRegistry.Get(nightmare)!);
     }
 
     public static void RegisterAll<T>()

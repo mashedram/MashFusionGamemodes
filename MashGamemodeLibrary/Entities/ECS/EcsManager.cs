@@ -12,20 +12,20 @@ public static class EcsManager
 {
     // Internal caches
 
-    private static readonly IBehaviourCache<IComponentReady> ComponentReadyCache = BehaviourManager.CreateCache<IComponentReady>();
-    private static readonly IBehaviourCache<IComponentPlayerReady> ComponentPlayerReadyCache = BehaviourManager.CreateCache<IComponentPlayerReady>();
+    private static readonly IBehaviourCache<IEntityAttached> EntityAttachedCache = BehaviourManager.CreateCache<IEntityAttached>();
+    private static readonly IBehaviourCache<IPlayerAttached> PlayerAttachedCache = BehaviourManager.CreateCache<IPlayerAttached>();
 
-    private static readonly IBehaviourCache<IComponentUpdate> ComponentUpdateCache = BehaviourManager.CreateCache<IComponentUpdate>();
-    private static readonly IBehaviourCache<IComponentRemoved> ComponentRemovedCache = BehaviourManager.CreateCache<IComponentRemoved>();
+    private static readonly IBehaviourCache<IUpdate> UpdateCache = BehaviourManager.CreateCache<IUpdate>();
+    private static readonly IBehaviourCache<IRemoved> RemovedCache = BehaviourManager.CreateCache<IRemoved>();
 
     static EcsManager()
     {
-        ComponentReadyCache.OnAdded += (instance, component) =>
+        EntityAttachedCache.OnAdded += (instance, component) =>
         {
             component.OnReady(instance.NetworkEntity, instance.MarrowEntity);
         };
 
-        ComponentPlayerReadyCache.OnAdded += (instance, component) =>
+        PlayerAttachedCache.OnAdded += (instance, component) =>
         {
             if (!NetworkPlayerManager.TryGetPlayer((byte)instance.NetworkEntity.ID, out var networkPlayer))
                 return;
@@ -33,7 +33,7 @@ public static class EcsManager
             component.OnReady(networkPlayer, instance.MarrowEntity);
         };
 
-        ComponentRemovedCache.OnRemoved += (instance, component) =>
+        RemovedCache.OnRemoved += (instance, component) =>
         {
             component.OnRemoved();
         };
@@ -41,17 +41,17 @@ public static class EcsManager
 
     internal static void Update(float delta)
     {
-        ComponentUpdateCache.ForEach(behaviour => behaviour.Update(delta));
+        UpdateCache.ForEach(behaviour => behaviour.Update(delta));
     }
 
     // Public methods
 
     public static void RegisterAll<T>()
     {
-        LocalEcsCache.Registry.RegisterAll<T>();
+        LocalEcsCache.ComponentRegistry.RegisterAll<T>();
 
         // Ensure that all static constructors are run for the registered types, so if they have their own caches, these are also loaded
-        foreach (var allType in LocalEcsCache.Registry.GetAllTypes())
+        foreach (var allType in LocalEcsCache.ComponentRegistry.GetAllTypes())
         {
             RuntimeHelpers.RunClassConstructor(allType.TypeHandle);
         }

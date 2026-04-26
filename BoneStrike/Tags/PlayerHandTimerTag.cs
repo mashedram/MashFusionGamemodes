@@ -13,7 +13,7 @@ using UnityEngine;
 namespace BoneStrike.Tags;
 
 [LocalOnly]
-public class PlayerHandTimerTag : IComponentPlayerReady, IComponentUpdate, IComponentRemoved
+public class PlayerHandTimerTag : IPlayerAttached, IUpdate, IRemoved
 {
     public static readonly CachedQuery<PlayerHandTimerTag> Query = CachedQueryManager.Create<PlayerHandTimerTag>();
 

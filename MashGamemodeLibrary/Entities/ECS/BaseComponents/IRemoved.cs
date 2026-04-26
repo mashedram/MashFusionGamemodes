@@ -3,7 +3,7 @@ using MashGamemodeLibrary.Entities.ECS.Declerations;
 
 namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
-public interface IComponentRemoved : IBehaviour, IComponent
+public interface IRemoved : IBehaviour, IComponent
 {
     void OnRemoved();
 }

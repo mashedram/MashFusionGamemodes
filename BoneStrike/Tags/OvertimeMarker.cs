@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class OvertimeMarker : IComponent, IComponentReady, IComponentRemoved, IComponentUpdate
+public class OvertimeMarker : IComponent, IEntityAttached, IRemoved, IUpdate
 {
     private const string MarkerBarcode = "Mash.BoneStrike.Spawnable.BombMarker";
     private const float BlinkTime = 1f;

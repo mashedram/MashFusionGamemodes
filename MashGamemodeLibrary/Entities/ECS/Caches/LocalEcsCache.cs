@@ -16,6 +16,7 @@ internal static class LocalEcsCache
 {
     // Caches
 
+    private static readonly Dictionary<Type, IResource> LocalResources = new();
     private static readonly Dictionary<EcsIndex, ComponentInstance> LocalComponents = new();
 
     private static readonly Dictionary<ushort, Dictionary<Type, ComponentInstance>> ComponentLookup = new();
@@ -23,13 +24,14 @@ internal static class LocalEcsCache
 
     // Networking
 
-    internal static readonly FactoryTypedRegistry<IComponent> Registry = new();
+    internal static readonly FactoryTypedRegistry<IComponent> ComponentRegistry = new();
+    internal static readonly FactoryTypedRegistry<IResource> ResourceRegistry = new();
 
     private static readonly SyncedDictionary<EcsIndex, IComponent> NetworkComponents =
         new(
             "sync.ECS",
             new NetSerializableEncoder<EcsIndex>(),
-            new DynamicInstanceEncoder<IComponent>(Registry)
+            new DynamicInstanceEncoder<IComponent>(ComponentRegistry)
         );
 
     static LocalEcsCache()

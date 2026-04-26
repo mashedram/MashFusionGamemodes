@@ -22,13 +22,13 @@ public class TerroristTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawnComponent(0));
+            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawn(0));
         });
     }
 
     protected override void OnAssigned()
     {
-        Owner.AddComponent(new KillEffectComponent());
+        Owner.AddComponent(new KillEffect());
 
         Executor.RunIfMe(Owner.PlayerID, () =>
         {

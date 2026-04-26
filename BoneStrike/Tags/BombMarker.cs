@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class BombMarker : IComponent, IComponentReady, IComponentRemoved, IPhaseChanged, IComponentUpdate, IGrabCallback, IDropCallback
+public class BombMarker : IComponent, IEntityAttached, IRemoved, IPhaseChanged, IUpdate, IGrabCallback, IDropCallback
 {
     public static readonly CachedQuery<BombMarker> Query = CachedQueryManager.Create<BombMarker>();
 

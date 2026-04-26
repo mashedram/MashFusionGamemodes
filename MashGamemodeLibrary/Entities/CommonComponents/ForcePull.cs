@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace MashGamemodeLibrary.Entities.CommonComponents;
 
-public class ForcePullComponent : IComponentReady, IComponentRemoved
+public class ForcePull : IEntityAttached, IRemoved
 {
     private InteractableHost? _interactableHost;
     private ForcePullGrip? _forcePullGrip;

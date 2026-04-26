@@ -23,7 +23,7 @@ using UnityEngine;
 
 namespace BoneStrike.Tags;
 
-public class DefusableTag : IComponentReady, IGrabPredicate, IComponentRemoved, IComponentUpdate, IGrabCallback, IDropCallback, INetworkEvents,
+public class DefusableTag : IEntityAttached, IGrabPredicate, IRemoved, IUpdate, IGrabCallback, IDropCallback, INetworkEvents,
     INetSerializable
 {
     private static readonly RemoteEvent DefuseEvent = new("DefuseEvent", OnDefuse, CommonNetworkRoutes.AllToHost);

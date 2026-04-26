@@ -17,7 +17,7 @@ using Random = UnityEngine.Random;
 namespace TheHunt.Nightmare.Ability.Active;
 
 [LocalOnly]
-internal class ScreamMarker : IComponent, IComponentPlayerReady, IComponentRemoved, IComponentUpdate
+internal class ScreamMarker : IComponent, IPlayerAttached, IRemoved, IUpdate
 {
     private const string MarkerBarcode = "Mash.TheHuntAssets.Spawnable.PlayerMarker";
 

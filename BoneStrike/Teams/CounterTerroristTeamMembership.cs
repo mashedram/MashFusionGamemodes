@@ -23,7 +23,7 @@ public class CounterTerroristTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawnComponent(0));
+            Owner.ToggleComponent(phase is DefusePhase, () => new LimitedRespawn(0));
         });
 
         Executor.RunIfMe(Owner.PlayerID, () =>
@@ -36,7 +36,7 @@ public class CounterTerroristTeam : LogicTeam
 
     protected override void OnAssigned()
     {
-        Owner.AddComponent(new KillEffectComponent());
+        Owner.AddComponent(new KillEffect());
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
             Owner.AddComponent(new PlayerHandTimerTag());

@@ -51,7 +51,7 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
     
     private static readonly AudioBin RandomAmbienceAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.RandomAmbience");
     
-    public readonly TimedComponentPlayer<NightmareComponent> RandomAmbienceAudioPlayer = new(new ObjectAudioPlayer("NightmareSound",
+    public readonly TimedComponentPlayer<Nightmare.Nightmare> RandomAmbienceAudioPlayer = new(new ObjectAudioPlayer("NightmareSound",
             new DesyncedAudioContainer(new LoadOnDemandContainer(new AudioBinLoader(RandomAmbienceAudioBin))), 1,
             new AudioModifierFactory().AddModifier<AudioSettingsModifier>(settings =>
                     settings.SetVolume(1f).SetMaxDistance(4700f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 0f, 0.65f)))

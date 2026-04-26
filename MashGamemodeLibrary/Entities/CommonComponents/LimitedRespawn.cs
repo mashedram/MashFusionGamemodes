@@ -29,9 +29,9 @@ internal class RespawnCountPacket : INetSerializable
     }
 }
 
-public class LimitedRespawnComponent : IComponentRemoved, IComponentPlayerReady, IPlayerActionCallback
+public class LimitedRespawn : IRemoved, IPlayerAttached, IPlayerActionCallback
 {
-    public static readonly CachedQuery<LimitedRespawnComponent> Query = CachedQueryManager.Create<LimitedRespawnComponent>();
+    public static readonly CachedQuery<LimitedRespawn> Query = CachedQueryManager.Create<LimitedRespawn>();
 
     public delegate bool PlayerSpectatePredicate(NetworkPlayer player);
     private static readonly RemoteEvent<RespawnCountPacket> RespawnCountChangedEvent = new(OnRespawnsChanged, CommonNetworkRoutes.HostToAll);
@@ -43,14 +43,14 @@ public class LimitedRespawnComponent : IComponentRemoved, IComponentPlayerReady,
 
     // Keep, a default constructor is required for networking to function
     // ReSharper disable once UnusedMember.Global
-    public LimitedRespawnComponent()
+    public LimitedRespawn()
     {
     }
 
     /// <summary>
     /// </summary>
     /// <param name="respawns"></param>
-    public LimitedRespawnComponent(int respawns)
+    public LimitedRespawn(int respawns)
     {
         Respawns = respawns;
     }
