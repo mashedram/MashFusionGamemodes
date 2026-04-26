@@ -1,7 +1,6 @@
 ﻿using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using MashGamemodeLibrary.Execution;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data.Rules;
@@ -34,8 +33,12 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
             return;
         }
 
+        var hash = _localRule.GetHash();
         modifier.Try(m => m(_localRule));
-        NotifyChange();
+        
+        // Check if the modification actually changed anything
+        if (hash != _localRule.GetHash())
+            NotifyChange();
     }
 
     public void NotifyChange()

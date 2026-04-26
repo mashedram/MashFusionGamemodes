@@ -5,9 +5,9 @@ using LabFusion.Marrow.Pool;
 using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Player.Data.Rules;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using UnityEngine;
 
 namespace TheHunt.Components;

@@ -99,7 +99,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnRoundStart()
     {
         Notifier.CancelAll();
-        LeaderboardManager.HideLeaderboard();
 
         SpawnPointHelper.SetSpawnPoint(_resetPoint);
 
@@ -114,7 +113,16 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
                 rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
             });
 
-            PalletLoadoutManager.Load(Config.PalletBarcodes);
+            // Load default SLZ weapons as fallback
+            var palletBarcodes = Config.PalletBarcodes;
+            if (palletBarcodes.Count > 0)
+            {
+                PalletLoadoutManager.Load(Config.PalletBarcodes);
+            }
+            else
+            {
+                PalletLoadoutManager.Load("SLZ.BONELAB.Content");                
+            }
             PalletLoadoutManager.LoadUtility(Config.UtilityBarcodes);
 
             if (_hasAssignedTeams)
@@ -210,8 +218,8 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             TeamAssignmentPhase => false,
             PlantPhase => false,
             DefusePhase defusePhase when player.IsTeam<CounterTerroristTeam>() => defusePhase.ElapsedTime > Config.DefuserSpawnProtection &&
-                                                                                  !LogicTeamManager.IsTeamMember(player),
-            _ => !LogicTeamManager.IsTeamMember(player)
+                                                                                  !player.IsTeamMember(),
+            _ => !player.IsTeamMember()
         };
     }
 

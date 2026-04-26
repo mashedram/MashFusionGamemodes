@@ -104,6 +104,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
         {
             PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
             PlayerDataManager.ModifyAll<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
+            PlayerDataManager.ModifyAll<WindBuffetSFXEnabled>(rule => rule.IsEnabled = !Config.DisableWindSFX);
             PlayerDataManager.ModifyAll<PlayerAmmunitionLimitRule>(rule =>
             {
                 rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
@@ -186,6 +187,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
                 
                 data.ModifyRule<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
                 data.ModifyRule<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
+                data.ModifyRule<WindBuffetSFXEnabled>(rule => rule.IsEnabled = !Config.DisableWindSFX);
                 data.ModifyRule<PlayerAmmunitionLimitRule>(rule =>
                 {
                     rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;

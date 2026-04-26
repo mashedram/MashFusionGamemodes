@@ -1,5 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Rules;
 

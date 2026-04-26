@@ -31,8 +31,7 @@ public class PlayerVisibility : IPlayerExtender
         new PlayerVoiceVisibility(),
         new PlayerNametagVisibility(),
         new PlayerHolsterVisibility(),
-        new PlayerBodylogVisibility(),
-        new PlayerWindbuffetVisibility()
+        new PlayerBodylogVisibility()
     };
 
     private void SetVisibility(bool isVisible)
@@ -101,16 +100,19 @@ public class PlayerVisibility : IPlayerExtender
     {
         typeof(PlayerSpectatingRule),
         typeof(SpectatorNightvisionRule),
-        typeof(HideEnemyNametagsRule)
+        typeof(HideEnemyNametagsRule),
+        typeof(ForceHideRule)
     };
     public void OnRuleChanged(PlayerData data)
     {
-        var isSpectating = data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating);
+        var isVisible = !data.CheckRule<PlayerSpectatingRule>(p => p.IsSpectating) && 
+                        !data.CheckRule<ForceHideRule>(p => p.IsEnabled);
+        
         var hasNightVision = data.CheckRule<SpectatorNightvisionRule>(p => p.IsEnabled);
         _hideNametagForEnemies = data.CheckRule<HideEnemyNametagsRule>(p => p.IsEnabled);
         
-        SetVisibility(!isSpectating);
-        ToggleNightVision(hasNightVision && isSpectating);
+        SetVisibility(isVisible);
+        ToggleNightVision(hasNightVision && isVisible);
     }
 
     public IEnumerable<Type> EventTypes => new[]

@@ -207,6 +207,10 @@ public class TheHuntConfig : IConfig
     [JsonInclude]
     public bool DevToolsDisabled = true;
     
+    [ConfigMenuEntry("Disable Wind SFX", "Utility")]
+    [JsonInclude]
+    public bool DisableWindSFX = false;
+    
     // For testing purposes, allows skipping the nightmare assignment and becoming a hider even if alone
     [ConfigMenuEntry("Skip Nightmare Assignment", "Utility")] 
     [JsonInclude]
@@ -266,6 +270,7 @@ public class TheHuntConfig : IConfig
             LightItemCrate = LightItemCrate,
             WeaponItemCrates = new List<string>(WeaponItemCrates),
             DevToolsDisabled = DevToolsDisabled,
+            DisableWindSFX = DisableWindSFX,
             SkipNightmare = SkipNightmare
         };
     }

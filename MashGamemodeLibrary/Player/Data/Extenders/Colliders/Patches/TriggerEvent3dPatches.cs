@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppSLZ.Marrow.Interaction;
 using Il2CppUltEvents;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Data;
@@ -10,61 +12,18 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Colliders.Patches;
 [HarmonyPatch(typeof(TriggerEvents3D))]
 public class TriggerEvent3dPatches
 {
-    
-    private static ulong _maxSafePointerValue;
-    private static ulong _maxCheckedPointerValue = ulong.MaxValue;
-    /// <summary>
-    /// Unity, in these events, can send pointers that point to internally garbage collected positions.
-    /// We have no way to figure that out except for asking the OS directly, which his expensive.
-    ///
-    /// This function approximates that. If we find a pointer we know is safe and exists in the programs address space, we accept it.
-    /// We know that virtual pointers that are invalid are always above 0x30927F74C9DE0000, testing has shown.
-    /// 
-    /// However, we don't want to keep checking every pointer against the OS, so we keep track of the highest pointer we've seen that is safe,
-    /// and the lowest pointer we've seen that is unsafe, and if we get a pointer that is outside of those bounds,
-    /// we can safely assume it's valid or invalid without asking the OS.
-    ///
-    /// Solution is crap but it works LMAO
-    /// </summary>
-    /// <param name="intPtr"></param>
-    /// <returns></returns>
-    private static bool FastSafetyCheck(IntPtr intPtr)
+    // For some reason the patches may get called with a pointer pointing to nothing, but not null, so we need to check if the object is valid first
+    private static bool IsValid(Il2CppObjectBase collider)
     {
-        var value = (ulong) intPtr.ToInt64();
-        
-        if (value <= _maxSafePointerValue)
-            return true;
-        
-        if (value >= _maxCheckedPointerValue)
+        if (collider.WasCollected)
             return false;
         
-        // If we get here, we might be in the danger zone, so we can do a more thorough check.
-        var isSafe = GameObjectMemoryChecker.IsPointerAccessible(intPtr);
-        if (isSafe)
-        {
-            // If it's safe, we can update our max safe pointer value to avoid future checks.
-            _maxSafePointerValue = value;
-            if (_maxSafePointerValue > _maxCheckedPointerValue)
-            {
-                // If our max safe pointer value is above our max checked pointer value, we can update our max checked pointer value to avoid future checks.
-                _maxCheckedPointerValue = _maxSafePointerValue;
-            }
-        }
-        else
-        {
-            if (value >= _maxCheckedPointerValue) 
-                return isSafe;
-            
-            // If it's not safe, we can update our max checked pointer value to avoid future checks.
-            _maxCheckedPointerValue = value;
-            if (_maxCheckedPointerValue < _maxSafePointerValue)
-            {
-                // If our max checked pointer value is below our max safe pointer value, we can update our max safe pointer value to avoid future checks.
-                _maxSafePointerValue = _maxCheckedPointerValue;
-            }
-        }
-        
-        return isSafe;
+        var nestedTypeClassPointer = Il2CppClassPointerStore<Collider>.NativeClassPtr;
+        if (nestedTypeClassPointer == IntPtr.Zero)
+            return false;
+
+        var ownClass = IL2CPP.il2cpp_object_get_class(collider.Pointer);
+        return IL2CPP.il2cpp_class_is_assignable_from(nestedTypeClassPointer, ownClass);
     }
     
     [HarmonyPatch(nameof(TriggerEvents3D.OnTriggerEnter))]
@@ -77,7 +36,7 @@ public class TriggerEvent3dPatches
         if (collider == null)
             return true;
         
-        if (!FastSafetyCheck(collider.m_CachedPtr))
+        if (!IsValid(collider))
             return true;
         
         if (collider.gameObject == null)
@@ -99,7 +58,7 @@ public class TriggerEvent3dPatches
         if (collider == null)
             return true;
         
-        if (!FastSafetyCheck(collider.m_CachedPtr))
+        if (!IsValid(collider))
             return true;
         
         if (collider.gameObject == null)
@@ -121,7 +80,7 @@ public class TriggerEvent3dPatches
         if (collider == null)
             return true;
         
-        if (!FastSafetyCheck(collider.m_CachedPtr))
+        if (!IsValid(collider))
             return true;
         
         if (collider.gameObject == null)

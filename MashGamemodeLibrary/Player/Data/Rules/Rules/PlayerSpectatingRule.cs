@@ -1,5 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 
@@ -21,5 +20,10 @@ public class PlayerSpectatingRule : IPlayerRule
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref _isSpectating);
+    }
+
+    public int GetHash()
+    {
+        return _isSpectating.GetHashCode();
     }
 }

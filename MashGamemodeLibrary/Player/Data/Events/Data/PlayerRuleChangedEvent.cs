@@ -1,5 +1,5 @@
 ﻿using LabFusion.Player;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
+using MashGamemodeLibrary.Player.Data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Events.Data;
 

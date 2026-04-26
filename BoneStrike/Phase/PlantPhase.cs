@@ -115,19 +115,24 @@ public class PlantPhase : GamePhase
         var entity = request.GrabbedNetworkEntity;
         if (entity == null)
             return true;
-
-        // Always allow grabbing your own items, even if interactions are disabled. This allows players to grab their own bomb.
-        if (entity.OwnerID.IsMe)
-            return true;
         
-        var host = request.GrabbedHost;
-        if (host == null)
-            return true;
+        // Don't allow grabbing other players during this phase if they are on the enemy team
+        var networkPlayer = entity.GetExtender<NetworkPlayer>();
+        if (networkPlayer != null && !networkPlayer.PlayerID.IsTeamMember())
+            return false;
 
-        // If the interactions aren't disabled, allow grabbing the item.
-        // Holstered items have this on true
-        // This also ensures that the clock can always be grabbed
-        if (!host.IsInteractionDisabled)
+        // Bunch of checks for holster grabbing
+        var parent = request.GrabbedEntity.transform.parent;
+        if (parent == null)
+            return true;
+        var slot = parent.GetComponent<InventorySlotReceiver>();
+        if (slot == null)
+            return true;
+        if (!InventorySlotReceiverExtender.Cache.TryGet(slot, out var extender))
+            return true;
+        if (!extender.HasOwner)
+            return true;
+        if (extender.OwnerID.IsTeamMember())
             return true;
 
         // Holstered weapon of another player, don't allow grabbing
@@ -162,6 +167,9 @@ public class PlantPhase : GamePhase
                 continue;
             var marrow = networkProp.MarrowEntity;
             if (marrow == null)
+                continue;
+            // If the clock is already held by a player, don't teleport it to the player, as that would cause it to rubberband in their hand
+            if (InteractableHost.Cache.TryGet(marrow.gameObject, out var host) && host.IsAttached)
                 continue;
 
             NetworkEntityManager.TakeOwnership(networkEntity);

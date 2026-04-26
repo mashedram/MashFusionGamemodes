@@ -3,9 +3,9 @@
 namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 
 /// <summary>
-/// When true, hides all nametags of players on other teams
+/// Hide the player, even if they aren't spectating.
 /// </summary>
-public class HideEnemyNametagsRule : IPlayerRule
+public class ForceHideRule : IPlayerRule
 {
     private bool _isEnabled;
 
@@ -19,7 +19,7 @@ public class HideEnemyNametagsRule : IPlayerRule
     {
         serializer.SerializeValue(ref _isEnabled);
     }
-    
+
     public int GetHash()
     {
         return _isEnabled.GetHashCode();

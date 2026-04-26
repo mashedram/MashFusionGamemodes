@@ -1,13 +1,14 @@
-﻿using LabFusion.Network.Serialization;
+using LabFusion.Network.Serialization;
 
 namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 
 /// <summary>
-/// When true, hides all nametags of players on other teams
+/// Hides the wind buffet SFX when not the local player
 /// </summary>
-public class HideEnemyNametagsRule : IPlayerRule
+public class WindBuffetSFXEnabled : IPlayerRule
 {
-    private bool _isEnabled;
+    // Default to true
+    private bool _isEnabled = true;
 
     public bool IsEnabled
     {
@@ -19,7 +20,7 @@ public class HideEnemyNametagsRule : IPlayerRule
     {
         serializer.SerializeValue(ref _isEnabled);
     }
-    
+
     public int GetHash()
     {
         return _isEnabled.GetHashCode();

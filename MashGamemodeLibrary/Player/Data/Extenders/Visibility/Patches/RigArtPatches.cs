@@ -12,23 +12,28 @@ public class RigArtPatches
     // TODO: Make this a postfix where we overwrite the end value
     [HarmonyPatch("ToggleAvatar")]
     [HarmonyPrefix]
-    private static void ToggleAvatar_Prefix(RigArt __instance, ref bool enabled)
+    private static bool ToggleAvatar_Prefix(RigArt __instance)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance == null)
-            return;
+            return true;
 
+        // When local is spectating, allow the zoning to just do zoning
+        if (SpectatorExtender.IsLocalPlayerSpectating())
+            return true;
+        
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)
-            return;
+            return true;
 
         if (!NetworkPlayer.RigCache.TryGet(rig, out var player))
-            return;
-
+            return true;
+        
+        // If the target is spectating, but we aren't, don't allow the avatar to be shown
         if (player.IsSpectating())
-        {
-            enabled = false;
-        }
+            return false;
+
+        return true;
     }
 
     [HarmonyPatch("ToggleAmmoPouch")]
@@ -38,6 +43,11 @@ public class RigArtPatches
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         if (__instance == null)
             return true;
+        
+        if (SpectatorExtender.IsLocalPlayerSpectating())
+        {
+            return true;
+        }
 
         var rig = Traverse.Create(__instance).Field<RigManager>("_rigManager").Value;
         if (rig == null)

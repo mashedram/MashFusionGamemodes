@@ -1,4 +1,5 @@
-﻿using Il2CppSLZ.Marrow;
+﻿using System.Diagnostics.CodeAnalysis;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Network;
@@ -11,8 +12,9 @@ public class GrabRequest
     // Holder data
     
     public Hand Hand { get; }
+    public bool IsValid { get; }
     public NetworkPlayer NetworkPlayer { get; }
-    
+
     // Target Data
 
     public Grip Grip { get; }
@@ -25,8 +27,11 @@ public class GrabRequest
         Hand = hand;
         Grip = grip;
         
-        if (NetworkSceneManager.IsLevelNetworked && hand.TryGetNetworkPlayer(out var networkPlayer))
-            NetworkPlayer = networkPlayer;
+        if (!NetworkSceneManager.IsLevelNetworked || !hand.TryGetNetworkPlayer(out var networkPlayer)) 
+            return;
+        
+        IsValid = true;
+        NetworkPlayer = networkPlayer;
     }
 
     public GrabRequest(InventoryHand hand, Grip grip) : this(hand._hand, grip)

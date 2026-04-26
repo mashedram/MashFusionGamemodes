@@ -84,15 +84,6 @@ public static class LogicTeamManager
         return AssignedTeams.TryGetValue(playerID, out var team) && Registry.CreateID(team) == teamID;
     }
 
-    public static bool IsEnemy(this PlayerID enemyPlayerID)
-    {
-        var localTeam = GetLocalTeam();
-        if (localTeam == null)
-            return false;
-
-        return AssignedTeams.TryGetValue(enemyPlayerID, out var otherTeam) && Registry.GetID(localTeam) != Registry.GetID(otherTeam);
-    }
-
     public static bool IsLocalTeam<T>() where T : LogicTeam
     {
         return PlayerIDManager.LocalID.IsTeam<T>();
@@ -110,7 +101,7 @@ public static class LogicTeamManager
         return AssignedTeams.GetValueOrDefault(player);
     }
 
-    public static bool IsTeamMember(PlayerID player)
+    public static bool IsTeamMember(this PlayerID player)
     {
         var localTeam = GetLocalTeam();
         var playerTeam = GetPlayerTeam(player);

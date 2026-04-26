@@ -1,5 +1,4 @@
 ﻿using LabFusion.Network.Serialization;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 
 namespace MashGamemodeLibrary.Player.Data.Rules.Rules;
 
@@ -19,5 +18,10 @@ public class SpectatorNightvisionRule : IPlayerRule
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref _isEnabled);
+    }
+
+    public int GetHash()
+    {
+        return _isEnabled.GetHashCode();
     }
 }

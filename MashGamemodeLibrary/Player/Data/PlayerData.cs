@@ -10,7 +10,6 @@ using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Extenders;
 using MashGamemodeLibrary.Player.Data.Rules;
 using MashGamemodeLibrary.Player.Data.Rules.Networking;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Registry.Typed;
 using MashGamemodeLibrary.Util;
 

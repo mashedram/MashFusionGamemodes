@@ -6,7 +6,6 @@ using LabFusion.Player;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Rules;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
 using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Player.Data;

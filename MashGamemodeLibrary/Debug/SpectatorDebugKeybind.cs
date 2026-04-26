@@ -2,7 +2,6 @@
 using LabFusion.Player;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Helpers;
-using MashGamemodeLibrary.Player.Spectating;
 using MelonLoader;
 using UnityEngine;
 

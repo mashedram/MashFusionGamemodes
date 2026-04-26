@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Il2CppInterop.Runtime;
 using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Marrow.Extenders;
@@ -6,6 +7,7 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.Utilities;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter.Patches;
 
@@ -13,7 +15,7 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.MagazineLimiter.Patches;
 public class InventoryAmmoReceiverPatches
 {
     const int MinimumAmmoConsumption = 4;
-    
+
     [HarmonyPatch(nameof(LabFusion.Marrow.Patching.InventoryAmmoReceiverPatches.OnHandGrabPrefix))]
     [HarmonyPrefix]
     public static bool OnHandGrab([HarmonyArgument(0)] InventoryAmmoReceiver instance)

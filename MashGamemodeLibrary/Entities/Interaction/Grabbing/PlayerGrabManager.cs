@@ -24,7 +24,7 @@ public static class PlayerGrabManager
     
     public static bool CanGrab(this GrabRequest grabRequest)
     {
-        if (!NetworkSceneManager.IsLevelNetworked)
+        if (!grabRequest.IsValid)
             return true;
         
         // Always allow other clients to grab things they request
@@ -56,6 +56,8 @@ public static class PlayerGrabManager
     
     public static void OnDrop(GrabRequest grab)
     {
+        if (!grab.IsValid)
+            return;
         if (grab.GrabbedNetworkEntity == null)
             return;
         if (grab.GrabbedHost == null)
@@ -70,6 +72,8 @@ public static class PlayerGrabManager
     
     public static void OnGrab(GrabRequest grab)
     {
+        if (!grab.IsValid)
+            return;
         if (grab.GrabbedNetworkEntity == null)
             return;
         if (grab.GrabbedHost == null)

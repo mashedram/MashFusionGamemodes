@@ -1,5 +1,5 @@
 ﻿using LabFusion.Entities;
-using MashGamemodeLibrary.Player.Spectating.data.Rules;
+using MashGamemodeLibrary.Player.Data.Rules;
 
 namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
