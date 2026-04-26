@@ -30,6 +30,11 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 - Defuse the clock by grabbing it!
 - The spectator system may react incorrectly with some maps and avatars.
 
+<h2 align="center">Work in progress</h2>
+I'm still actively working on this, it has come to a state that I feel confident in letting others outside my friend group play it.
+
+If you have feedback or find bugs, make an issue or DM me on discord: mashedram
+
 <h2 align="center">Credits</h2>
 
 [**Lakatrazz**](https://github.com/Lakatrazz) - For the multiplayer mod, Fusion. \
