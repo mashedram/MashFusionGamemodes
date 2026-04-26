@@ -1,8 +1,10 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
 using LabFusion.Extensions;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
+using UnityEngine.ResourceManagement.Util;
 using Avatar = Il2CppSLZ.VRMK.Avatar;
 
 namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
@@ -10,30 +12,27 @@ namespace MashGamemodeLibrary.Player.Data.Extenders.Visibility.Parts;
 internal class SlotContainerHider
 {
     private GameObject? _art;
-
-    // For some reason SlotContainers are not always set up properly
-    // So we have backup names
-    private static readonly string[] OtherNames =
+    
+    private static readonly string[] HolsterSlotNames = new[]
     {
+        "prop_handGunHolster",
         "prop_pouch",
-        "InventoryAmmoReceiver/Holder"
+        "InventoryAmmoReceiver"
     };
 
     private static GameObject? GetArt(SlotContainer slotContainer)
     {
-        if (slotContainer.art != null)
+        if (slotContainer == null)
+            return null;
+
+        var transform = slotContainer.transform;
+        foreach (var holsterSlotName in HolsterSlotNames)
         {
-            return slotContainer.art;
+            var art = transform.Find(holsterSlotName)?.gameObject;
+            if (art != null)
+                return art;
         }
-
-        foreach (var name in OtherNames)
-        {
-            var art = slotContainer.transform.Find(name);
-            if (art == null) continue;
-
-            return art.gameObject;
-        }
-
+        
         return null;
     }
 

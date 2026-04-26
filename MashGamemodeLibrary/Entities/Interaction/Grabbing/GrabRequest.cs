@@ -13,7 +13,7 @@ public class GrabRequest
     
     public Hand Hand { get; }
     public bool IsValid { get; }
-    public NetworkPlayer NetworkPlayer { get; }
+    public NetworkPlayer NetworkPlayer { get; } = null!;
 
     // Target Data
 

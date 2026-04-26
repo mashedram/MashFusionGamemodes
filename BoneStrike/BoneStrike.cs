@@ -154,7 +154,10 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     protected override void OnRoundEnd(ulong winnerTeamId)
     {
         LocalPlayer.TeleportToPosition(_resetPoint);
-        LeaderboardManager.ShowLeaderboard(_resetPoint);
+        DelayUtilities.InvokeNextFrame(() =>
+        {
+            LeaderboardManager.ShowLeaderboard(_resetPoint);
+        });
 
         Context.IntermissionMusicPlayer.Start();
 

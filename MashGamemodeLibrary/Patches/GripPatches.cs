@@ -4,6 +4,7 @@ using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
 using LabFusion.Grabbables;
+using LabFusion.Utilities;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Entities.Interaction.Grabbing;
 using MashGamemodeLibrary.Player.Helpers;
@@ -26,9 +27,6 @@ public class GripPatches
         if (!Grip.Cache.TryGet(other, out var grip))
             return true;
         
-        if (SpectatorExtender.IsLocalPlayerSpectating())
-            return false;
-        
         var request = new GrabRequest(__instance, grip);
         if (!request.CanGrab())
             return false;
@@ -47,9 +45,6 @@ public class GripPatches
         
         if (!Grip.Cache.TryGet(objectToAttach, out var grip))
             return true;
-        
-        if (SpectatorExtender.IsLocalPlayerSpectating())
-            return false;
         
         var request = new GrabRequest(__instance, grip);
         if (!request.CanGrab())

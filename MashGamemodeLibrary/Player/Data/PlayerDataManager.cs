@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Il2CppSLZ.Marrow;
+using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Rules;
@@ -77,14 +79,10 @@ public static class PlayerDataManager
 
     public static PlayerData? GetLocalPlayerData()
     {
-        if (!NetworkInfo.HasServer)
-            return null;
-        
-        var localPlayer = LocalPlayer.GetNetworkPlayer();
-        if (localPlayer == null)
+        if (PlayerIDManager.LocalID == null)
             return null;
 
-        return GetOrCreatePlayerData(localPlayer.PlayerID);
+        return GetOrCreatePlayerData(PlayerIDManager.LocalSmallID);
     }
 
     public static void ForEachPlayerData(Action<PlayerData> action)

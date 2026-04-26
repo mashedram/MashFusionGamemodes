@@ -37,6 +37,10 @@ public static class PlayerGrabManager
         if (networkEntity == null)
             return true;
         
+        // Check local spectator
+        if (SpectatorExtender.IsLocalPlayerSpectating())
+            return false;
+        
         // Check spectator
         var targetPlayer = grabRequest.GrabbedNetworkEntity?.GetExtender<NetworkPlayer>();
         if (targetPlayer != null && targetPlayer.PlayerID.IsSpectating())
