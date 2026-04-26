@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
     <img src="https://i.imgur.com/3f6JaNE.png" width=256px height=256px>
     <h1>Mash's Gamemode Library</h1>
 </div>
@@ -18,7 +18,7 @@ An extensive library with features related to gamemode creation. My goal was to 
 
 <h2 align="center">Gamemodes</h2>
 
-- [Bonestrike](https://github.com/mashedram/MashFusionGamemodes/tree/master/BoneStrike) - A Counter-Strike inspired gamemode
+- [Bonestrike](https://thunderstore.io/c/bonelab/p/Mash/BoneStrike/) - A Counter-Strike inspired gamemode
 
 <h2 align="center">Work in progress</h2>
 I'm still actively working on this, it has come to a state that I feel confident in letting others outside my friend group play it.

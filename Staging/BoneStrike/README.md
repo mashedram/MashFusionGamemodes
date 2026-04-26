@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
     <img src="https://i.imgur.com/TvTRegQ.png" width=256px height=256px>
     <h1>BoneStrike</h1>
 </div>
@@ -14,7 +14,7 @@ the other team (Lavagang) has to find and defuse the alarm clock before it is to
 <h2 align="center">How to play?</h2>
 
 1. Get your friends together.
-2. Download this mod, the accompanying library and
+2. Download this mod, [the accompanying library](https://thunderstore.io/c/bonelab/p/Mash/MashGamemodeLibrary/) and
    the [SDK mod on MOD.IO](https://mod.io/g/bonelab/m/bonestrike-assets).
 3. Configure your wanted weaponry. Hold a weapon and click on the "Add weapon" button to add the crate it belongs to the
    weapon pool.
