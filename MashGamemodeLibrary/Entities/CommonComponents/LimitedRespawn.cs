@@ -58,7 +58,7 @@ public class LimitedRespawn : IRemoved, IPlayerAttached, IPlayerActionCallback
     public int Respawns { get; private set; }
     public bool IsEliminated { get; private set; }
 
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _owner = networkPlayer;
     }

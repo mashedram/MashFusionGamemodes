@@ -16,7 +16,7 @@ namespace BoneStrike.Tags;
 public class KillEffect : IComponent, IPlayerAttached, IPlayerActionCallback
 {
     private NetworkPlayer? _owner;
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _owner = networkPlayer;
     }

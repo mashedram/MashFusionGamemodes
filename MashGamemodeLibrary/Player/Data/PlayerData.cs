@@ -3,6 +3,7 @@ using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
 using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Data.Events.Callers;

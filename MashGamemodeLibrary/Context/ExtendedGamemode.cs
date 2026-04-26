@@ -6,7 +6,6 @@ using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Context.Helper;
 using MashGamemodeLibrary.Entities.ECS;
-using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
@@ -20,6 +19,7 @@ using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util;
 using UnityEngine;
+using EcsManager = MashGamemodeLibrary.Entities.ECS.EcsManager;
 
 namespace MashGamemodeLibrary.Context;
 
@@ -179,7 +179,7 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
         LogicTeamManager.Disable();
 
         GameObjectExtender.DestroyAll();
-        LocalEcsCache.Clear();
+        EcsManager.Reset();
         NightVisionHelper.Enabled = false;
         
         // PlayerHider.Reset();
@@ -276,7 +276,7 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
 
         InternalGamemodeManager.Update(delta);
         GamePhaseManager.Update(delta);
-        EcsManager.Update(delta);
+        CommonEcsBehaviours.Update(delta);
 
         Context.Update(delta);
         OnUpdate(delta);

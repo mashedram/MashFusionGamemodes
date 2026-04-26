@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using LabFusion.Entities;
 using LabFusion.Scene;
+using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Player.Helpers;
@@ -16,9 +18,9 @@ public static class PlayerGrabManager
     public static GrabPredicateHanlder? GrabPredicate;
     // Caches
 
-    private static readonly IBehaviourCache<IGrabCallback> GrabCallbackCache = BehaviourManager.CreateCache<IGrabCallback>();
-    private static readonly IBehaviourCache<IDropCallback> DropCallbackCache = BehaviourManager.CreateCache<IDropCallback>();
-    private static readonly IBehaviourCache<IGrabPredicate> GrabPredicateCache = BehaviourManager.CreateCache<IGrabPredicate>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IGrabCallback> GrabCallbackCache = BehaviourManager.CreateCache<NetworkEntityAssociation, IGrabCallback>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IDropCallback> DropCallbackCache = BehaviourManager.CreateCache<NetworkEntityAssociation, IDropCallback>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IGrabPredicate> GrabPredicateCache = BehaviourManager.CreateCache<NetworkEntityAssociation, IGrabPredicate>();
     
     // Methods
     

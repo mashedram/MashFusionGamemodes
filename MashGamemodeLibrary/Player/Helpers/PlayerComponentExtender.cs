@@ -71,12 +71,9 @@ public static class PlayerComponentExtender
         return true;
     }
 
-    public static void RemoveComponent<T>(this NetworkPlayer player) where T : IComponent
+    public static void RemoveComponent<T>(this NetworkPlayer player) where T : class, IComponent
     {
-        if (player.NetworkEntity == null)
-            return;
-
-        player.NetworkEntity.RemoveComponent<T>();
+        player.NetworkEntity?.RemoveComponent<T>();
     }
 
     public static void ToggleComponent<T>(this NetworkPlayer player, bool state, Func<T> factory) where T : class, IComponent

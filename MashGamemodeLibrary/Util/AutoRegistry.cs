@@ -3,11 +3,19 @@ using System.Runtime.CompilerServices;
 
 namespace MashGamemodeLibrary.Util;
 
+/// <summary>
+/// Guarantee that if this class is used in a static way, it is initialized at the start of the program.
+/// This avoids the problem of a registry being empty, or a lag spike because of lazy-loading
+/// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public class RequireStaticConstructor : Attribute
 {
 }
 
+/// <summary>
+/// Guarantee that if this field is used in a static way, it is initialized at the start of the program.
+/// This avoids the problem of a registry being empty, or a lag spike because of lazy-loading
+/// </summary>
 public interface IGuaranteeStaticConstructor
 {
 }

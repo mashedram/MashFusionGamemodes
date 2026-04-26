@@ -1,97 +1,213 @@
-﻿using System.Runtime.CompilerServices;
-using LabFusion.Entities;
-using MashGamemodeLibrary.Entities.Behaviour;
-using MashGamemodeLibrary.Entities.ECS.BaseComponents;
-using MashGamemodeLibrary.Entities.ECS.Caches;
-using MashGamemodeLibrary.Entities.ECS.Data;
+﻿using LabFusion.Network;
+using MashGamemodeLibrary.Entities.Association;
+using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
+using MashGamemodeLibrary.Entities.ECS.Instance;
+using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Variable;
+using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
+using MashGamemodeLibrary.Registry.Typed;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.ECS;
 
-public static class EcsManager
+[RequireStaticConstructor]
+public class EcsManager
 {
-    // Internal caches
+    private static readonly Dictionary<EcsIndex, EcsInstance> LocalComponents = new();
+    private static readonly Dictionary<Type, Dictionary<int, HashSet<EcsInstance>>> ComponentLookup = new();
+    private static readonly Dictionary<Type, HashSet<EcsIndex>> EcsIndexLookup = new();
+    
+    internal static readonly FactoryTypedRegistry<IComponent> ComponentRegistry = new();
 
-    private static readonly IBehaviourCache<IEntityAttached> EntityAttachedCache = BehaviourManager.CreateCache<IEntityAttached>();
-    private static readonly IBehaviourCache<IPlayerAttached> PlayerAttachedCache = BehaviourManager.CreateCache<IPlayerAttached>();
-
-    private static readonly IBehaviourCache<IUpdate> UpdateCache = BehaviourManager.CreateCache<IUpdate>();
-    private static readonly IBehaviourCache<IRemoved> RemovedCache = BehaviourManager.CreateCache<IRemoved>();
-
+    private static readonly SyncedDictionary<EcsIndex, IComponent> NetworkComponents =
+        new(
+            "sync.ECS",
+            new InstanceEncoder<EcsIndex>(),
+            new DynamicInstanceEncoder<IComponent>(ComponentRegistry)
+        );
+    
     static EcsManager()
     {
-        EntityAttachedCache.OnAdded += (instance, component) =>
-        {
-            component.OnReady(instance.NetworkEntity, instance.MarrowEntity);
-        };
+        NetworkComponents.OnValueAdded += OnNetworkComponentAdded;
+        NetworkComponents.OnValueRemoved += OnNetworkComponentRemoved;
+    }
+    
+    // Networking
+    
+    private static void OnNetworkComponentAdded(EcsIndex key, IComponent component)
+    {
+        if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+            return;
 
-        PlayerAttachedCache.OnAdded += (instance, component) =>
-        {
-            if (!NetworkPlayerManager.TryGetPlayer((byte)instance.NetworkEntity.ID, out var networkPlayer))
-                return;
-
-            component.OnReady(networkPlayer, instance.MarrowEntity);
-        };
-
-        RemovedCache.OnRemoved += (instance, component) =>
-        {
-            component.OnRemoved();
-        };
+        Add(new EcsInstance(key, component));
     }
 
-    internal static void Update(float delta)
+    private static void OnNetworkComponentRemoved(EcsIndex key, IComponent oldValue)
     {
-        UpdateCache.ForEach(behaviour => behaviour.Update(delta));
+        if (!NetworkInfo.HasServer || NetworkInfo.IsHost)
+            return;
+
+        Remove(key);
     }
 
-    // Public methods
+    // Accessors
 
-    public static void RegisterAll<T>()
+    public static void Add(EcsInstance instance)
     {
-        LocalEcsCache.ComponentRegistry.RegisterAll<T>();
+        var index = instance.Index;
+        // Checks
 
-        // Ensure that all static constructors are run for the registered types, so if they have their own caches, these are also loaded
-        foreach (var allType in LocalEcsCache.ComponentRegistry.GetAllTypes())
+        // TODO : Check back up on this
+        // if (instance.PlayerOnly && index.EntityID.ID > PlayerIDManager.MaxPlayerID)
+        //     throw new Exception($"Failed to add tag meant for players to prop ({instance.Component.GetType().FullName})");
+
+        // Logic
+        if (!LocalComponents.TryAdd(index, instance))
+            return;
+
+        if (index.Association != null)
+            ComponentLookup
+                .GetValueOrCreate(index.Association.GetType())
+                .GetValueOrCreate(index.Association.GetID())
+                .Add(instance);
+        
+        EcsIndexLookup
+            .GetValueOrCreate(instance.ComponentType)
+            .Add(index);
+
+        // Networking
+        if (!instance.IsNetworked)
+            return;
+        
+        Executor.RunIfHost(() =>
         {
-            RuntimeHelpers.RunClassConstructor(allType.TypeHandle);
+            NetworkComponents[index] = instance.Component;
+        });
+    }
+
+    public static void Remove(EcsIndex index)
+    {
+        if (!LocalComponents.Remove(index, out var instance))
+            return;
+
+        instance.Remove();
+
+        EcsIndexLookup.GetValueOrDefault(instance.ComponentType)?.Remove(index);
+        if (index.Association != null)
+            ComponentLookup
+                .GetValueOrDefault(index.Association.GetType())?
+                .GetValueOrDefault(index.Association.GetID())?
+                .Remove(instance);
+        
+        // Always remove on the network to ensure it's not there by accident, even if it's a local component
+        Executor.RunIfHost(() =>
+        {
+            NetworkComponents.Remove(index);
+        });
+    }
+    
+    public static void Add(EcsIndex index, IComponent component)
+    {
+        Add(new EcsInstance(index, component));
+    }
+    
+    public static TComponent? Get<TComponent>(EcsIndex ecsIndex) where TComponent : class, IComponent
+    {
+        if (!LocalComponents.TryGetValue(ecsIndex, out var instance))
+            return null;
+
+        return instance.Component as TComponent;
+    }
+    
+    public static EcsInstance? GetInstance(EcsIndex ecsIndex)
+    {
+        return LocalComponents.GetValueOrDefault(ecsIndex);
+    }
+    
+    public static void Clear(IEcsAssociation association)
+    {
+        if (!ComponentLookup.TryGetValue(association.GetType(), out var associationLookup) ||
+            !associationLookup.TryGetValue(association.GetID(), out var instances))
+            return;
+
+        // Create a copy of the list to avoid modification during enumeration
+        var instancesCopy = instances.ToList();
+        foreach (var instance in instancesCopy)
+        {
+            Remove(instance.Index);
         }
     }
-
-    public static void AddComponent(this NetworkEntity entity, IComponent component)
+    
+    
+    
+    public static IEnumerable<TAssociation> GetAllAssociated<TAssociation>(Type? component = null) where TAssociation : class, IEcsAssociation
     {
-        var index = EcsIndex.Create(entity, component);
-        var instance = new ComponentInstance(index, component);
+        if (!ComponentLookup.TryGetValue(typeof(TAssociation), out var associationLookup))
+            yield break;
 
-        LocalEcsCache.Add(instance);
+        foreach (var (_, instances) in associationLookup)
+        {
+            // If a component filter is provided, check if any instance matches the component type
+            if (component != null && instances.All(i => i.ComponentType != component))
+                continue;
+
+            // Yield the association for the first instance (all instances share the same association)
+            if (instances.FirstOrDefault() is { Index.Association: TAssociation association })
+            {
+                yield return association;
+            }
+        }
     }
-
-    public static void RemoveComponent<T>(this NetworkEntity entity) where T : IComponent
+    
+    public static IEnumerable<EcsIndex> GetAllIndices<TComponent>() where TComponent : IComponent
     {
-        LocalEcsCache.Remove<T>(entity);
+        var componentType = typeof(TComponent);
+        if (!EcsIndexLookup.TryGetValue(componentType, out var indices))
+            yield break;
+
+        foreach (var index in indices)
+        {
+            yield return index;
+        }
     }
-
-    public static void ClearComponents(this NetworkEntity networkEntity)
+    
+    public static IEnumerable<TComponent> GetAll<TComponent>() where TComponent : class, IComponent
     {
-        LocalEcsCache.RemoveAll(networkEntity.ID);
+        var componentType = typeof(TComponent);
+        if (!EcsIndexLookup.TryGetValue(componentType, out var indices))
+            yield break;
+
+        foreach (var index in indices)
+        {
+            if (LocalComponents.TryGetValue(index, out var instance) && instance.Component is TComponent component)
+            {
+                yield return component;
+            }
+        }
     }
-
-    public static T? GetComponent<T>(this NetworkEntity entity) where T : class, IComponent
+    
+    // Global reset and setup
+    public static void RegisterAll<T>()
     {
-        return LocalEcsCache.GetComponent<T>(entity.ID);
+        ComponentRegistry.RegisterAll<T>();
     }
-
-    public static T? GetComponent<T>(ushort entityId) where T : class, IComponent
+    
+    public static void Reset()
     {
-        return LocalEcsCache.GetComponent<T>(entityId);
-    }
+        var indices = LocalComponents.Keys.ToList();
+        foreach (var index in indices)
+        {
+            Remove(index);
+        }
 
-    public static T? GetComponent<T>(byte playerId) where T : class, IComponent
-    {
-        return LocalEcsCache.GetComponent<T>(playerId);
-    }
-
-    public static IEnumerable<ushort> GetEntityIdsWithComponent<T>() where T : IComponent
-    {
-        return LocalEcsCache.GetEntityIdsWithTag<T>();
+        
+        LocalComponents.Clear();
+        ComponentLookup.Clear();
+        EcsIndexLookup.Clear();
+        Executor.RunIfHost(() =>
+        {
+            NetworkComponents.Clear();
+        });
     }
 }

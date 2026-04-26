@@ -4,7 +4,9 @@ using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 namespace MashGamemodeLibrary.Player.Actions;
@@ -19,8 +21,10 @@ public static class PlayerActionManager
 {
     private static readonly Dictionary<Handedness, bool> LastGripStateMap = new();
 
-    private static readonly IBehaviourCache<IPlayerActionCallback> PlayerActionTags = BehaviourManager.CreateCache<IPlayerActionCallback>();
-    private static readonly IBehaviourCache<IPlayerInputCallback> PlayerInputTags = BehaviourManager.CreateCache<IPlayerInputCallback>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IPlayerActionCallback> PlayerActionTags = 
+        BehaviourManager.CreateCache<NetworkEntityAssociation, IPlayerActionCallback>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IPlayerInputCallback> PlayerInputTags = 
+        BehaviourManager.CreateCache<NetworkEntityAssociation, IPlayerInputCallback>();
 
     static PlayerActionManager()
     {

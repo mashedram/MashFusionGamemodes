@@ -1,12 +1,9 @@
-﻿using Il2CppSLZ.Marrow.Interaction;
-using LabFusion.Entities;
+﻿using MashGamemodeLibrary.Entities.Association;
 
-namespace MashGamemodeLibrary.Entities.ECS.Declerations;
+namespace MashGamemodeLibrary.Entities.Behaviour.Cache;
 
 public interface IBehaviourHolder
 {
-    ushort EntityId { get; }
-    NetworkEntity NetworkEntity { get; }
-    MarrowEntity MarrowEntity { get; }
+    EcsIndex Index { get; }
     bool IsReady { get; }
 }

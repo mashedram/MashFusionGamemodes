@@ -21,7 +21,7 @@ public class HiderFinallyMarker : IComponent, IPlayerAttached, IRemoved, IPlayer
     private Poolee? _poolee;
     private MeshRenderer? _renderer;
     
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _target = networkPlayer;
         

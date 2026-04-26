@@ -32,7 +32,7 @@ public class PlayerHandTimerTag : IPlayerAttached, IUpdate, IRemoved
         _getTargetTransform = getter;
     }
 
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _owner = networkPlayer;
         SpawnTimer();

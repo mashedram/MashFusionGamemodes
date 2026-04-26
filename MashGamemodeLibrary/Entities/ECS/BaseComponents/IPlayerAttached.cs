@@ -5,5 +5,5 @@ namespace MashGamemodeLibrary.Entities.ECS.BaseComponents;
 
 public interface IPlayerAttached : IPlayerBehaviour
 {
-    void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity);
+    void OnReady(NetworkPlayer networkPlayer);
 }

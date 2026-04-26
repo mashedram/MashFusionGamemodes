@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Registry.Keyed;
 
-public interface IKeyedRegistry<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+public interface IKeyedRegistry<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IGuaranteeStaticConstructor
     where TKey : notnull
     where TValue : notnull
 {

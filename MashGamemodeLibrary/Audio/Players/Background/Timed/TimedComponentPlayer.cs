@@ -1,14 +1,15 @@
 ﻿using LabFusion.Entities;
 using MashGamemodeLibrary.Audio.Players.Extensions;
+using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using Random = UnityEngine.Random;
 
 namespace MashGamemodeLibrary.Audio.Players.Background.Timed;
 
-public class TimedComponentPlayer<T> : IContinuousPlayer where T : IComponent
+public class TimedComponentPlayer<T> : IContinuousPlayer where T : class, IComponent
 {
-    private readonly Dictionary<ushort, float> _entityTimers;
+    private readonly Dictionary<NetworkEntityAssociation, float> _entityTimers;
 
     private readonly float _maxTimeBetweenPlays;
     private readonly float _minTimeBetweenPlays;
@@ -20,7 +21,7 @@ public class TimedComponentPlayer<T> : IContinuousPlayer where T : IComponent
         _minTimeBetweenPlays = minTimeBetweenPlays;
         _maxTimeBetweenPlays = maxTimeBetweenPlays ?? minTimeBetweenPlays;
 
-        _entityTimers = new Dictionary<ushort, float>();
+        _entityTimers = new Dictionary<NetworkEntityAssociation, float>();
     }
 
     public bool IsActive { get; private set; }
@@ -50,7 +51,7 @@ public class TimedComponentPlayer<T> : IContinuousPlayer where T : IComponent
         _player.Update(delta);
 
         var entities = EcsManager
-            .GetEntityIdsWithComponent<T>()
+            .GetAllAssociated<NetworkEntityAssociation>(typeof(T))
             .ToList();
 
         foreach (var (id, _) in _entityTimers)
@@ -73,7 +74,7 @@ public class TimedComponentPlayer<T> : IContinuousPlayer where T : IComponent
 
             _entityTimers[id] = GetRandomTimeBetweenPlays();
 
-            if (!new NetworkEntityReference(id).TryGetEntity(out var entity))
+            if (!id.NetworkID.TryGetEntity(out var entity))
             {
                 _entityTimers.Remove(id);
                 return;

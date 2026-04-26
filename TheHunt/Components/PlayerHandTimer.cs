@@ -26,7 +26,7 @@ public class PlayerHandTimer : IPlayerAttached, IUpdate, IRemoved
     private Poolee? _timerObject;
     private TextMeshPro? _text;
 
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _owner = networkPlayer;
         SpawnTimer();

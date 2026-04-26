@@ -74,21 +74,6 @@ public static class GameAssetSpawner
             DespawnEffect = true
         });
     }
-
-    public static void DespawnAll<T>() where T : IComponent
-    {
-        Executor.RunIfHost(() =>
-        {
-            foreach (var id in EcsManager.GetEntityIdsWithComponent<T>())
-            {
-                NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
-                {
-                    EntityID = id,
-                    DespawnEffect = true
-                });
-            }
-        });
-    }
     
     // Local
     public static void SpawnLocalAsset(string barcode, Vector3 position, Action<Poolee> callback)

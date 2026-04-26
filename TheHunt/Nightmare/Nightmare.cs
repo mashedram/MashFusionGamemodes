@@ -81,7 +81,7 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         NightmareRegistry.RegisterAll<T>();
     }
     
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _player = networkPlayer;
         CheckNightmare();

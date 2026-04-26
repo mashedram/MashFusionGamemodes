@@ -4,7 +4,9 @@ using Il2CppSLZ.Marrow.Combat;
 using LabFusion.Player;
 using LabFusion.Senders;
 using LabFusion.Utilities;
+using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Util;
 
@@ -20,7 +22,8 @@ public enum PlayerDamageStatistics
 [RequireStaticConstructor]
 public static class PlayerDamageTracker
 {
-    private static readonly IBehaviourCache<IPlayerTakeDamageCallback> DamageCallbacks = BehaviourManager.CreateCache<IPlayerTakeDamageCallback>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IPlayerTakeDamageCallback> DamageCallbacks = 
+        BehaviourManager.CreateCache<NetworkEntityAssociation, IPlayerTakeDamageCallback>();
     private static readonly Dictionary<byte, HashSet<byte>> DamageMarks = new();
 
     static PlayerDamageTracker()

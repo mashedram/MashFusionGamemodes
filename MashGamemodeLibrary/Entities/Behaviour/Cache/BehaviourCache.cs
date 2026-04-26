@@ -1,35 +1,9 @@
-﻿using MashGamemodeLibrary.Entities.Behaviour.Cache;
+﻿using MashGamemodeLibrary.Entities.Association;
 using MashGamemodeLibrary.Entities.Behaviour.Helpers;
-using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Util;
 
-namespace MashGamemodeLibrary.Entities.Behaviour;
-
-public delegate void OnAddedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
-public delegate void OnRemovedDelegate<in TBehaviour>(IBehaviourHolder holder, TBehaviour behaviour);
-
-public interface IBehaviourCache : IGuaranteeStaticConstructor
-{
-    Type Target { get; }
-    BehaviourMember? TryAdd(IBehaviourHolder holder, IBehaviour behaviour);
-    void TryRemove(BehaviourMember member);
-}
-
-public interface IBehaviourCache<TBehaviour> : IBehaviourCache
-    where TBehaviour : IBehaviour
-{
-    public bool Contains(ushort entityId);
-    public void ForEach(ushort entityId, Action<TBehaviour> onEach);
-    public IEnumerable<TBehaviour> GetAll(ushort entityId);
-    void ForEach(Action<TBehaviour> onEach);
-    public IBehaviourHolder? GetHolder(TBehaviour behaviour);
-
-    event OnAddedDelegate<TBehaviour>? OnAdded;
-    event OnRemovedDelegate<TBehaviour>? OnRemoved;
-
-    void ForEach(Action<IBehaviourHolder, TBehaviour> onEach);
-}
+namespace MashGamemodeLibrary.Entities.Behaviour.Cache;
 
 public record HeldBehaviour<TValue>(IBehaviourHolder Holder, TValue Behaviour)
     where TValue : IBehaviour;
@@ -42,9 +16,23 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
 
     public Type Target { get; } = typeof(TBehaviour);
 
-    private readonly Dictionary<ushort, Dictionary<Type, HeldBehaviour<TBehaviour>>> _entityToBehaviourMap = new();
+    // Maps an associations hash to the entities behaviour
     private readonly Dictionary<TBehaviour, IBehaviourHolder> _holderLookup = new();
     private readonly Dictionary<Guid, HeldBehaviour<TBehaviour>> _behaviours = new();
+    
+    // For internal extensions
+    protected virtual void OnAddedInternal(HeldBehaviour<TBehaviour> entry)
+    {
+        OnAdded?.Try(v => v.Invoke(entry.Behaviour));
+    }
+    protected virtual void OnRemovedInternal(HeldBehaviour<TBehaviour> entry)
+    {
+        OnRemoved?.Try(v => v.Invoke(entry.Behaviour));
+    }
+    protected virtual void OnClear()
+    {
+        _behaviours.Clear(kvp => OnRemoved?.Try(v => v.Invoke(kvp.Value.Behaviour)));
+    }
 
     public Guid Add(IBehaviourHolder holder, TBehaviour value)
     {
@@ -52,10 +40,10 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
 
         var key = Guid.NewGuid();
         _behaviours[key] = entry;
-        _entityToBehaviourMap.GetValueOrCreate(holder.EntityId)[entry.Behaviour.GetType()] = entry;
+        // _associationToBehaviourMap.GetValueOrCreate(holder.Guid)[entry.Behaviour.GetType()] = entry;
         _holderLookup[value] = holder;
 
-        OnAdded?.Try(v => v.Invoke(holder, value));
+        OnAddedInternal(entry);
 
         return key;
     }
@@ -64,16 +52,10 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
     {
         if (!_behaviours.Remove(id, out var entry))
             return false;
-
-        if (_entityToBehaviourMap.TryGetValue(entry.Holder.EntityId, out var behaviours))
-        {
-            behaviours.Remove(entry.Behaviour.GetType());
-            if (behaviours.Count == 0)
-                _entityToBehaviourMap.Remove(entry.Holder.EntityId);
-        }
+        
         _holderLookup.Remove(entry.Behaviour);
 
-        OnRemoved?.Try(v => v.Invoke(entry.Holder, entry.Behaviour));
+        OnRemovedInternal(entry);
 
         return true;
     }
@@ -85,37 +67,15 @@ public class BehaviourCache<TBehaviour> : IBehaviourCache<TBehaviour>
             _behaviours.Clear();
             return;
         }
-
-        _behaviours.Clear(kvp => OnRemoved?.Try(v => v.Invoke(kvp.Value.Holder, kvp.Value.Behaviour)));
-        _entityToBehaviourMap.Clear();
+        
+        OnClear();
+        
         _holderLookup.Clear();
     }
 
     private IEnumerable<HeldBehaviour<TBehaviour>> GetReadyEntries()
     {
         return _behaviours.Values.Where(kvp => kvp.Holder.IsReady);
-    }
-
-    public IEnumerable<TBehaviour> GetAll(ushort entityId)
-    {
-        return _entityToBehaviourMap.TryGetValue(entityId, out var set)
-            ? set
-                .Where(kvp => kvp.Value.Holder.IsReady)
-                .Select(kvp => kvp.Value.Behaviour)
-            : Array.Empty<TBehaviour>();
-    }
-
-    public bool Contains(ushort entityId)
-    {
-        return _entityToBehaviourMap.ContainsKey(entityId);
-    }
-
-    public void ForEach(ushort entityId, Action<TBehaviour> onEach)
-    {
-        foreach (var componentsValue in GetAll(entityId))
-        {
-            componentsValue.Try(onEach.Invoke);
-        }
     }
 
     public void ForEach(Action<TBehaviour> onEach)

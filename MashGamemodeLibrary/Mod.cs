@@ -7,7 +7,6 @@ using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.ECS;
-using MashGamemodeLibrary.Entities.ECS.Caches;
 using MashGamemodeLibrary.Entities.ECS.Networking;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Integrations;
@@ -23,6 +22,7 @@ using MashGamemodeLibrary.Player.Team;
 using MashGamemodeLibrary.Util;
 using MelonLoader;
 using MelonLoader.Utils;
+using EcsManager = MashGamemodeLibrary.Entities.ECS.EcsManager;
 #if DEBUG
 using MashGamemodeLibrary.Debug;
 #endif
@@ -76,7 +76,7 @@ public class Mod : MelonMod
     {
         InternalGamemodeManager.Reset();
         
-        LocalEcsCache.Clear();
+        EcsManager.Reset();
         // PlayerGrabManagerDepricated.Reset();
         PlayerDataManager.Clear();
         PlayerGunManager.Reset();

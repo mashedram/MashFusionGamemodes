@@ -8,6 +8,7 @@ using LabFusion.Data;
 using LabFusion.Entities;
 using LabFusion.Extensions;
 using LabFusion.Player;
+using LabFusion.RPC;
 using LabFusion.UI.Popups;
 using LabFusion.Utilities;
 using MashGamemodeLibrary.Context;
@@ -176,8 +177,18 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
-
-        Executor.RunIfHost(GameAssetSpawner.DespawnAll<BombMarker>);
+        
+        foreach (var bombMarker in BombMarker.Query)
+        {
+            if (bombMarker.NetworkEntity == null)
+                continue;
+            
+            NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
+            {
+                DespawnEffect = true,
+                EntityID = bombMarker.NetworkEntity.ID
+            });
+        }
     }
 
     public override void OnLateJoin(PlayerID playerID)

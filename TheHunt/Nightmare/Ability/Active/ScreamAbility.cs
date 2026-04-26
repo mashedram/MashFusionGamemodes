@@ -25,7 +25,7 @@ internal class ScreamMarker : IComponent, IPlayerAttached, IRemoved, IUpdate
     private Poolee? _poolee;
     private float _timer = 10f;
     
-    public void OnReady(NetworkPlayer networkPlayer, MarrowEntity marrowEntity)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _target = networkPlayer;
         

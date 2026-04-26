@@ -1,4 +1,5 @@
-﻿using MashGamemodeLibrary.Entities.Behaviour.Cache;
+﻿using MashGamemodeLibrary.Entities.Association;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
 using MashGamemodeLibrary.Entities.Behaviour.Helpers;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 
@@ -13,6 +14,18 @@ public static class BehaviourManager
     {
         var baseTypes = InheritanceCache.GetBaseTypes(behaviour);
         return baseTypes.Select(baseType => Caches.GetValueOrDefault(baseType)).OfType<IBehaviourCache>();
+    }
+    
+    public static IAssociatedBehaviourCache<TAssociated, TBehaviour> CreateCache<TAssociated, TBehaviour>()
+        where TAssociated : IEcsAssociation
+        where TBehaviour : IBehaviour
+    {
+        if (Caches.TryGetValue(typeof(TBehaviour), out var value))
+            return (IAssociatedBehaviourCache<TAssociated, TBehaviour>)value;
+
+        var newValue = new AssociatedBehaviourCache<TAssociated, TBehaviour>();
+        Caches[typeof(TBehaviour)] = newValue;
+        return newValue;
     }
 
     public static IBehaviourCache<TBehaviour> CreateCache<TBehaviour>()

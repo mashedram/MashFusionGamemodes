@@ -1,7 +1,8 @@
 ﻿using LabFusion.Network.Serialization;
+using MashGamemodeLibrary.Entities.Association;
 using MashGamemodeLibrary.Entities.Behaviour;
-using MashGamemodeLibrary.Entities.ECS.Caches;
-using MashGamemodeLibrary.Entities.ECS.Data;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
+using MashGamemodeLibrary.Entities.ECS.Instance;
 using MashGamemodeLibrary.Networking.Remote;
 using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Util;
@@ -28,7 +29,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
     public void Send(INetworkEvents networkEvents, byte eventIndex, int size, Action<NetWriter> writer)
     {
         var holder = NetworkBehaviourCache.GetHolder(networkEvents);
-        if (holder is not ComponentInstance componentInstance)
+        if (holder is not EcsInstance componentInstance)
         {
             InternalLogger.Debug($"Could not find: {networkEvents.GetType().FullName} in lookup");
             return;
@@ -45,7 +46,7 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
 
     protected override int? GetSize(NetEventCarrier data)
     {
-        return data.EcsIndex.GetSize() + sizeof(byte) + data.Size;
+        return null;
     }
 
     protected override void Write(NetWriter writer, NetEventCarrier data)
@@ -61,14 +62,14 @@ public class ComponentNetworkEventManager : GenericRemoteEvent<NetEventCarrier>
         var index = new EcsIndex();
         index.Serialize(reader);
 
-        var instance = LocalEcsCache.GetComponentInstance(index);
+        var instance = EcsManager.GetInstance(index);
         if (instance == null)
         {
-            InternalLogger.Debug($"Skipping netevent on instance: {index.EntityID.ID}, target not found.");
+            InternalLogger.Debug($"Skipping netevent on instance: {index}, target not found.");
             return;
         }
 
-        if (!instance.TryGetAs<INetworkEvents>(out var eventReceiver))
+        if (!instance.TryCast<INetworkEvents>(out var eventReceiver))
         {
             InternalLogger.Debug($"Received an event for: {instance.Component.GetType().FullName} which does not receive net events.");
             return;
