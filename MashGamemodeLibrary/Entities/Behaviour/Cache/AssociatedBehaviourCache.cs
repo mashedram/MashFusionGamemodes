@@ -40,7 +40,7 @@ public class AssociatedBehaviourCache<TAssociation, TBehaviour> : BehaviourCache
 
     protected override void OnClear()
     {
-        // Fire all the events
+        // Fire all the events before clearing the map
         foreach (var heldBehaviour in _associationToBehaviourMap.SelectMany(keyValuePair => keyValuePair.Value))
         {
             if (heldBehaviour.Value.Holder.Index.Association is not TAssociation association) 

@@ -8,7 +8,7 @@ namespace MashGamemodeLibrary.Entities.Association;
 
 public class EcsIndex : INetSerializable, IEquatable<EcsIndex>
 {
-    private static readonly FactoryTypedRegistry<IEcsAssociation> AssociationRegistry = new();
+    public static readonly FactoryTypedRegistry<IEcsAssociation> AssociationRegistry = new();
 
     private ulong _componentID;
     private IEcsAssociation? _association;

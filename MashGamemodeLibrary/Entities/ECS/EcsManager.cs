@@ -4,6 +4,7 @@ using MashGamemodeLibrary.Entities.Association.Impl;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.ECS.Instance;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Registry.Typed;
@@ -11,10 +12,27 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.ECS;
 
+internal class EcsIndexComparer : IEqualityComparer<EcsIndex>
+{
+    public bool Equals(EcsIndex? x, EcsIndex? y)
+    {
+        if (ReferenceEquals(x, y))
+            return true;
+        if (x is null || y is null)
+            return false;
+
+        return x.Equals(y);
+    }
+    public int GetHashCode(EcsIndex obj)
+    {
+        return HashCode.Combine(obj.ComponentID.GetHashCode(), obj.Association?.GetHashCode() ?? 0);
+    }
+}
+
 [RequireStaticConstructor]
 public class EcsManager
 {
-    private static readonly Dictionary<EcsIndex, EcsInstance> LocalComponents = new();
+    private static readonly Dictionary<EcsIndex, EcsInstance> LocalComponents = new(new EcsIndexComparer());
     private static readonly Dictionary<Type, Dictionary<int, HashSet<EcsInstance>>> ComponentLookup = new();
     private static readonly Dictionary<Type, HashSet<EcsIndex>> EcsIndexLookup = new();
     
@@ -24,7 +42,8 @@ public class EcsManager
         new(
             "sync.ECS",
             new InstanceEncoder<EcsIndex>(),
-            new DynamicInstanceEncoder<IComponent>(ComponentRegistry)
+            new DynamicInstanceEncoder<IComponent>(ComponentRegistry),
+            CommonNetworkRoutes.HostToRemote
         );
     
     static EcsManager()
@@ -190,6 +209,7 @@ public class EcsManager
     // Global reset and setup
     public static void RegisterAll<T>()
     {
+        EcsIndex.AssociationRegistry.RegisterAll<T>();
         ComponentRegistry.RegisterAll<T>();
     }
     

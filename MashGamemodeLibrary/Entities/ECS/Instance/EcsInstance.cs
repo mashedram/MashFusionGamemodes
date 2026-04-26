@@ -58,8 +58,7 @@ public class EcsInstance : IBehaviourHolder
             if (_behaviourMembers != null)
                 BehaviourManager.RemoveAll(_behaviourMembers);
 
-            // TODO
-            // LocalEcsCache.Remove(IndexDepricated);
+            EcsManager.Remove(Index);
 
             IsReady = false;
         }

@@ -1,6 +1,8 @@
 ﻿using Il2CppSLZ.Marrow;
 using LabFusion.Entities;
+using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
 using MashGamemodeLibrary.Patches;
 using MashGamemodeLibrary.Player.Data.Events.Data;
 using MashGamemodeLibrary.Player.Data.Rules.Rules;
@@ -46,7 +48,8 @@ public class LocalInteractionsExtender : IPlayerExtender
         if (_player?.PlayerID is not { IsMe: true })
             return;
 
-        GetOverlayObject().SetActive(!_areInteractionsEnabled);
+        if (!FusionSceneManager.IsLoading())
+            GetOverlayObject().SetActive(!_areInteractionsEnabled);
 
         var rigManager = _player.RigRefs.RigManager;
         if (!_areInteractionsEnabled)

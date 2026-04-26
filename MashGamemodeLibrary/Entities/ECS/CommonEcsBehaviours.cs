@@ -36,7 +36,7 @@ public static class CommonEcsBehaviours
             if (id > PlayerIDManager.MaxPlayerID)
                 return;
             var playerId = (byte)id;
-            if (NetworkPlayerManager.TryGetPlayer(playerId, out var player))
+            if (!NetworkPlayerManager.TryGetPlayer(playerId, out var player))
                 return;
 
             component.OnReady(player);
