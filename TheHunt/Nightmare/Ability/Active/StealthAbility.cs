@@ -87,8 +87,8 @@ public class StealthAbility : IActiveAbility, IUpdatingAbility
             ExitStealth();
     }
 
-    public Handedness Handedness { get; } = Handedness.LEFT;
-    public void UseAbility(NetworkPlayer networkPlayer)
+    public Handedness Handedness => Handedness.LEFT;
+    public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         _isStealthed = true;
         _stealthTimer = Cooldown / 2f;

@@ -1,6 +1,6 @@
     {
     "name": "MashGamemodeLibrary",
-    "version_number": "1.0.2",
+    "version_number": "1.0.5",
     "website_url": "https://github.com/mashedram/MashFusionGamemodes",
     "description": "An extensive library with features related to gamemode creation.",
     "dependencies": [

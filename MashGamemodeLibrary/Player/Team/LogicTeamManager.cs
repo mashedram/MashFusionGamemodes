@@ -111,6 +111,17 @@ public static class LogicTeamManager
 
         return localTeam.GetType() == playerTeam.GetType();
     }
+    
+    public static IEnumerable<(PlayerID playerID, LogicTeam team)> GetAssignedPlayers()
+    {
+        foreach (var kv in AssignedTeams)
+        {
+            if (!NetworkPlayerManager.TryGetPlayer(kv.Key, out var player))
+                continue;
+
+            yield return (player.PlayerID, kv.Value);
+        }
+    }
 
     public static void Assign<T>(this NetworkPlayer player, T team) where T : LogicTeam
     {

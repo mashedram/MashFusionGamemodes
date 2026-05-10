@@ -1,4 +1,5 @@
-﻿using Il2CppSLZ.Marrow;
+﻿using Il2CppSLZ.Graphics2.VRS;
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Audio;
 using LabFusion.Entities;
 using LabFusion.Player;
@@ -49,6 +50,7 @@ public class WindBuffetSFXExtender : IPlayerExtender
         src.outputAudioMixerGroup = Audio3dManager.ambience;
         src.spatialBlend = 1f;
         src.spatialize = true;
+        src.minDistance = 35f;
     }
 
     public void OnPlayerChanged(NetworkPlayer networkPlayer, RigManager rigManager)

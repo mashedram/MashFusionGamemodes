@@ -14,6 +14,8 @@ namespace MashGamemodeLibrary.Entities;
 
 public static class GameAssetSpawner
 {
+    private static readonly List<ushort> SpawnedEntities = new();
+    
     private static Spawnable GetSpawnable(string barcode)
     {
         var spawnable = LocalAssetSpawner.CreateSpawnable(barcode);
@@ -41,6 +43,8 @@ public static class GameAssetSpawner
                     }
                     return;
                 }
+                
+                SpawnedEntities.Add(result.Entity.ID);
 
                 // We're done, no extra behavior
                 if (components.Length == 0)
@@ -60,18 +64,40 @@ public static class GameAssetSpawner
         });
     }
 
-    public static void Despawn(NetworkEntity networkEntity)
+    public static void Despawn(NetworkEntity? networkEntity)
     {
+        if (networkEntity == null)
+            return;
+        
         if (networkEntity.ID <= PlayerIDManager.MaxPlayerID)
         {
             MelonLogger.Error($"Attempted to despawn a player entity: {networkEntity.ID}");
             return;
         }
+        
+        SpawnedEntities.Remove(networkEntity.ID);
 
         NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
         {
             EntityID = networkEntity.ID,
             DespawnEffect = true
+        });
+    }
+
+    public static void DespawnAll()
+    {
+        Executor.RunIfHost(() =>
+        {
+            foreach (var entityID in SpawnedEntities)
+            {
+                NetworkAssetSpawner.Despawn(new NetworkAssetSpawner.DespawnRequestInfo
+                {
+                    EntityID = entityID,
+                    DespawnEffect = false
+                });
+            }
+            
+            SpawnedEntities.Clear();
         });
     }
     

@@ -58,6 +58,8 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
     private float _speedModifier = 1f;
     private float _speedHealDelay = 0f;
     
+    public float SpeedModifier => _speedModifier;
+    
     // Default Constructor for Serialization
     public Nightmare() {}
 
@@ -145,6 +147,13 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
     private void DropIfHoldingPlayer(Hand hand)
     {
         var attached = hand.AttachedReceiver;
+
+        if (attached.IsStatic)
+        {
+            hand.TryDetach();
+            return;
+        }
+        
         var rb = attached?.Host?.Rb;
         if (rb == null) return;
 
@@ -155,7 +164,7 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         if (networkPlayer == null)
             return;
         
-        hand.DetachObject();
+        hand.TryDetach();
     }
     
     public void OnDamageTaken(PlayerID? source)
@@ -222,7 +231,7 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
                 return;
             }
                 
-            activeAbility.UseAbility(_player);
+            activeAbility.UseAbility(this, _player);
             cooldown.Timer = activeAbility.Cooldown;
         }
     }

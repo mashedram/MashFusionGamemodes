@@ -15,16 +15,17 @@ namespace TheHunt.Components;
 
 
 [LocalOnly]
-public class PlayerHandTimer : IPlayerAttached, IUpdate, IRemoved
+public class PlayerHandTimerTag : IPlayerAttached, IUpdate, IRemoved
 {
-    public static readonly CachedQuery<PlayerHandTimer> Query = CachedQueryManager.Create<PlayerHandTimer>();
+    public static readonly CachedQuery<PlayerHandTimerTag> Query = CachedQueryManager.Create<PlayerHandTimerTag>();
 
     private Transform? _compasPointer;
     private bool _isSpawning;
 
     private NetworkPlayer _owner = null!;
-    private Poolee? _timerObject;
+
     private TextMeshPro? _text;
+    private Poolee? _timerObject;
 
     public void OnReady(NetworkPlayer networkPlayer)
     {
@@ -59,15 +60,41 @@ public class PlayerHandTimer : IPlayerAttached, IUpdate, IRemoved
 
         _timerObject.transform.SetPositionAndRotation(position, rotation);
 
+        if (_compasPointer != null)
+        {
+            var targetPosition = (activePhase as IHandTargetProvider)?.GetHandTargetPosition();
+
+            _compasPointer.gameObject.SetActive(targetPosition.HasValue);
+
+            if (targetPosition.HasValue)
+            {
+                var direction = (targetPosition.Value - position).normalized;
+                var projectedDirection = Vector3.ProjectOnPlane(direction, Vector3.up).normalized;
+                var directionAngle = Mathf.Atan2(projectedDirection.x, projectedDirection.z) * Mathf.Rad2Deg;
+
+                var right = leftHand.right;
+                var upDirection = Vector3.ProjectOnPlane((-right + leftHand.up) * 2.5f, Vector3.up).normalized;
+                var compassOffsetAngle = Mathf.Atan2(upDirection.x, upDirection.z) * Mathf.Rad2Deg;
+
+                var isFlipped = (-right).y > 0f;
+
+                var offset = isFlipped ? 180f : 0f;
+                var finalAngle = -directionAngle + compassOffsetAngle + offset;
+                _compasPointer.localEulerAngles = new Vector3(finalAngle, 0f, 0f);
+            }
+        }
+
         if (_text == null)
             return;
 
-        var time = activePhase.Duration - activePhase.ElapsedTime;
+        var timer = (activePhase as IHandTimerProvider)?.GetHandTimer();
+        if (!timer.HasValue)
+        {
+            _text.text = "--:--";
+            return;
+        }
         
-        // Little edge case
-        if (Gamemode.TheHunt.Config.FinallyAlwaysPlays && GamePhaseManager.ActivePhase is HuntPhase)
-            time += Gamemode.TheHunt.Config.FinallyDuration;
-        
+        var time = timer.Value;
         var minutes = Math.Max(Mathf.FloorToInt(time / 60f), 0);
         var seconds = Math.Max(Mathf.FloorToInt(time % 60f), 0);
 

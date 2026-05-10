@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
+using Il2CppSLZ.Combat;
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Combat;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Interaction.Attacking;
 
 namespace MashGamemodeLibrary.Patches;
 
@@ -26,5 +29,21 @@ public static class GunPatches
             return;
 
         PlayerGunManager.OnGunGrabbed(__instance);
+    }
+    
+    [HarmonyPatch(typeof(GenericAttackReceiver), nameof(GenericAttackReceiver.ReceiveAttack))]
+    [HarmonyPrefix] 
+    private static bool ReceiveAttack_Postfix(GenericAttackReceiver __instance, Attack attack)
+    {
+        if (__instance == null )
+            return true;
+
+        AttackManager.ReceiveAttack(__instance, attack);
+
+        // Prevent the patch from capturing an error here
+        if (__instance.AttackEvent == null)
+            return false;
+
+        return true;
     }
 }

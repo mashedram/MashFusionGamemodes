@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using HarmonyLib;
 using Il2CppSLZ.Marrow;
+using LabFusion.Network;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 using MashGamemodeLibrary.Util;
 
@@ -15,6 +16,9 @@ public class ImpactPropertiesPatches
     {
         try
         {
+            if (!NetworkInfo.HasServer)
+                return;
+            
             if (__instance == null)
                 return;
         

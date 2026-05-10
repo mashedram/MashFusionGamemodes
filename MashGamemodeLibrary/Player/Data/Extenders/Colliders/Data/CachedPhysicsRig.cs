@@ -179,6 +179,9 @@ public class CachedPhysicsRig
     {
         // We only want terrain layers
         Physics.IgnoreLayerCollision(SpectatorLayer, BonelabLayers.Default, false);
+        
+        // Some gm_* maps use layer 13 for some reason
+        Physics.IgnoreLayerCollision(SpectatorLayer, 13, false);
 
         // Ignore raycasts, so we don't have to worry about them when we set the rig
 

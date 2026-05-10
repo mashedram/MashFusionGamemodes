@@ -83,7 +83,7 @@ public class ScreamAbility : IActiveAbility
 {
     public Handedness Handedness => Handedness.LEFT;
 
-    public void UseAbility(NetworkPlayer networkPlayer)
+    public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)
             return;

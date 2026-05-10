@@ -6,6 +6,7 @@ using MashGamemodeLibrary.Entities.ECS.Attributes;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Execution;
+using MashGamemodeLibrary.Player.Helpers;
 
 namespace BoneStrike.Tags;
 
@@ -31,6 +32,8 @@ public class KillEffect : IComponent, IPlayerAttached, IPlayerActionCallback
                 return;
 
             if (!_owner.HasRig)
+                return;
+            if (_owner.IsSpectating())
                 return;
 
             var position = _owner.RigRefs.Head.position;

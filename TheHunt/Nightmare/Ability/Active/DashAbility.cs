@@ -7,7 +7,7 @@ namespace TheHunt.Nightmare.Ability.Active;
 public class DashAbility : IActiveAbility
 {
     public Handedness Handedness => Handedness.RIGHT;
-    public void UseAbility(NetworkPlayer networkPlayer)
+    public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)
             return;
@@ -18,7 +18,7 @@ public class DashAbility : IActiveAbility
         var forward = networkPlayer.RigRefs.Head.forward;
         forward.Normalize();
         
-        feet.AddForce(forward * 250f, ForceMode.VelocityChange);
+        feet.AddForce(forward * 250f * nightmare.SpeedModifier, ForceMode.VelocityChange);
     }
     
     public float Cooldown => 8f;

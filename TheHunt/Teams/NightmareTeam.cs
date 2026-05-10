@@ -1,6 +1,7 @@
 ﻿using LabFusion.Entities;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.CommonComponents;
 using MashGamemodeLibrary.Entities.Interaction;
 using MashGamemodeLibrary.Execution;
@@ -15,6 +16,8 @@ namespace TheHunt.Teams;
 
 public class NightmareTeam : LogicTeam
 {
+    private static readonly string ClockBarcode = "SLZ.BONELAB.Content.Spawnable.AlarmClock";
+    
     public override string Name => "Nightmare";
 
     public override void OnPhaseChanged(GamePhase phase)
@@ -35,11 +38,14 @@ public class NightmareTeam : LogicTeam
         {
             Owner.AddComponents(Nightmare.Nightmare.AsRandomNightmare());
             Owner.RemoveComponent<LimitedRespawn>();
+            
+            if (GamePhaseManager.ActivePhase is PlantPhase)
+                GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, Owner.RigRefs.RightHand.palmPositionTransform.position, new ObjectiveItemComponent());
         });
         
         Executor.RunIfMe(Owner.PlayerID, () =>
         {
-            Owner.AddComponent(new PlayerHandTimer());
+            Owner.AddComponent(new PlayerHandTimerTag());
             LocalHealth.MortalityOverride = false;
             
             Notifier.Send(new Notification

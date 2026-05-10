@@ -5,6 +5,7 @@ using LabFusion.Utilities;
 using MashGamemodeLibrary.Config;
 using MashGamemodeLibrary.Config.Menu;
 using MashGamemodeLibrary.Context.Helper;
+using MashGamemodeLibrary.Entities;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Extenders;
 using MashGamemodeLibrary.Entities.Interaction;
@@ -187,6 +188,8 @@ public abstract class ExtendedGamemode<TContext, TConfig> : LabFusion.SDK.Gamemo
         {
             PlayerComponentExtender.ClearPlayerComponents();
             PlayerDataManager.ResetRules();
+            
+            GameAssetSpawner.DespawnAll();
         });
     }
 

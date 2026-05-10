@@ -9,7 +9,6 @@ public interface IActiveAbility : IAbility
     /// <summary>
     /// ONLY CALLED LOCALLY ON THE INPUT SENDER
     /// </summary>
-    /// <param name="networkPlayer"></param>
-    void UseAbility(NetworkPlayer networkPlayer);
+    void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer);
     float Cooldown { get; }
 }

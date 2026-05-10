@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using Il2CppSLZ.Marrow.Interaction;
+using LabFusion.Network;
 using MashGamemodeLibrary.Player.Data.Extenders.Colliders.Caches;
 using MashGamemodeLibrary.Util;
 
@@ -14,6 +15,9 @@ public class MarrowEntityPatches
     {
         try
         {
+            if (!NetworkInfo.HasServer)
+                return;
+            
             if (__instance == null)
                 return;
 
