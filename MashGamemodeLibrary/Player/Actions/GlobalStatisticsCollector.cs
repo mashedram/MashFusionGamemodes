@@ -99,7 +99,7 @@ public static class GlobalStatisticsCollector
 
     internal static void RegisterStatisticKey<T>(T key) where T : Enum
     {
-        var id = key.GetStableHash();
+        var id = key.GetDeterministicHash();
         StatisticKeyIds.Register(key, id);
         StatisticKeys.Register(id, key);
     }

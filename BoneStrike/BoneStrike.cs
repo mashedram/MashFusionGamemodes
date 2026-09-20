@@ -52,9 +52,18 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
     {
         LimitedRespawn.RegisterSpectatePredicate<BoneStrike>(_ =>
         {
-            if (AnyDefusers())
+            // If there are still defusers, the match is still on
+            if (AnyTeam<CounterTerroristTeam>())
                 return true;
 
+            // If there are wildcards but no terrists and counterterrorists, wildcards win.
+            if (AnyTeam<WildCardTeamMembership>() && !AnyTeam<TerroristTeam>())
+            {
+                WinManager.Win<WildCardTeamMembership>();
+                return false;
+            }
+
+            // Terrorists win
             ExplodeAllBombs();
             WinManager.Win<TerroristTeam>();
             return false;
@@ -67,9 +76,12 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
 
         Executor.RunIfHost(() =>
         {
+            // The order is important, see TeamAssignmentPhase
             PersistentTeams.Clear();
             PersistentTeams.AddTeam<TerroristTeam>();
             PersistentTeams.AddTeam<CounterTerroristTeam>();
+            if (Config.WildCardEnabled)
+                PersistentTeams.AddRemainderTeam<WildCardTeamMembership>();
 
             if (Config.ManualTeamAssignment)
             {
@@ -82,6 +94,9 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
                         .Where(p => p.HasRig)
                         .Select(p => p.PlayerID)
                 );
+                if (Config.WildCardEnabled)
+                    PersistentTeams.AssignRemainder();
+                
                 PersistentTeams.RandomizeShift();
                 _hasAssignedTeams = true;
             }
@@ -102,9 +117,6 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         Notifier.CancelAll();
 
         SpawnPointHelper.SetSpawnPoint(_resetPoint);
-
-        LogicTeamManager.Enable<TerroristTeam>();
-        LogicTeamManager.Enable<CounterTerroristTeam>();
 
         Executor.RunIfHost(() =>
         {
@@ -215,7 +227,7 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
             if (GamePhaseManager.ActivePhase is not DefusePhase)
                 return;
 
-            if (AnyDefusers())
+            if (AnyTeam<CounterTerroristTeam>())
                 return;
 
             ExplodeAllBombs();
@@ -255,19 +267,8 @@ public class BoneStrike : ExtendedGamemode<BoneStrikeContext, BoneStrikeConfig>
         }
     }
 
-    internal static bool AnyDefusers()
+    internal static bool AnyTeam<T>() where T : LogicTeam
     {
-        return NetworkPlayer.Players
-            .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<CounterTerroristTeam>() && player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated)
-            );
-    }
-    
-    internal static bool AnyDefenders()
-    {
-        return NetworkPlayer.Players
-            .Any(player =>
-                player.HasRig && player.PlayerID.IsTeam<TerroristTeam>() && player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated)
-            );
+        return LogicTeamManager.AnyAssigned<T>(player => player.HasComponent<LimitedRespawn>(tag => !tag.IsEliminated));
     }
 }

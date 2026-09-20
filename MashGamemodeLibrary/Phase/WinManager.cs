@@ -1,4 +1,6 @@
-﻿using LabFusion.Network.Serialization;
+﻿using LabFusion.Entities;
+using LabFusion.Network.Serialization;
+using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Context;
 using MashGamemodeLibrary.Execution;
@@ -35,14 +37,39 @@ public static class WinManager
         PlayerStatisticsTracker.Register(TeamStatisticKeys.RoundsWon, v => v * 50);
     }
 
+    public static void Win(NetworkPlayer? player)
+    {
+        if (player == null)
+            return;
+        
+        Win(player.PlayerID);
+    }
+
+    public static void Win(PlayerID? playerID)
+    {
+        if (playerID == null)
+            return;
+        
+        var team = LogicTeamManager.GetPlayerTeam(playerID);
+        if (team == null)
+            return;
+        
+        Win(team.GetType());
+    }
+
     public static void Win<T>() where T : LogicTeam
+    {
+        Win(typeof(T));
+    }
+
+    public static void Win(Type teamType)
     {
         Executor.RunIfHost(() =>
         {
             if (!InternalGamemodeManager.InRound)
                 return;
 
-            var id = LogicTeamManager.Registry.CreateID<T>();
+            var id = LogicTeamManager.Registry.CreateID(teamType);
             WinEvent.Call(new WinPacket
             {
                 TeamID = id

@@ -25,7 +25,7 @@ public class HiderTeam : LogicTeam
     {
         Executor.RunIfHost(() =>
         {
-            Owner.ToggleComponent(phase is not HidePhase or PlantPhase, () => new LimitedRespawn(0));
+            Owner.ToggleComponent(phase is not HidePhase, () => new LimitedRespawn(0));
         });
         
         // Run for all

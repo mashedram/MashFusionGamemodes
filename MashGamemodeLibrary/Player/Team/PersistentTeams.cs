@@ -1,4 +1,5 @@
 using LabFusion.Entities;
+using LabFusion.Extensions;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
 using MashGamemodeLibrary.Data.Random;
@@ -31,12 +32,24 @@ public static class PersistentTeams
 
     private static readonly HashSet<PlayerID> LateJoinerQueue = new();
     private static readonly List<ulong> TeamIds = new();
+    private static int? _remainderTeamIndex = null;
 
     private static int _shift = Random.RandomRangeInt(0, 2);
 
     private static ulong GetTeamId(int setIndex)
     {
-        var index = (setIndex + _shift) % TeamIds.Count;
+        // Remainder players don't cycle between matches
+        if (setIndex == _remainderTeamIndex)
+            return TeamIds[setIndex];
+        
+        // Get the team index, subtract 1 from the total if we have a remainder
+        var index = (setIndex + _shift) % (TeamIds.Count - (_remainderTeamIndex == null ? 0 : 1));
+
+        // If the remainder team isn't the last team, it will be selected.
+        // Just increment past it
+        if (index == _remainderTeamIndex)
+            index += 1;
+        
         return TeamIds[index];
     }
 
@@ -45,10 +58,22 @@ public static class PersistentTeams
         TeamIds.Add(id);
     }
 
+    public static void AddRemainderTeam(ulong id)
+    {
+        _remainderTeamIndex = TeamIds.Count;
+        AddTeamID(id);
+    }
+
     public static void AddTeam<T>() where T : LogicTeam
     {
         var id = LogicTeamManager.Registry.CreateID<T>();
         AddTeamID(id);
+    }
+
+    public static void AddRemainderTeam<T>() where T : LogicTeam
+    {
+        var id = LogicTeamManager.Registry.CreateID<T>();
+        AddRemainderTeam(id);
     }
 
     private static void Assign(PlayerID playerID, int index)
@@ -87,6 +112,43 @@ public static class PersistentTeams
                 Assign(playerID, index);
             }
             index = (index + 1) % TeamIds.Count;
+        }
+    }
+
+    public static void AssignRemainder()
+    {
+        if (!_remainderTeamIndex.HasValue)
+            return;
+        
+        var teamSizes = new int[TeamIds.Count];
+        for (var i = 0; i < TeamIds.Count; i++)
+        {
+            teamSizes[i] = PlayerTeamIndices.Count(kvp => kvp.Value == i);
+        }
+
+        var smallestTeam = teamSizes.Where(t => t != _remainderTeamIndex).Min();
+
+        var oversizedTeams = teamSizes.Select(t => t - smallestTeam).ToList();
+        for (var i = 0; i < oversizedTeams.Count; i++)
+        {
+            var oversizedBy = oversizedTeams[i];
+            if (oversizedBy <= 0)
+                return;
+
+            var teamMemberIds = PlayerTeamIndices
+                .Where(kvp => kvp.Value == i)
+                .Select(kvp => kvp.Key)
+                .ToHashSet();
+            for (var j = 0; j < oversizedBy; j++)
+            {
+                if (teamMemberIds.Count <= 0)
+                    break;
+
+                var playerId = teamMemberIds.GetRandom();
+                teamMemberIds.Remove(playerId);
+
+                PlayerTeamIndices[playerId] = _remainderTeamIndex.Value;
+            }
         }
     }
 
@@ -141,9 +203,6 @@ public static class PersistentTeams
         {
             var playerId = PlayerIDManager.GetPlayerID(smallId);
             
-            if (!playerId.IsValid)
-                return;
-            
             playerId.Assign(GetTeamId(teamIndex));
         }
     }
@@ -165,6 +224,7 @@ public static class PersistentTeams
         TeamIds.Clear();
         PlayerTeamIndices.Clear();
         TeamScores.Clear();
+        _remainderTeamIndex = null;
     }
     
     public static int GetTeamIndex(PlayerID playerID)

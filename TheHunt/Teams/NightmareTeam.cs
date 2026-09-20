@@ -27,8 +27,6 @@ public class NightmareTeam : LogicTeam
             var playerLocked = Gamemode.TheHunt.Config.LockNightmare && phase is HidePhase && (Nightmare.Nightmare.LocalNightmare?.LockedDuringHide ?? true);
             LocalControls.LockedMovement = playerLocked;
             LocalVision.Blind = playerLocked && Gamemode.TheHunt.Config.BlindNightmare;
-            
-            
         });
     }
 
@@ -38,9 +36,6 @@ public class NightmareTeam : LogicTeam
         {
             Owner.AddComponents(Nightmare.Nightmare.AsRandomNightmare());
             Owner.RemoveComponent<LimitedRespawn>();
-            
-            if (GamePhaseManager.ActivePhase is PlantPhase)
-                GameAssetSpawner.SpawnNetworkAsset(ClockBarcode, Owner.RigRefs.RightHand.palmPositionTransform.position, new ObjectiveItemComponent());
         });
         
         Executor.RunIfMe(Owner.PlayerID, () =>

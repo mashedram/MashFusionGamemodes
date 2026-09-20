@@ -15,7 +15,7 @@ public class AudioBin
             InternalLogger.Debug($"No fallback audio found for audio tag: {tag}");
 
         Tag = tag;
-        TagHash = tag.GetStableHash();
+        TagHash = tag.GetDeterministicHash();
         _fallbackBarcodes = fallbackBarcodes;
     }
 

@@ -6,7 +6,7 @@ public abstract class EnvironmentState<TContext>
 {
     public EnvironmentState(EnvironmentEffector<TContext>[] effectors)
     {
-        StateHash = (GetType().FullName ?? throw new InvalidOperationException()).GetStableHash();
+        StateHash = (GetType().FullName ?? throw new InvalidOperationException()).GetDeterministicHash();
 
         Effectors = effectors;
     }

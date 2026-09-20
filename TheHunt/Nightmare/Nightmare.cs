@@ -278,6 +278,20 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         {
             ability.OnAdded(_player);
         }
+
+        var descriptionMessage = _abilities
+            .OfType<IActiveAbility>()
+            .Aggregate("You can:\n", (current, ability) => current + $"{ability.Handedness.ToString()}: {ability.Description}\n");
+
+        Notifier.Send(new Notification
+        {
+            Title = $"You are the: {nightmare.Name}",
+            Message = descriptionMessage,
+            PopupLength = 10,
+            SaveToMenu = false,
+            ShowPopup = true,
+            Type = NotificationType.INFORMATION
+        });
     }
 
     private void CheckNightmare()

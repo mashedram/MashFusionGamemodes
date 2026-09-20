@@ -14,7 +14,7 @@ namespace MashGamemodeLibrary.networking.Compatiblity;
 
 internal readonly record struct GamemodeCompatibilityInfo(string GamemodeId, string Version)
 {
-    public ulong Hash { get; } = GamemodeId.GetStableHash() + Version.GetStableHash();
+    public ulong Hash { get; } = GamemodeId.GetDeterministicHash() + Version.GetDeterministicHash();
 }
 
 public class GamemodeHashPacket : INetSerializable, IKnownSenderPacket

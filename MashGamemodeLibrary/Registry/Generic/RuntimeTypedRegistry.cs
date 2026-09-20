@@ -15,7 +15,7 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
 
     public ulong CreateID(Type type)
     {
-        return type.Name.GetStableHash();
+        return type.Name.GetDeterministicHash();
     }
 
     public ulong CreateID<T>() where T : notnull
@@ -25,7 +25,7 @@ public class RuntimeTypedRegistry : KeyedRegistry<ulong, object>, IKeyable<objec
 
     public ulong CreateID(object instance)
     {
-        return instance.GetType().Name.GetStableHash();
+        return instance.GetType().Name.GetDeterministicHash();
     }
 
     public void Register<T>(object value) where T : notnull

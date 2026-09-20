@@ -14,7 +14,7 @@ namespace TheHunt.Phase;
 /// <summary>
 /// The hunt begins
 /// </summary>
-public class HuntPhase : GamePhase, IHandTargetProvider, IHandTimerProvider
+public class HuntPhase : GamePhase, IHandTimerProvider
 {
     private static readonly SyncedVariable<float> ExtendTime = new("HuntPhase.ExtendTime", new FloatEncoder(), 0f);
     public override string Name => "Hunt";
@@ -24,27 +24,8 @@ public class HuntPhase : GamePhase, IHandTargetProvider, IHandTimerProvider
     {
         var config = Gamemode.TheHunt.Config;
         
-        // If we use plant mode and there are no objective items
-        if (config.PlantMode && !ObjectiveItemComponent.Query.Any())
-        {
-            // Initialize escape sequence
-            if (config.FinallyRequiresEscape)
-                return PhaseIdentifier.Of<FinallyPhase>();
-            
-            // Objective secured, hiders win
-            WinManager.Win<HiderTeam>();
-            return PhaseIdentifier.Empty();
-        }
-        
         if (!HasReachedDuration())
             return PhaseIdentifier.Empty();
-
-        if (config.PlantMode && ObjectiveItemComponent.Query.Any())
-        {
-            // Time's up but the objectives hasn't been secured, nightmares win
-            WinManager.Win<NightmareTeam>();
-            return PhaseIdentifier.Empty();
-        }
         
         if (config.FinallyAlwaysPlays)
             return PhaseIdentifier.Of<FinallyPhase>();
@@ -75,20 +56,6 @@ public class HuntPhase : GamePhase, IHandTargetProvider, IHandTimerProvider
         {
             ExtendTime.Value += time;
         });
-    }
-    
-    public Vector3? GetHandTargetPosition()
-    {
-        if (!RigData.HasPlayer)
-            return null;
-
-        if (!Gamemode.TheHunt.Config.PlantMode)
-            return null;
-        
-        var playerPosition = RigData.Refs.RightHand.transform.position;
-        
-        var objectiveItem = ObjectiveItemComponent.Query.MinBy(o => (o.Position - playerPosition).sqrMagnitude);
-        return objectiveItem?.Position;
     }
     
     public float GetHandTimer()

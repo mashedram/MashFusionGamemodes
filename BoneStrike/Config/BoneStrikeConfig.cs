@@ -209,6 +209,9 @@ public class BoneStrikeConfig : IConfig
     [ConfigMenuEntry("Allow Unbalanced Teams", "Teams")] [JsonInclude]
     public bool AllowUnbalancedTeams = false;
 
+    [ConfigMenuEntry("Enable Wildcard", "Teams")] [JsonInclude]
+    public bool WildCardEnabled = false;
+
     public void Serialize(INetSerializer serializer)
     {
         serializer.SerializeValue(ref PlantDuration);
@@ -228,6 +231,7 @@ public class BoneStrikeConfig : IConfig
         serializer.SerializeValue(ref AllowUnbalancedTeams);
         serializer.SerializeValue(ref MarkBombNearEnd);
         serializer.SerializeValue(ref RemoveMovementMods);
+        serializer.SerializeValue(ref WildCardEnabled);
     }
 
     public object Clone()
@@ -253,7 +257,8 @@ public class BoneStrikeConfig : IConfig
             ManualTeamAssignment = ManualTeamAssignment,
             AllowUnbalancedTeams = AllowUnbalancedTeams,
             MarkBombNearEnd = MarkBombNearEnd,
-            RemoveMovementMods = RemoveMovementMods
+            RemoveMovementMods = RemoveMovementMods,
+            WildCardEnabled = WildCardEnabled
         };
     }
 }

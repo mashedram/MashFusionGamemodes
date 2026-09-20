@@ -113,17 +113,6 @@ internal class BarcodeListElement : IConfigElementProvider
 
 public class TheHuntConfig : IConfig
 {
-    [ConfigMenuEntry("Captureable Enabled", "Features")]
-    [JsonInclude]
-    public bool PlantMode = true;
-    [ConfigMenuEntry("Finally requires escape", "Features")]
-    [JsonInclude]
-    public bool FinallyRequiresEscape = true;
-    
-    [ConfigMenuEntry("Plant Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
-    [JsonInclude]
-    public float PlantDuration = 90f;
-    
     [ConfigMenuEntry("Hide Phase Duration", "Time")] [ConfigElementProvider(typeof(SecondsToMinutesElementProvider))] 
     [JsonInclude]
     public float HideDuration = 90f;
@@ -145,15 +134,6 @@ public class TheHuntConfig : IConfig
     [ConfigElementProvider(typeof(TimeAdditionElementProvider))]
     [JsonInclude]
     public float TimeGainOnKill = 60f;
-    
-    [ConfigMenuEntry("Escape time", "Time")]
-    [JsonInclude]
-    public float EscapeTime = 10f;
-    [ConfigMenuEntry("Escape distance", "Time")]
-    [ConfigRangeConstraint(1f, 10f)]
-    [ConfigStepSize(0.5f)]
-    [JsonInclude]
-    public float EscapeDistance = 5f;
         
     [ConfigMenuEntry("Lock Nightmare on Start", "Health")] [JsonInclude]
     public bool LockNightmare = true;
@@ -163,12 +143,6 @@ public class TheHuntConfig : IConfig
     
     [ConfigMenuEntry("Balance Avatar Health", "Health")] [JsonInclude]
     public bool BalanceStats = true;
-    
-    [ConfigMenuEntry("Objective Health", "Health")]
-    [ConfigRangeConstraint(5f, 30f)]
-    [ConfigStepSize(5f)]
-    [JsonInclude]
-    public float ObjectiveHealth = 15f;
     
     [ConfigMenuEntry("Slow nightmare on damage", "Balancing")] 
     [JsonInclude]
@@ -244,15 +218,11 @@ public class TheHuntConfig : IConfig
 
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref PlantMode);
-        serializer.SerializeValue(ref FinallyRequiresEscape);
-        serializer.SerializeValue(ref PlantDuration);
         serializer.SerializeValue(ref HideDuration);
         serializer.SerializeValue(ref HuntDuration);
         serializer.SerializeValue(ref FinallyAlwaysPlays);
         serializer.SerializeValue(ref FinallyDuration);
         serializer.SerializeValue(ref TimeGainOnKill);
-        serializer.SerializeValue(ref ObjectiveHealth);
         serializer.SerializeValue(ref LockNightmare);
         serializer.SerializeValue(ref BlindNightmare);
         serializer.SerializeValue(ref LimitMags);
@@ -272,18 +242,12 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref WeaponItemCrates);
         serializer.SerializeValue(ref DevToolsDisabled);
         serializer.SerializeValue(ref DisableWindSFX);
-        serializer.SerializeValue(ref ObjectiveHealth);
-        serializer.SerializeValue(ref EscapeTime);
-        serializer.SerializeValue(ref EscapeDistance);
     }
     
     public object Clone()
     {
         return new TheHuntConfig
         {
-            PlantMode = PlantMode,
-            FinallyRequiresEscape = FinallyRequiresEscape,
-            PlantDuration = PlantDuration,
             HideDuration = HideDuration,
             HuntDuration = HuntDuration,
             FinallyAlwaysPlays = FinallyAlwaysPlays,
@@ -309,9 +273,6 @@ public class TheHuntConfig : IConfig
             DevToolsDisabled = DevToolsDisabled,
             DisableWindSFX = DisableWindSFX,
             SkipNightmare = SkipNightmare,
-            ObjectiveHealth = ObjectiveHealth,
-            EscapeTime = EscapeTime,
-            EscapeDistance = EscapeDistance
         };
     }
 }

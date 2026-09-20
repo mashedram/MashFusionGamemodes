@@ -50,7 +50,7 @@ public class PlayerVisibility : IPlayerExtender
             _nametagVisibleCache = false;
         } else if (_hideNametagForEnemies && Player is { HasRig: true })
         {
-            _nametagVisibleCache = _visibleForLocalPlayerCache && LogicTeamManager.IsTeamMember(Player.PlayerID);
+            _nametagVisibleCache = _visibleForLocalPlayerCache && Player.PlayerID.IsTeamMember();
         }
         else
         {

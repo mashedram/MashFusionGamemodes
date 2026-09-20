@@ -152,7 +152,7 @@ public class DefusableTag : IEntityAttached, IGrabPredicate, IRemoved, IUpdate, 
 
         if (NetworkInfo.IsHost)
         {
-            WinManager.Win<CounterTerroristTeam>();
+            WinManager.Win(LocalPlayer.GetNetworkPlayer());
         }
         else
         {
@@ -209,11 +209,11 @@ public class DefusableTag : IEntityAttached, IGrabPredicate, IRemoved, IUpdate, 
         if (!playerID.IsValid)
             return;
 
-        if (!playerID.IsTeam<CounterTerroristTeam>())
+        if (playerID.IsTeam<TerroristTeam>())
         {
-            MelonLogger.Warning($"Player {playerID} attempted to defuse but is not on the Counter-Terrorist team.");
+            MelonLogger.Warning($"Player {playerID} attempted to defuse but is not on the Counter-Terrorist or Wildcard team.");
         }
 
-        Executor.RunIfHost(WinManager.Win<CounterTerroristTeam>);
+        WinManager.Win(playerID);
     }
 }

@@ -103,8 +103,6 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 
         Executor.RunIfHost(() =>
         {
-            FinallyPhase.SetEscapePosition(RigData.RigSpawn);
-            
             PlayerDataManager.ModifyAll<PlayerCrippledRule>(playerCrippledRule => playerCrippledRule.IsEnabled = true);
             PlayerDataManager.ModifyAll<SpectatorNightvisionRule>(rule => rule.IsEnabled = Config.SpectatorNightVision);
             PlayerDataManager.ModifyAll<WindBuffetSFXEnabled>(rule => rule.IsEnabled = !Config.DisableWindSFX);
@@ -113,14 +111,7 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
                 rule.AmmunitionLimit = Config.LimitMags ? Config.MagazineCapacity : null;
             });
             
-            if (Config.PlantMode)
-            {
-                GamePhaseManager.Enable<PlantPhase>();
-            }
-            else
-            {
-                GamePhaseManager.Enable<HidePhase>();
-            }
+            GamePhaseManager.Enable<HidePhase>();
             
             // Assign nightmare
             if (!_nightmareQueue.TryDequeue(out var nightmareID))

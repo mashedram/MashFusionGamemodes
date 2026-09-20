@@ -111,6 +111,14 @@ public static class LogicTeamManager
 
         return localTeam.GetType() == playerTeam.GetType();
     }
+
+    public static bool AnyAssigned<T>(Predicate<NetworkPlayer>? predicate = null) where T: LogicTeam
+    {
+        return NetworkPlayer.Players
+            .Any(player =>
+                player.HasRig && player.PlayerID.IsTeam<T>() && (predicate == null || predicate(player))
+            );
+    }
     
     public static IEnumerable<(PlayerID playerID, LogicTeam team)> GetAssignedPlayers()
     {

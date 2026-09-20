@@ -8,6 +8,9 @@ namespace TheHunt.Nightmare.Nightmares.Entity;
 public class EntityAbilityDescriptor : INightmareDescriptor
 {
     public string AvatarBarcode => "fa534c5a83ee4ec6bd641fec424c4142.Avatar.CharTallv4";
+
+    public string Name => "The Entity";
+
     public AvatarStats AvatarStats => new()
     {
         Vitality = 3f,

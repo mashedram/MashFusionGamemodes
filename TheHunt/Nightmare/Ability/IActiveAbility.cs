@@ -5,6 +5,8 @@ namespace TheHunt.Nightmare.Ability;
 
 public interface IActiveAbility : IAbility
 {
+    string Description { get; }
+    
     Handedness Handedness { get; }
     /// <summary>
     /// ONLY CALLED LOCALLY ON THE INPUT SENDER

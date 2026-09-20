@@ -13,7 +13,7 @@ internal class RegisterableAudio
     public RegisterableAudio(string tag, string barcode)
     {
         Tag = tag;
-        TagHash = tag.GetStableHash();
+        TagHash = tag.GetDeterministicHash();
         Barcode = barcode;
     }
 }

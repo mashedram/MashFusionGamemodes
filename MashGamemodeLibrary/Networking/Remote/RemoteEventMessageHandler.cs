@@ -128,7 +128,7 @@ public class RemoteEventMessageHandler : ModuleMessageHandler
 
     public static ulong RegisterEvent<T>(string name, GenericRemoteEvent<T> callback)
     {
-        var eventId = StableHash.Fnv1A64(name);
+        var eventId = DetermenisticHash.Fnv1A64(name);
         EventCallbacks[eventId] = callback.OnPacket;
 #if DEBUG
         EventNames[eventId] = name;

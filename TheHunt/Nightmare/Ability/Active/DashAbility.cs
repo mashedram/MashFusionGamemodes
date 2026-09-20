@@ -7,6 +7,9 @@ namespace TheHunt.Nightmare.Ability.Active;
 public class DashAbility : IActiveAbility
 {
     public Handedness Handedness => Handedness.RIGHT;
+
+    public string Description => "Dash at high speeds";
+
     public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)

@@ -83,6 +83,8 @@ public class ScreamAbility : IActiveAbility
 {
     public Handedness Handedness => Handedness.LEFT;
 
+    public string Description => "Scream to mark enemies";
+
     public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)

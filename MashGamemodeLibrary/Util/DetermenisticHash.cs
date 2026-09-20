@@ -1,6 +1,6 @@
 ﻿namespace MashGamemodeLibrary.Util;
 
-public static class StableHash
+public static class DetermenisticHash
 {
     public static ulong Fnv1A64(string input)
     {
@@ -16,17 +16,17 @@ public static class StableHash
         return hash;
     }
 
-    public static ulong GetStableHash(this string input)
+    public static ulong GetDeterministicHash(this string input)
     {
         return Fnv1A64(input);
     }
 
-    public static ulong GetStableHash(this Type type)
+    public static ulong GetDeterministicHash(this Type type)
     {
         return Fnv1A64(type.AssemblyQualifiedName ?? type.FullName ?? type.Name);
     }
 
-    public static ulong GetStableHash<T>(this T instance) where T : Enum
+    public static ulong GetDeterministicHash<T>(this T instance) where T : Enum
     {
         return Fnv1A64($"{typeof(T).Name}-{instance}");
     }

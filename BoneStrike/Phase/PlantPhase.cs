@@ -65,6 +65,11 @@ public class PlantPhase : GamePhase
         // Assign grip check
         PlayerGrabManager.GrabPredicate = GrabPredicate;
         
+        LogicTeamManager.Enable<TerroristTeam>();
+        LogicTeamManager.Enable<CounterTerroristTeam>();
+        if (BoneStrike.Config.WildCardEnabled)
+            LogicTeamManager.Enable<WildCardTeamMembership>();
+        
         Executor.RunIfHost(() =>
         {
             // Only broadcast on the host to prevent spamming packages

@@ -25,7 +25,7 @@ public class EnvironmentProfile<TInternalContent>
     {
         Name = name;
         _stateLookup = states.ToImmutableDictionary(state =>
-            (state.GetType().FullName ?? throw new InvalidOperationException()).GetStableHash());
+            (state.GetType().FullName ?? throw new InvalidOperationException()).GetDeterministicHash());
         _states = states.ToImmutableSortedSet(new EnvironmentStateComparer<TInternalContent>());
 
         _cleanupAction = cleanupAction;

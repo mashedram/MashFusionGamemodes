@@ -10,6 +10,7 @@ using MashGamemodeLibrary.networking.Validation;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
 using UnityEngine;
+using Random = System.Random;
 
 namespace BoneStrike.Phase;
 
@@ -119,6 +120,8 @@ public class TeamAssignmentPhase : GamePhase
             var sets = new List<PlayerID>[]
             {
                 new(),
+                new(),
+                // Remainder team
                 new()
             };
             foreach (var player in NetworkPlayer.Players)
@@ -129,8 +132,13 @@ public class TeamAssignmentPhase : GamePhase
                 var teamIndex = IsPositionInFrontOfWall(player.RigRefs.Head.position) ? 0 : 1;
                 sets[teamIndex].Add(player.PlayerID);
             }
+            
+            // Get the set with the most players
 
             PersistentTeams.OverwritePlayers(sets);
+            
+            if (BoneStrike.Config.WildCardEnabled)
+                PersistentTeams.AssignRemainder();
         });
 
         if (_poolee == null)

@@ -88,6 +88,8 @@ public static class ConfigManager
         {
             MelonLogger.Error($"Failed to write config for {configType.Name}", exception);
         }
+        
+            
     }
 
     public static void Register<T>() where T : class, IConfig, new()

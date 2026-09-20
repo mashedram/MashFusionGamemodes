@@ -64,7 +64,7 @@ public class SyncedAudioContainer : ISyncedAudioContainer
         var names = _loader.AudioNames;
         foreach (var name in names)
         {
-            var hash = name.GetStableHash();
+            var hash = name.GetDeterministicHash();
             _nameToHash[name] = hash;
             _hashToName[hash] = name;
         }

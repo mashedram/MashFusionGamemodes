@@ -22,7 +22,7 @@ public class PlayerRuleInstance<TRule> : IPlayerRuleInstance where TRule : class
     public PlayerRuleInstance(PlayerData playerData)
     {
         _playerData = playerData;
-        Hash = typeof(TRule).GetStableHash();
+        Hash = typeof(TRule).GetDeterministicHash();
     }
 
     public void Modify(ModifyRuleDelegate modifier)

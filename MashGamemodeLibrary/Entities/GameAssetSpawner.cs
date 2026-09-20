@@ -64,6 +64,11 @@ public static class GameAssetSpawner
         });
     }
 
+    public static void Despawn(Poolee? poolee)
+    {
+        poolee?.Despawn();
+    }
+
     public static void Despawn(NetworkEntity? networkEntity)
     {
         if (networkEntity == null)

@@ -15,7 +15,7 @@ public abstract class TypedRegistry<TInternal, TValue> : KeyedRegistry<ulong, TI
 
     public ulong CreateID(Type type)
     {
-        return type.GetStableHash();
+        return type.GetDeterministicHash();
     }
 
     public ulong CreateID<T>() where T : TValue
