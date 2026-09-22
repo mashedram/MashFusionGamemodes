@@ -3,7 +3,7 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Entities.Queries;
 
-public interface ICachedQuery : IGuaranteeStaticConstructor
+public interface ICachedQuery : IRequireStaticConstructor
 {
     CacheKey? TryAdd(object instance);
     void Remove(CacheKey key);

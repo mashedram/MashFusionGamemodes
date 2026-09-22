@@ -16,7 +16,7 @@ public class RequireStaticConstructor : Attribute
 /// Guarantee that if this field is used in a static way, it is initialized at the start of the program.
 /// This avoids the problem of a registry being empty, or a lag spike because of lazy-loading
 /// </summary>
-public interface IGuaranteeStaticConstructor
+public interface IRequireStaticConstructor
 {
 }
 
@@ -29,7 +29,7 @@ public static class AutoRegistry
             return true;
         
         var fields = type.GetFields();
-        return fields.Select(fieldInfo => fieldInfo.FieldType).Any(fieldType => typeof(IGuaranteeStaticConstructor).IsAssignableFrom(fieldType));
+        return fields.Select(fieldInfo => fieldInfo.FieldType).Any(fieldType => typeof(IRequireStaticConstructor).IsAssignableFrom(fieldType));
     }
 
     internal static void Register(Assembly assembly)

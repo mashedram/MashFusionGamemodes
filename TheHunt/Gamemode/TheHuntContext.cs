@@ -3,6 +3,7 @@ using MashGamemodeLibrary.Audio.Loaders;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Background.Timed;
 using MashGamemodeLibrary.Audio.Players.Callers;
+using MashGamemodeLibrary.Audio.Players.Local;
 using MashGamemodeLibrary.Audio.Players.Object;
 using MashGamemodeLibrary.Audio.Registry;
 using MashGamemodeLibrary.Context;
@@ -25,7 +26,6 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
 
     public static readonly AudioBin HuntHiderAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.HuntMusic",
         "Mash.TheHuntAssets.MonoDisc.TurnedAround",
-        "Mash.TheHuntAssets.MonoDisc.Misremembered",
         "Mash.TheHuntAssets.MonoDisc.NearDarkbythePond"
     );
     
@@ -41,6 +41,10 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
         "Mash.SignalisMonodiscs.MonoDisc.IntensiveCare",
         "Mash.SignalisMonodiscs.MonoDisc.BecameWholeAgain",
         "Mash.SignalisMonodiscs.MonoDisc.Blockwart"
+    );
+    
+    public static readonly AudioBin BlackoutMusicAudioBin = AudioRegistry.CreateBin("MashTags.Music.TheHunt.BlackoutMusic",
+        "Mash.TheHuntAssets.MonoDisc.Misremembered"
     );
 
     public static readonly AudioBin FinallyAudioBin =
@@ -76,4 +80,11 @@ public class TheHuntContext : GameModeContext<TheHuntContext>
         new AudioModifierFactory().AddModifier<AudioSettingsModifier>(modifier =>
             modifier.SetMaxDistance(800f).SetCustomRolloff(AnimationCurve.Linear(0f, 1f, 1f, 0.65f))).AddModifier<MuffleAudioModifier>()));
 
+    // Environment
+    
+    private static readonly AudioBin BlackoutAudioBin = AudioRegistry.CreateBin("MashTags.SFX.TheHunt.Blackout", "Mash.TheHuntAssets.MonoDisc.Blackout");
+    
+    public readonly LocalEnvironmentAudioPlayer BlackoutAudioPlayer = new(new LoadOnDemandContainer(new AudioBinLoader(BlackoutAudioBin)),
+        new AudioModifierFactory()
+    );
 }

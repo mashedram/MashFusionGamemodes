@@ -181,9 +181,14 @@ public static class Executor
         if (!MayExecute<T>())
             return;
 
-        MelonCoroutines.Start(DelayThenInvoke(action, timeout.Seconds));
+        RunInFuture(action, timeout);   
     }
 
+    public static void RunInFuture<T>(T action, TimeSpan timeout) where T : Delegate
+    {
+        MelonCoroutines.Start(DelayThenInvoke(action, timeout.Seconds));
+    }
+    
     // Event Invocation
     
     public static TReturn Try<TReturn>(Func<TReturn> action, TReturn defaultValue)

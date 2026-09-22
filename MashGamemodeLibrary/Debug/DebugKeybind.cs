@@ -1,10 +1,11 @@
-﻿#if DEBUG
+﻿using System.Reflection;
+
+#if DEBUG
 namespace MashGamemodeLibrary.Debug;
 using UnityEngine;
 
 public abstract class DebugKeybind
 {
-    private static bool _isRegistered;
     private static readonly List<DebugKeybind> _keybinds = new();
     private bool _lastKeyState;
     protected abstract KeyCode _key { get; }
@@ -18,12 +19,9 @@ public abstract class DebugKeybind
         keybind._lastKeyState = keyState;
     }
 
-    private static void Register()
+    public static void Register(Assembly assembly)
     {
-        if (_isRegistered) return;
-        _isRegistered = true;
-
-        typeof(DebugKeybind).Assembly.DefinedTypes.Where(t => t.IsSubclassOf(typeof(DebugKeybind)) && !t.IsAbstract)
+        assembly.DefinedTypes.Where(t => t.IsSubclassOf(typeof(DebugKeybind)) && !t.IsAbstract)
             .ToList().ForEach(t =>
             {
                 var instance = (DebugKeybind)Activator.CreateInstance(t)!;
@@ -33,7 +31,6 @@ public abstract class DebugKeybind
 
     public static void UpdateAll()
     {
-        if (!_isRegistered) Register();
         _keybinds.ForEach(Update);
     }
 }

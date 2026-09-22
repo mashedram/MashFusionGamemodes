@@ -3,7 +3,7 @@ using MashGamemodeLibrary.Util;
 
 namespace MashGamemodeLibrary.Registry.Keyed;
 
-public interface IKeyedRegistry<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IGuaranteeStaticConstructor
+public interface IKeyedRegistry<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IRequireStaticConstructor
     where TKey : notnull
     where TValue : notnull
 {

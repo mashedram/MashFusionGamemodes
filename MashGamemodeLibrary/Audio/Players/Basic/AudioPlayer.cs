@@ -3,6 +3,7 @@ using MashGamemodeLibrary.Audio.Containers;
 using MashGamemodeLibrary.Audio.Modifiers;
 using MashGamemodeLibrary.Audio.Players.Basic.Providers;
 using MashGamemodeLibrary.Audio.Players.Extensions;
+using UnityEngine;
 
 namespace MashGamemodeLibrary.Audio.Players.Basic;
 
@@ -20,6 +21,11 @@ public class AudioPlayer : IRandomAudioPlayer
     private IReadOnlyList<string> AudioNames => Container.AudioNames;
 
     public bool IsPlaying => SourceProvider.IsPlaying;
+
+    protected virtual bool Modifier(AudioSource source)
+    {
+        return true;
+    }
 
     /// <summary>
     ///     Update the audio player.
@@ -41,13 +47,17 @@ public class AudioPlayer : IRandomAudioPlayer
         SourceProvider.StopAll();
     }
 
-    public void Play(string name, IAudioModifier? modifier = null)
+    public void Play(string name)
     {
         Container.RequestClip(name, clip =>
         {
             if (!clip) return;
 
             var source = SourceProvider.GetAudioSource();
+            
+            if (!Modifier(source.Source))
+                return;
+            
             source.Play(clip!);
         });
     }

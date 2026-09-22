@@ -77,7 +77,6 @@ public class Mod : MelonMod
         InternalGamemodeManager.Reset();
         
         EcsManager.Reset();
-        // PlayerGrabManagerDepricated.Reset();
         PlayerDataManager.Clear();
         PlayerGunManager.Reset();
         GamemodeCompatibilityChecker.ClearRemoteHashes();
@@ -89,6 +88,10 @@ public class Mod : MelonMod
         RemoteEventMessageHandler.RegisterMod<T>();
         AutoRegistry.Register<T>();
         PlayerData.Register<T>();
+        
+        #if DEBUG
+        DebugKeybind.Register(typeof(T).Assembly);
+        #endif
     }
 
     public static void Register<T>()

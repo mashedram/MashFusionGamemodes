@@ -1,4 +1,5 @@
 ﻿using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.Combat;
 using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Data;
 using LabFusion.Entities;
@@ -167,10 +168,18 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         hand.TryDetach();
     }
     
-    public void OnDamageTaken(PlayerID? source)
+    public void OnDamageTaken(Attack attack, PlayerID? source)
     {
         if (_player == null || _player?.PlayerID?.IsValid != true)
             return;
+        
+        foreach (var ability in _abilities)
+        {
+            if (ability is IOnDamageReceivedAbility onDamageReceivedAbility)
+            {
+                onDamageReceivedAbility.OnDamageReceived( source);
+            }
+        }
         
         Executor.RunIfMe(_player.PlayerID, () =>
         {

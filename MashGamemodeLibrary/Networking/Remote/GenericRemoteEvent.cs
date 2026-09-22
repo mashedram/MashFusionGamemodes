@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace MashGamemodeLibrary.Networking.Remote;
 
-public abstract class GenericRemoteEvent<TData> : IGuaranteeStaticConstructor
+public abstract class GenericRemoteEvent<TData> : IRequireStaticConstructor
 {
     private readonly ulong _assignedId;
     private readonly string _name;

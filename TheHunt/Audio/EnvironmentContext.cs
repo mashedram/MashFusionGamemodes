@@ -3,6 +3,7 @@ using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Team;
 using TheHunt.Gamemode;
 using TheHunt.Phase;
+using TheHunt.Scene;
 using TheHunt.Teams;
 using UnityEngine;
 
@@ -26,6 +27,11 @@ public class EnvironmentContext
     public bool IsPhase<T>() where T : GamePhase
     {
         return GamePhaseManager.IsPhase<T>();
+    }
+
+    public bool IsBlackout()
+    {
+        return LightManager.IsBlackout;
     }
 
     private static bool IsNightmareChasing(NetworkPlayer nightmare, Vector3 localPosition)
