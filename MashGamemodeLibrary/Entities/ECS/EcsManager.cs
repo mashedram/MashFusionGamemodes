@@ -159,7 +159,6 @@ public class EcsManager
     }
     
     
-    
     public static IEnumerable<TAssociation> GetAllAssociated<TAssociation>(Type? component = null) where TAssociation : class, IEcsAssociation
     {
         if (!ComponentLookup.TryGetValue(typeof(TAssociation), out var associationLookup))

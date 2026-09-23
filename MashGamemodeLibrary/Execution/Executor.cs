@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
+using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using MelonLoader;
@@ -79,6 +80,14 @@ public static class Executor
     public static void RunIfMe(PlayerID id, Runnable runnable)
     {
         if (!id.IsMe)
+            return;
+
+        Run(runnable);
+    }
+    
+    public static void RunIfMe(NetworkPlayer player, Runnable runnable)
+    {
+        if (!player.PlayerID.IsMe)
             return;
 
         Run(runnable);

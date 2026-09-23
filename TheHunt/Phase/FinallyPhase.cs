@@ -35,19 +35,6 @@ public class FinallyPhase : GamePhase, IHandTimerProvider
         return PhaseIdentifier.Empty();
     }
     
-    private static void OnEscape(byte senderId)
-    {
-        var playerId = PlayerIDManager.GetPlayerID(senderId);
-        if (playerId == null)
-            return;
-        
-        if (playerId.IsTeam<NightmareTeam>())
-            return;
-        
-        // A player escaped, hiders win
-        WinManager.Win<HiderTeam>();
-    }
-    
     public float GetHandTimer()
     {
         return Duration - ElapsedTime;

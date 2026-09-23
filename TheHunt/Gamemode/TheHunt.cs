@@ -19,7 +19,9 @@ using MashGamemodeLibrary.Player.Stats;
 using MashGamemodeLibrary.Player.Team;
 using TheHunt.Audio;
 using TheHunt.Audio.Hunt;
+using TheHunt.Audio.Modifiers;
 using TheHunt.Config;
+using TheHunt.Modifiers;
 using TheHunt.Nightmare;
 using TheHunt.Phase;
 using TheHunt.Player.Speed;
@@ -153,7 +155,8 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
                 new HuntHiderEnvironmentState(),
                 new HuntNightmareEnvironmentState(),
                 new HidePhaseEnvironmentState(),
-                new FinallyEnvironmentState()
+                new FinallyEnvironmentState(),
+                new BlackoutEnvironmentState()
             }, LocalWeatherManager.ClearLocalWeather));
     }
 
@@ -164,6 +167,8 @@ public class TheHunt : ExtendedGamemode<TheHuntContext, TheHuntConfig>
 
     protected override void OnCleanup()
     {
+        ModifierManager.Clear();
+        
         LocalVision.Blind = false;
         LocalControls.LockedMovement = false;
         LocalControls.DisableInteraction = false;

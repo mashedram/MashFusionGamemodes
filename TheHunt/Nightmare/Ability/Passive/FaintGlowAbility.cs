@@ -1,15 +1,16 @@
 ﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.Extenders;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace TheHunt.Nightmare.Ability.Passive;
 
-public class FaintGlowAbility : IAbility
+public class FaintGlowAbility : IAbility, IPlayerAttached, IRemoved
 {
     private GameObject? _light;
     
-    public void OnAdded(NetworkPlayer networkPlayer)
+    public void OnReady(NetworkPlayer networkPlayer)
     {
         _light = networkPlayer.RigRefs.Head.CreateSafeObject("EntityLight");
         var light = _light.AddComponent<Light>();
@@ -24,7 +25,8 @@ public class FaintGlowAbility : IAbility
         _light.transform.localPosition = Vector3.forward * 0.5f;
         _light.transform.localRotation = Quaternion.identity;
     }
-    public void OnRemoved(NetworkPlayer networkPlayer)
+    
+    public void OnRemoved()
     {
         if (_light == null)
             return;

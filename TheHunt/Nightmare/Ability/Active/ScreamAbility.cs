@@ -79,12 +79,26 @@ public class RoarRequest : IParameterPacket<Vector3>
     }
 }
 
-public class ScreamAbility : IActiveAbility
+public class ScreamAbility : IActiveAbility, INetSerializable
 {
-    public Handedness Handedness => Handedness.LEFT;
+    private float _cooldown;
+    private Handedness _handedness;
+    public Handedness Handedness => _handedness;
 
     public string Description => "Scream to mark enemies";
 
+    public ScreamAbility()
+    {
+        _handedness = Handedness.RIGHT;
+        _cooldown = 30f;
+    }
+    
+    public ScreamAbility(Handedness handedness, float cooldown)
+    {
+        _handedness = handedness;
+        _cooldown = cooldown;
+    }
+    
     public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
         if (!networkPlayer.HasRig)
@@ -93,16 +107,18 @@ public class ScreamAbility : IActiveAbility
         if (!networkPlayer.PlayerID.IsMe)
             return;
 
-        var targetHider = NetworkPlayer.Players
-            .Where(p => p.PlayerID.IsValid && !p.IsSpectating() && p.PlayerID.IsTeam<HiderTeam>())
-            .MaxBy(p => p.DistanceSqr);
-        
-        targetHider?.TryAddComponent(() => new ScreamMarker());
+        var targets = NetworkPlayer.Players
+            .Where(p => p.PlayerID.IsValid && !p.IsSpectating() && p.PlayerID.IsTeam<HiderTeam>());
+
+        foreach (var target in targets)
+        {
+            target?.TryAddComponent(() => new ScreamMarker());
+        } 
 
         var position = networkPlayer.RigRefs.Head.position;
         TheHuntContext.RoarAudioPlayer.PlayRandom(position);
     }
-    public float Cooldown => 30f;
+    public float Cooldown => _cooldown;
 
     public void OnAdded(NetworkPlayer networkPlayer)
     {
@@ -112,5 +128,11 @@ public class ScreamAbility : IActiveAbility
     public void OnRemoved(NetworkPlayer networkPlayer)
     {
         // NO-OP
+    }
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref _handedness);
+        serializer.SerializeValue(ref _cooldown);
     }
 }

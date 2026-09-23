@@ -161,6 +161,10 @@ public class TheHuntConfig : IConfig
     
     [ConfigMenuEntry("Weather Type", "Environment")]
     public WeatherType WeatherType = WeatherType.None;
+    
+    [ConfigMenuEntry("Modifier Count", "Environment")]
+    [ConfigRangeConstraint(0, 10)]
+    public int ModifierCount = 1;
 
     [ConfigMenuEntry("Nightmare Night Vision", "Environment")]
     public bool NightVision = true;
@@ -227,6 +231,7 @@ public class TheHuntConfig : IConfig
         serializer.SerializeValue(ref BlindNightmare);
         serializer.SerializeValue(ref LimitMags);
         serializer.SerializeValue(ref MagazineCapacity);
+        serializer.SerializeValue(ref ModifierCount);
         serializer.SerializeValue(ref WeatherType);
         serializer.SerializeValue(ref SpectatorNightVision);
         serializer.SerializeValue(ref NightVision);
@@ -257,6 +262,7 @@ public class TheHuntConfig : IConfig
             BlindNightmare = BlindNightmare,
             LimitMags = LimitMags,
             MagazineCapacity = MagazineCapacity,
+            ModifierCount = ModifierCount,
             WeatherType = WeatherType,
             NightVision = NightVision,
             SpectatorNightVision = SpectatorNightVision,

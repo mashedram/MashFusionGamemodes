@@ -1,14 +1,29 @@
 ﻿using Il2CppSLZ.Marrow.Interaction;
 using LabFusion.Entities;
+using LabFusion.Network.Serialization;
 using UnityEngine;
 
 namespace TheHunt.Nightmare.Ability.Active;
 
-public class DashAbility : IActiveAbility
+public class DashAbility : IActiveAbility, INetSerializable
 {
-    public Handedness Handedness => Handedness.RIGHT;
+    private float _cooldown;
+    private Handedness _handedness;
+    public Handedness Handedness => _handedness;
 
     public string Description => "Dash at high speeds";
+    
+    public DashAbility()
+    {
+        _handedness = Handedness.RIGHT;
+        _cooldown = 10f;
+    }
+    
+    public DashAbility(Handedness handedness, float cooldown)
+    {
+        _handedness = handedness;
+        _cooldown = cooldown;
+    }
 
     public void UseAbility(Nightmare nightmare, NetworkPlayer networkPlayer)
     {
@@ -21,15 +36,21 @@ public class DashAbility : IActiveAbility
         var forward = networkPlayer.RigRefs.Head.forward;
         forward.Normalize();
         
-        feet.AddForce(forward * 250f * nightmare.SpeedModifier, ForceMode.VelocityChange);
+        feet.AddForce(forward * 250f, ForceMode.VelocityChange);
     }
     
-    public float Cooldown => 8f;
+    public float Cooldown => _cooldown;
     
     public void OnAdded(NetworkPlayer networkPlayer)
     {
     }
     public void OnRemoved(NetworkPlayer networkPlayer)
     {
+    }
+    
+    public void Serialize(INetSerializer serializer)
+    {
+        serializer.SerializeValue(ref _handedness);
+        serializer.SerializeValue(ref _cooldown);
     }
 }

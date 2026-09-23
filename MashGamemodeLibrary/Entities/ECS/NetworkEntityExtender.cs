@@ -21,6 +21,13 @@ public static class NetworkEntityExtender
         EcsManager.Remove(index);
     }
     
+    public static void RemoveComponent(this NetworkEntity entity, IComponent component)
+    {
+        var association = new NetworkEntityAssociation(entity);
+        var index = new EcsIndex(component, association);
+        EcsManager.Remove(index);
+    }
+    
     public static TComponent? GetComponent<TComponent>(this NetworkEntity entity) where TComponent : class, IComponent
     {
         var association = new NetworkEntityAssociation(entity);

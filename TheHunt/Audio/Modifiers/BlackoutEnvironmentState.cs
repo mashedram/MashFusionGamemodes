@@ -1,12 +1,9 @@
 ﻿using MashGamemodeLibrary.Environment;
 using MashGamemodeLibrary.Environment.State;
 using TheHunt.Audio.Effectors.Blackout;
-using TheHunt.Audio.Effectors.Finally;
 using TheHunt.Audio.Effectors.Weather;
-using TheHunt.Phase;
-using TheHunt.Scene;
 
-namespace TheHunt.Audio.Hunt;
+namespace TheHunt.Audio.Modifiers;
 
 public class BlackoutEnvironmentState : EnvironmentState<EnvironmentContext>
 {
@@ -18,7 +15,7 @@ public class BlackoutEnvironmentState : EnvironmentState<EnvironmentContext>
     {
     }
 
-    public override int Priority => 900;
+    public override int Priority => 150;
 
     public override bool CanPlay(EnvironmentContext context)
     {

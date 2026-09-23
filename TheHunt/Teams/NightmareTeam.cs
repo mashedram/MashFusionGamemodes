@@ -36,6 +36,8 @@ public class NightmareTeam : LogicTeam
         {
             Owner.AddComponents(Nightmare.Nightmare.AsRandomNightmare());
             Owner.RemoveComponent<LimitedRespawn>();
+            
+            
         });
         
         Executor.RunIfMe(Owner.PlayerID, () =>

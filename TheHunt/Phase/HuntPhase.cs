@@ -1,11 +1,14 @@
 ﻿using LabFusion.Data;
+using LabFusion.SDK.Gamemodes;
 using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.networking.Variable;
 using MashGamemodeLibrary.networking.Variable.Encoder.Impl;
 using MashGamemodeLibrary.Phase;
+using MashGamemodeLibrary.Player.Team;
 using TheHunt.Components;
+using TheHunt.Modifiers;
 using TheHunt.Teams;
 using UnityEngine;
 
@@ -40,6 +43,16 @@ public class HuntPhase : GamePhase, IHandTimerProvider
         Executor.RunIfHost(() =>
         {
             ExtendTime.Value = 0f;
+
+            var descriptor = Nightmare.Nightmare.Nightmares.FirstOrDefault()?.Descriptor;
+            if (descriptor == null)
+                return;
+            
+            ModifierManager.Randomize(
+                Gamemode.TheHunt.Config.ModifierCount, 
+                descriptor.RequiredModifiers,
+                descriptor.BannedModifiers
+            );
         });
         
         Gamemode.TheHunt.Context.RandomAmbienceAudioPlayer.Start();

@@ -16,7 +16,7 @@ internal class HuntNightmareEnvironmentState : EnvironmentState<EnvironmentConte
     {
     }
 
-    public override int Priority => 120;
+    public override int Priority => 200;
 
     public override bool CanPlay(EnvironmentContext context)
     {

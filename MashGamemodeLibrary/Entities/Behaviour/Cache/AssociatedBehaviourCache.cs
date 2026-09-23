@@ -51,6 +51,17 @@ public class AssociatedBehaviourCache<TAssociation, TBehaviour> : BehaviourCache
         _associationToBehaviourMap.Clear();
     }
 
+    public IEnumerable<(IBehaviourHolder, TBehaviour)> GetAllWithHolder(int entityId)
+    {
+        if (!_associationToBehaviourMap.TryGetValue(entityId, out var behaviourSet))
+            return Array.Empty<(IBehaviourHolder, TBehaviour)>();
+
+        return behaviourSet
+            .Values
+            .Where(value => value.Holder.IsReady)
+            .Select(value => (value.Holder, value.Behaviour));
+    }
+    
     public IEnumerable<TBehaviour> GetAll(int entityId)
     {
         if (!_associationToBehaviourMap.TryGetValue(entityId, out var behaviourSet))
@@ -73,5 +84,13 @@ public class AssociatedBehaviourCache<TAssociation, TBehaviour> : BehaviourCache
         {
             componentsValue.Try(onEach.Invoke);
         }
-    }   
+    }
+
+    public void ForEach(int id, Action<IBehaviourHolder, TBehaviour> onEach)
+    {
+        foreach (var (holder, behaviour) in GetAllWithHolder(id))
+        {
+            onEach.Invoke(holder, behaviour);
+        }
+    }
 }

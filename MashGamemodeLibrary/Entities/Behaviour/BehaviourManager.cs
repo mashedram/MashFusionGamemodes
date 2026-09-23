@@ -16,6 +16,7 @@ public static class BehaviourManager
         return baseTypes.Select(baseType => Caches.GetValueOrDefault(baseType)).OfType<IBehaviourCache>();
     }
     
+    // We don't need to keep track of cache destruction, because a cache is meant to be persistent and global once created
     public static IAssociatedBehaviourCache<TAssociated, TBehaviour> CreateCache<TAssociated, TBehaviour>()
         where TAssociated : IEcsAssociation
         where TBehaviour : IBehaviour

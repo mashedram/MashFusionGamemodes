@@ -34,12 +34,12 @@ public class EnvironmentContext
         return LightManager.IsBlackout;
     }
 
-    private static bool IsNightmareChasing(NetworkPlayer nightmare, Vector3 localPosition)
+    private static bool CanSeePlayer(NetworkPlayer target, Vector3 localPosition)
     {
-        if (!nightmare.HasRig)
+        if (!target.HasRig)
             return false;
 
-        var nightmareHead = nightmare.RigRefs.Head;
+        var nightmareHead = target.RigRefs.Head;
         if (nightmareHead == null)
             return false;
         
@@ -81,8 +81,8 @@ public class EnvironmentContext
             return false;
         
         var localPosition = context.LocalPlayer.RigRefs.Head.position;
-        var shouldBeChasing = NetworkPlayer.Players.Any(player => player.PlayerID.IsTeam<NightmareTeam>() &&
-                                                                  IsNightmareChasing(player, localPosition));
+        var shouldBeChasing = NetworkPlayer.Players.Any(player => !player.PlayerID.IsTeamMember() &&
+                                                                  CanSeePlayer(player, localPosition));
         
         // Increase or decrease the timer based on whether we should be chasing
         _chaseTimer = shouldBeChasing ? 

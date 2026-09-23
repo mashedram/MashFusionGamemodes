@@ -8,9 +8,14 @@ using LabFusion.Marrow.Extenders;
 using LabFusion.Network.Serialization;
 using LabFusion.Player;
 using LabFusion.UI.Popups;
+using MashGamemodeLibrary.Entities.Association.Impl;
+using MashGamemodeLibrary.Entities.Behaviour;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
+using MashGamemodeLibrary.Entities.ECS;
 using MashGamemodeLibrary.Entities.ECS.BaseComponents;
 using MashGamemodeLibrary.Entities.ECS.Declerations;
 using MashGamemodeLibrary.Entities.Interaction;
+using MashGamemodeLibrary.Entities.Queries;
 using MashGamemodeLibrary.Execution;
 using MashGamemodeLibrary.Phase;
 using MashGamemodeLibrary.Player.Actions;
@@ -39,27 +44,26 @@ internal class AbilityCooldownTimer
     }
 }
 
-public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayerInputCallback, IPlayerTakeDamageCallback, INetSerializable
+public class Nightmare : IPlayerAttached, IRemoved, IUpdate, IPlayerInputCallback, INetSerializable
 {
     private static readonly FactoryTypedRegistry<INightmareDescriptor> NightmareRegistry = new FactoryTypedRegistry<INightmareDescriptor>();
     public static INightmareDescriptor? LocalNightmare { get; private set; }
     private ulong _networkedNightmare;
+    
+    // Association
+    public static readonly CachedQuery<Nightmare> Nightmares = CachedQueryManager.Create<Nightmare>();
+    private static readonly IAssociatedBehaviourCache<NetworkEntityAssociation, IAbility> AbilityCache = 
+        BehaviourManager.CreateCache<NetworkEntityAssociation, IAbility>();
     
     // Player component
     private NetworkPlayer? _player;
     
     // The nightmare that is currently applied with the component
     private ActiveNightmare? _activeNightmare = null;
+    public INightmareDescriptor? Descriptor => _activeNightmare?.NightmareDescriptor;
     
     // Loaded abilities
-    private readonly List<IAbility> _abilities = new List<IAbility>();
-    private readonly Dictionary<IAbility, AbilityCooldownTimer> _abilityCooldowns = new Dictionary<IAbility, AbilityCooldownTimer>();
-    
-    // Speed penalty
-    private float _speedModifier = 1f;
-    private float _speedHealDelay = 0f;
-    
-    public float SpeedModifier => _speedModifier;
+    private readonly Dictionary<IActiveAbility, AbilityCooldownTimer> _abilityCooldowns = new Dictionary<IActiveAbility, AbilityCooldownTimer>();
     
     // Default Constructor for Serialization
     public Nightmare() {}
@@ -108,11 +112,7 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
             NightVisionHelper.Enabled = false;
         }
         
-        foreach (var ability in _abilities)
-        {
-            ability.OnRemoved(_player);
-        }
-        _abilities.Clear();
+        PurgeAbilities();
     }
     
     public void Update(float delta)
@@ -130,85 +130,8 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         {
             abilityCooldownsValue.Timer -= delta;
         }
-        
-        if (_speedHealDelay > 0f)
-        {
-            _speedHealDelay -= delta;
-            return;
-        }
-
-        // Heal speed penalty over time
-        if (_speedModifier >= 1f)
-            return;
-        
-        _speedModifier += delta / _activeNightmare.Value.NightmareDescriptor.SpeedPenaltyDuration;
-        LocalSpeed.SpeedModifier = _speedModifier;
-    }
-
-    private void DropIfHoldingPlayer(Hand hand)
-    {
-        var attached = hand.AttachedReceiver;
-
-        if (attached.IsStatic)
-        {
-            hand.TryDetach();
-            return;
-        }
-        
-        var rb = attached?.Host?.Rb;
-        if (rb == null) return;
-
-        if (!MarrowBody.Cache.TryGet(rb.gameObject, out var body)) return;
-        if (!MarrowBodyExtender.Cache.TryGet(body, out var entity)) return;
-
-        var networkPlayer = entity.GetExtender<NetworkPlayer>();
-        if (networkPlayer == null)
-            return;
-        
-        hand.TryDetach();
     }
     
-    public void OnDamageTaken(Attack attack, PlayerID? source)
-    {
-        if (_player == null || _player?.PlayerID?.IsValid != true)
-            return;
-        
-        foreach (var ability in _abilities)
-        {
-            if (ability is IOnDamageReceivedAbility onDamageReceivedAbility)
-            {
-                onDamageReceivedAbility.OnDamageReceived( source);
-            }
-        }
-        
-        Executor.RunIfMe(_player.PlayerID, () =>
-        {
-            if (source == null)
-                return;
-        
-            if (!_activeNightmare.HasValue)
-                return;
-        
-            if (!source.IsTeam<HiderTeam>())
-                return;
-
-            var descriptor = _activeNightmare.Value.NightmareDescriptor;
-            _speedModifier = MathF.Max(_speedModifier - descriptor.SpeedPenaltyPerShot, descriptor.MinimumSpeed);
-            _speedHealDelay = descriptor.SpeedPenaltyHealDelay;
-            LocalSpeed.SpeedModifier = _speedModifier;
-
-            // If we can drop players on max damage
-            if (!Gamemode.TheHunt.Config.DropPlayer)
-                return;
-        
-            if (_speedModifier > descriptor.MinimumSpeed) 
-                return;
-        
-            DropIfHoldingPlayer(RigData.Refs.LeftHand);
-            DropIfHoldingPlayer(RigData.Refs.RightHand);
-        });
-    }
-
     public void OnInput(PlayerInputType type, bool state, Handedness handedness)
     {
         if (_player == null || _player?.PlayerID?.IsValid != true)
@@ -223,10 +146,11 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         if (type != PlayerInputType.Ability) 
             return;
         
-        foreach (var activeAbility in _abilities.OfType<IActiveAbility>())
+        foreach (var activeAbility in GetAbilities().OfType<IActiveAbility>())
         {
-            if (activeAbility.Handedness != handedness)
+            if (activeAbility.Handedness != handedness && activeAbility.Handedness == Handedness.BOTH)
                 continue;
+            
             var cooldown = _abilityCooldowns.GetValueOrCreate(activeAbility, () => new AbilityCooldownTimer());
             if (cooldown.Timer > 0f)
             {
@@ -243,6 +167,44 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
             activeAbility.UseAbility(this, _player);
             cooldown.Timer = activeAbility.Cooldown;
         }
+    }
+    
+    private IEnumerable<IAbility> GetAbilities()
+    {
+        if (_player == null || _player?.PlayerID?.IsValid != true)
+            return Enumerable.Empty<IAbility>();
+        
+        return AbilityCache.GetAll(_player.PlayerID.SmallID);
+    }
+
+    private void PurgeAbilities()
+    {
+        if (_player == null)
+            return;
+
+        Executor.RunIfHost(() =>
+        {
+            AbilityCache
+                .ForEach(_player.PlayerID.SmallID, (holder, ability) =>
+                {
+                    EcsManager.Remove(holder.Index); 
+                });
+        });
+    }
+
+    private void AssignAbilities(INightmareDescriptor nightmare)
+    {
+        Executor.RunIfHost(() =>
+        {
+            if (_player == null)
+                return;
+
+            PurgeAbilities();
+            foreach (var component in nightmare.AbilityFactories)
+            {
+                _player.AddComponent(component());
+            }
+        });
     }
 
     // NOT NETWORKED
@@ -277,29 +239,23 @@ public class Nightmare : IComponent, IPlayerAttached, IRemoved, IUpdate, IPlayer
         }
         
         // Remove old abilities
-        foreach (var ability in _abilities)
+        AssignAbilities(nightmare);
+        
+        Executor.RunIfMe(_player, () =>
         {
-            ability.OnRemoved(_player);
-        }
-        _abilities.Clear();
-        _abilities.AddRange(nightmare.Abilities);
-        foreach (var ability in _abilities)
-        {
-            ability.OnAdded(_player);
-        }
+            var descriptionMessage = GetAbilities()
+                .OfType<IActiveAbility>()
+                .Aggregate("You can:\n", (current, ability) => current + $"{ability.Handedness.ToString()}: {ability.Description}\n");
 
-        var descriptionMessage = _abilities
-            .OfType<IActiveAbility>()
-            .Aggregate("You can:\n", (current, ability) => current + $"{ability.Handedness.ToString()}: {ability.Description}\n");
-
-        Notifier.Send(new Notification
-        {
-            Title = $"You are the: {nightmare.Name}",
-            Message = descriptionMessage,
-            PopupLength = 10,
-            SaveToMenu = false,
-            ShowPopup = true,
-            Type = NotificationType.INFORMATION
+            Notifier.Send(new Notification
+            {
+                Title = $"You are the: {nightmare.Name}",
+                Message = descriptionMessage,
+                PopupLength = 10,
+                SaveToMenu = false,
+                ShowPopup = true,
+                Type = NotificationType.INFORMATION
+            });
         });
     }
 

@@ -38,7 +38,7 @@ public static class PlayerDamageTracker
     }
     private static void OnDamagedSelf(Attack attack, PlayerDamageReceiver.BodyPart bodyPart, PlayerID damager)
     {
-        DamageCallbacks.ForEach(PlayerIDManager.LocalSmallID, p => p.OnDamageTaken(damager));
+        DamageCallbacks.ForEach(PlayerIDManager.LocalSmallID, p => p.OnDamageTaken(attack, damager));
     }
 
     public static void Reset()

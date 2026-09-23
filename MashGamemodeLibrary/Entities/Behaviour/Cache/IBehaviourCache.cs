@@ -30,7 +30,7 @@ public interface IBehaviourCache<TBehaviour> : IBehaviourCache
 public delegate void OnAssociatedAddedDelegate<in TAssociation, in TBehaviour>(TAssociation association, TBehaviour behaviour);
 public delegate void OnAssociatedRemovedDelegate<in TAssociation, in TBehaviour>(TAssociation association, TBehaviour behaviour);
 
-public interface IAssociatedBehaviourCache<out TAssociation, TBehaviour> : IBehaviourCache<TBehaviour>
+public interface IAssociatedBehaviourCache<TAssociation, TBehaviour> : IBehaviourCache<TBehaviour>
     where TBehaviour : IBehaviour
     where TAssociation : IEcsAssociation
 {
@@ -38,6 +38,8 @@ public interface IAssociatedBehaviourCache<out TAssociation, TBehaviour> : IBeha
     new event OnAssociatedRemovedDelegate<TAssociation, TBehaviour>? OnRemoved;
     
     public bool Contains(int id);
-    public void ForEach(int id, Action<TBehaviour> onEach);
     public IEnumerable<TBehaviour> GetAll(int id);
+    public IEnumerable<(IBehaviourHolder, TBehaviour)> GetAllWithHolder(int entityId);
+    public void ForEach(int id, Action<IBehaviourHolder, TBehaviour> onEach);
+    public void ForEach(int id, Action<TBehaviour> onEach);
 }

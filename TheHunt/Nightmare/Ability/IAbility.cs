@@ -1,9 +1,10 @@
 ﻿using LabFusion.Entities;
+using MashGamemodeLibrary.Entities.Behaviour.Cache;
+using MashGamemodeLibrary.Entities.ECS.Declerations;
 
 namespace TheHunt.Nightmare.Ability;
 
-public interface IAbility
+public interface IAbility : IBehaviour, IComponent
 {
-    void OnAdded(NetworkPlayer networkPlayer);
-    void OnRemoved(NetworkPlayer networkPlayer);
+    // Marker for ability components
 }
